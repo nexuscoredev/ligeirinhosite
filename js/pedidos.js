@@ -122,73 +122,55 @@
         grid.innerHTML = items.map(({ product, categoryName }) => productCard(product, categoryName)).join('');
     };
 
-    const chipClasses = (active) =>
-        active
-            ? 'catalog-filter-chip bg-vibrant-orange/15 border-vibrant-orange text-vibrant-orange'
-            : 'catalog-filter-chip border-surface-variant/40 text-on-surface-variant hover:border-vibrant-orange/35 hover:text-on-surface';
-
-    const renderFilters = () => {
-        const allActive = activeCategories.size === 0;
-
-        if (filtersEl) {
-            filtersEl.innerHTML = `
-<button type="button" class="catalog-filter-all col-span-2 px-2 py-2 rounded-md border text-[12px] font-medium transition-colors ${chipClasses(allActive)}" data-active="${allActive}">
-                    Todas (${catalog.totalProducts})
-                </button>
-${catalog.categories
-    .map((cat) => {
-        const active = activeCategories.has(cat.id);
-        return `<button type="button" class="catalog-filter px-2 py-1.5 rounded-md border text-left transition-colors ${chipClasses(active)}" data-value="${cat.id}" title="${escapeHtml(cat.name)}" data-active="${active}">
-<span class="block text-[11px] leading-tight line-clamp-2">${escapeHtml(cat.name)}</span>
-<span class="block text-[10px] opacity-70 mt-0.5">${cat.products.length}</span>
-</button>`;
-    })
-    .join('')}`;
-
-            const allBtn = filtersEl.querySelector('.catalog-filter-all');
-            const catBtns = filtersEl.querySelectorAll('.catalog-filter');
-
-            allBtn?.addEventListener('click', () => {
-                activeCategories.clear();
-                renderFilters();
-                renderProducts();
-            });
-
-            catBtns.forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const id = btn.dataset.value;
-                    if (activeCategories.has(id)) {
-                        activeCategories.delete(id);
-                    } else {
-                        activeCategories.add(id);
-                    }
-                    renderFilters();
-                    renderProducts();
-                });
-            });
-        }
-
-        if (filtersMobileSelect) {
-            const current =
-                activeCategories.size === 1 ? [...activeCategories][0] : '';
-            filtersMobileSelect.innerHTML = `<option value="">Todas as categorias (${catalog.totalProducts})</option>${catalog.categories
-                .map(
-                    (cat) =>
-                        `<option value="${cat.id}">${escapeHtml(cat.name)} (${cat.products.length})</option>`
-                )
-                .join('')}`;
-            filtersMobileSelect.value = current;
-        }
+    const categoryOptionsHtml = () => {
+        const options = catalog.categories
+            .map(
+                (cat) =>
+                    `<option value="${cat.id}">${escapeHtml(cat.name)} (${cat.products.length})</option>`
+            )
+            .join('');
+        return `<option value="">Todas as categorias (${catalog.totalProducts})</option>${options}`;
     };
 
-    filtersMobileSelect?.addEventListener('change', () => {
+    const selectedCategoryId = () =>
+        activeCategories.size === 1 ? [...activeCategories][0] : '';
+
+    const applyCategoryFilter = (categoryId) => {
         activeCategories.clear();
-        if (filtersMobileSelect.value) {
-            activeCategories.add(filtersMobileSelect.value);
+        if (categoryId) {
+            activeCategories.add(categoryId);
         }
         renderFilters();
         renderProducts();
-    });
+        const count = getFilteredProducts().length;
+        if (categoryId) {
+            const label = catalog.categories.find((c) => c.id === categoryId)?.name;
+            if (label) {
+                statsEl.textContent = `Categoria: ${label} — ${count} produto(s)`;
+                return;
+            }
+        }
+        statsEl.textContent = `Mostrando ${count} de ${catalog.totalProducts} produtos`;
+    };
+
+    const renderFilters = () => {
+        if (!catalog) return;
+        const html = categoryOptionsHtml();
+        const value = selectedCategoryId();
+
+        [filtersEl, filtersMobileSelect].forEach((el) => {
+            if (!el) return;
+            el.innerHTML = html;
+            el.value = value;
+        });
+    };
+
+    const onCategorySelectChange = (e) => {
+        applyCategoryFilter(e.target.value);
+    };
+
+    filtersEl?.addEventListener('change', onCategorySelectChange);
+    filtersMobileSelect?.addEventListener('change', onCategorySelectChange);
 
     grid.addEventListener('click', (e) => {
         const btn = e.target.closest('.catalog-add-btn');
@@ -218,16 +200,11 @@ ${catalog.categories
             catalog = data;
             const categoriaParam = new URLSearchParams(window.location.search).get('categoria');
             if (categoriaParam && data.categories.some((c) => c.id === categoriaParam)) {
-                activeCategories.add(categoriaParam);
-            }
-            renderFilters();
-            renderProducts();
-            if (categoriaParam && activeCategories.has(categoriaParam)) {
-                const label = data.categories.find((c) => c.id === categoriaParam)?.name;
-                if (label) {
-                    statsEl.textContent = `Categoria: ${label} — ${getFilteredProducts().length} produto(s)`;
-                }
+                applyCategoryFilter(categoriaParam);
                 grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                renderFilters();
+                renderProducts();
             }
         })
         .catch(() => {

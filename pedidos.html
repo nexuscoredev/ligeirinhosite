@@ -124,10 +124,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #FF6B00;
         }
-        .catalog-filter-chip {
-            word-break: break-word;
-            hyphens: auto;
-        }
     </style>
 </head>
 <body data-page="pedidos" class="bg-deep-black text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-vibrant-orange selection:text-deep-black">
@@ -143,10 +139,12 @@
 </div>
 <!-- Categories -->
 <div class="bg-surface-gray rounded-xl p-4 border border-surface-variant/50 min-w-0">
-<h3 class="font-headline-md text-[15px] text-gold-accent mb-3">Categorias</h3>
-<div id="catalog-filters" class="grid grid-cols-2 gap-1.5 w-full min-w-0">
-<p class="col-span-2 text-on-surface-variant text-xs">Carregando…</p>
-</div>
+<label class="block">
+<span class="font-headline-md text-[15px] text-gold-accent mb-2 block">Categorias</span>
+<select id="catalog-filters" class="w-full bg-deep-black border border-surface-variant rounded-lg text-on-surface text-sm py-2.5 px-3 focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange">
+<option value="">Carregando…</option>
+</select>
+</label>
 </div>
 </aside>
 <!-- Product Grid -->
