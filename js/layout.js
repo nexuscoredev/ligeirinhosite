@@ -60,7 +60,7 @@
     const navHtml = `<nav class="font-nav-bar bg-deep-black/90 backdrop-blur-xl dark:bg-deep-black/90 docked full-width top-0 sticky z-50 border-b border-surface-variant/30 shadow-lg shadow-vibrant-orange/5">
 <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-3.5 max-w-container-max mx-auto">
 <a class="font-nav nav-brand text-gold-accent flex items-center gap-2.5 group" href="index.html">
-<img alt="" src="img/ligeirinhologo.png" class="h-8 w-8 object-contain group-hover:rotate-12 transition-transform" width="32" height="32">
+<img alt="" src="img/ligeirinhologo.png" class="h-10 w-10 object-contain group-hover:rotate-12 transition-transform" width="40" height="40">
                 Ligeirinho Bebidas
             </a>
 <div class="hidden md:flex items-center gap-8">

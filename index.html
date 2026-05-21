@@ -131,6 +131,58 @@
         .catalog-tile img {
             filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
         }
+        .catalog-bento {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+        @media (min-width: 768px) {
+            .catalog-bento {
+                grid-template-columns: repeat(3, 1fr);
+                grid-auto-rows: minmax(8.75rem, 9.25rem);
+            }
+            .catalog-tile--feature {
+                grid-column: span 2;
+                grid-row: span 2;
+            }
+            .catalog-tile--banner {
+                grid-column: 1 / -1;
+            }
+        }
+        .catalog-tile__shade {
+            position: absolute;
+            inset: 0;
+            background: rgba(20, 20, 20, 0.55);
+            transition: background 0.35s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .catalog-tile:hover .catalog-tile__shade,
+        .catalog-tile:focus-visible .catalog-tile__shade {
+            background: rgba(20, 20, 20, 0.15);
+        }
+        .catalog-tile__media {
+            transition: transform 0.45s ease;
+        }
+        .catalog-tile:hover .catalog-tile__media,
+        .catalog-tile:focus-visible .catalog-tile__media {
+            transform: scale(1.04);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .catalog-tile__shade,
+            .catalog-tile__media,
+            .catalog-tile {
+                transition: none !important;
+            }
+            .catalog-tile:hover .catalog-tile__media,
+            .catalog-tile:focus-visible .catalog-tile__media {
+                transform: none;
+            }
+        }
+        .catalog-chips {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 107, 0, 0.4) transparent;
+        }
         .hero-stat {
             position: relative;
             overflow: hidden;
@@ -177,12 +229,12 @@
 <section class="relative w-full px-margin-mobile md:px-margin-desktop py-8 md:py-10 overflow-hidden bg-pattern">
 <div class="absolute top-1/3 left-1/4 w-64 h-64 bg-vibrant-orange/10 rounded-full blur-[80px] pointer-events-none"></div>
 <div class="absolute top-1/4 right-1/4 w-56 h-56 bg-gold-accent/10 rounded-full blur-[70px] pointer-events-none"></div>
-<div class="max-w-container-max mx-auto w-full grid grid-cols-1 md:grid-cols-[minmax(10rem,12rem)_1fr] lg:grid-cols-[minmax(11rem,13rem)_1fr] gap-4 md:gap-8 items-center relative z-10">
-<!-- Logo compacto (desktop; no mobile o logo já está na navbar) -->
-<div class="hidden md:flex justify-center md:justify-start order-2 md:order-1">
-<div class="glass-panel p-3 md:p-4 rounded-xl relative w-[9.5rem] md:w-[11.5rem] shrink-0 shadow-xl shadow-black/40 hover:scale-[1.02] transition-transform duration-300">
-<div class="absolute inset-0 bg-gradient-to-tr from-vibrant-orange/5 to-gold-accent/5 rounded-xl pointer-events-none"></div>
-<img alt="Ligeirinho Bebidas" class="relative z-10 w-full h-auto max-h-28 md:max-h-32 object-contain drop-shadow-lg" src="img/ligeirinhologo.png" width="160" height="160">
+<div class="max-w-container-max mx-auto w-full grid grid-cols-1 md:grid-cols-[minmax(14rem,18rem)_1fr] lg:grid-cols-[minmax(15rem,20rem)_1fr] gap-4 md:gap-8 items-center relative z-10">
+<!-- Logo hero -->
+<div class="flex justify-center md:justify-start order-2 md:order-1">
+<div class="glass-panel p-4 md:p-6 rounded-2xl relative w-[11rem] sm:w-[13rem] md:w-[16rem] lg:w-[18rem] shrink-0 shadow-xl shadow-black/40 hover:scale-[1.02] transition-transform duration-300">
+<div class="absolute inset-0 bg-gradient-to-tr from-vibrant-orange/5 to-gold-accent/5 rounded-2xl pointer-events-none"></div>
+<img alt="Ligeirinho Bebidas" class="relative z-10 w-full h-auto max-h-36 sm:max-h-40 md:max-h-48 lg:max-h-52 object-contain drop-shadow-lg" src="img/ligeirinhologo.png" width="288" height="288">
 </div>
 </div>
 <!-- Conteúdo -->
@@ -234,72 +286,73 @@
 </div>
 </div>
 </section>
-<!-- Catálogo — atalhos para Pedidos -->
-<section id="catalogo" class="w-full px-margin-mobile md:px-margin-desktop py-14 md:py-16 bg-surface-container-lowest">
+<!-- Categorias — bento compacto -->
+<section id="catalogo" class="w-full px-margin-mobile md:px-margin-desktop py-12 md:py-16 bg-surface-container-lowest" aria-labelledby="catalogo-heading">
 <div class="max-w-container-max mx-auto">
-<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 md:mb-8 gap-4">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 md:mb-7">
 <div class="max-w-xl">
-<h2 class="font-headline-lg text-headline-lg text-on-surface">Monte seu pedido no <span class="text-gold-accent">catálogo</span></h2>
-<p class="font-body-md text-body-md text-on-surface-variant mt-2">Escolha os produtos, adicione ao carrinho e envie tudo pronto pelo WhatsApp. Mais de 180 itens com preço atualizado.</p>
+<h2 id="catalogo-heading" class="font-headline-lg text-headline-lg text-on-surface">Explore o <span class="text-gold-accent">Catálogo</span></h2>
+<p class="font-body-md text-sm md:text-body-md text-on-surface-variant mt-1.5">Tudo para churrasco, festa, conveniência ou dia a dia — escolha, monte o carrinho e envie pelo WhatsApp.</p>
 </div>
-<a class="bg-vibrant-orange text-deep-black font-headline-md text-[16px] py-3 px-6 rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2 glow-hover shrink-0 w-full md:w-auto" href="pedidos.html">
-                        Abrir catálogo completo
-                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+<a class="text-vibrant-orange hover:text-gold-accent font-label-caps text-[11px] uppercase tracking-wider inline-flex items-center gap-1 min-h-[44px] shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange rounded px-1" href="pedidos.html">
+                        Ver todas <span class="material-symbols-outlined text-[18px]" aria-hidden="true">chevron_right</span>
 </a>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[220px]">
-<a class="catalog-tile md:col-span-2 md:row-span-2 glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=cervejas">
+<div class="catalog-bento" role="list">
+<a class="catalog-tile catalog-tile--feature glass-panel rounded-xl overflow-hidden relative group block min-h-[10.5rem] md:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=cervejas" role="listitem" aria-label="Cervejas geladas — 32 produtos">
 <div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
-<div class="absolute inset-0 flex items-center justify-center p-8 pt-12 z-[5] group-hover:scale-105 transition-transform duration-500">
-<img alt="Cerveja Heineken 330ml" class="max-h-[70%] max-w-[85%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210180607_gwjieubx17e.webp" loading="lazy" decoding="async">
+<div class="catalog-tile__shade"></div>
+<div class="absolute inset-0 flex items-center justify-center p-5 md:p-6 pt-8 z-[5] catalog-tile__media">
+<img alt="" class="max-h-[62%] md:max-h-[68%] max-w-[82%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210180607_gwjieubx17e.webp" loading="lazy" decoding="async" width="320" height="320">
 </div>
-<div class="absolute bottom-0 left-0 right-0 p-6 z-20 bg-gradient-to-t from-deep-black via-deep-black/90 to-transparent">
-<span class="inline-block bg-status-green/20 text-status-green border border-status-green/30 font-label-caps text-[10px] px-2 py-1 rounded mb-2">32 produtos</span>
-<h3 class="font-headline-md text-headline-md text-white group-hover:text-gold-accent transition-colors">Cervejas</h3>
-<p class="font-body-md text-sm text-on-surface-variant mt-1">Heineken, Brahma, Skol, Corona e mais</p>
-<span class="inline-flex items-center gap-1 text-vibrant-orange font-label-caps text-[11px] mt-3 uppercase tracking-wider group-hover:gap-2 transition-all">Ver cervejas <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
+<div class="absolute bottom-0 left-0 right-0 p-4 md:p-5 z-20 bg-gradient-to-t from-deep-black via-deep-black/92 to-transparent">
+<span class="inline-block bg-status-green/20 text-status-green border border-status-green/30 font-label-caps text-[10px] px-2 py-0.5 rounded mb-1.5">GELADA</span>
+<h3 class="font-headline-md text-[20px] md:text-headline-md text-white group-hover:text-gold-accent transition-colors">Cervejas</h3>
+<p class="text-xs md:text-sm text-on-surface-variant mt-0.5 leading-snug">Heineken, Brahma, Skol, Corona e mais</p>
 </div>
 </a>
-<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=whiskys">
+<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block min-h-[8.75rem] md:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=destilados" role="listitem" aria-label="Destilados — cachaça, conhaque e mais">
 <div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
-<div class="absolute inset-0 flex items-center justify-center p-6 z-[5] group-hover:scale-105 transition-transform duration-500">
-<img alt="Whisky Jack Daniel's 1L" class="max-h-[75%] max-w-[90%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202304112236_wjpwps5p0m.webp" loading="lazy" decoding="async">
+<div class="catalog-tile__shade"></div>
+<div class="absolute inset-0 flex items-center justify-center p-4 z-[5] catalog-tile__media">
+<img alt="" class="max-h-[72%] max-w-[88%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202304112236_wjpwps5p0m.webp" loading="lazy" decoding="async" width="200" height="200">
 </div>
-<div class="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-deep-black to-transparent">
-<h3 class="font-headline-md text-[18px] text-white group-hover:text-vibrant-orange transition-colors">Whiskys</h3>
-<p class="font-body-md text-xs text-on-surface-variant mt-0.5">10 produtos</p>
+<div class="absolute bottom-0 left-0 right-0 p-3.5 z-20 bg-gradient-to-t from-deep-black to-transparent">
+<h3 class="font-headline-md text-[17px] text-white group-hover:text-vibrant-orange transition-colors">Destilados</h3>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Whisky, vodka, cachaça…</p>
 </div>
 </a>
-<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=refrigerantes-sucos">
+<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block min-h-[8.75rem] md:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=refrigerantes-sucos" role="listitem" aria-label="Refrigerantes e sucos">
 <div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
-<div class="absolute inset-0 flex items-center justify-center p-6 z-[5] group-hover:scale-105 transition-transform duration-500">
-<img alt="Coca-Cola Original 350ml" class="max-h-[75%] max-w-[90%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210190340_0zsv41vq6o7i.webp" loading="lazy" decoding="async">
+<div class="catalog-tile__shade"></div>
+<div class="absolute inset-0 flex items-center justify-center p-4 z-[5] catalog-tile__media">
+<img alt="" class="max-h-[72%] max-w-[88%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210190340_0zsv41vq6o7i.webp" loading="lazy" decoding="async" width="200" height="200">
 </div>
-<div class="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-deep-black to-transparent">
-<h3 class="font-headline-md text-[18px] text-white group-hover:text-gold-accent transition-colors">Refrigerantes</h3>
-<p class="font-body-md text-xs text-on-surface-variant mt-0.5">Coca, Fanta, Guaraná…</p>
-</div>
-</a>
-<a class="catalog-tile md:col-span-3 glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange bg-gradient-brand" href="pedidos.html?categoria=combos">
-<div class="absolute inset-0 bg-gradient-to-r from-deep-black/95 via-deep-black/70 to-deep-black/95 z-10"></div>
-<div class="absolute inset-0 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 p-6 z-[5]">
-<img alt="Combo Jack Daniel's com Red Bull" class="h-28 md:h-36 w-auto object-contain group-hover:scale-105 transition-transform duration-500" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/-1714669187247blob.webp" loading="lazy" decoding="async">
-<div class="text-center md:text-left">
-<span class="material-symbols-outlined text-[32px] text-gold-accent mb-1">local_fire_department</span>
-<h3 class="font-headline-md text-[22px] text-white mb-1 group-hover:text-vibrant-orange transition-colors">Combos prontos</h3>
-<p class="font-body-md text-sm text-on-surface-variant max-w-md">Whisky, gin ou destilado + energético, gelo e copos — ideal para sua resenha.</p>
-<span class="inline-flex items-center gap-1 text-vibrant-orange font-label-caps text-[11px] mt-3 uppercase tracking-wider">Ver combos <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
-</div>
+<div class="absolute bottom-0 left-0 right-0 p-3.5 z-20 bg-gradient-to-t from-deep-black to-transparent">
+<h3 class="font-headline-md text-[15px] md:text-[17px] leading-tight text-white group-hover:text-gold-accent transition-colors">Refrigerantes e energéticos</h3>
+<p class="text-[11px] text-on-surface-variant mt-0.5">Coca, Fanta, Red Bull, Monster…</p>
 </div>
 </a>
+<a class="catalog-tile catalog-tile--banner glass-panel rounded-xl overflow-hidden relative group block min-h-[7.5rem] md:min-h-0 bg-gradient-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=combos" role="listitem" aria-label="Combos especiais prontos para resenha">
+<div class="absolute inset-0 bg-gradient-to-r from-deep-black/95 via-deep-black/75 to-deep-black/95 z-[2]"></div>
+<div class="catalog-tile__shade opacity-60"></div>
+<div class="absolute inset-0 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 p-4 sm:p-5 z-[5]">
+<img alt="" class="h-16 sm:h-20 w-auto object-contain catalog-tile__media shrink-0" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/-1714669187247blob.webp" loading="lazy" decoding="async" width="160" height="160">
+<div class="text-center sm:text-left relative z-[1]">
+<span class="material-symbols-outlined text-[28px] text-gold-accent" aria-hidden="true">local_fire_department</span>
+<h3 class="font-headline-md text-[18px] sm:text-[20px] text-white mt-0.5 group-hover:text-vibrant-orange transition-colors">Combos especiais</h3>
+<p class="text-xs sm:text-sm text-on-surface-variant max-w-md mt-0.5 leading-snug">Kits para churrasco, resenha e comemorações — destilado, energético, gelo e copos.</p>
 </div>
-<p class="font-body-md text-sm text-on-surface-variant/80 mt-6 text-center md:text-left">
-                        Também temos <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=energeticos">energéticos</a>,
-                        <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=destilados">destilados</a>,
-                        <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=gin-s">gin</a>,
-                        <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=vinhos">vinhos</a> e mais — tudo em
-                        <a class="text-gold-accent hover:underline font-medium" href="pedidos.html">Pedidos</a>.
-                    </p>
+</div>
+</a>
+</div>
+<nav class="catalog-chips flex flex-wrap sm:flex-nowrap gap-2 mt-4 overflow-x-auto pb-1 -mx-0.5 px-0.5" aria-label="Mais categorias do catálogo">
+<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=whiskys">Whiskys</a>
+<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=energeticos">Energéticos</a>
+<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=gin-s">Gin</a>
+<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=vinhos">Vinhos</a>
+<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-vibrant-orange/40 bg-vibrant-orange/10 text-vibrant-orange text-xs font-semibold hover:bg-vibrant-orange/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html">Catálogo completo</a>
+</nav>
 </div>
 </section>
 <!-- Diferenciais -->
