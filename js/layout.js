@@ -53,8 +53,8 @@ ${navLinksHtml}
         'font-body-lg text-body-lg text-on-surface hover:text-vibrant-orange transition-colors flex items-center gap-2.5 py-1';
     const footerIcon =
         'text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 p-2 rounded-full hover:bg-surface-variant/30';
-    const footerLinkIcon = 'text-[20px]';
-    const iconFill = "style=\"font-variation-settings: 'FILL' 1;\"";
+    const brandIcon = (file, sizeClass = 'h-6 w-6') =>
+        `<img src="img/${file}" alt="" class="${sizeClass} object-contain shrink-0" width="24" height="24" loading="lazy">`;
 
     const footerHtml = `<footer class="bg-deep-black dark:bg-deep-black full-width bg-surface-container-lowest border-t border-surface-variant/20 flat no shadows mt-auto">
 <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
@@ -67,22 +67,22 @@ ${navLinksHtml}
                     Sua distribuidora de bebidas com rapidez, variedade e atendimento de confiança.
                 </p>
 <div class="flex gap-2 mt-2">
-<a class="${footerIcon}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><span class="material-symbols-outlined text-[22px]" ${iconFill}>chat</span></a>
-<a class="${footerIcon}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span class="material-symbols-outlined text-[22px]" ${iconFill}>photo_camera</span></a>
-<a class="${footerIcon}" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" aria-label="Localização"><span class="material-symbols-outlined text-[22px]" ${iconFill}>location_on</span></a>
+<a class="${footerIcon}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">${brandIcon('icon-whatsapp.svg')}</a>
+<a class="${footerIcon}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">${brandIcon('icon-instagram.svg')}</a>
+<a class="${footerIcon}" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" aria-label="Google Maps">${brandIcon('icon-google-maps.svg')}</a>
 </div>
 </div>
 <div class="flex flex-col gap-2 md:gap-3">
 <h4 class="${footerHeading}">Fale conosco</h4>
-<a class="${footerLink}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>chat</span>WhatsApp</a>
-<a class="${footerLink}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>photo_camera</span>Instagram</a>
+<a class="${footerLink}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">${brandIcon('icon-whatsapp.svg', 'h-5 w-5')}WhatsApp</a>
+<a class="${footerLink}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer">${brandIcon('icon-instagram.svg', 'h-5 w-5')}Instagram</a>
 </div>
 <div class="flex flex-col gap-2 md:gap-3">
 <h4 class="${footerHeading}">Encontre-nos</h4>
 <p class="font-body-md text-body-md text-on-surface-variant max-w-xs">Estr. do Campo Limpo, 2083<br>Vila Prel — São Paulo, SP<br>CEP: 05777-001</p>
 <p class="font-body-md text-body-md text-on-surface-variant">Segunda a sábado: 08h às 20h<br>Domingo: 08h às 14h</p>
 <a class="${footerLink}" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">
-<span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>location_on</span>
+${brandIcon('icon-google-maps.svg', 'h-5 w-5')}
                     Como chegar
                 </a>
 </div>
