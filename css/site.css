@@ -1,0 +1,52 @@
+body {
+    background-color: #080808;
+    color: #e5e2e1;
+}
+
+.glass-panel {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.text-gradient-brand {
+    background: linear-gradient(90deg, #ff6b00 0%, #d4af37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.bg-gradient-brand {
+    background: linear-gradient(135deg, rgba(255, 107, 0, 0.1) 0%, rgba(212, 175, 55, 0.05) 100%);
+}
+
+.glow-hover:hover {
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
+}
+
+.bg-pattern {
+    background-image: radial-gradient(rgba(212, 175, 55, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+.product-card:hover .product-glow {
+    opacity: 1;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #080808;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #353534;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ff6b00;
+}
