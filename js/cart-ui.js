@@ -48,6 +48,25 @@
     let panel;
     let sheet;
     let cartApi;
+    let scrollLockY = 0;
+
+    const lockBodyScroll = () => {
+        scrollLockY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollLockY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.overflow = 'hidden';
+    };
+
+    const unlockBodyScroll = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollLockY);
+    };
 
     const formatPrice = (value) => {
         if (value == null || Number.isNaN(value)) return '—';
@@ -161,7 +180,11 @@
         panel?.classList.remove('flex');
         sheet?.classList.add('hidden');
         sheet?.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+        if (document.body.style.position === 'fixed') {
+            unlockBodyScroll();
+        } else {
+            document.body.style.overflow = '';
+        }
     };
 
     const open = () => {
@@ -177,7 +200,7 @@
             panel.classList.remove('flex');
             sheet.classList.remove('hidden');
             sheet.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
+            lockBodyScroll();
         }
     };
 

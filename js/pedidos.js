@@ -36,7 +36,21 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
 
-    const addToCart = (product) => {
+    const announceCartAdd = (productName) => {
+        let live = document.getElementById('cart-live-region');
+        if (!live) {
+            live = document.createElement('div');
+            live.id = 'cart-live-region';
+            live.setAttribute('aria-live', 'polite');
+            live.setAttribute('aria-atomic', 'true');
+            live.className =
+                'absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0';
+            document.body.appendChild(live);
+        }
+        live.textContent = `${productName} adicionado ao carrinho. Abra o carrinho no menu para revisar.`;
+    };
+
+    const addToCart = (product, triggerBtn) => {
         const cart = cartApi.loadCart();
         if (!cart[product.id]) {
             cart[product.id] = {
@@ -49,8 +63,15 @@
         cart[product.id].qty += 1;
         saveCart(cart);
         cartUi?.render();
-        cartUi?.open();
         updateNavCartBadge();
+        announceCartAdd(product.name);
+
+        if (triggerBtn) {
+            triggerBtn.classList.add('ring-2', 'ring-gold-accent', 'scale-110');
+            window.setTimeout(() => {
+                triggerBtn.classList.remove('ring-2', 'ring-gold-accent', 'scale-110');
+            }, 450);
+        }
     };
 
     const productCard = (product, categoryName) => {
@@ -117,9 +138,11 @@
     };
 
     const renderProducts = () => {
+        const scrollY = window.scrollY;
         const items = sortItems(getFilteredProducts());
         statsEl.textContent = `Mostrando ${items.length} de ${catalog.totalProducts} produtos`;
         grid.innerHTML = items.map(({ product, categoryName }) => productCard(product, categoryName)).join('');
+        window.scrollTo(0, scrollY);
     };
 
     const formatCategoryLabel = (name) =>
@@ -230,7 +253,7 @@
         const btn = e.target.closest('.catalog-add-btn');
         if (!btn || !catalog) return;
         const product = productById(btn.dataset.productId);
-        if (product) addToCart(product);
+        if (product) addToCart(product, btn);
     });
 
     searchInputs.forEach((input) => {
@@ -256,7 +279,11 @@
             const categoriaParam = new URLSearchParams(window.location.search).get('categoria');
             if (categoriaParam && data.categories.some((c) => c.id === categoriaParam)) {
                 applyCategoryFilter(categoriaParam);
-                grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                grid.scrollIntoView({
+                    behavior: reduceMotion ? 'auto' : 'smooth',
+                    block: 'start',
+                });
             } else {
                 renderProducts();
             }
