@@ -122,31 +122,76 @@
         grid.innerHTML = items.map(({ product, categoryName }) => productCard(product, categoryName)).join('');
     };
 
-    const categoryOptionsHtml = () => {
-        const options = catalog.categories
-            .map(
-                (cat) =>
-                    `<option value="${cat.id}">${escapeHtml(cat.name)} (${cat.products.length})</option>`
-            )
-            .join('');
-        return `<option value="">Todas as categorias (${catalog.totalProducts})</option>${options}`;
-    };
+    const formatCategoryLabel = (name) =>
+        name
+            .toLowerCase()
+            .split(/\s+/)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
 
     const selectedCategoryId = () =>
         activeCategories.size === 1 ? [...activeCategories][0] : '';
+
+    const categoryButtonHtml = (categoryId, label, count, layout) => {
+        const active = selectedCategoryId() === categoryId;
+        const pressed = active ? 'true' : 'false';
+        const base =
+            'catalog-cat-btn border border-transparent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-gray';
+        const desktop =
+            'w-full text-left px-3 py-2 flex items-center justify-between gap-2 text-sm text-on-surface hover:bg-surface-container-high/80';
+        const mobile =
+            'shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-on-surface hover:border-vibrant-orange/40 whitespace-nowrap';
+        const layoutClass = layout === 'mobile' ? mobile : desktop;
+        const countHtml =
+            layout === 'mobile'
+                ? `<span class="text-[10px] text-on-surface-variant tabular-nums">${count}</span>`
+                : `<span class="text-[11px] text-on-surface-variant tabular-nums shrink-0">${count}</span>`;
+
+        return `<button type="button" role="listitem" class="${base} ${layoutClass}" data-category-id="${escapeHtml(categoryId)}" aria-pressed="${pressed}">
+<span class="${layout === 'desktop' ? 'truncate min-w-0' : ''}">${escapeHtml(label)}</span>${countHtml}
+</button>`;
+    };
+
+    const categoryFiltersHtml = (layout) => {
+        const allBtn = categoryButtonHtml(
+            '',
+            layout === 'mobile' ? 'Todas' : 'Todas as categorias',
+            catalog.totalProducts,
+            layout
+        );
+        const items = catalog.categories
+            .map((cat) =>
+                categoryButtonHtml(
+                    cat.id,
+                    formatCategoryLabel(cat.name),
+                    cat.products.length,
+                    layout
+                )
+            )
+            .join('');
+        return allBtn + items;
+    };
+
+    const syncFilterButtons = () => {
+        const activeId = selectedCategoryId();
+        document.querySelectorAll('.catalog-cat-btn').forEach((btn) => {
+            const isActive = (btn.dataset.categoryId || '') === activeId;
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
 
     const applyCategoryFilter = (categoryId) => {
         activeCategories.clear();
         if (categoryId) {
             activeCategories.add(categoryId);
         }
-        renderFilters();
+        syncFilterButtons();
         renderProducts();
         const count = getFilteredProducts().length;
         if (categoryId) {
             const label = catalog.categories.find((c) => c.id === categoryId)?.name;
             if (label) {
-                statsEl.textContent = `Categoria: ${label} — ${count} produto(s)`;
+                statsEl.textContent = `Categoria: ${formatCategoryLabel(label)} — ${count} produto(s)`;
                 return;
             }
         }
@@ -155,22 +200,31 @@
 
     const renderFilters = () => {
         if (!catalog) return;
-        const html = categoryOptionsHtml();
-        const value = selectedCategoryId();
-
-        [filtersEl, filtersMobileSelect].forEach((el) => {
-            if (!el) return;
-            el.innerHTML = html;
-            el.value = value;
-        });
+        if (filtersEl) {
+            filtersEl.innerHTML = categoryFiltersHtml('desktop');
+        }
+        if (filtersMobileSelect) {
+            filtersMobileSelect.innerHTML = categoryFiltersHtml('mobile');
+        }
+        syncFilterButtons();
     };
 
-    const onCategorySelectChange = (e) => {
-        applyCategoryFilter(e.target.value);
+    const onCategoryFilterClick = (e) => {
+        const btn = e.target.closest('.catalog-cat-btn');
+        if (!btn) return;
+        applyCategoryFilter(btn.dataset.categoryId || '');
+        if (btn.closest('#catalog-filters-mobile')) {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            btn.scrollIntoView({
+                behavior: reduceMotion ? 'auto' : 'smooth',
+                block: 'nearest',
+                inline: 'center',
+            });
+        }
     };
 
-    filtersEl?.addEventListener('change', onCategorySelectChange);
-    filtersMobileSelect?.addEventListener('change', onCategorySelectChange);
+    filtersEl?.addEventListener('click', onCategoryFilterClick);
+    filtersMobileSelect?.addEventListener('click', onCategoryFilterClick);
 
     grid.addEventListener('click', (e) => {
         const btn = e.target.closest('.catalog-add-btn');
@@ -198,12 +252,12 @@
         })
         .then((data) => {
             catalog = data;
+            renderFilters();
             const categoriaParam = new URLSearchParams(window.location.search).get('categoria');
             if (categoriaParam && data.categories.some((c) => c.id === categoriaParam)) {
                 applyCategoryFilter(categoriaParam);
                 grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
-                renderFilters();
                 renderProducts();
             }
         })

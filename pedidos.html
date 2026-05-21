@@ -124,6 +124,27 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #FF6B00;
         }
+        .catalog-cat-panel {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 107, 0, 0.35) transparent;
+        }
+        .catalog-cat-scroll {
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+        }
+        .catalog-cat-btn {
+            min-height: 2.5rem;
+        }
+        .catalog-cat-btn[aria-pressed='true'] {
+            background: rgba(255, 107, 0, 0.12);
+            border-color: rgba(255, 107, 0, 0.45);
+            color: #ffb869;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .catalog-cat-btn {
+                transition: none;
+            }
+        }
     </style>
 </head>
 <body data-page="pedidos" class="bg-deep-black text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-vibrant-orange selection:text-deep-black">
@@ -137,30 +158,28 @@
 <input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-2.5 pl-9 pr-3 text-on-surface text-sm focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors" placeholder="Buscar bebidas..." type="search">
 <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-[20px]">search</span>
 </div>
-<!-- Categories -->
-<div class="bg-surface-gray rounded-xl p-4 border border-surface-variant/50 min-w-0">
-<label class="block">
-<span class="font-headline-md text-[15px] text-gold-accent mb-2 block">Categorias</span>
-<select id="catalog-filters" class="w-full bg-deep-black border border-surface-variant rounded-lg text-on-surface text-sm py-2.5 px-3 focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange">
-<option value="">Carregando…</option>
-</select>
-</label>
+<!-- Categorias -->
+<nav class="bg-surface-gray rounded-xl p-3 border border-surface-variant/50 min-w-0" aria-labelledby="catalog-cat-heading-desktop">
+<h2 id="catalog-cat-heading-desktop" class="font-headline-md text-[14px] text-gold-accent mb-2 px-0.5">Categorias</h2>
+<div id="catalog-filters" class="catalog-cat-panel catalog-cat-list flex flex-col gap-1 max-h-[min(50vh,22rem)] overflow-y-auto pr-0.5" role="list">
+<p class="text-xs text-on-surface-variant px-2 py-2" role="status">Carregando…</p>
 </div>
+</nav>
 </aside>
 <!-- Product Grid -->
 <section class="col-span-1 lg:col-span-9">
-<!-- Mobile: busca + categoria -->
-<div class="lg:hidden space-y-3 mb-6 min-w-0">
+<!-- Mobile: busca + categorias -->
+<div class="lg:hidden space-y-3 mb-5 min-w-0 sticky top-[3.75rem] z-30 bg-deep-black/95 backdrop-blur-md py-2 -mx-margin-mobile px-margin-mobile border-b border-surface-variant/20">
 <div class="relative">
 <input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-2.5 pl-9 pr-3 text-on-surface text-sm focus:outline-none focus:border-vibrant-orange transition-colors" placeholder="Buscar..." type="search">
 <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-[20px]">search</span>
 </div>
-<label class="block">
-<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Categoria</span>
-<select id="catalog-filters-mobile" class="w-full bg-surface-gray border border-surface-variant rounded-lg text-on-surface text-sm py-2.5 px-3 focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange">
-<option value="">Todas as categorias</option>
-</select>
-</label>
+<nav aria-labelledby="catalog-cat-heading-mobile" class="min-w-0">
+<h2 id="catalog-cat-heading-mobile" class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Categorias</h2>
+<div id="catalog-filters-mobile" class="catalog-cat-scroll catalog-cat-strip flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5" role="list">
+<p class="text-xs text-on-surface-variant shrink-0 py-2" role="status">Carregando…</p>
+</div>
+</nav>
 </div>
 <!-- Header -->
 <div class="flex justify-between items-end mb-8">
