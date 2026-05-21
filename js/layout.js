@@ -2,6 +2,8 @@
     const page = document.body.dataset.page || '';
     const instagramUrl = 'https://www.instagram.com/oficialligeirinhobebidas/?hl=pt';
     const whatsappUrl = 'https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig';
+    const mapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001';
 
     const navActive =
         'text-vibrant-orange font-bold border-b-2 border-vibrant-orange pb-1 scale-95 active:scale-90 transition-transform';
@@ -12,7 +14,6 @@
         { id: 'inicio', href: 'index.html', label: 'Início' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Pedidos' },
         { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos' },
-        { id: 'contato', href: 'contato.html', label: 'Contato' },
     ];
 
     const navLinksHtml = navItems
@@ -56,8 +57,8 @@ ${navLinksHtml}
     const iconFill = "style=\"font-variation-settings: 'FILL' 1;\"";
 
     const footerHtml = `<footer class="bg-deep-black dark:bg-deep-black full-width bg-surface-container-lowest border-t border-surface-variant/20 flat no shadows mt-auto">
-<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
-<div class="flex flex-col gap-4 md:col-span-1">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
+<div class="flex flex-col gap-4">
 <a class="text-headline-md font-headline-lg text-vibrant-orange flex items-center gap-2" href="index.html">
 <img alt="" src="img/ligeirinhologo.png" class="h-8 w-8 object-contain" width="32" height="32">
                     Ligeirinho Bebidas
@@ -66,22 +67,23 @@ ${navLinksHtml}
                     Sua distribuidora de bebidas com rapidez, variedade e atendimento de confiança.
                 </p>
 <div class="flex gap-2 mt-2">
-<a class="${footerIcon}" href="contato.html" aria-label="Contato"><span class="material-symbols-outlined text-[22px]" ${iconFill}>mail</span></a>
-<a class="${footerIcon}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span class="material-symbols-outlined text-[22px]" ${iconFill}>photo_camera</span></a>
 <a class="${footerIcon}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><span class="material-symbols-outlined text-[22px]" ${iconFill}>chat</span></a>
+<a class="${footerIcon}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span class="material-symbols-outlined text-[22px]" ${iconFill}>photo_camera</span></a>
+<a class="${footerIcon}" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" aria-label="Localização"><span class="material-symbols-outlined text-[22px]" ${iconFill}>location_on</span></a>
 </div>
 </div>
 <div class="flex flex-col gap-2 md:gap-3">
 <h4 class="${footerHeading}">Fale conosco</h4>
-<a class="${footerLink}" href="contato.html"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>mail</span>Contato</a>
 <a class="${footerLink}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>chat</span>WhatsApp</a>
 <a class="${footerLink}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>photo_camera</span>Instagram</a>
 </div>
 <div class="flex flex-col gap-2 md:gap-3">
 <h4 class="${footerHeading}">Encontre-nos</h4>
-<a class="${footerLink}" href="contato.html#localizacao">
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs">Estr. do Campo Limpo, 2083<br>Vila Prel — São Paulo, SP<br>CEP: 05777-001</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Segunda a sábado: 08h às 20h<br>Domingo: 08h às 14h</p>
+<a class="${footerLink}" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">
 <span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>location_on</span>
-                    Localização
+                    Como chegar
                 </a>
 </div>
 </div>
