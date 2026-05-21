@@ -46,8 +46,14 @@ ${navLinksHtml}
 </div>
 </nav>`;
 
+    const footerHeading =
+        'font-headline-md text-headline-md md:font-headline-lg md:text-headline-lg text-gold-accent mb-4';
     const footerLink =
-        'font-body-md text-body-md text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 transition-opacity';
+        'font-body-lg text-body-lg text-on-surface hover:text-vibrant-orange transition-colors flex items-center gap-2.5 py-1';
+    const footerIcon =
+        'text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 p-2 rounded-full hover:bg-surface-variant/30';
+    const footerLinkIcon = 'text-[20px]';
+    const iconFill = "style=\"font-variation-settings: 'FILL' 1;\"";
 
     const footerHtml = `<footer class="bg-deep-black dark:bg-deep-black full-width bg-surface-container-lowest border-t border-surface-variant/20 flat no shadows mt-auto">
 <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
@@ -59,28 +65,29 @@ ${navLinksHtml}
 <p class="font-body-md text-body-md text-on-surface-variant max-w-xs">
                     Sua distribuidora de bebidas com rapidez, variedade e atendimento de confiança.
                 </p>
-<div class="flex gap-4 mt-2">
-<a class="text-on-surface-variant hover:text-gold-accent transition-colors" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">photo_camera</span></a>
-<a class="text-on-surface-variant hover:text-vibrant-orange transition-colors" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat</span></a>
+<div class="flex gap-2 mt-2">
+<a class="${footerIcon}" href="contato.html" aria-label="Contato"><span class="material-symbols-outlined text-[22px]" ${iconFill}>mail</span></a>
+<a class="${footerIcon}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span class="material-symbols-outlined text-[22px]" ${iconFill}>photo_camera</span></a>
+<a class="${footerIcon}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><span class="material-symbols-outlined text-[22px]" ${iconFill}>chat</span></a>
 </div>
 </div>
-<div class="flex flex-col gap-3">
-<h4 class="font-label-caps text-label-caps text-gold-accent mb-2">Fale conosco</h4>
-<a class="${footerLink}" href="contato.html">Contato</a>
-<a class="${footerLink}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-<a class="${footerLink}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer">Instagram</a>
+<div class="flex flex-col gap-2 md:gap-3">
+<h4 class="${footerHeading}">Fale conosco</h4>
+<a class="${footerLink}" href="contato.html"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>mail</span>Contato</a>
+<a class="${footerLink}" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>chat</span>WhatsApp</a>
+<a class="${footerLink}" href="${instagramUrl}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>photo_camera</span>Instagram</a>
 </div>
-<div class="flex flex-col gap-3">
-<h4 class="font-label-caps text-label-caps text-gold-accent mb-2">Encontre-nos</h4>
-<a class="${footerLink} flex items-center gap-2" href="contato.html#localizacao">
-<span class="material-symbols-outlined text-[18px]">location_on</span>
+<div class="flex flex-col gap-2 md:gap-3">
+<h4 class="${footerHeading}">Encontre-nos</h4>
+<a class="${footerLink}" href="contato.html#localizacao">
+<span class="material-symbols-outlined ${footerLinkIcon}" ${iconFill}>location_on</span>
                     Localização
                 </a>
 </div>
 </div>
 <div class="w-full border-t border-surface-variant/10 py-6 px-margin-mobile md:px-margin-desktop text-center md:text-left">
 <div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">© 2024 Ligeirinho Bebidas. Entrega rápida, brinde gelado.</p>
+<p class="font-label-caps text-label-caps text-on-surface-variant opacity-60">© 2026 Ligeirinho Bebidas. Entrega de confiança.</p>
 </div>
 </div>
 </footer>`;
