@@ -34,13 +34,10 @@
 ${navLinksHtml}
 </div>
 <div class="flex items-center gap-4 text-vibrant-orange dark:text-gold-accent">
-<button type="button" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90 relative" aria-label="Carrinho">
+<a id="nav-cart-link" href="pedidos.html" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90 relative" aria-label="Ver carrinho de pedidos">
 <span class="material-symbols-outlined">shopping_cart</span>
-<span class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">3</span>
-</button>
-<button type="button" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90" aria-label="Conta">
-<span class="material-symbols-outlined">account_circle</span>
-</button>
+<span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
+</a>
 <button type="button" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-all duration-200" aria-label="Abrir menu">
 <span class="material-symbols-outlined">menu</span>
 </button>
@@ -134,4 +131,6 @@ ${brandIcon(brandIcons.maps, 22)}
     if (footerMount) {
         footerMount.outerHTML = footerHtml;
     }
+
+    window.LigeirinhoCart?.updateNavCartBadge();
 })();

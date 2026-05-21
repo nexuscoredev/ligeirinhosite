@@ -1,6 +1,10 @@
 (function () {
     const WHATSAPP_PHONE = '5511970924909';
-    const CART_KEY = 'ligeirinho-cart-v1';
+    const cartApi = window.LigeirinhoCart;
+    if (!cartApi) return;
+
+    const { loadCart, saveCart, cartEntries, cartItemCount, cartTotalValue, updateNavCartBadge } =
+        cartApi;
 
     const grid = document.getElementById('catalog-grid');
     const filtersEl = document.getElementById('catalog-filters');
@@ -42,25 +46,6 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
-
-    const loadCart = () => {
-        try {
-            return JSON.parse(localStorage.getItem(CART_KEY) || '{}');
-        } catch {
-            return {};
-        }
-    };
-
-    const saveCart = (cart) => {
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
-    };
-
-    const cartEntries = (cart) => Object.values(cart).filter((item) => item.qty > 0);
-
-    const cartItemCount = (cart) => cartEntries(cart).reduce((sum, item) => sum + item.qty, 0);
-
-    const cartTotalValue = (cart) =>
-        cartEntries(cart).reduce((sum, item) => sum + (item.price ?? 0) * item.qty, 0);
 
     const buildWhatsAppMessage = (cart) => {
         const items = cartEntries(cart);
@@ -149,6 +134,7 @@
         cart[product.id].qty += 1;
         saveCart(cart);
         renderCart();
+        updateNavCartBadge();
     };
 
     const changeQty = (id, delta) => {
@@ -158,6 +144,7 @@
         if (cart[id].qty <= 0) delete cart[id];
         saveCart(cart);
         renderCart();
+        updateNavCartBadge();
     };
 
     const productCard = (product, categoryName) => {
@@ -288,6 +275,7 @@ ${catalog.categories
         delete cart[id];
         saveCart(cart);
         renderCart();
+        updateNavCartBadge();
     };
 
     const handleCartAction = (e) => {
