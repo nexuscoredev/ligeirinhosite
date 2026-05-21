@@ -1,0 +1,309 @@
+<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Quem Somos - Ligeirinho Bebidas</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Hanken+Grotesk:wght@600;700;800&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#93000a",
+                        "outline-variant": "#544433",
+                        "on-secondary-fixed": "#221b00",
+                        "on-background": "#e5e2e1",
+                        "surface-container-high": "#2a2a2a",
+                        "on-error-container": "#ffdad6",
+                        "gold-accent": "#D4AF37",
+                        "surface-gray": "#1E1E1E",
+                        "tertiary-fixed-dim": "#77d1ff",
+                        "inverse-on-surface": "#313030",
+                        "on-tertiary-fixed": "#001e2c",
+                        "surface-dim": "#131313",
+                        "on-primary": "#482900",
+                        "error": "#ffb4ab",
+                        "surface-container-highest": "#353534",
+                        "inverse-primary": "#885200",
+                        "tertiary-container": "#00c1ff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-tertiary": "#003548",
+                        "secondary-fixed": "#ffe16d",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1c1b1b",
+                        "inverse-surface": "#e5e2e1",
+                        "surface": "#131313",
+                        "on-surface-variant": "#dac2ad",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary": "#91d8ff",
+                        "secondary-fixed-dim": "#e9c400",
+                        "surface-variant": "#353534",
+                        "surface-container": "#201f1f",
+                        "background": "#131313",
+                        "secondary-container": "#ffdb3c",
+                        "primary-container": "#ff9d00",
+                        "deep-black": "#080808",
+                        "tertiary-fixed": "#c2e8ff",
+                        "on-primary-container": "#663c00",
+                        "primary-fixed": "#ffdcbb",
+                        "secondary": "#fff9ef",
+                        "on-secondary": "#3a3000",
+                        "status-green": "#00E676",
+                        "on-secondary-container": "#725f00",
+                        "surface-tint": "#ffb869",
+                        "primary-fixed-dim": "#ffb869",
+                        "vibrant-orange": "#FF6B00",
+                        "outline": "#a28d79",
+                        "on-tertiary-container": "#004b66",
+                        "on-primary-fixed": "#2c1700",
+                        "primary": "#ffc485",
+                        "surface-bright": "#393939",
+                        "on-primary-fixed-variant": "#673d00",
+                        "on-surface": "#e5e2e1",
+                        "on-tertiary-fixed-variant": "#004d68"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "base": "8px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        .glass-panel {
+            background: rgba(30, 30, 30, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        .text-gradient-gold {
+            background: linear-gradient(to right, #FF6B00, #D4AF37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-deep-black text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-vibrant-orange selection:text-deep-black">
+<!-- TopNavBar Component -->
+<nav class="bg-deep-black/90 backdrop-blur-xl dark:bg-deep-black/90 docked full-width top-0 sticky z-50 border-b border-surface-variant/30 shadow-lg shadow-vibrant-orange/5">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
+<!-- Brand -->
+<a class="flex items-center gap-2 group" href="index.html">
+<span class="text-headline-md md:font-headline-lg font-headline-lg-mobile text-gold-accent tracking-tight">Ligeirinho Bebidas</span>
+</a>
+<!-- Navigation Links (Desktop) -->
+<div class="hidden md:flex items-center gap-8">
+<a class="text-on-surface-variant hover:text-gold-accent transition-colors duration-300 font-headline-md text-headline-md hover:bg-surface-variant/50 transition-all duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="index.html">Início</a>
+<a class="text-on-surface-variant hover:text-gold-accent transition-colors duration-300 font-headline-md text-headline-md hover:bg-surface-variant/50 transition-all duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="pedidos.html">Pedidos</a>
+<a class="text-vibrant-orange font-bold border-b-2 border-vibrant-orange pb-1 font-headline-md text-headline-md hover:bg-surface-variant/50 transition-all duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="quemsomos.html">Quem Somos</a>
+<a class="text-on-surface-variant hover:text-gold-accent transition-colors duration-300 font-headline-md text-headline-md hover:bg-surface-variant/50 transition-all duration-200 px-3 py-2 rounded-lg scale-95 active:scale-90 transition-transform" href="contato.html">Contato</a>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-4 text-vibrant-orange dark:text-gold-accent">
+<button aria-label="shopping_cart" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button aria-label="account_circle" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+<button aria-label="menu" class="md:hidden p-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow flex flex-col">
+<!-- Hero Section -->
+<section class="relative pt-24 pb-16 md:pt-32 md:pb-24 px-margin-mobile md:px-margin-desktop overflow-hidden">
+<!-- Decorative Glow -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-vibrant-orange/10 blur-[120px] rounded-full pointer-events-none"></div>
+<div class="max-w-container-max mx-auto relative z-10 flex flex-col md:flex-row items-center gap-12">
+<div class="flex-1 space-y-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-gray border border-surface-variant text-gold-accent font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+                        VELOCIDADE &amp; TRADIÇÃO
+                    </div>
+<h1 class="font-display-lg text-display-lg text-on-surface">
+                        A <span class="text-gradient-gold">Ligeirinho</span><br>
+                        Sua bebida, no tempo certo.
+                    </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                        Nascemos da necessidade de um serviço de entrega de bebidas que fosse realmente rápido, confiável e com a qualidade de um atendimento premium. Somos o elo entre o seu brinde e a conveniência.
+                    </p>
+</div>
+<div class="flex-1 w-full max-w-md relative">
+<div class="aspect-square rounded-2xl overflow-hidden glass-panel p-2 shadow-2xl shadow-vibrant-orange/20 relative">
+<!-- Abstract placeholder for delivery/speed concept -->
+<div class="absolute inset-0 bg-gradient-to-br from-surface-gray to-deep-black flex items-center justify-center">
+<span class="material-symbols-outlined text-[120px] text-vibrant-orange/50">local_shipping</span>
+</div>
+<img alt="Entrega de bebidas" class="w-full h-full object-cover rounded-xl relative z-10 opacity-80 mix-blend-luminosity" data-alt="A dynamic, high-contrast shot of a delivery driver's hands handing over a premium bottle of liquor in a sleek paper bag. The scene is lit with moody, nocturnal lighting, featuring vibrant orange neon reflections off the wet asphalt. The overall aesthetic is modern, fast-paced, and high-end, fitting a premium dark-mode brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3U4Bw_wcJmFC2mrX_zPFuVL-EhKv6Mjc19_17DBzaDLn5euXHDjsbxUY1tpZBd4G4Nn9en2qQ8yK_SqFP0PndkWtleyrVyVVnCVd-KopIwTgbB7d4wQDhytCgAykzl6T3FAUl-kFFzxavXIiljWfHvILbUmEVwa-Y-AZUw86DNX8LxC8egiRdQocLALMd7607jPzg2O7VO3L7nJFHv6JXXM1uds3PgOhc82c7LN8cQu_IMkhzyrjBlpcND99VR1Zk26CkbVuTf6GV">
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Missão, Visão, Valores -->
+<section class="py-16 px-margin-mobile md:px-margin-desktop bg-surface-dim">
+<div class="max-w-container-max mx-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Missão -->
+<div class="glass-panel rounded-xl p-8 flex flex-col gap-4 hover:shadow-lg hover:shadow-vibrant-orange/10 transition-all duration-300 group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-vibrant-orange group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined fill text-[24px]" data-icon="rocket_launch">rocket_launch</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Nossa Missão</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">
+                            Entregar não apenas bebidas, mas momentos de celebração com extrema agilidade e garantia de qualidade, garantindo que o brinde nunca espere.
+                        </p>
+</div>
+<!-- Visão -->
+<div class="glass-panel rounded-xl p-8 flex flex-col gap-4 hover:shadow-lg hover:shadow-gold-accent/10 transition-all duration-300 group md:translate-y-4">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-gold-accent group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined fill text-[24px]" data-icon="visibility">visibility</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Nossa Visão</h3>
+<p class="font-body-md text-body-md text-on-surface-variant flex-grow">
+                            Ser reconhecida como a principal e mais tecnológica plataforma de distribuição de bebidas da região, sinônimo de confiança e inovação no varejo.
+                        </p>
+</div>
+<!-- Valores -->
+<div class="glass-panel rounded-xl p-8 flex flex-col gap-4 hover:shadow-lg hover:shadow-status-green/10 transition-all duration-300 group">
+<div class="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center text-status-green group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined fill text-[24px]" data-icon="verified">verified</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Nossos Valores</h3>
+<ul class="font-body-md text-body-md text-on-surface-variant space-y-2">
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-vibrant-orange"></span> Rapidez Inegociável</li>
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-gold-accent"></span> Qualidade Premium</li>
+<li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span> Foco no Cliente</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="py-16 px-margin-mobile md:px-margin-desktop border-y border-surface-variant/20 bg-surface-container-lowest">
+<div class="max-w-container-max mx-auto flex flex-col md:flex-row items-center justify-around gap-8 text-center">
+<div class="space-y-2">
+<div class="font-display-lg text-display-lg text-vibrant-orange">15k+</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant">PEDIDOS ENTREGUES</div>
+</div>
+<div class="w-px h-16 bg-surface-variant hidden md:block"></div>
+<div class="space-y-2">
+<div class="font-display-lg text-display-lg text-gold-accent">45m</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant">TEMPO MÉDIO DE ENTREGA</div>
+</div>
+<div class="w-px h-16 bg-surface-variant hidden md:block"></div>
+<div class="space-y-2">
+<div class="font-display-lg text-display-lg text-vibrant-orange">100%</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant">CLIENTES SATISFEITOS</div>
+</div>
+</div>
+</section>
+<!-- Image Gallery -->
+<section class="py-24 px-margin-mobile md:px-margin-desktop relative">
+<div class="max-w-container-max mx-auto space-y-12">
+<div class="text-center space-y-4">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">A Estrutura Ligeirinho</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">Bastidores da nossa operação, desenhada para máxima eficiência e preservação da qualidade dos nossos produtos.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-[250px]">
+<!-- Large Feature -->
+<div class="md:col-span-8 md:row-span-2 rounded-2xl overflow-hidden relative group">
+<img alt="Galpão" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-70" data-alt="A wide, cinematic shot of a modern, immaculately clean warehouse storing premium liquor and beverages. Racks are perfectly organized. The lighting is dramatic, with cool industrial spotlights contrasting with warm golden amber tones reflecting off the bottles. The mood is highly professional and efficient." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8sLH96gjm-BBHZGUKeaG3CyHx1_BYYBgv8By0oIfrdjH7efJK6f5kfmaw5bOIblmwuB3r9M3tkyOE9b9nTjqi6vcDyKHHkkUBjw3HgmLTtGFuDaQTfnZy4z9NxJtQWsZD24S0xd4C1VaKuMw-3gRy2K4lXIwh6lfNv4yaXUPt0n9vG5szGaMDT_N0yPUd5ojWJhhwa4G-DlXNQYBNljDYA8CHlUj-ZSi8JVYj1H3RwBKGl5zRem2s2j4qebDhWnp0ELejG5mRxEFE">
+<div class="absolute inset-0 bg-gradient-to-t from-deep-black via-transparent to-transparent opacity-80"></div>
+<div class="absolute bottom-6 left-6">
+<span class="inline-block px-3 py-1 bg-deep-black/80 backdrop-blur-md text-gold-accent font-label-caps text-label-caps rounded-md border border-surface-variant/50">CENTRO DE DISTRIBUIÇÃO</span>
+</div>
+</div>
+<!-- Small Feature 1 -->
+<div class="md:col-span-4 rounded-2xl overflow-hidden relative group">
+<img alt="Frota" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-70" data-alt="A close-up shot of a sleek delivery motorcycle or van parked outside, branded subtly. The vehicle is painted in a deep matte black with striking vibrant orange accents. The setting is urban at dusk, with neon lights reflecting off the vehicle's surface, emphasizing speed and modern logistics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuASdyhMDQLmFC2kD2WHQIhCrKB3TP1AA6Vu1kg32fQtw9qYpFuQgPu4UzxsHwCDuySvDb7MdOjnlfaxFDY9p97NbedrfFZususQftRtyRW3TTUqEZP-wJB2-Qp1ADKEllpr3guD4VTpHlORCV0ibXX2f8IY2e-4sK_ucD6rVCfRVjI_9SEY5TAI_Nd_JVWAxdtv84270EZ2_jQcd1C6NndxWNef7_hapV57qa_Qqn-aCiYDJrymzmfGMP-gOnpTZFJUWqRJJV4zuknY">
+<div class="absolute inset-0 bg-gradient-to-t from-deep-black to-transparent opacity-80"></div>
+<div class="absolute bottom-4 left-4">
+<span class="inline-block px-3 py-1 bg-deep-black/80 backdrop-blur-md text-vibrant-orange font-label-caps text-label-caps rounded-md border border-surface-variant/50">FROTA RÁPIDA</span>
+</div>
+</div>
+<!-- Small Feature 2 -->
+<div class="md:col-span-4 rounded-2xl overflow-hidden relative group">
+<img alt="Adega" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-70" data-alt="An atmospheric detail shot of an ice-cold cooler filled with premium craft beers and energy drinks. Condensation drips down the glass door. The interior is lit with a cool, high-tech blue light, while warm ambient light spills from the outside, creating a high-contrast, refreshing visual." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgCEg3baqoAWlwchpgNgTORUhgx1dSZ8zmEDesOH3jBB8tAg4Ne__l6S9mr4et4krvCSqdWwZcoW9RWCxefMpP1I0UAfeZlDBm9z5BZzG_6XXeDAWUwMas87PCZ4XSTm-IrJmgN-9Ec8YS5RsaJyz1BP3Jb7pEryB_NozkJOSGz0HF8JeBVM1RTrVzbQeBI15iA-USNnvzMorK_ynUU9mgpFNGJtj6eu5JktTSU7IXHT-Ft8J6Eev3OioA024mrCQ2KvTAqV-bNdLS">
+<div class="absolute inset-0 bg-gradient-to-t from-deep-black to-transparent opacity-80"></div>
+<div class="absolute bottom-4 left-4">
+<span class="inline-block px-3 py-1 bg-deep-black/80 backdrop-blur-md text-tertiary-container font-label-caps text-label-caps rounded-md border border-surface-variant/50">ARMAZENAMENTO IDEAL</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Component -->
+<footer class="bg-deep-black dark:bg-deep-black full-width bg-surface-container-lowest border-t border-surface-variant/20 flat no shadows">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
+<!-- Brand Info -->
+<div class="col-span-1 md:col-span-2 space-y-4">
+<div class="text-headline-md font-headline-lg text-vibrant-orange">Ligeirinho Bebidas</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-sm">
+                    © 2024 Ligeirinho Bebidas. Entrega rápida, brinde gelado.
+                </p>
+<div class="flex gap-4">
+<a class="text-on-surface-variant hover:text-gold-accent transition-colors" href="https://www.instagram.com/oficialligeirinhobebidas/?hl=pt" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><span class="material-symbols-outlined">photo_camera</span></a>
+<a class="text-on-surface-variant hover:text-vibrant-orange transition-colors" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><span class="material-symbols-outlined">chat</span></a>
+</div>
+</div>
+<!-- Links -->
+<div class="col-span-1 space-y-4">
+<h4 class="font-label-caps text-label-caps text-gold-accent">Fale conosco</h4>
+<ul class="space-y-2">
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 transition-opacity block py-1" href="contato.html">Contato</a></li>
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 transition-opacity block py-1" href="contato.html#localizacao">Localização</a></li>
+</ul>
+</div>
+<!-- Redes sociais -->
+<div class="col-span-1 space-y-4">
+<h4 class="font-label-caps text-label-caps text-gold-accent">Redes sociais</h4>
+<ul class="space-y-2">
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 transition-opacity block py-1" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+<li><a class="font-body-md text-body-md text-on-surface-variant hover:text-vibrant-orange transition-colors opacity-80 hover:opacity-100 transition-opacity block py-1" href="https://www.instagram.com/oficialligeirinhobebidas/?hl=pt" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+</ul>
+</div>
+</div>
+</footer>
+</body></html>
