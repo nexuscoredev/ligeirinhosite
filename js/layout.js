@@ -1,4 +1,37 @@
 (function () {
+    if (!document.getElementById('ligeirinho-nav-font')) {
+        const fontLink = document.createElement('link');
+        fontLink.id = 'ligeirinho-nav-font';
+        fontLink.rel = 'stylesheet';
+        fontLink.href =
+            'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&display=swap';
+        document.head.appendChild(fontLink);
+
+        const fontStyle = document.createElement('style');
+        fontStyle.id = 'ligeirinho-nav-font-style';
+        fontStyle.textContent = `
+            .font-nav {
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            }
+            nav.font-nav-bar .nav-brand {
+                font-size: 1.0625rem;
+                font-weight: 700;
+                letter-spacing: -0.03em;
+                line-height: 1.2;
+            }
+            nav.font-nav-bar .nav-link {
+                font-size: 0.9375rem;
+                font-weight: 600;
+                letter-spacing: 0.02em;
+            }
+            nav.font-nav-bar .nav-link-active {
+                font-weight: 700;
+                letter-spacing: 0.01em;
+            }
+        `;
+        document.head.appendChild(fontStyle);
+    }
+
     const page = document.body.dataset.page || '';
     const instagramUrl = 'https://www.instagram.com/oficialligeirinhobebidas/?hl=pt';
     const whatsappUrl =
@@ -7,9 +40,9 @@
         'https://www.google.com/maps/search/?api=1&query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001';
 
     const navActive =
-        'text-vibrant-orange font-bold border-b-2 border-vibrant-orange pb-1 scale-95 active:scale-90 transition-transform';
+        'font-nav nav-link nav-link-active text-vibrant-orange border-b-2 border-vibrant-orange pb-1 transition-colors duration-200';
     const navLink =
-        'text-on-surface-variant hover:text-gold-accent transition-colors duration-300 hover:bg-surface-variant/50 transition-all duration-200 px-3 py-1 rounded';
+        'font-nav nav-link text-on-surface-variant hover:text-gold-accent transition-colors duration-200 hover:bg-surface-variant/40 px-3 py-1.5 rounded-md';
 
     const navItems = [
         { id: 'inicio', href: 'index.html', label: 'Início' },
@@ -24,9 +57,9 @@
         )
         .join('\n');
 
-    const navHtml = `<nav class="bg-deep-black/90 backdrop-blur-xl dark:bg-deep-black/90 docked full-width top-0 sticky z-50 border-b border-surface-variant/30 shadow-lg shadow-vibrant-orange/5">
-<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 max-w-container-max mx-auto">
-<a class="text-headline-md font-headline-lg-mobile text-gold-accent tracking-tight flex items-center gap-2 group" href="index.html">
+    const navHtml = `<nav class="font-nav-bar bg-deep-black/90 backdrop-blur-xl dark:bg-deep-black/90 docked full-width top-0 sticky z-50 border-b border-surface-variant/30 shadow-lg shadow-vibrant-orange/5">
+<div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-3.5 max-w-container-max mx-auto">
+<a class="font-nav nav-brand text-gold-accent flex items-center gap-2.5 group" href="index.html">
 <img alt="" src="img/ligeirinhologo.png" class="h-8 w-8 object-contain group-hover:rotate-12 transition-transform" width="32" height="32">
                 Ligeirinho Bebidas
             </a>
@@ -34,10 +67,10 @@
 ${navLinksHtml}
 </div>
 <div class="flex items-center gap-4 text-vibrant-orange dark:text-gold-accent">
-<a id="nav-cart-link" href="pedidos.html" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90 relative" aria-label="Ver carrinho de pedidos">
+<button type="button" id="nav-cart-toggle" class="p-2 hover:bg-surface-variant/50 rounded-full transition-all duration-200 scale-95 active:scale-90 relative" aria-label="Abrir seu pedido" aria-expanded="false" aria-controls="cart-panel cart-mobile-sheet">
 <span class="material-symbols-outlined">shopping_cart</span>
 <span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
-</a>
+</button>
 <button type="button" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-all duration-200" aria-label="Abrir menu">
 <span class="material-symbols-outlined">menu</span>
 </button>
@@ -133,4 +166,6 @@ ${brandIcon(brandIcons.maps, 22)}
     }
 
     window.LigeirinhoCart?.updateNavCartBadge();
+    window.LigeirinhoCartUI?.init();
+    window.LigeirinhoCartUI?.bindNavToggle();
 })();

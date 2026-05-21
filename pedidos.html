@@ -124,6 +124,10 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #FF6B00;
         }
+        .catalog-filter-chip {
+            word-break: break-word;
+            hyphens: auto;
+        }
     </style>
 </head>
 <body data-page="pedidos" class="bg-deep-black text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-vibrant-orange selection:text-deep-black">
@@ -131,31 +135,34 @@
 <!-- Main Content Area -->
 <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 <!-- Sidebar Filters -->
-<aside class="hidden lg:block lg:col-span-3 space-y-8 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto pr-4">
+<aside class="hidden lg:block lg:col-span-3 sticky top-24 self-start space-y-4 min-w-0">
 <!-- Search -->
 <div class="relative">
-<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md" placeholder="Buscar bebidas..." type="search">
-<span class="material-symbols-outlined absolute left-3 top-3.5 text-on-surface-variant">search</span>
+<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-2.5 pl-9 pr-3 text-on-surface text-sm focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors" placeholder="Buscar bebidas..." type="search">
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-[20px]">search</span>
 </div>
 <!-- Categories -->
-<div class="bg-surface-gray rounded-xl p-6 border border-surface-variant/50">
-<h3 class="font-headline-md text-headline-md text-gold-accent mb-4">Categorias</h3>
-<ul id="catalog-filters" class="space-y-3 font-body-md text-body-md max-h-[50vh] overflow-y-auto pr-1">
-<li class="text-on-surface-variant text-sm">Carregando…</li>
-</ul>
+<div class="bg-surface-gray rounded-xl p-4 border border-surface-variant/50 min-w-0">
+<h3 class="font-headline-md text-[15px] text-gold-accent mb-3">Categorias</h3>
+<div id="catalog-filters" class="grid grid-cols-2 gap-1.5 w-full min-w-0">
+<p class="col-span-2 text-on-surface-variant text-xs">Carregando…</p>
+</div>
 </div>
 </aside>
 <!-- Product Grid -->
 <section class="col-span-1 lg:col-span-9">
-<!-- Mobile Search/Filter Toggle -->
-<div class="lg:hidden flex gap-4 mb-6">
-<div class="relative flex-grow">
-<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-vibrant-orange transition-colors" placeholder="Buscar..." type="search">
-<span class="material-symbols-outlined absolute left-3 top-3.5 text-on-surface-variant">search</span>
+<!-- Mobile: busca + categoria -->
+<div class="lg:hidden space-y-3 mb-6 min-w-0">
+<div class="relative">
+<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-2.5 pl-9 pr-3 text-on-surface text-sm focus:outline-none focus:border-vibrant-orange transition-colors" placeholder="Buscar..." type="search">
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-[20px]">search</span>
 </div>
-<button class="bg-surface-gray border border-surface-variant rounded-lg p-3 text-gold-accent">
-<span class="material-symbols-outlined">filter_list</span>
-</button>
+<label class="block">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Categoria</span>
+<select id="catalog-filters-mobile" class="w-full bg-surface-gray border border-surface-variant rounded-lg text-on-surface text-sm py-2.5 px-3 focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange">
+<option value="">Todas as categorias</option>
+</select>
+</label>
 </div>
 <!-- Header -->
 <div class="flex justify-between items-end mb-8">
@@ -178,56 +185,9 @@
 </div>
 </section>
 </main>
-<!-- Carrinho -->
-<div id="cart-panel" class="fixed bottom-8 right-8 z-50 hidden xl:flex w-80 flex-col">
-<div class="glass-panel rounded-xl shadow-2xl p-5 flex flex-col max-h-[calc(100vh-6rem)]">
-<div class="flex justify-between items-center mb-4 border-b border-surface-variant/30 pb-3 shrink-0">
-<h3 class="font-headline-md text-headline-md text-on-surface text-lg flex items-center gap-2">
-<span class="material-symbols-outlined text-vibrant-orange">shopping_bag</span>
-                    Seu pedido
-                </h3>
-<span id="cart-count-badge" class="bg-vibrant-orange text-deep-black font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
-</div>
-<div id="cart-items" class="space-y-3 mb-4 overflow-y-auto pr-1 flex-1 min-h-0">
-<p class="font-body-md text-sm text-on-surface-variant">Seu carrinho está vazio. Adicione produtos do catálogo.</p>
-</div>
-<div class="border-t border-surface-variant/30 pt-4 shrink-0">
-<div class="flex justify-between items-center mb-4">
-<span class="font-headline-md text-base text-on-surface">Total</span>
-<span id="cart-total" class="font-label-caps text-lg text-vibrant-orange">R$ 0,00</span>
-</div>
-<a id="cart-whatsapp-btn" class="w-full bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,107,0,0.3)] pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">
-                Enviar pedido no WhatsApp
-                <span class="material-symbols-outlined text-sm">arrow_forward</span>
-</a>
-</div>
-</div>
-</div>
-<button id="cart-mobile-fab" type="button" class="xl:hidden fixed bottom-6 right-6 z-50 bg-vibrant-orange text-deep-black w-14 h-14 rounded-full shadow-[0_0_20px_rgba(255,107,0,0.4)] flex items-center justify-center hover:scale-105 transition-transform" aria-label="Abrir carrinho">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
-<span id="cart-mobile-badge" class="absolute top-0 right-0 bg-deep-black text-vibrant-orange border border-vibrant-orange text-[10px] font-bold min-w-[1.25rem] h-5 px-1 rounded-full flex items-center justify-center hidden">0</span>
-</button>
-<div id="cart-mobile-sheet" class="xl:hidden fixed inset-0 z-[60] hidden" aria-hidden="true">
-<div class="absolute inset-0 bg-deep-black/70" data-cart-close></div>
-<div class="absolute bottom-0 left-0 right-0 glass-panel rounded-t-2xl p-5 max-h-[85vh] flex flex-col">
-<div class="flex justify-between items-center mb-4">
-<h3 class="font-headline-md text-on-surface">Seu pedido</h3>
-<button type="button" class="p-2 text-on-surface-variant" data-cart-close aria-label="Fechar">
-<span class="material-symbols-outlined">close</span>
-</button>
-</div>
-<div id="cart-items-mobile" class="overflow-y-auto flex-1 min-h-0 mb-4 space-y-3"></div>
-<div class="border-t border-surface-variant/30 pt-4">
-<div class="flex justify-between mb-4">
-<span class="font-headline-md text-on-surface">Total</span>
-<span id="cart-total-mobile" class="font-label-caps text-lg text-vibrant-orange">R$ 0,00</span>
-</div>
-<a id="cart-whatsapp-btn-mobile" class="w-full bg-vibrant-orange text-deep-black font-bold py-3 rounded-lg flex items-center justify-center gap-2 pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer">Enviar pedido no WhatsApp</a>
-</div>
-</div>
-</div>
 <div id="site-footer"></div>
 <script src="js/cart-store.js"></script>
+<script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>
 <script src="js/pedidos.js"></script>
 </body></html>

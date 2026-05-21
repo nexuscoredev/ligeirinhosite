@@ -128,6 +128,9 @@
             background-image: radial-gradient(rgba(212, 175, 55, 0.1) 1px, transparent 1px);
             background-size: 24px 24px;
         }
+        .catalog-tile img {
+            filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
+        }
     </style>
 </head>
 <body data-page="inicio" class="antialiased min-h-screen flex flex-col font-body-md text-body-md overflow-x-hidden selection:bg-vibrant-orange selection:text-deep-black">
@@ -174,99 +177,121 @@
 </div>
 </div>
 <div class="flex flex-col sm:flex-row gap-4 mt-4 w-full sm:w-auto">
-<a class="bg-vibrant-orange text-deep-black font-headline-md text-[18px] py-4 px-8 rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2 glow-hover" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig" target="_blank" rel="noopener noreferrer">
-                            Pedir no WhatsApp
-                            <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+<a class="bg-vibrant-orange text-deep-black font-headline-md text-[18px] py-4 px-8 rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2 glow-hover" href="pedidos.html">
+                            Ver catálogo
+                            <span class="material-symbols-outlined text-[20px]">storefront</span>
 </a>
-<a class="border border-gold-accent text-gold-accent font-headline-md text-[18px] py-4 px-8 rounded-lg hover:bg-gold-accent/10 transition-colors flex items-center justify-center gap-2" href="https://www.google.com/maps/search/?api=1&amp;query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001" target="_blank" rel="noopener noreferrer">
-                            Ver Localização
-                        </a>
+<a class="border border-gold-accent text-gold-accent font-headline-md text-[18px] py-4 px-8 rounded-lg hover:bg-gold-accent/10 transition-colors flex items-center justify-center gap-2" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig" target="_blank" rel="noopener noreferrer">
+                            WhatsApp
+                            <span class="material-symbols-outlined text-[20px]">chat</span>
+</a>
+<a class="border border-surface-variant text-on-surface-variant font-headline-md text-[16px] py-4 px-6 rounded-lg hover:border-gold-accent hover:text-gold-accent transition-colors flex items-center justify-center gap-2 sm:w-auto" href="https://www.google.com/maps/search/?api=1&amp;query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001" target="_blank" rel="noopener noreferrer">
+                            Localização
+                            <span class="material-symbols-outlined text-[20px]">location_on</span>
+</a>
 </div>
 </div>
 </div>
 </section>
-<!-- Categories Bento Grid -->
-<section class="w-full px-margin-mobile md:px-margin-desktop py-24 bg-surface-container-lowest">
+<!-- Catálogo — atalhos para Pedidos -->
+<section id="catalogo" class="w-full px-margin-mobile md:px-margin-desktop py-24 bg-surface-container-lowest">
 <div class="max-w-container-max mx-auto">
-<div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
-<div>
-<h2 class="font-headline-lg text-headline-lg text-on-surface">Explore o <span class="text-gold-accent">Catálogo</span></h2>
-<p class="font-body-md text-body-md text-on-surface-variant mt-2">Tudo o que você precisa para o churrasco, festa, conveniência ou dia a dia.</p>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+<div class="max-w-xl">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Monte seu pedido no <span class="text-gold-accent">catálogo</span></h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Escolha os produtos, adicione ao carrinho e envie tudo pronto pelo WhatsApp. Mais de 180 itens com preço atualizado.</p>
 </div>
-<button class="text-vibrant-orange hover:text-gold-accent font-label-caps text-label-caps uppercase tracking-wider flex items-center gap-1 transition-colors">
-                        Ver todas <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-</button>
+<a class="bg-vibrant-orange text-deep-black font-headline-md text-[16px] py-3 px-6 rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-2 glow-hover shrink-0 w-full md:w-auto" href="pedidos.html">
+                        Abrir catálogo completo
+                        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</a>
 </div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[200px]">
-<!-- Cervejas (Large Span) -->
-<div class="md:col-span-2 md:row-span-2 glass-panel rounded-xl overflow-hidden relative group cursor-pointer">
-<div class="absolute inset-0 bg-surface-gray/50 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-<div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1614316315264-b3cda789b5c3?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=800&amp;q=80')] bg-cover bg-center group-hover:scale-105 transition-transform duration-700 opacity-60" data-alt="A macro shot of frosted beer bottles dripping with condensation in a dark, moody cooler. The scene is illuminated by dramatic, high-contrast neon orange and gold backlighting, creating a premium, refreshing 'ice-cold' atmosphere typical of high-end beverage advertising."></div>
-<div class="absolute bottom-0 left-0 p-6 z-20 w-full bg-gradient-to-t from-deep-black via-deep-black/80 to-transparent">
-<span class="inline-block bg-status-green/20 text-status-green border border-status-green/30 font-label-caps text-[10px] px-2 py-1 rounded mb-2">GELADA</span>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[220px]">
+<a class="catalog-tile md:col-span-2 md:row-span-2 glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=cervejas">
+<div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
+<div class="absolute inset-0 flex items-center justify-center p-8 pt-12 z-[5] group-hover:scale-105 transition-transform duration-500">
+<img alt="Cerveja Heineken 330ml" class="max-h-[70%] max-w-[85%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210180607_gwjieubx17e.webp" loading="lazy" decoding="async">
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-6 z-20 bg-gradient-to-t from-deep-black via-deep-black/90 to-transparent">
+<span class="inline-block bg-status-green/20 text-status-green border border-status-green/30 font-label-caps text-[10px] px-2 py-1 rounded mb-2">32 produtos</span>
 <h3 class="font-headline-md text-headline-md text-white group-hover:text-gold-accent transition-colors">Cervejas</h3>
-<p class="font-body-md text-sm text-on-surface-variant mt-1 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">Lagers, IPAs e Artesanais</p>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Heineken, Brahma, Skol, Corona e mais</p>
+<span class="inline-flex items-center gap-1 text-vibrant-orange font-label-caps text-[11px] mt-3 uppercase tracking-wider group-hover:gap-2 transition-all">Ver cervejas <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
+</div>
+</a>
+<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=whiskys">
+<div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
+<div class="absolute inset-0 flex items-center justify-center p-6 z-[5] group-hover:scale-105 transition-transform duration-500">
+<img alt="Whisky Jack Daniel's 1L" class="max-h-[75%] max-w-[90%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202304112236_wjpwps5p0m.webp" loading="lazy" decoding="async">
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-deep-black to-transparent">
+<h3 class="font-headline-md text-[18px] text-white group-hover:text-vibrant-orange transition-colors">Whiskys</h3>
+<p class="font-body-md text-xs text-on-surface-variant mt-0.5">10 produtos</p>
+</div>
+</a>
+<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=refrigerantes-sucos">
+<div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
+<div class="absolute inset-0 flex items-center justify-center p-6 z-[5] group-hover:scale-105 transition-transform duration-500">
+<img alt="Coca-Cola Original 350ml" class="max-h-[75%] max-w-[90%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210190340_0zsv41vq6o7i.webp" loading="lazy" decoding="async">
+</div>
+<div class="absolute bottom-0 left-0 right-0 p-4 z-20 bg-gradient-to-t from-deep-black to-transparent">
+<h3 class="font-headline-md text-[18px] text-white group-hover:text-gold-accent transition-colors">Refrigerantes</h3>
+<p class="font-body-md text-xs text-on-surface-variant mt-0.5">Coca, Fanta, Guaraná…</p>
+</div>
+</a>
+<a class="catalog-tile md:col-span-3 glass-panel rounded-xl overflow-hidden relative group block focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange bg-gradient-brand" href="pedidos.html?categoria=combos">
+<div class="absolute inset-0 bg-gradient-to-r from-deep-black/95 via-deep-black/70 to-deep-black/95 z-10"></div>
+<div class="absolute inset-0 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 p-6 z-[5]">
+<img alt="Combo Jack Daniel's com Red Bull" class="h-28 md:h-36 w-auto object-contain group-hover:scale-105 transition-transform duration-500" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/-1714669187247blob.webp" loading="lazy" decoding="async">
+<div class="text-center md:text-left">
+<span class="material-symbols-outlined text-[32px] text-gold-accent mb-1">local_fire_department</span>
+<h3 class="font-headline-md text-[22px] text-white mb-1 group-hover:text-vibrant-orange transition-colors">Combos prontos</h3>
+<p class="font-body-md text-sm text-on-surface-variant max-w-md">Whisky, gin ou destilado + energético, gelo e copos — ideal para sua resenha.</p>
+<span class="inline-flex items-center gap-1 text-vibrant-orange font-label-caps text-[11px] mt-3 uppercase tracking-wider">Ver combos <span class="material-symbols-outlined text-[16px]">arrow_forward</span></span>
 </div>
 </div>
-<!-- Destilados -->
-<div class="md:col-span-1 md:row-span-1 glass-panel rounded-xl overflow-hidden relative group cursor-pointer">
-<div class="absolute inset-0 bg-surface-gray/50 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-<div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=400&amp;q=80')] bg-cover bg-center group-hover:scale-105 transition-transform duration-700 opacity-60" data-alt="A sleek glass of golden whiskey or amber spirit sitting on a dark stone surface next to an elegant, geometric liquor bottle. The lighting is low-key with warm amber rim lights, giving it a luxurious, top-shelf premium aesthetic suited for a modern bar dashboard."></div>
-<div class="absolute bottom-0 left-0 p-4 z-20 w-full bg-gradient-to-t from-deep-black to-transparent">
-<h3 class="font-headline-md text-[20px] text-white group-hover:text-vibrant-orange transition-colors">Destilados</h3>
+</a>
 </div>
-</div>
-<!-- Vinhos / Refrigerantes -->
-<div class="md:col-span-1 md:row-span-1 glass-panel rounded-xl overflow-hidden relative group cursor-pointer">
-<div class="absolute inset-0 bg-surface-gray/50 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-<div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=400&amp;q=80')] bg-cover bg-center group-hover:scale-105 transition-transform duration-700 opacity-60" data-alt="A sophisticated pour of dark red wine into a crystal glass against a pitch-black background. A subtle rim light catches the edge of the glass and the deep ruby color of the wine, conveying elegance and a premium, curated selection."></div>
-<div class="absolute bottom-0 left-0 p-4 z-20 w-full bg-gradient-to-t from-deep-black to-transparent">
-<h3 class="font-headline-md text-[20px] text-white group-hover:text-gold-accent transition-colors">Refrigerantes e Energéticos</h3>
-</div>
-</div>
-<!-- Combos (Spans full width below) -->
-<div class="md:col-span-3 md:row-span-1 glass-panel rounded-xl overflow-hidden relative group cursor-pointer bg-gradient-brand">
-<div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1574071318508-1cdbab80d002?ixlib=rb-4.0.3&amp;auto=format&amp;fit=crop&amp;w=800&amp;q=80')] bg-cover bg-center opacity-20 mix-blend-overlay" data-alt="A dynamic, top-down view of a party setup with various bottles, ice buckets, and premium snacks scattered stylishly on a dark surface. The color palette is rich and moody, highlighting the 'combo' aspect of a quick delivery service for gatherings."></div>
-<div class="absolute inset-0 flex flex-col items-center justify-center z-20 p-6 text-center">
-<span class="material-symbols-outlined text-[40px] text-gold-accent mb-2">local_fire_department</span>
-<h3 class="font-headline-md text-[24px] text-white mb-1">Combos Especiais</h3>
-<p class="font-body-md text-sm text-on-surface-variant">Kits prontos para churrasco, resenha, eventos e comemorações.</p>
-</div>
-</div>
-</div>
+<p class="font-body-md text-sm text-on-surface-variant/80 mt-6 text-center md:text-left">
+                        Também temos <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=energeticos">energéticos</a>,
+                        <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=destilados">destilados</a>,
+                        <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=gin-s">gin</a>,
+                        <a class="text-vibrant-orange hover:underline" href="pedidos.html?categoria=vinhos">vinhos</a> e mais — tudo em
+                        <a class="text-gold-accent hover:underline font-medium" href="pedidos.html">Pedidos</a>.
+                    </p>
 </div>
 </section>
-<!-- Differentials / Features Bento Grid -->
-<section class="w-full px-margin-mobile md:px-margin-desktop py-20 bg-surface relative overflow-hidden">
-<!-- Decorative line -->
-<div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-gold-accent/30 to-transparent"></div>
+<!-- Diferenciais -->
+<section class="w-full px-margin-mobile md:px-margin-desktop py-10 md:py-12 bg-surface relative overflow-hidden">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-gold-accent/30 to-transparent"></div>
 <div class="max-w-container-max mx-auto">
-<div class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[250px]">
-<!-- Feature 1 -->
-<div class="md:col-span-2 md:row-span-2 glass-panel p-8 rounded-xl flex flex-col items-start gap-4 hover:-translate-y-2 transition-transform duration-300 justify-center">
-<div class="w-14 h-14 rounded-full bg-vibrant-orange/10 flex items-center justify-center border border-vibrant-orange/20">
-<span class="material-symbols-outlined text-[28px] text-vibrant-orange">rocket_launch</span>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<div class="glass-panel p-4 rounded-lg flex items-start gap-3 hover:-translate-y-0.5 transition-transform duration-300">
+<div class="w-10 h-10 shrink-0 rounded-full bg-vibrant-orange/10 flex items-center justify-center border border-vibrant-orange/20">
+<span class="material-symbols-outlined text-[22px] text-vibrant-orange">rocket_launch</span>
 </div>
-<h3 class="font-headline-md text-headline-md text-on-surface">Entrega Ultra Rápida</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">Fez o pedido? A Ligeirinho agiliza. Entrega rápida para você não perder tempo.</p>
+<div class="min-w-0">
+<h3 class="font-headline-md text-[15px] leading-snug text-on-surface mb-1">Entrega rápida</h3>
+<p class="font-body-md text-[13px] leading-snug text-on-surface-variant">Pedido agilizado para você não perder tempo.</p>
 </div>
-<!-- Feature 2 -->
-<div class="md:col-span-2 md:row-span-1 glass-panel p-8 rounded-xl flex flex-col items-start gap-4 hover:-translate-y-2 transition-transform duration-300 relative overflow-hidden justify-center">
-<!-- subtle glow behind icon -->
-<div class="absolute top-8 left-8 w-16 h-16 bg-gold-accent/20 blur-xl rounded-full"></div>
-<div class="w-14 h-14 rounded-full bg-surface-gray flex items-center justify-center border border-gold-accent/30 relative z-10">
-<span class="material-symbols-outlined text-[28px] text-gold-accent">ac_unit</span>
 </div>
-<h3 class="font-headline-md text-headline-md text-on-surface relative z-10">Bebidas Geladas</h3>
-<p class="font-body-md text-body-md text-on-surface-variant relative z-10">Cervejas e bebidas prontas para consumo, sempre na temperatura ideal.</p>
+<div class="glass-panel p-4 rounded-lg flex items-start gap-3 hover:-translate-y-0.5 transition-transform duration-300">
+<div class="w-10 h-10 shrink-0 rounded-full bg-surface-gray flex items-center justify-center border border-gold-accent/30">
+<span class="material-symbols-outlined text-[22px] text-gold-accent">ac_unit</span>
 </div>
-<!-- Feature 3 -->
-<div class="md:col-span-2 md:row-span-1 glass-panel p-8 rounded-xl flex flex-col items-start gap-4 hover:-translate-y-2 transition-transform duration-300 justify-center">
-<div class="w-14 h-14 rounded-full bg-surface-gray flex items-center justify-center border border-surface-variant">
-<span class="material-symbols-outlined text-[28px] text-on-surface">star</span>
+<div class="min-w-0">
+<h3 class="font-headline-md text-[15px] leading-snug text-on-surface mb-1">Bebidas geladas</h3>
+<p class="font-body-md text-[13px] leading-snug text-on-surface-variant">Prontas para consumo na temperatura ideal.</p>
 </div>
-<h3 class="font-headline-md text-headline-md text-on-surface">Variedade Premium</h3>
-<p class="font-body-md text-body-md text-on-surface-variant">Das marcas populares às premium, temos opções para qualquer ocasião.</p>
+</div>
+<div class="glass-panel p-4 rounded-lg flex items-start gap-3 hover:-translate-y-0.5 transition-transform duration-300">
+<div class="w-10 h-10 shrink-0 rounded-full bg-surface-gray flex items-center justify-center border border-surface-variant">
+<span class="material-symbols-outlined text-[22px] text-on-surface">star</span>
+</div>
+<div class="min-w-0">
+<h3 class="font-headline-md text-[15px] leading-snug text-on-surface mb-1">Variedade</h3>
+<p class="font-body-md text-[13px] leading-snug text-on-surface-variant">Marcas populares e premium para qualquer ocasião.</p>
+</div>
 </div>
 </div>
 </div>
@@ -274,5 +299,6 @@
 </main>
 <div id="site-footer"></div>
 <script src="js/cart-store.js"></script>
+<script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>
 </body></html>
