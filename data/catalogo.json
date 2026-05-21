@@ -1,0 +1,1745 @@
+﻿{
+    "source":  "https://pedido.anota.ai/loja/adega-ligeirinho-bebidas-loja-2",
+    "exportedAt":  "2026-05-21T16:20:27.183Z",
+    "storeName":  "Adega Ligeirinho Bebidas - Loja 1",
+    "totalProducts":  181,
+    "categories":  [
+                       {
+                           "id":  "cervejas",
+                           "name":  "CERVEJAS",
+                           "products":  [
+                                            {
+                                                "id":  "cerveja-antarctica-original-269ml",
+                                                "name":  "CERVEJA ANTARCTICA ORIGINAL 269ML",
+                                                "price":  3.45,
+                                                "priceLabel":  "R$Â 3,45",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-brahma-duplo-malte-269ml",
+                                                "name":  "CERVEJA BRAHMA DUPLO MALTE 269ML",
+                                                "price":  3.29,
+                                                "priceLabel":  "R$Â 3,29",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-brahma-duplo-malte-269ml-c-15",
+                                                "name":  "CERVEJA BRAHMA DUPLO MALTE 269ML C/15",
+                                                "price":  46.49,
+                                                "priceLabel":  "R$Â 46,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-budweiser-330ml",
+                                                "name":  "CERVEJA BUDWEISER 330ML",
+                                                "price":  5.49,
+                                                "priceLabel":  "R$Â 5,49",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-coronita-extra-210ml",
+                                                "name":  "CERVEJA CORONITA EXTRA 210ML",
+                                                "price":  5.49,
+                                                "priceLabel":  "R$Â 5,49",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-brahma-duplo-malte-350ml",
+                                                "name":  "CERVEJA BRAHMA DUPLO MALTE 350ML",
+                                                "price":  3.69,
+                                                "priceLabel":  "R$Â 3,69",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-brahma-duplo-malte-350ml-c-12",
+                                                "name":  "CERVEJA BRAHMA DUPLO MALTE 350ML C/12",
+                                                "price":  43.99,
+                                                "priceLabel":  "R$Â 43,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-eisenbahn-pilsen-269ml-c-12",
+                                                "name":  "CERVEJA EISENBAHN PILSEN 269ML C/12",
+                                                "price":  43.59,
+                                                "priceLabel":  "R$Â 43,59",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-eisenbahn-pilsen-lata-269ml",
+                                                "name":  "CERVEJA EISENBAHN PILSEN LATA 269ML",
+                                                "price":  3.79,
+                                                "priceLabel":  "R$Â 3,79",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-heineken-330ml",
+                                                "name":  "CERVEJA HEINEKEN 330ML",
+                                                "price":  6.69,
+                                                "priceLabel":  "R$Â 6,69",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-imperio-269ml",
+                                                "name":  "CERVEJA IMPERIO 269ML",
+                                                "price":  2.69,
+                                                "priceLabel":  "R$Â 2,69",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-itaipava-269ml",
+                                                "name":  "CERVEJA ITAIPAVA 269ML",
+                                                "price":  2.35,
+                                                "priceLabel":  "R$Â 2,35",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-itaipava-269ml-c-12",
+                                                "name":  "CERVEJA ITAIPAVA 269ML C/12",
+                                                "price":  26.99,
+                                                "priceLabel":  "R$Â 26,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-corona-long-neck-330ml",
+                                                "name":  "CERVEJA CORONA LONG NECK 330ML",
+                                                "price":  7.59,
+                                                "priceLabel":  "R$Â 7,59",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-munich-hells-puro-malte-spaten-269ml",
+                                                "name":  "CERVEJA MUNICH HELLS PURO MALTE SPATEN 269ML",
+                                                "price":  3.59,
+                                                "priceLabel":  "R$Â 3,59",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-pilsen-skol-269ml",
+                                                "name":  "CERVEJA PILSEN SKOL 269ML",
+                                                "price":  2.89,
+                                                "priceLabel":  "R$Â 2,89",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-pilsen-skol-269ml-c-15",
+                                                "name":  "CERVEJA PILSEN SKOL 269ML C/15",
+                                                "price":  39.99,
+                                                "priceLabel":  "R$Â 39,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-puro-malte-petra-269ml",
+                                                "name":  "CERVEJA PURO MALTE PETRA 269ML",
+                                                "price":  2.79,
+                                                "priceLabel":  "R$Â 2,79",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-puro-malte-stella-artois-330ml",
+                                                "name":  "CERVEJA PURO MALTE STELLA ARTOIS 330ML",
+                                                "price":  6.49,
+                                                "priceLabel":  "R$Â 6,49",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-skol-pilsen-350ml",
+                                                "name":  "CERVEJA SKOL PILSEN 350ML",
+                                                "price":  3.69,
+                                                "priceLabel":  "R$Â 3,69",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerevja-zero-heineken-330ml",
+                                                "name":  "CEREVJA ZERO HEINEKEN 330ML",
+                                                "price":  6.69,
+                                                "priceLabel":  "R$Â 6,69",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-original-269ml-c-8",
+                                                "name":  "CERVEJA ORIGINAL 269ML C/8",
+                                                "price":  26.49,
+                                                "priceLabel":  "R$Â 26,49",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-puro-malte-petra-269ml-c-12",
+                                                "name":  "CERVEJA PURO MALTE PETRA 269ML C/12",
+                                                "price":  31.99,
+                                                "priceLabel":  "R$Â 31,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-munich-puro-malte-spaten-269ml-c-8",
+                                                "name":  "CERVEJA MUNICH PURO MALTE SPATEN 269ML C/8",
+                                                "price":  27.49,
+                                                "priceLabel":  "R$Â 27,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-heineken-269ml",
+                                                "name":  "CERVEJA HEINEKEN 269ML",
+                                                "price":  4.19,
+                                                "priceLabel":  "R$Â 4,19",
+                                                "description":  "Cerveja Heineken Lata 269ml",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-heineken-269ml-c-8",
+                                                "name":  "CERVEJA HEINEKEN 269ML C/8",
+                                                "price":  32.8,
+                                                "priceLabel":  "R$Â 32,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "budweiser-269ml",
+                                                "name":  "BUDWEISER 269ML",
+                                                "price":  3.19,
+                                                "priceLabel":  "R$Â 3,19",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "budweiser-269ml-c-8",
+                                                "name":  "BUDWEISER 269ML C/8",
+                                                "price":  23.49,
+                                                "priceLabel":  "R$Â 23,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "imperio-269ml-c-15",
+                                                "name":  "IMPERIO 269ML C/15",
+                                                "price":  38.99,
+                                                "priceLabel":  "R$Â 38,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-stella-artois-lata-269ml-c-8",
+                                                "name":  "CERVEJA STELLA ARTOIS LATA 269ML C/8",
+                                                "price":  33.49,
+                                                "priceLabel":  "R$Â 33,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-budweiser-330ml",
+                                                "name":  "CERVEJA BUDWEISER 330ML",
+                                                "price":  5.49,
+                                                "priceLabel":  "R$Â 5,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cerveja-stella-artois-lata-269ml",
+                                                "name":  "CERVEJA STELLA ARTOIS LATA 269ML",
+                                                "price":  4.29,
+                                                "priceLabel":  "R$Â 4,29",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "gin-s",
+                           "name":  "GIN\u0027S",
+                           "products":  [
+                                            {
+                                                "id":  "gin-eternity-strawberry-900ml",
+                                                "name":  "GIN ETERNITY STRAWBERRY 900ML",
+                                                "price":  20.5,
+                                                "priceLabel":  "R$Â 20,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-eternity-melancia-900ml",
+                                                "name":  "GIN ETERNITY MELANCIA 900ML",
+                                                "price":  20.5,
+                                                "priceLabel":  "R$Â 20,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-eternity-maca-verde-900ml",
+                                                "name":  "GIN ETERNITY MAÃ‡A VERDE 900ML",
+                                                "price":  20.5,
+                                                "priceLabel":  "R$Â 20,50",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-rock-s-1l",
+                                                "name":  "GIN ROCK\u0027S 1L",
+                                                "price":  26.99,
+                                                "priceLabel":  "R$Â 26,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-eternity-tradicional",
+                                                "name":  "GIN ETERNITY TRADICIONAL",
+                                                "price":  20.5,
+                                                "priceLabel":  "R$Â 20,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-eternity-tropical-900ml",
+                                                "name":  "GIN ETERNITY TROPICAL 900ML",
+                                                "price":  20.5,
+                                                "priceLabel":  "R$Â 20,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-beefeater-750ml",
+                                                "name":  "GIN BEEFEATER 750ML",
+                                                "price":  120,
+                                                "priceLabel":  "R$Â 120,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-beefeater-blackberry-700ml",
+                                                "name":  "GIN BEEFEATER BLACKBERRY 700ML",
+                                                "price":  116.99,
+                                                "priceLabel":  "R$Â 116,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-rocks-strawberry-1l",
+                                                "name":  "GIN ROCKS STRAWBERRY  1L",
+                                                "price":  26.99,
+                                                "priceLabel":  "R$Â 26,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "refrigerantes-sucos",
+                           "name":  "REFRIGERANTES/SUCOS",
+                           "products":  [
+                                            {
+                                                "id":  "sufresh-laranja-1l",
+                                                "name":  "SUFRESH LARANJA 1L",
+                                                "price":  6.15,
+                                                "priceLabel":  "R$Â 6,15",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "coca-cola-original-350ml",
+                                                "name":  "COCA COLA ORIGINAL 350ML",
+                                                "price":  3.39,
+                                                "priceLabel":  "R$Â 3,39",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "coca-cola-original-2l",
+                                                "name":  "COCA COLA ORIGINAL 2L",
+                                                "price":  9.75,
+                                                "priceLabel":  "R$Â 9,75",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "fanta-uva-350ml",
+                                                "name":  "FANTA UVA 350ML",
+                                                "price":  3.25,
+                                                "priceLabel":  "R$Â 3,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "guarana-antarctica-350ml",
+                                                "name":  "GUARANÃ ANTARCTICA 350ML",
+                                                "price":  3.25,
+                                                "priceLabel":  "R$Â 3,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "fanta-laranja-350ml",
+                                                "name":  "FANTA LARANJA 350ML",
+                                                "price":  3.25,
+                                                "priceLabel":  "R$Â 3,25",
+                                                "description":  "Embalagem 350ml",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "sufresh-uva-1l",
+                                                "name":  "SUFRESH UVA 1L",
+                                                "price":  6.15,
+                                                "priceLabel":  "R$Â 6,15",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "fanta-laranja-2-litros",
+                                                "name":  "Fanta Laranja 2 Litros",
+                                                "price":  8.49,
+                                                "priceLabel":  "R$Â 8,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "fanta-uva-2-litros",
+                                                "name":  "FANTA UVA 2 Litros",
+                                                "price":  8.49,
+                                                "priceLabel":  "R$Â 8,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "coca-cola-zero-2l",
+                                                "name":  "COCA COLA ZERO 2L",
+                                                "price":  12.49,
+                                                "priceLabel":  "R$Â 12,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "refrigerante-fanta-guarana-2l",
+                                                "name":  "REFRIGERANTE FANTA GUARANA 2L",
+                                                "price":  8.49,
+                                                "priceLabel":  "R$Â 8,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "coca-cola-600ml",
+                                                "name":  "COCA COLA 600ML",
+                                                "price":  5.89,
+                                                "priceLabel":  "R$Â 5,89",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "sukita-laranja-2l",
+                                                "name":  "SUKITA LARANJA 2L",
+                                                "price":  6.25,
+                                                "priceLabel":  "R$Â 6,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "sukita-uva-2l",
+                                                "name":  "SUKITA UVA 2L",
+                                                "price":  5.85,
+                                                "priceLabel":  "R$Â 5,85",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "sukita-tubaina-2l",
+                                                "name":  "SUKITA TUBAINA 2L",
+                                                "price":  5.85,
+                                                "priceLabel":  "R$Â 5,85",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "soda-limonada-2l",
+                                                "name":  "SODA LIMONADA 2L",
+                                                "price":  8.49,
+                                                "priceLabel":  "R$Â 8,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "vodkas",
+                           "name":  "VODKAS",
+                           "products":  [
+                                            {
+                                                "id":  "vodka-absolut-1l",
+                                                "name":  "VODKA ABSOLUT 1L",
+                                                "price":  74.99,
+                                                "priceLabel":  "R$Â 74,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "vodka-askov-frutas-vermelhas-900ml",
+                                                "name":  "VODKA ASKOV FRUTAS VERMELHAS 900ML",
+                                                "price":  14.3,
+                                                "priceLabel":  "R$Â 14,30",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "vodka-askov-maracuja-900ml",
+                                                "name":  "VODKA ASKOV MARACUJA 900ML",
+                                                "price":  14.3,
+                                                "priceLabel":  "R$Â 14,30",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "vodka-smirnoff-998ml",
+                                                "name":  "VODKA SMIRNOFF 998ML",
+                                                "price":  33.99,
+                                                "priceLabel":  "R$Â 33,99",
+                                                "description":  "Vodka Smirnoff 990ml",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "askov-blueberry",
+                                                "name":  "ASKOV BLUEBERRY",
+                                                "price":  14.3,
+                                                "priceLabel":  "R$Â 14,30",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "whiskys",
+                           "name":  "WHISKYS",
+                           "products":  [
+                                            {
+                                                "id":  "whisky-jack-daniel-s-1l",
+                                                "name":  "WHISKY JACK DANIEL\u0027S 1L",
+                                                "price":  134.99,
+                                                "priceLabel":  "R$Â 134,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-red-label-1l",
+                                                "name":  "WHISKY RED LABEL 1L",
+                                                "price":  84.99,
+                                                "priceLabel":  "R$Â 84,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-jack-daniel-s-fire-1l",
+                                                "name":  "WHISKY JACK DANIEL\u0027S FIRE 1L",
+                                                "price":  148.99,
+                                                "priceLabel":  "R$Â 148,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-buchanan-s-1l",
+                                                "name":  "WHISKY BUCHANAN\u0027S 1L",
+                                                "price":  149,
+                                                "priceLabel":  "R$Â 149,00",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-finnest-ballantine-s-1l",
+                                                "name":  "WHISKY FINNEST BALLANTINE\u0027S 1L",
+                                                "price":  77.99,
+                                                "priceLabel":  "R$Â 77,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-jack-daniel-s-honey-1l",
+                                                "name":  "WHISKY JACK DANIEL\u0027S HONEY 1L",
+                                                "price":  134.99,
+                                                "priceLabel":  "R$Â 134,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-old-parr-12-years-1l",
+                                                "name":  "WHISKY OLD PARR 12 YEARS 1L",
+                                                "price":  149.99,
+                                                "priceLabel":  "R$Â 149,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-gold-label-reserve-750ml",
+                                                "name":  "WHISKY GOLD LABEL RESERVE 750ML",
+                                                "price":  234.99,
+                                                "priceLabel":  "R$Â 234,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "whisky-white-horse-1l",
+                                                "name":  "WHISKY WHITE HORSE 1L",
+                                                "price":  74.99,
+                                                "priceLabel":  "R$Â 74,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "jim-beam-bourbon-1l",
+                                                "name":  "JIM BEAM BOURBON 1L",
+                                                "price":  105.99,
+                                                "priceLabel":  "R$Â 105,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "energeticos",
+                           "name":  "ENERGETICOS",
+                           "products":  [
+                                            {
+                                                "id":  "energetico-baly-frutas-tropicais-2l",
+                                                "name":  "ENERGETICO BALY FRUTAS TROPICAIS 2L",
+                                                "price":  10.8,
+                                                "priceLabel":  "R$Â 10,80",
+                                                "description":  "Garrafa 2l",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-baly-melancia-2l",
+                                                "name":  "ENERGETICO BALY MELANCIA 2L",
+                                                "price":  10.8,
+                                                "priceLabel":  "R$Â 10,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-monster-473ml",
+                                                "name":  "ENERGETICO MONSTER 473ML",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  "Lata 473ml",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-baly-morango-e-pessego-2l",
+                                                "name":  "ENERGETICO BALY MORANGO E PESSEGO 2L",
+                                                "price":  10.8,
+                                                "priceLabel":  "R$Â 10,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-redbull-tradicional-250ml",
+                                                "name":  "ENERGETICO REDBULL TRADICIONAL 250ML",
+                                                "price":  7.99,
+                                                "priceLabel":  "R$Â 7,99",
+                                                "description":  "Embalagem 24un",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-maca-verde-2l",
+                                                "name":  "ENERGETICO MAÃ‡A VERDE 2L",
+                                                "price":  10.8,
+                                                "priceLabel":  "R$Â 10,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-redbull-tropical-250ml",
+                                                "name":  "ENERGETICO REDBULL TROPICAL 250ML",
+                                                "price":  8.39,
+                                                "priceLabel":  "R$Â 8,39",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "monster-mango-loco-473ml",
+                                                "name":  "MONSTER MANGO LOCO 473ML",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  "Monster Mango Loco 473ml",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "energetico-baly-coco-e-acai",
+                                                "name":  "ENERGETICO BALY COCO E AÃ‡AI",
+                                                "price":  10.8,
+                                                "priceLabel":  "R$Â 10,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "aguas",
+                           "name":  "ÃGUAS",
+                           "products":  [
+                                            {
+                                                "id":  "agua-mineral-levissima-c-gas-510ml",
+                                                "name":  "ÃGUA MINERAL LEVISSIMA C/ GAS 510ML",
+                                                "price":  1.79,
+                                                "priceLabel":  "R$Â 1,79",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "agua-mineral-levissima-s-gas-510ml",
+                                                "name":  "ÃGUA MINERAL LEVISSIMA S/GÃS 510ML",
+                                                "price":  1.5,
+                                                "priceLabel":  "R$Â 1,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "agua-tonica-antarctica-350ml",
+                                                "name":  "ÃGUA TONICA ANTARCTICA 350ML",
+                                                "price":  3.5,
+                                                "priceLabel":  "R$Â 3,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "agua-de-coco-ducoco-330ml",
+                                                "name":  "ÃGUA DE COCO DUCOCO 330ML",
+                                                "price":  5.99,
+                                                "priceLabel":  "R$Â 5,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "agua-monteiro-lobato-510ml",
+                                                "name":  "ÃGUA MONTEIRO LOBATO 510ML",
+                                                "price":  1.49,
+                                                "priceLabel":  "R$Â 1,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "vinhos",
+                           "name":  "VINHOS",
+                           "products":  [
+                                            {
+                                                "id":  "jurupinga-975ml",
+                                                "name":  "JURUPINGA 975ML",
+                                                "price":  26.5,
+                                                "priceLabel":  "R$Â 26,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "chopp-de-vinho-draft-600ml",
+                                                "name":  "CHOPP DE VINHO DRAFT 600ML",
+                                                "price":  9.19,
+                                                "priceLabel":  "R$Â 9,19",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "catuaba-selvagem-900ml",
+                                                "name":  "CATUABA SELVAGEM 900ML",
+                                                "price":  12.49,
+                                                "priceLabel":  "R$Â 12,49",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cantinho-do-valle-880ml",
+                                                "name":  "CANTINHO DO VALLE 880ML",
+                                                "price":  4.99,
+                                                "priceLabel":  "R$Â 4,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "espumante-novecento-branco-750ml",
+                                                "name":  "ESPUMANTE NOVECENTO BRANCO 750ML",
+                                                "price":  34.5,
+                                                "priceLabel":  "R$Â 34,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "gelos",
+                           "name":  "GELOS",
+                           "products":  [
+                                            {
+                                                "id":  "gelo-coco-170g-colinas-gelos",
+                                                "name":  "GELO COCO 170G COLINAS GELOS",
+                                                "price":  2.5,
+                                                "priceLabel":  "R$Â 2,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gelo-maracuja-170g-colinas-gelos",
+                                                "name":  "GELO MARACUJÃ 170G COLINAS GELOS",
+                                                "price":  2.5,
+                                                "priceLabel":  "R$Â 2,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gelo-maca-verde-170g-colina-gelos",
+                                                "name":  "GELO MAÃ‡A VERDE 170G COLINA GELOS",
+                                                "price":  2.5,
+                                                "priceLabel":  "R$Â 2,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gelo-melancia-170g-colina-gelos",
+                                                "name":  "GELO MELÃ‚NCIA 170G COLINA GELOS",
+                                                "price":  2.5,
+                                                "priceLabel":  "R$Â 2,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "destilados",
+                           "name":  "DESTILADOS",
+                           "products":  [
+                                            {
+                                                "id":  "cachaca-pitu-350ml",
+                                                "name":  "CACHAÃ‡A PITU 350ML",
+                                                "price":  4.99,
+                                                "priceLabel":  "R$Â 4,99",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cachaca-caldense-490ml",
+                                                "name":  "CACHAÃ‡A CALDENSE 490ML",
+                                                "price":  3,
+                                                "priceLabel":  "R$Â 3,00",
+                                                "description":  null,
+                                                "adultOnly":  true,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "conhaque-dreher-900ml",
+                                                "name":  "CONHAQUE DREHER 900ML",
+                                                "price":  21,
+                                                "priceLabel":  "R$Â 21,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cachaca-51",
+                                                "name":  "CACHAÃ‡A 51",
+                                                "price":  13.99,
+                                                "priceLabel":  "R$Â 13,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "velho-barreiro",
+                                                "name":  "VELHO BARREIRO",
+                                                "price":  13.49,
+                                                "priceLabel":  "R$Â 13,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cachaca-cabare-prata-700ml",
+                                                "name":  "CACHAÃ‡A CABARE PRATA 700ML",
+                                                "price":  34.99,
+                                                "priceLabel":  "R$Â 34,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cachaca-cabare-fire-1l",
+                                                "name":  "CACHAÃ‡A CABARE FIRE 1L",
+                                                "price":  29.99,
+                                                "priceLabel":  "R$Â 29,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cachaca-cabare-amburana-700ml",
+                                                "name":  "CACHAÃ‡A CABARE  AMBURANA 700ML",
+                                                "price":  42.5,
+                                                "priceLabel":  "R$Â 42,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "contini-branco-900ml",
+                                                "name":  "CONTINI BRANCO 900ML",
+                                                "price":  22.49,
+                                                "priceLabel":  "R$Â 22,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "canelinha-da-rocha-900ml",
+                                                "name":  "CANELINHA DA ROCHA 900ML",
+                                                "price":  13.79,
+                                                "priceLabel":  "R$Â 13,79",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "salgadinho",
+                           "name":  "SALGADINHO",
+                           "products":  [
+                                            {
+                                                "id":  "salgadinho-cebolitos-33g",
+                                                "name":  "SALGADINHO CEBOLITOS 33G",
+                                                "price":  3.99,
+                                                "priceLabel":  "R$Â 3,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "salgadinho-cheetos-onda-requeijao-45g",
+                                                "name":  "SALGADINHO CHEETOS ONDA REQUEIJÃƒO 45G",
+                                                "price":  3.49,
+                                                "priceLabel":  "R$Â 3,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "salgadinho-doritos-37g",
+                                                "name":  "SALGADINHO DORITOS 37G",
+                                                "price":  4.99,
+                                                "priceLabel":  "R$Â 4,99",
+                                                "description":  "Embalagem 37G",
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "salgadinho-lua-parmesao-cheetos-40g",
+                                                "name":  "SALGADINHO LUA PARMESÃƒO CHEETOS 40G",
+                                                "price":  3.49,
+                                                "priceLabel":  "R$Â 3,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "salgadinho-fandangos-presunto-37g",
+                                                "name":  "SALGADINHO FANDANGOS PRESUNTO 37G",
+                                                "price":  2.99,
+                                                "priceLabel":  "R$Â 2,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "tabacaria",
+                           "name":  "TABACARIA",
+                           "products":  [
+                                            {
+                                                "id":  "essencia-ziggy-berry",
+                                                "name":  "ESSÃŠNCIA ZIGGY BERRY",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-cherry-starburst",
+                                                "name":  "ESSÃŠNCIA ZIGGY CHERRY STARBURST",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-duas-goiabas",
+                                                "name":  "ESSÃŠNCIA ZIGGY DUAS GOIABAS",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-fresh-acai",
+                                                "name":  "ESSÃŠNCIA ZIGGY FRESH AÃ‡AI",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-grape-starburts",
+                                                "name":  "ESSÃŠNCIA ZIGGY GRAPE STARBURTS",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-laranjola-tropical",
+                                                "name":  "ESSÃŠNCIA ZIGGY LARANJOLA TROPICAL",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-morango-e-laranja",
+                                                "name":  "ESSÃŠNCIA ZIGGY MORANGO E LARANJA",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-red-lemonade",
+                                                "name":  "ESSÃŠNCIA ZIGGY RED LEMONADE",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-yellow-starburst",
+                                                "name":  "ESSÃŠNCIA ZIGGY YELLOW STARBURST",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-nay-bubble-blend",
+                                                "name":  "ESSÃŠNCIA NAY BUBBLE BLEND",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-duas-macas-verde",
+                                                "name":  "ESSÃŠNCIA ZIGGY DUAS MAÃ‡AS VERDE",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-ziggy-flesh-lemon",
+                                                "name":  "ESSÃŠNCIA ZIGGY FLESH LEMON",
+                                                "price":  9,
+                                                "priceLabel":  "R$Â 9,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "carvao-coconara-un",
+                                                "name":  "CARVÃƒO COCONARA UN",
+                                                "price":  1,
+                                                "priceLabel":  "R$Â 1,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "aluminio-para-narguile",
+                                                "name":  "ALUMINIO PARA NARGUILE",
+                                                "price":  1,
+                                                "priceLabel":  "R$Â 1,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-yellow-drops",
+                                                "name":  "ESSÃŠNCIA ONIX YELLOW DROPS",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-chiclete-canela",
+                                                "name":  "ESSÃŠNCIA ONIX CHICLETE CANELA",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-apple",
+                                                "name":  "ESSÃŠNCIA ONIX APPLE",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-pear",
+                                                "name":  "ESSÃŠNCIA ONIX PEAR",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-orange",
+                                                "name":  "ESSÃŠNCIA ONIX ORANGE",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-high-lemon",
+                                                "name":  "ESSÃŠNCIA ONIX HIGH LEMON",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "essencia-onix-high-passion",
+                                                "name":  "ESSÃŠNCIA ONIX HIGH PASSION",
+                                                "price":  9.49,
+                                                "priceLabel":  "R$Â 9,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "cigarros",
+                           "name":  "CIGARROS",
+                           "products":  [
+                                            {
+                                                "id":  "gudang-garan",
+                                                "name":  "GUDANG GARAN",
+                                                "price":  28,
+                                                "priceLabel":  "R$Â 28,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-camel-compact",
+                                                "name":  "CIGARRO CAMEL COMPACT",
+                                                "price":  8.5,
+                                                "priceLabel":  "R$Â 8,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-marlboro-gold-maco",
+                                                "name":  "CIGARRO MARLBORO GOLD MAÃ‡O",
+                                                "price":  11.25,
+                                                "priceLabel":  "R$Â 11,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-marlboro-red-maco",
+                                                "name":  "CIGARRO MARLBORO RED MAÃ‡O",
+                                                "price":  11.25,
+                                                "priceLabel":  "R$Â 11,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-marlboro-red-selection-box",
+                                                "name":  "CIGARRO MARLBORO RED SELECTION BOX",
+                                                "price":  10,
+                                                "priceLabel":  "R$Â 10,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-rothmans-global-azul",
+                                                "name":  "CIGARRO ROTHMANS GLOBAL AZUL",
+                                                "price":  6.5,
+                                                "priceLabel":  "R$Â 6,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-rothmans-global-red",
+                                                "name":  "CIGARRO ROTHMANS GLOBAL RED",
+                                                "price":  6.5,
+                                                "priceLabel":  "R$Â 6,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-chesterfield-t-brasileiras-red",
+                                                "name":  "CIGARRO CHESTERFIELD T BRASILEIRAS RED",
+                                                "price":  6.5,
+                                                "priceLabel":  "R$Â 6,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-marlboro-gold-box",
+                                                "name":  "CIGARRO MARLBORO GOLD BOX",
+                                                "price":  12.25,
+                                                "priceLabel":  "R$Â 12,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-marlboro-red-box",
+                                                "name":  "CIGARRO MARLBORO RED BOX",
+                                                "price":  12.25,
+                                                "priceLabel":  "R$Â 12,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigaro-marlboro-ice-burst",
+                                                "name":  "CIGARO MARLBORO ICE BURST",
+                                                "price":  12.25,
+                                                "priceLabel":  "R$Â 12,25",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-winston-box",
+                                                "name":  "CIGARRO WINSTON BOX",
+                                                "price":  6.5,
+                                                "priceLabel":  "R$Â 6,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-winston-classic-box",
+                                                "name":  "CIGARRO WINSTON CLASSIC BOX",
+                                                "price":  6.5,
+                                                "priceLabel":  "R$Â 6,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-chesterfield-original-blue",
+                                                "name":  "CIGARRO CHESTERFIELD ORIGINAL BLUE",
+                                                "price":  7,
+                                                "priceLabel":  "R$Â 7,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cigarro-chesterfield-original-label",
+                                                "name":  "CIGARRO CHESTERFIELD ORIGINAL LABEL",
+                                                "price":  7,
+                                                "priceLabel":  "R$Â 7,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "chesterfield-t-brasileiras-azul",
+                                                "name":  "CHESTERFIELD T BRASILEIRAS AZUL",
+                                                "price":  6.5,
+                                                "priceLabel":  "R$Â 6,50",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "chesterfield-remix-wild",
+                                                "name":  "CHESTERFIELD REMIX WILD",
+                                                "price":  8,
+                                                "priceLabel":  "R$Â 8,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "chesterfield-remix-beats",
+                                                "name":  "CHESTERFIELD REMIX BEATS",
+                                                "price":  8,
+                                                "priceLabel":  "R$Â 8,00",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "combos",
+                           "name":  "COMBOS",
+                           "products":  [
+                                            {
+                                                "id":  "gin-eternity-maca-verde-baly-2l-4-gelos-4-copos",
+                                                "name":  "GIN ETERNITY MAÃ‡A VERDE + BALY 2L + 4 GELOS, 4 COPOS",
+                                                "price":  43.3,
+                                                "priceLabel":  "R$Â 43,30",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-eternity-strawberry-baly-morango-2l-4-gelos-4-copos",
+                                                "name":  "GIN ETERNITY STRAWBERRY + BALY MORANGO 2L + 4 GELOS, 4 COPOS",
+                                                "price":  43.3,
+                                                "priceLabel":  "R$Â 43,30",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "jack-daniel-s-tradicional-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "JACK DANIEL\u0027S TRADICIONAL 1L + 4 REDBULL , 4 GELOS, 4 COPOS",
+                                                "price":  178.95,
+                                                "priceLabel":  "R$Â 178,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "old-parr-12-years-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "OLD PARR 12 YEARS 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  193.95,
+                                                "priceLabel":  "R$Â 193,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "jack-daniel-s-fire-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "JACK DANIEL\u0027S FIRE 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  192.95,
+                                                "priceLabel":  "R$Â 192,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "jack-daniel-s-honey-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "JACK DANIEL\u0027S HONEY 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  178.95,
+                                                "priceLabel":  "R$Â 178,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "buchanan-s-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "BUCHANAN\u0027S 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  192.96,
+                                                "priceLabel":  "R$Â 192,96",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "red-label-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "RED LABEL 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  128.95,
+                                                "priceLabel":  "R$Â 128,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "ballantines-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "BALLANTINES 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  118.96,
+                                                "priceLabel":  "R$Â 118,96",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "white-horse-1l-4-redbull-4-gelos-4-copos",
+                                                "name":  "WHITE HORSE 1L + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  118.95,
+                                                "priceLabel":  "R$Â 118,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gold-label-750ml-4-redbull-4-gelos-4-copos",
+                                                "name":  "GOLD LABEL 750ML + 4 REDBULL, 4 GELOS, 4 COPOS",
+                                                "price":  268.95,
+                                                "priceLabel":  "R$Â 268,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-eternity-melancia-baly-2l-4-gelos-4-copos",
+                                                "name":  "GIN ETERNITY MELANCIA + BALY 2L, 4 GELOS, 4 COPOS",
+                                                "price":  43.3,
+                                                "priceLabel":  "R$Â 43,30",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "gin-tanqueray-4-redbull-4-gelos-4copos",
+                                                "name":  "GIN TANQUERAY + 4 REDBULL, 4 GELOS, 4COPOS",
+                                                "price":  148.95,
+                                                "priceLabel":  "R$Â 148,95",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "licor",
+                           "name":  "LICOR",
+                           "products":  [
+                                            {
+                                                "id":  "licor-43-chocolate-700ml",
+                                                "name":  "LICOR 43 CHOCOLATE 700ML",
+                                                "price":  149.99,
+                                                "priceLabel":  "R$Â 149,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "licor-ballena-morango-com-tequila-750ml",
+                                                "name":  "LICOR BALLENA MORANGO COM TEQUILA 750ML",
+                                                "price":  144.99,
+                                                "priceLabel":  "R$Â 144,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "licor-amarula-tradicional-750ml",
+                                                "name":  "LICOR AMARULA TRADICIONAL 750ML",
+                                                "price":  102.99,
+                                                "priceLabel":  "R$Â 102,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "tequila",
+                           "name":  "TEQUILA",
+                           "products":  [
+                                            {
+                                                "id":  "tequila-jose-cuervo-prata-750ml",
+                                                "name":  "TEQUILA JOSE CUERVO PRATA 750ML",
+                                                "price":  99.99,
+                                                "priceLabel":  "R$Â 99,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "tequila-jose-cuervo-ouro-750ml",
+                                                "name":  "TEQUILA JOSE CUERVO OURO 750ML",
+                                                "price":  99.99,
+                                                "priceLabel":  "R$Â 99,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "driks-prontos",
+                           "name":  "DRIKS PRONTOS",
+                           "products":  [
+                                            {
+                                                "id":  "smirnoff-ice-original-275ml",
+                                                "name":  "SMIRNOFF ICE ORIGINAL 275ML",
+                                                "price":  7.49,
+                                                "priceLabel":  "R$Â 7,49",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cabare-ice-frutas-vermelhas-275ml",
+                                                "name":  "CABARÃ‰ ICE FRUTAS VERMELHAS 275ML",
+                                                "price":  7.99,
+                                                "priceLabel":  "R$Â 7,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cabare-ice-limao-275ml",
+                                                "name":  "CABARÃ‰ ICE LIMÃƒO 275ML",
+                                                "price":  7.99,
+                                                "priceLabel":  "R$Â 7,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cabare-ice-frutas-amarelas-275ml",
+                                                "name":  "CABARÃ‰ ICE FRUTAS AMARELAS 275ML",
+                                                "price":  7.99,
+                                                "priceLabel":  "R$Â 7,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "cabare-ice-tangerina-275ml",
+                                                "name":  "CABARÃ‰ ICE TANGERINA 275ML",
+                                                "price":  7.99,
+                                                "priceLabel":  "R$Â 7,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-senses-long-269ml",
+                                                "name":  "SKOL BEATS SENSES LONG 269ML",
+                                                "price":  7.89,
+                                                "priceLabel":  "R$Â 7,89",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-senses-lata-269ml",
+                                                "name":  "SKOL BEATS SENSES LATA 269ML",
+                                                "price":  5.99,
+                                                "priceLabel":  "R$Â 5,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-caipirinha-lata-269ml",
+                                                "name":  "SKOL BEATS CAIPIRINHA LATA 269ML",
+                                                "price":  5.99,
+                                                "priceLabel":  "R$Â 5,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-tropical-lata-269ml",
+                                                "name":  "SKOL BEATS TROPICAL LATA 269ML",
+                                                "price":  5.99,
+                                                "priceLabel":  "R$Â 5,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-senses-lata-269ml-c-8",
+                                                "name":  "SKOL BEATS SENSES LATA 269ML C/8",
+                                                "price":  46.8,
+                                                "priceLabel":  "R$Â 46,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-caipirinha-lata-269ml-c-8",
+                                                "name":  "SKOL BEATS CAIPIRINHA LATA 269ML C/8",
+                                                "price":  46.8,
+                                                "priceLabel":  "R$Â 46,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-tropical-lata-265ml-c-8",
+                                                "name":  "SKOL BEATS TROPICAL LATA 265ML C/8",
+                                                "price":  46.8,
+                                                "priceLabel":  "R$Â 46,80",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            },
+                                            {
+                                                "id":  "skol-beats-gt-long-269ml",
+                                                "name":  "SKOL BEATS GT LONG 269ML",
+                                                "price":  7.99,
+                                                "priceLabel":  "R$Â 7,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       },
+                       {
+                           "id":  "carvao",
+                           "name":  "CARVÃƒO",
+                           "products":  [
+                                            {
+                                                "id":  "carvao-ligeirinho-2kg",
+                                                "name":  "CARVÃƒO LIGEIRINHO 2KG",
+                                                "price":  11.99,
+                                                "priceLabel":  "R$Â 11,99",
+                                                "description":  null,
+                                                "adultOnly":  false,
+                                                "image":  null
+                                            }
+                                        ]
+                       }
+                   ]
+}

@@ -134,59 +134,15 @@
 <aside class="hidden lg:block lg:col-span-3 space-y-8 sticky top-24 h-[calc(100vh-6rem)] overflow-y-auto pr-4">
 <!-- Search -->
 <div class="relative">
-<input class="w-full bg-surface-gray border border-surface-variant rounded-lg py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md" placeholder="Buscar bebidas..." type="text">
+<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md" placeholder="Buscar bebidas..." type="search">
 <span class="material-symbols-outlined absolute left-3 top-3.5 text-on-surface-variant">search</span>
 </div>
 <!-- Categories -->
 <div class="bg-surface-gray rounded-xl p-6 border border-surface-variant/50">
 <h3 class="font-headline-md text-headline-md text-gold-accent mb-4">Categorias</h3>
-<ul class="space-y-3 font-body-md text-body-md">
-<li>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input checked="" class="form-checkbox bg-deep-black border-surface-variant text-vibrant-orange focus:ring-vibrant-orange rounded" type="checkbox">
-<span class="text-on-surface group-hover:text-vibrant-orange transition-colors">Todos</span>
-</label>
-</li>
-<li>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="form-checkbox bg-deep-black border-surface-variant text-vibrant-orange focus:ring-vibrant-orange rounded" type="checkbox">
-<span class="text-on-surface-variant group-hover:text-vibrant-orange transition-colors">Cervejas</span>
-</label>
-</li>
-<li>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="form-checkbox bg-deep-black border-surface-variant text-vibrant-orange focus:ring-vibrant-orange rounded" type="checkbox">
-<span class="text-on-surface-variant group-hover:text-vibrant-orange transition-colors">Destilados</span>
-</label>
-</li>
-<li>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="form-checkbox bg-deep-black border-surface-variant text-vibrant-orange focus:ring-vibrant-orange rounded" type="checkbox">
-<span class="text-on-surface-variant group-hover:text-vibrant-orange transition-colors">Vinhos</span>
-</label>
-</li>
-<li>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="form-checkbox bg-deep-black border-surface-variant text-vibrant-orange focus:ring-vibrant-orange rounded" type="checkbox">
-<span class="text-on-surface-variant group-hover:text-vibrant-orange transition-colors">Sem Álcool</span>
-</label>
-</li>
-<li>
-<label class="flex items-center gap-3 cursor-pointer group">
-<input class="form-checkbox bg-deep-black border-surface-variant text-vibrant-orange focus:ring-vibrant-orange rounded" type="checkbox">
-<span class="text-on-surface-variant group-hover:text-vibrant-orange transition-colors">Gelo &amp; Carvão</span>
-</label>
-</li>
+<ul id="catalog-filters" class="space-y-3 font-body-md text-body-md max-h-[50vh] overflow-y-auto pr-1">
+<li class="text-on-surface-variant text-sm">Carregando…</li>
 </ul>
-</div>
-<!-- Price Range -->
-<div class="bg-surface-gray rounded-xl p-6 border border-surface-variant/50">
-<h3 class="font-headline-md text-headline-md text-gold-accent mb-4">Preço</h3>
-<input class="w-full h-2 bg-deep-black rounded-lg appearance-none cursor-pointer accent-vibrant-orange" max="500" min="0" type="range">
-<div class="flex justify-between mt-2 font-label-caps text-label-caps text-on-surface-variant">
-<span>R$ 0</span>
-<span>R$ 500+</span>
-</div>
 </div>
 </aside>
 <!-- Product Grid -->
@@ -194,197 +150,56 @@
 <!-- Mobile Search/Filter Toggle -->
 <div class="lg:hidden flex gap-4 mb-6">
 <div class="relative flex-grow">
-<input class="w-full bg-surface-gray border border-surface-variant rounded-lg py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-vibrant-orange transition-colors" placeholder="Buscar..." type="text">
+<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-3 pl-10 pr-4 text-on-surface focus:outline-none focus:border-vibrant-orange transition-colors" placeholder="Buscar..." type="search">
 <span class="material-symbols-outlined absolute left-3 top-3.5 text-on-surface-variant">search</span>
 </div>
 <button class="bg-surface-gray border border-surface-variant rounded-lg p-3 text-gold-accent">
 <span class="material-symbols-outlined">filter_list</span>
 </button>
 </div>
+<div class="mb-6 rounded-xl border border-gold-accent/25 bg-gold-accent/5 px-4 py-3 flex gap-3 items-start">
+<span class="material-symbols-outlined text-gold-accent shrink-0 mt-0.5">science</span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed"><strong class="text-on-surface">Protótipo.</strong> Catálogo espelhado do cardápio Anota AI (<a class="text-vibrant-orange hover:underline" href="https://pedido.anota.ai/loja/adega-ligeirinho-bebidas-loja-2" target="_blank" rel="noopener noreferrer">fonte</a>). Preços e itens são referência estática — o pedido real segue pelo WhatsApp.</p>
+</div>
 <!-- Header -->
 <div class="flex justify-between items-end mb-8">
 <div>
 <h1 class="font-display-lg text-[32px] md:text-display-lg text-on-surface mb-2">Catálogo</h1>
-<p class="font-body-md text-body-md text-on-surface-variant">Mostrando 24 de 142 produtos</p>
+<p id="catalog-stats" class="font-body-md text-body-md text-on-surface-variant">Carregando catálogo…</p>
 </div>
 <div class="hidden md:flex items-center gap-2">
 <span class="font-body-md text-on-surface-variant text-sm">Ordenar por:</span>
-<select class="bg-deep-black border border-surface-variant rounded-md text-on-surface py-1 pl-2 pr-8 focus:ring-vibrant-orange focus:border-vibrant-orange text-sm">
-<option>Mais Vendidos</option>
-<option>Menor Preço</option>
-<option>Maior Preço</option>
+<select id="catalog-sort" class="bg-deep-black border border-surface-variant rounded-md text-on-surface py-1 pl-2 pr-8 focus:ring-vibrant-orange focus:border-vibrant-orange text-sm">
+<option value="name">Nome (A–Z)</option>
+<option value="price-asc">Menor preço</option>
+<option value="price-desc">Maior preço</option>
 </select>
 </div>
 </div>
-<!-- Bento/Grid Layout -->
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-<!-- Product Card 1 -->
-<article class="product-card bg-surface-gray rounded-xl overflow-hidden border border-surface-variant/30 relative group flex flex-col transition-transform hover:-translate-y-1 duration-300">
-<div class="product-glow absolute inset-0 bg-vibrant-orange/5 opacity-0 transition-opacity duration-300 rounded-xl pointer-events-none shadow-[0_0_15px_rgba(255,107,0,0.15)]"></div>
-<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
-<!-- Chip -->
-<div class="absolute top-3 left-3 bg-vibrant-orange/15 border border-vibrant-orange text-vibrant-orange font-label-caps text-label-caps px-2 py-1 rounded">
-                            GELADA
-                        </div>
-<img alt="Heineken Long Neck" class="max-h-full object-contain drop-shadow-2xl" data-alt="A sleek, high-contrast studio shot of a cold, condensation-covered green beer bottle on a dark reflective surface. The lighting is dramatic, highlighting the water droplets and the premium nature of the beverage. The background is a deep, luxurious black, perfectly aligning with a premium night-time tech-hub aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfDlDkZ-DQDTnf2P6ANWKdBdi_UeziewLuu96xD08RqJ1fB2PUs0d4VnHJg2HErxTVq3B9uq_ohlzPhI_LjpqEBEOvBaa-eOnN4UsK_SYAt2daTvryCk3-5XIUb2EPX31fi7AxjyxmoGqTJpOXF6-fF86vUxzKNpL6MqeHeT1_IFNzt_b5TSybYLdsStXYAmusCuYZN4Di9PNxl3thAhWWghHWWCeH6xtzeikHSIoHYMwcdFpLuIpJ_CMfDZaLJuYVc29b6eoWMRb9">
-</div>
-<div class="p-5 flex-grow flex flex-col justify-between z-10">
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface text-lg mb-1 line-clamp-1">Heineken Long Neck 330ml</h2>
-<p class="font-body-md text-sm text-on-surface-variant mb-4">Cerveja Premium Lager</p>
-</div>
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-[16px] text-gold-accent">R$ 6,99</span>
-<button class="bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold p-2 rounded-lg transition-colors flex items-center justify-center">
-<span class="material-symbols-outlined">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</article>
-<!-- Product Card 2 (Highlight/Wider) -->
-<article class="product-card sm:col-span-2 xl:col-span-2 bg-surface-gray rounded-xl overflow-hidden border border-surface-variant/30 relative group flex flex-col sm:flex-row transition-transform hover:-translate-y-1 duration-300">
-<div class="product-glow absolute inset-0 bg-gold-accent/5 opacity-0 transition-opacity duration-300 rounded-xl pointer-events-none shadow-[0_0_15px_rgba(212,175,55,0.15)]"></div>
-<div class="relative w-full sm:w-1/2 h-48 sm:h-auto bg-gradient-to-br from-surface-container to-deep-black flex items-center justify-center p-4">
-<div class="absolute top-3 left-3 bg-gold-accent/15 border border-gold-accent text-gold-accent font-label-caps text-label-caps px-2 py-1 rounded">
-                            OFERTA
-                        </div>
-<img alt="Whisky Jack Daniels" class="max-h-full object-contain drop-shadow-2xl mix-blend-lighten" data-alt="A sophisticated, high-contrast lifestyle product shot of a premium amber whiskey bottle paired with a filled rocks glass containing a single large ice cube. The lighting is moody and warm, casting rich golden reflections against a dark, minimalist background. The aesthetic conveys luxury and late-night indulgence, fitting a high-end tech-hub design style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCS4vojmgQmuNudFJVvL4saXz6II-TJskaHUJOwDE0iyesKXwjWrTSVPLk1a9o3c7aXGZZtQWhlyAmRbI8mrlPcRMjoY9tSYjEpzkTpVnkXz5DFA4yAxNGS7lyKUsJbE8XiBX81_ACcjT0OrRpL_lOF1arnzOo5pLxfYDLC11s4hJuSXDQzl86Eb4dEPXNYrjrNYQm2fjxJblSdb-VEukZ39pH9kfb7g3Is3xml7sB_C7mCIIWrV-P1j2KopSrGEKdprme9sZdEByhS">
-</div>
-<div class="p-6 w-full sm:w-1/2 flex flex-col justify-center z-10">
-<h2 class="font-headline-lg text-headline-lg text-on-surface mb-2">Combo Jack Daniel's + Energético</h2>
-<p class="font-body-md text-on-surface-variant mb-6 line-clamp-2">Garrafa 1L + 4 latas de Red Bull. O kit perfeito para começar a noite.</p>
-<div class="flex items-end justify-between mt-auto">
-<div>
-<span class="font-body-md text-sm text-on-surface-variant line-through block">R$ 189,90</span>
-<span class="font-label-caps text-[20px] text-gold-accent block">R$ 159,90</span>
-</div>
-<button class="bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold px-6 py-2 rounded-lg transition-colors flex items-center gap-2">
-<span>Adicionar</span>
-<span class="material-symbols-outlined text-sm">add</span>
-</button>
-</div>
-</div>
-</article>
-<!-- Product Card 3 -->
-<article class="product-card bg-surface-gray rounded-xl overflow-hidden border border-surface-variant/30 relative group flex flex-col transition-transform hover:-translate-y-1 duration-300">
-<div class="product-glow absolute inset-0 bg-vibrant-orange/5 opacity-0 transition-opacity duration-300 rounded-xl pointer-events-none shadow-[0_0_15px_rgba(255,107,0,0.15)]"></div>
-<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
-<img alt="Gin Tanqueray" class="max-h-full object-contain drop-shadow-2xl" data-alt="A crystal-clear premium gin bottle standing elegantly on a matte black surface. Soft, targeted studio lighting creates brilliant specular highlights on the green glass, emphasizing its premium quality. The deep black background enhances the vibrant color of the bottle, perfectly suited for a high-contrast luxury beverage catalog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5Q37M-GWmkRml29RpTsYOCe0yLlrH3akH8iMelmpmuoG6g8ZUsYUUfuSpc3t2ziwk_MWkSPSilaPFJXFxTXjPTwHVQP-ccKgkNsmPyNqWeew56uNdJPD4uOo1lmmzCHAR3aq0Vhwn2SuZ4-NO0NowCaSPMeT361puNNq0HvuLqSdLv26rL70js9F87eoYWmcNHNaAOlMIevPIrbv4ZYyL693z4-I2jfnX4Eps27bsVqWenlJAJdwJnoHe8HhEMK7DycUuoQrZSV7Z">
-</div>
-<div class="p-5 flex-grow flex flex-col justify-between z-10">
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface text-lg mb-1 line-clamp-1">Gin Tanqueray London Dry 750ml</h2>
-<p class="font-body-md text-sm text-on-surface-variant mb-4">Destilado Premium</p>
-</div>
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-[16px] text-gold-accent">R$ 124,90</span>
-<button class="bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold p-2 rounded-lg transition-colors flex items-center justify-center">
-<span class="material-symbols-outlined">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</article>
-<!-- Product Card 4 -->
-<article class="product-card bg-surface-gray rounded-xl overflow-hidden border border-surface-variant/30 relative group flex flex-col transition-transform hover:-translate-y-1 duration-300">
-<div class="product-glow absolute inset-0 bg-vibrant-orange/5 opacity-0 transition-opacity duration-300 rounded-xl pointer-events-none shadow-[0_0_15px_rgba(255,107,0,0.15)]"></div>
-<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
-<img alt="Cerveja Artesanal IPA" class="max-h-full object-contain drop-shadow-2xl" data-alt="A frosty can of craft IPA beer standing on a wet, dark slate surface. The can features bold, modern graphic design. The lighting is crisp and cool, contrasting against a pitch-black background, creating a high-performance, refreshing aesthetic ideal for a modern dark-mode digital catalog." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpbJamIqSjrNSLKYKzUsgiKsqwM_6ZHn51Wxd9YYN1K-Vr5e2qV5yh2OiDBQ68IUdtGhiwbog7l_ep7HKhPQ4ieCZmSPnXQofaHHFWCNsQsMWLVUcpbeXyeT5n0P_Rl6VllkwaGnkWTzLe780HBD3EDwrj4ERUqhICOqPYuSPAF8yYXmGgGxU3jSp1kBB2HP1FuFW9qq946eI7S2F4HZ7VuJIjdnbS66PzSV-weMyakEYc1OVR5trIeqeCnecPMXbs_dmwXLmtnMXb">
-</div>
-<div class="p-5 flex-grow flex flex-col justify-between z-10">
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface text-lg mb-1 line-clamp-1">IPA Artesanal 473ml</h2>
-<p class="font-body-md text-sm text-on-surface-variant mb-4">Cerveja Forte</p>
-</div>
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-[16px] text-gold-accent">R$ 18,50</span>
-<button class="bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold p-2 rounded-lg transition-colors flex items-center justify-center">
-<span class="material-symbols-outlined">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</article>
-<!-- Product Card 5 -->
-<article class="product-card bg-surface-gray rounded-xl overflow-hidden border border-surface-variant/30 relative group flex flex-col transition-transform hover:-translate-y-1 duration-300">
-<div class="product-glow absolute inset-0 bg-vibrant-orange/5 opacity-0 transition-opacity duration-300 rounded-xl pointer-events-none shadow-[0_0_15px_rgba(255,107,0,0.15)]"></div>
-<div class="relative h-48 bg-surface-container flex items-center justify-center p-4">
-<div class="absolute top-3 left-3 bg-surface-variant/50 border border-surface-variant text-on-surface-variant font-label-caps text-label-caps px-2 py-1 rounded">
-                            ESSENCIAL
-                        </div>
-<img alt="Saco de Gelo" class="max-h-full object-contain drop-shadow-2xl mix-blend-lighten opacity-80" data-alt="A stylized, high-contrast image of crystal clear ice cubes piled together, with subtle blue and white backlighting highlighting their frosty texture. The dark, minimal background emphasizes the icy temperature and essential nature of the product, fitting seamlessly into a premium dark-themed interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABO1yE0Khl6rbL5o1Ciyo-iDV-Ize8f1rE4oHh_uAnaoa8VoD22evgo3L8z3pa_DtsBFmTFpdu4lTf5Cu58hhe77hjrITKkGbrV1SzVg9StS9DWeJcYYzA0HP0yb-GoN1DfmXNL6dKS2nkj0PtKuG20pUqMSaJkae5TV21ki1r-LRD7v-pqAyXYLMnMj5NebIlOFwvZ6j6MHBJjLS5rqXGJbMOD9vX0uulrfhSEx8XJ2P9bzL8sFLJN6o3eF7iY-nCXCzfN5j-f8zO">
-</div>
-<div class="p-5 flex-grow flex flex-col justify-between z-10">
-<div>
-<h2 class="font-headline-md text-headline-md text-on-surface text-lg mb-1 line-clamp-1">Gelo Filtrado 5kg</h2>
-<p class="font-body-md text-sm text-on-surface-variant mb-4">Cubos grandes</p>
-</div>
-<div class="flex items-center justify-between">
-<span class="font-label-caps text-[16px] text-gold-accent">R$ 12,00</span>
-<button class="bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold p-2 rounded-lg transition-colors flex items-center justify-center">
-<span class="material-symbols-outlined">add_shopping_cart</span>
-</button>
-</div>
-</div>
-</article>
-</div>
-<!-- Load More -->
-<div class="mt-12 flex justify-center">
-<button class="border border-gold-accent text-gold-accent hover:bg-gold-accent/10 px-8 py-3 rounded-lg font-headline-md text-sm transition-colors uppercase tracking-wider">
-                    Carregar Mais
-                </button>
+<!-- Grid -->
+<div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+<p class="col-span-full text-on-surface-variant font-body-md py-8 text-center">Carregando produtos…</p>
 </div>
 </section>
 </main>
-<!-- Floating Cart Summary (Glassmorphism Modal/Panel) -->
+<!-- Pedido real via WhatsApp -->
 <div class="fixed bottom-8 right-8 z-50 hidden xl:block w-80">
 <div class="glass-panel rounded-xl shadow-2xl p-5 flex flex-col">
-<div class="flex justify-between items-center mb-4 border-b border-surface-variant/30 pb-3">
-<h3 class="font-headline-md text-headline-md text-on-surface text-lg flex items-center gap-2">
-<span class="material-symbols-outlined text-vibrant-orange">receipt_long</span>
-                    Seu Pedido
+<h3 class="font-headline-md text-headline-md text-on-surface text-lg flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-vibrant-orange">chat</span>
+                    Fazer pedido
                 </h3>
-<span class="bg-vibrant-orange text-deep-black font-bold px-2 py-1 rounded-md text-xs">3 itens</span>
-</div>
-<div class="space-y-3 mb-4 max-h-48 overflow-y-auto pr-2">
-<div class="flex justify-between items-center">
-<div class="flex-1">
-<p class="font-body-md text-sm text-on-surface truncate">1x Combo Jack Daniel's</p>
-<p class="font-label-caps text-xs text-gold-accent mt-1">R$ 159,90</p>
-</div>
-<button class="text-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-sm">close</span></button>
-</div>
-<div class="flex justify-between items-center">
-<div class="flex-1">
-<p class="font-body-md text-sm text-on-surface truncate">2x Heineken LN</p>
-<p class="font-label-caps text-xs text-gold-accent mt-1">R$ 13,98</p>
-</div>
-<button class="text-surface-variant hover:text-error transition-colors"><span class="material-symbols-outlined text-sm">close</span></button>
-</div>
-</div>
-<div class="border-t border-surface-variant/30 pt-4 mb-4">
-<div class="flex justify-between items-center mb-1">
-<span class="font-body-md text-sm text-on-surface-variant">Subtotal</span>
-<span class="font-label-caps text-sm text-on-surface">R$ 173,88</span>
-</div>
-<div class="flex justify-between items-center mb-3">
-<span class="font-body-md text-sm text-on-surface-variant">Entrega (Flash)</span>
-<span class="font-label-caps text-sm text-status-green">Grátis</span>
-</div>
-<div class="flex justify-between items-center">
-<span class="font-headline-md text-base text-on-surface">Total</span>
-<span class="font-label-caps text-lg text-vibrant-orange">R$ 173,88</span>
-</div>
-</div>
-<button class="w-full bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,107,0,0.3)] hover:shadow-[0_0_20px_rgba(255,107,0,0.5)]">
-                Finalizar Pedido
+<p class="font-body-md text-body-md text-on-surface-variant mb-5 leading-relaxed">Nesta versão protótipo o carrinho ainda não está ativo. Envie seu pedido pelo WhatsApp com os itens do catálogo.</p>
+<a class="w-full bg-vibrant-orange hover:bg-primary-container text-deep-black font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2" href="https://api.whatsapp.com/send/?phone=5511970924909&amp;text=Ol%C3%A1!%20Gostaria%20de%20fazer%20um%20pedido.&amp;type=phone_number&amp;app_absent=0" target="_blank" rel="noopener noreferrer">
+                Pedir no WhatsApp
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
-</button>
+</a>
 </div>
 </div>
-<!-- Mobile FAB for Cart -->
-<button class="xl:hidden fixed bottom-6 right-6 z-50 bg-vibrant-orange text-deep-black w-14 h-14 rounded-full shadow-[0_0_20px_rgba(255,107,0,0.4)] flex items-center justify-center hover:scale-105 transition-transform">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">shopping_bag</span>
-<span class="absolute top-0 right-0 bg-deep-black text-vibrant-orange border border-vibrant-orange text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
-</button>
+<a class="xl:hidden fixed bottom-6 right-6 z-50 bg-vibrant-orange text-deep-black w-14 h-14 rounded-full shadow-[0_0_20px_rgba(255,107,0,0.4)] flex items-center justify-center hover:scale-105 transition-transform" href="https://api.whatsapp.com/send/?phone=5511970924909&amp;text=Ol%C3%A1!%20Gostaria%20de%20fazer%20um%20pedido.&amp;type=phone_number&amp;app_absent=0" target="_blank" rel="noopener noreferrer" aria-label="Pedir no WhatsApp">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">chat</span>
+</a>
 <div id="site-footer"></div>
 <script src="js/layout.js"></script>
+<script src="js/pedidos.js"></script>
 </body></html>
