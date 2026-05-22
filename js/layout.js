@@ -37,14 +37,24 @@
                 overscroll-behavior: none;
                 touch-action: none;
             }
+            /* backdrop-filter no fundo trava o menu em páginas pesadas (ex.: Quem Somos) */
+            html.lig-menu-open .glass-panel,
+            html.lig-menu-open nav.font-nav-bar {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+            html.lig-menu-open nav.font-nav-bar {
+                background: rgba(8, 8, 8, 0.97) !important;
+            }
+            #nav-mobile-menu {
+                contain: layout paint;
+            }
             #nav-mobile-menu .nav-mobile-panel {
                 contain: layout style paint;
-                will-change: transform;
+                transform: translate3d(0, 0, 0);
             }
-            @media (prefers-reduced-motion: reduce) {
-                #nav-mobile-menu .nav-mobile-panel {
-                    will-change: auto;
-                }
+            #nav-mobile-menu .nav-mobile-backdrop {
+                background: rgba(8, 8, 8, 0.88);
             }
         `;
         document.head.appendChild(fontStyle);
@@ -116,7 +126,7 @@ ${navLinksHtml}
     };
 
     const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden" aria-hidden="true">
-<div class="absolute inset-0 bg-deep-black/80" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
+<div class="nav-mobile-backdrop absolute inset-0" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
 <div class="nav-mobile-panel absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
 <div class="flex shrink-0 items-center justify-between border-b border-surface-variant/30 px-4 py-3.5">
 <p id="nav-mobile-menu-title" class="font-nav text-base font-bold text-gold-accent">Menu</p>
@@ -229,8 +239,13 @@ ${brandIcon(brandIcons.maps, 22)}
             if (menuIsOpen === open) return;
             menuIsOpen = open;
 
-            if (open && window.LigeirinhoCartUI?.isOpen?.()) {
-                window.LigeirinhoCartUI.close();
+            if (open) {
+                if (window.LigeirinhoCartUI?.isOpen?.()) {
+                    window.LigeirinhoCartUI.close();
+                }
+                lockMenuScroll();
+            } else {
+                unlockMenuScroll();
             }
 
             menu.classList.toggle('hidden', !open);
@@ -239,12 +254,6 @@ ${brandIcon(brandIcons.maps, 22)}
             toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
             iconMenu?.classList.toggle('hidden', open);
             iconClose?.classList.toggle('hidden', !open);
-
-            if (open) {
-                lockMenuScroll();
-            } else {
-                unlockMenuScroll();
-            }
         };
 
         const closeMobileMenu = () => setOpen(false);
