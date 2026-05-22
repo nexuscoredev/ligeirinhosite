@@ -180,6 +180,14 @@
 <p class="text-xs text-on-surface-variant shrink-0 py-2" role="status">Carregando…</p>
 </div>
 </nav>
+<label class="flex items-center gap-2 min-w-0">
+<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider shrink-0" id="catalog-sort-label-mobile">Ordenar</span>
+<select data-catalog-sort class="flex-1 min-w-0 bg-surface-gray border border-surface-variant rounded-lg text-on-surface text-sm py-2.5 pl-3 pr-8 focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange" aria-labelledby="catalog-sort-label-mobile">
+<option value="name">Nome (A–Z)</option>
+<option value="price-asc">Menor preço</option>
+<option value="price-desc">Maior preço</option>
+</select>
+</label>
 </div>
 <!-- Header -->
 <div class="flex justify-between items-end mb-8">
@@ -188,8 +196,8 @@
 <p id="catalog-stats" class="font-body-md text-body-md text-on-surface-variant">Carregando catálogo…</p>
 </div>
 <div class="hidden md:flex items-center gap-2">
-<span class="font-body-md text-on-surface-variant text-sm">Ordenar por:</span>
-<select id="catalog-sort" class="bg-deep-black border border-surface-variant rounded-md text-on-surface py-1 pl-2 pr-8 focus:ring-vibrant-orange focus:border-vibrant-orange text-sm">
+<span class="font-body-md text-on-surface-variant text-sm" id="catalog-sort-label-desktop">Ordenar por:</span>
+<select data-catalog-sort class="bg-deep-black border border-surface-variant rounded-md text-on-surface py-1 pl-2 pr-8 focus:ring-vibrant-orange focus:border-vibrant-orange text-sm" aria-labelledby="catalog-sort-label-desktop">
 <option value="name">Nome (A–Z)</option>
 <option value="price-asc">Menor preço</option>
 <option value="price-desc">Maior preço</option>

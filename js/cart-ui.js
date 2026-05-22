@@ -1,6 +1,6 @@
 (function () {
     const WHATSAPP_PHONE = '5511970924909';
-    const XL_QUERY = '(min-width: 1280px)';
+    const LG_QUERY = '(min-width: 1024px)';
 
     const cartShellHtml = `
 <div id="cart-panel" class="fixed bottom-8 right-8 z-[70] hidden w-80 max-w-[calc(100vw-2rem)] flex-col" role="dialog" aria-modal="true" aria-labelledby="cart-panel-title">
@@ -189,8 +189,12 @@
 
     const open = () => {
         if (!panel || !sheet) return;
+        const navToggle = document.getElementById('nav-menu-toggle');
+        if (navToggle?.getAttribute('aria-expanded') === 'true') {
+            navToggle.click();
+        }
         render();
-        if (window.matchMedia(XL_QUERY).matches) {
+        if (window.matchMedia(LG_QUERY).matches) {
             sheet.classList.add('hidden');
             sheet.setAttribute('aria-hidden', 'true');
             panel.classList.remove('hidden');

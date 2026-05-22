@@ -57,6 +57,18 @@
         )
         .join('\n');
 
+    const navMobileLink =
+        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-semibold text-on-surface-variant hover:text-gold-accent hover:bg-surface-variant/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange';
+    const navMobileActive =
+        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-bold text-vibrant-orange bg-vibrant-orange/10 border border-vibrant-orange/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange';
+
+    const navMobileLinksHtml = navItems
+        .map(
+            (item) =>
+                `<a class="${page === item.id ? navMobileActive : navMobileLink}" href="${item.href}">${item.label}</a>`
+        )
+        .join('\n');
+
     const navHtml = `<nav class="font-nav-bar bg-deep-black/90 backdrop-blur-xl dark:bg-deep-black/90 docked full-width top-0 sticky z-50 border-b border-surface-variant/30 shadow-lg shadow-vibrant-orange/5">
 <div class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-3.5 max-w-container-max mx-auto">
 <a class="font-nav nav-brand text-gold-accent flex items-center gap-2.5 group" href="index.html">
@@ -71,8 +83,8 @@ ${navLinksHtml}
 <span class="material-symbols-outlined">shopping_cart</span>
 <span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 </button>
-<button type="button" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-all duration-200" aria-label="Abrir menu">
-<span class="material-symbols-outlined">menu</span>
+<button type="button" id="nav-menu-toggle" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile-menu">
+<span class="material-symbols-outlined" id="nav-menu-icon" aria-hidden="true">menu</span>
 </button>
 </div>
 </div>
@@ -83,6 +95,25 @@ ${navLinksHtml}
         instagram: 'img/icon-instagram.png',
         maps: 'img/icon-google-maps.png',
     };
+
+    const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden" aria-hidden="true">
+<div class="absolute inset-0 bg-deep-black/80" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
+<div class="absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
+<div class="flex shrink-0 items-center justify-between border-b border-surface-variant/30 px-4 py-3.5">
+<p id="nav-mobile-menu-title" class="font-nav text-base font-bold text-gold-accent">Menu</p>
+<button type="button" class="rounded-full p-2 text-on-surface-variant hover:bg-surface-variant/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" data-nav-menu-close aria-label="Fechar menu">
+<span class="material-symbols-outlined text-[24px]" aria-hidden="true">close</span>
+</button>
+</div>
+<nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-4" aria-label="Navegação principal">
+${navMobileLinksHtml}
+</nav>
+<a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-[#25D366]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">
+<img alt="" src="${brandIcons.whatsapp}" class="h-5 w-5 shrink-0 object-contain" width="20" height="20" decoding="async">
+                WhatsApp
+            </a>
+</div>
+</div>`;
 
     const brandIcon = (src, px) =>
         `<img src="${src}" alt="" width="${px}" height="${px}" class="block shrink-0 object-contain" style="width:${px}px;height:${px}px" decoding="async">`;
@@ -158,8 +189,86 @@ ${brandIcon(brandIcons.maps, 22)}
     const navMount = document.getElementById('site-nav');
     const footerMount = document.getElementById('site-footer');
 
+    let menuScrollLockY = 0;
+
+    const lockMenuScroll = () => {
+        menuScrollLockY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${menuScrollLockY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.overflow = 'hidden';
+    };
+
+    const unlockMenuScroll = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, menuScrollLockY);
+    };
+
+    const bindMobileMenu = () => {
+        const menu = document.getElementById('nav-mobile-menu');
+        const toggle = document.getElementById('nav-menu-toggle');
+        const icon = document.getElementById('nav-menu-icon');
+        if (!menu || !toggle) return;
+
+        const setOpen = (open) => {
+            menu.classList.toggle('hidden', !open);
+            menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+            if (icon) icon.textContent = open ? 'close' : 'menu';
+
+            if (open) {
+                window.LigeirinhoCartUI?.close?.();
+                lockMenuScroll();
+                menu.querySelector('[data-nav-menu-close][aria-label]')?.focus();
+            } else if (document.body.style.position === 'fixed') {
+                unlockMenuScroll();
+            }
+        };
+
+        const closeMenu = () => setOpen(false);
+        const openMenu = () => {
+            if (window.matchMedia('(min-width: 768px)').matches) return;
+            setOpen(true);
+        };
+
+        toggle.addEventListener('click', () => {
+            const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+            if (isOpen) closeMenu();
+            else openMenu();
+        });
+
+        menu.querySelectorAll('[data-nav-menu-close]').forEach((el) => {
+            el.addEventListener('click', closeMenu);
+        });
+
+        menu.querySelectorAll('nav a[href]').forEach((link) => {
+            link.addEventListener('click', closeMenu);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+                closeMenu();
+                toggle.focus();
+            }
+        });
+
+        window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
+            if (e.matches) closeMenu();
+        });
+    };
+
     if (navMount) {
         navMount.outerHTML = navHtml;
+        if (!document.getElementById('nav-mobile-menu')) {
+            document.body.insertAdjacentHTML('beforeend', mobileMenuHtml);
+        }
+        bindMobileMenu();
     }
     if (footerMount) {
         footerMount.outerHTML = footerHtml;

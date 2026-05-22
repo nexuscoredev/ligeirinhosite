@@ -10,7 +10,7 @@
     const filtersMobileSelect = document.getElementById('catalog-filters-mobile');
     const statsEl = document.getElementById('catalog-stats');
     const searchInputs = document.querySelectorAll('[data-catalog-search]');
-    const sortSelect = document.getElementById('catalog-sort');
+    const sortSelects = document.querySelectorAll('[data-catalog-sort]');
 
     if (!grid || !filtersEl) return;
 
@@ -117,7 +117,7 @@
     };
 
     const sortItems = (items) => {
-        const mode = sortSelect?.value || 'name';
+        const mode = sortSelects[0]?.value || 'name';
         const sorted = [...items];
         if (mode === 'price-asc') {
             sorted.sort((a, b) => (a.product.price ?? 0) - (b.product.price ?? 0));
@@ -266,7 +266,14 @@
         });
     });
 
-    sortSelect?.addEventListener('change', renderProducts);
+    sortSelects.forEach((select) => {
+        select.addEventListener('change', () => {
+            sortSelects.forEach((el) => {
+                if (el !== select) el.value = select.value;
+            });
+            renderProducts();
+        });
+    });
 
     fetch('data/catalogo.json')
         .then((r) => {
