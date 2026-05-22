@@ -35,9 +35,12 @@
             html.lig-menu-open body {
                 overflow: hidden;
                 overscroll-behavior: none;
-                touch-action: none;
             }
-            /* backdrop-filter no fundo trava o menu em páginas pesadas (ex.: Quem Somos) */
+            html.lig-menu-open #lig-page-main,
+            html.lig-menu-open #site-footer {
+                pointer-events: none;
+                user-select: none;
+            }
             html.lig-menu-open .glass-panel,
             html.lig-menu-open nav.font-nav-bar {
                 backdrop-filter: none !important;
@@ -46,11 +49,12 @@
             html.lig-menu-open nav.font-nav-bar {
                 background: rgba(8, 8, 8, 0.97) !important;
             }
-            #nav-mobile-menu {
-                contain: layout paint;
+            body[data-page="quemsomos"] nav.font-nav-bar {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background: rgba(8, 8, 8, 0.94) !important;
             }
             #nav-mobile-menu .nav-mobile-panel {
-                contain: layout style paint;
                 transform: translate3d(0, 0, 0);
             }
             #nav-mobile-menu .nav-mobile-backdrop {
@@ -219,6 +223,7 @@ ${brandIcon(brandIcons.maps, 22)}
     const footerMount = document.getElementById('site-footer');
 
     let menuIsOpen = false;
+    let menuBound = false;
 
     const lockMenuScroll = () => {
         document.documentElement.classList.add('lig-menu-open');
@@ -228,12 +233,34 @@ ${brandIcon(brandIcons.maps, 22)}
         document.documentElement.classList.remove('lig-menu-open');
     };
 
+    const clearBodyScrollStyles = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+    };
+
+    const resetPageLocks = () => {
+        const menu = document.getElementById('nav-mobile-menu');
+        const menuHidden = !menu || menu.classList.contains('hidden');
+
+        if (menuHidden) {
+            menuIsOpen = false;
+            unlockMenuScroll();
+        }
+        clearBodyScrollStyles();
+    };
+
     const bindMobileMenu = () => {
+        if (menuBound) return;
         const menu = document.getElementById('nav-mobile-menu');
         const toggle = document.getElementById('nav-menu-toggle');
         const iconMenu = toggle?.querySelector('.nav-menu-icon-menu');
         const iconClose = toggle?.querySelector('.nav-menu-icon-close');
         if (!menu || !toggle) return;
+        menuBound = true;
 
         const setOpen = (open) => {
             if (menuIsOpen === open) return;
@@ -262,7 +289,12 @@ ${brandIcon(brandIcons.maps, 22)}
             setOpen(true);
         };
 
-        window.LigeirinhoNav = { closeMobileMenu, isOpen: () => menuIsOpen };
+        window.LigeirinhoNav = { closeMobileMenu, isOpen: () => menuIsOpen, resetPageLocks };
+
+        window.addEventListener('pageshow', resetPageLocks);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') resetPageLocks();
+        });
 
         toggle.addEventListener('click', () => {
             if (menuIsOpen) closeMobileMenu();
@@ -305,4 +337,8 @@ ${brandIcon(brandIcons.maps, 22)}
     window.LigeirinhoCart?.updateNavCartBadge();
     window.LigeirinhoCartUI?.init();
     window.LigeirinhoCartUI?.bindNavToggle();
+
+    if (document.body.dataset.page === 'quemsomos') {
+        resetPageLocks();
+    }
 })();

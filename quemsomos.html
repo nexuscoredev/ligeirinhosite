@@ -108,21 +108,28 @@
         .material-symbols-outlined.fill {
             font-variation-settings: 'FILL' 1;
         }
-        .glass-panel {
-            background: rgba(30, 30, 30, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        .qs-card {
+            background: rgba(30, 30, 30, 0.92);
             border: 1px solid rgba(212, 175, 55, 0.2);
         }
-        @media (max-width: 767px) {
-            .glass-panel {
-                backdrop-filter: none;
-                -webkit-backdrop-filter: none;
-                background: rgba(30, 30, 30, 0.92);
-            }
+        .hero-glow {
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 107, 0, 0.12), transparent 70%);
+        }
+        @media (min-width: 768px) {
             .hero-glow {
-                filter: none;
-                background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255, 107, 0, 0.12), transparent 70%);
+                background: transparent;
+            }
+        }
+        .qs-below-fold {
+            content-visibility: auto;
+            contain-intrinsic-size: auto 400px;
+        }
+        @media (max-width: 767px) {
+            .qs-warehouse-img {
+                max-height: 220px;
+            }
+            .qs-warehouse-wrap {
+                transition: none;
             }
         }
         .text-gradient-gold {
@@ -138,10 +145,10 @@
 <body data-page="quemsomos" class="bg-deep-black text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-vibrant-orange selection:text-deep-black">
 <div id="site-nav"></div>
 <!-- Main Content -->
-<main class="flex-grow flex flex-col">
+<main id="lig-page-main" class="flex-grow flex flex-col">
 <!-- Hero -->
 <section class="relative pt-16 pb-12 md:pt-24 md:pb-16 px-margin-mobile md:px-margin-desktop overflow-hidden">
-<div class="hero-glow absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 md:bg-vibrant-orange/10 md:blur-[120px] rounded-full pointer-events-none" aria-hidden="true"></div>
+<div class="hero-glow absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 md:h-96 md:bg-vibrant-orange/10 md:blur-[120px] rounded-full pointer-events-none" aria-hidden="true"></div>
 <div class="max-w-container-max mx-auto relative z-10 text-center md:text-left">
 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-gray border border-surface-variant text-gold-accent font-label-caps text-label-caps mb-6">
 <span class="material-symbols-outlined text-[16px]">storefront</span>
@@ -164,19 +171,19 @@
 </div>
 </section>
 <!-- Galpão -->
-<section class="py-8 md:py-12 px-margin-mobile md:px-margin-desktop">
+<section class="qs-below-fold py-8 md:py-12 px-margin-mobile md:px-margin-desktop">
 <div class="max-w-container-max mx-auto">
-<div class="rounded-2xl overflow-hidden glass-panel border border-surface-variant/30 shadow-2xl shadow-vibrant-orange/10 relative group">
-<img alt="Interior do galpão da Ligeirinho Bebidas com estantes de bebidas" class="w-full max-h-[480px] object-cover transition-transform duration-700 group-hover:scale-[1.02] opacity-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8sLH96gjm-BBHZGUKeaG3CyHx1_BYYBgv8By0oIfrdjH7efJK6f5kfmaw5bOIblmwuB3r9M3tkyOE9b9nTjqi6vcDyKHHkkUBjw3HgmLTtGFuDaQTfnZy4z9NxJtQWsZD24S0xd4C1VaKuMw-3gRy2K4lXIwh6lfNv4yaXUPt0n9vG5szGaMDT_N0yPUd5ojWJhhwa4G-DlXNQYBNljDYA8CHlUj-ZSi8JVYj1H3RwBKGl5zRem2s2j4qebDhWnp0ELejG5mRxEFE" loading="lazy" decoding="async" fetchpriority="low">
+<div class="qs-warehouse-wrap rounded-2xl overflow-hidden qs-card border border-surface-variant/30 relative md:group">
+<img alt="Interior do galpão da Ligeirinho Bebidas com estantes de bebidas" class="qs-warehouse-img w-full max-h-[480px] object-cover opacity-90 md:transition-transform md:duration-500 md:group-hover:scale-[1.02]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8sLH96gjm-BBHZGUKeaG3CyHx1_BYYBgv8By0oIfrdjH7efJK6f5kfmaw5bOIblmwuB3r9M3tkyOE9b9nTjqi6vcDyKHHkkUBjw3HgmLTtGFuDaQTfnZy4z9NxJtQWsZD24S0xd4C1VaKuMw-3gRy2K4lXIwh6lfNv4yaXUPt0n9vG5szGaMDT_N0yPUd5ojWJhhwa4G-DlXNQYBNljDYA8CHlUj-ZSi8JVYj1H3RwBKGl5zRem2s2j4qebDhWnp0ELejG5mRxEFE" loading="lazy" decoding="async" fetchpriority="low" width="1280" height="720">
 <div class="absolute inset-0 bg-gradient-to-t from-deep-black/70 via-transparent to-transparent pointer-events-none"></div>
-<div class="absolute bottom-6 left-6 right-6">
-<span class="inline-block px-3 py-1 bg-deep-black/85 text-gold-accent font-label-caps text-label-caps rounded-md border border-surface-variant/50 md:backdrop-blur-md">NOSSO CENTRO DE DISTRIBUIÇÃO</span>
+<div class="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+<span class="inline-block px-3 py-1 bg-deep-black/90 text-gold-accent font-label-caps text-label-caps rounded-md border border-surface-variant/50">NOSSO CENTRO DE DISTRIBUIÇÃO</span>
 </div>
 </div>
 </div>
 </section>
 <!-- Operação e orçamento -->
-<section class="py-12 md:py-20 px-margin-mobile md:px-margin-desktop bg-surface-dim">
+<section class="qs-below-fold py-12 md:py-20 px-margin-mobile md:px-margin-desktop bg-surface-dim">
 <div class="max-w-container-max mx-auto">
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
 <div class="lg:col-span-7 space-y-6">
@@ -192,21 +199,21 @@
 </a>
 </div>
 <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-<div class="glass-panel rounded-xl p-6 flex gap-4 items-start">
+<div class="qs-card rounded-xl p-6 flex gap-4 items-start">
 <span class="material-symbols-outlined text-vibrant-orange text-[28px] shrink-0">local_shipping</span>
 <div>
 <h3 class="font-headline-md text-headline-md text-on-surface mb-1">Frota própria</h3>
 <p class="font-body-md text-body-md text-on-surface-variant">Caminhões próprios para entregas ágeis na região.</p>
 </div>
 </div>
-<div class="glass-panel rounded-xl p-6 flex gap-4 items-start">
+<div class="qs-card rounded-xl p-6 flex gap-4 items-start">
 <span class="material-symbols-outlined text-gold-accent text-[28px] shrink-0">inventory_2</span>
 <div>
 <h3 class="font-headline-md text-headline-md text-on-surface mb-1">Pronta entrega</h3>
 <p class="font-body-md text-body-md text-on-surface-variant">Produtos disponíveis para atender seu pedido com rapidez.</p>
 </div>
 </div>
-<div class="glass-panel rounded-xl p-6 flex gap-4 items-start sm:col-span-2 lg:col-span-1">
+<div class="qs-card rounded-xl p-6 flex gap-4 items-start sm:col-span-2 lg:col-span-1">
 <span class="material-symbols-outlined text-gold-accent text-[28px] shrink-0">location_on</span>
 <div>
 <h3 class="font-headline-md text-headline-md text-on-surface mb-1">Campo Limpo, SP</h3>

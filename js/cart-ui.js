@@ -49,6 +49,118 @@
     let sheet;
     let cartApi;
     let scrollLockY = 0;
+    let toastHideTimer = null;
+
+    const toastStyles = `
+        @keyframes cart-nav-bump {
+            0%, 100% { transform: scale(1); }
+            40% { transform: scale(1.18); }
+        }
+        .cart-nav-bump {
+            animation: cart-nav-bump 0.45s ease;
+        }
+        #cart-add-toast {
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            pointer-events: none;
+        }
+        #cart-add-toast.cart-add-toast--visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #cart-add-toast { transition: none; }
+            .cart-nav-bump { animation: none; }
+        }
+    `;
+
+    const ensureFeedbackUi = () => {
+        if (!document.getElementById('ligeirinho-cart-feedback-style')) {
+            const style = document.createElement('style');
+            style.id = 'ligeirinho-cart-feedback-style';
+            style.textContent = toastStyles;
+            document.head.appendChild(style);
+        }
+
+        if (!document.getElementById('cart-add-toast')) {
+            const toast = document.createElement('div');
+            toast.id = 'cart-add-toast';
+            toast.className =
+                'fixed z-[80] bottom-20 left-4 right-4 md:bottom-8 md:left-auto md:right-8 md:max-w-sm hidden';
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
+            toast.setAttribute('aria-atomic', 'true');
+            toast.innerHTML = `<div class="flex items-center gap-3 rounded-xl border border-status-green/40 bg-[#1a1a1a] shadow-xl shadow-black/50 px-4 py-3">
+<span class="material-symbols-outlined text-status-green text-[26px] shrink-0" aria-hidden="true">check_circle</span>
+<div class="min-w-0 flex-1">
+<p class="text-sm font-semibold text-on-surface leading-tight">Adicionado ao carrinho</p>
+<p id="cart-add-toast-name" class="text-xs text-on-surface-variant truncate mt-0.5"></p>
+</div>
+<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-orange hover:text-gold-accent px-2 py-1 rounded-md min-h-[36px]">Ver</button>
+</div>`;
+            document.body.appendChild(toast);
+
+            toast.querySelector('#cart-add-toast-open')?.addEventListener('click', () => {
+                hideAddToast();
+                open();
+            });
+        }
+
+        if (!document.getElementById('cart-live-region')) {
+            const live = document.createElement('div');
+            live.id = 'cart-live-region';
+            live.setAttribute('aria-live', 'polite');
+            live.setAttribute('aria-atomic', 'true');
+            live.className =
+                'absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0';
+            document.body.appendChild(live);
+        }
+    };
+
+    const shortProductName = (name) => {
+        const text = String(name || '').trim();
+        if (text.length <= 42) return text;
+        return `${text.slice(0, 39)}…`;
+    };
+
+    const hideAddToast = () => {
+        const toast = document.getElementById('cart-add-toast');
+        if (!toast) return;
+        toast.classList.remove('cart-add-toast--visible');
+        window.clearTimeout(toastHideTimer);
+        toastHideTimer = window.setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 220);
+    };
+
+    const showAddedFeedback = (productName) => {
+        ensureFeedbackUi();
+
+        const toast = document.getElementById('cart-add-toast');
+        const nameEl = document.getElementById('cart-add-toast-name');
+        const live = document.getElementById('cart-live-region');
+        const label = shortProductName(productName);
+
+        if (nameEl) nameEl.textContent = label;
+        if (live) live.textContent = `${label} adicionado ao carrinho.`;
+
+        if (toast) {
+            toast.classList.remove('hidden');
+            window.requestAnimationFrame(() => {
+                toast.classList.add('cart-add-toast--visible');
+            });
+            window.clearTimeout(toastHideTimer);
+            toastHideTimer = window.setTimeout(hideAddToast, 2800);
+        }
+
+        const navToggle = document.getElementById('nav-cart-toggle');
+        navToggle?.classList.remove('cart-nav-bump');
+        void navToggle?.offsetWidth;
+        navToggle?.classList.add('cart-nav-bump');
+        window.setTimeout(() => navToggle?.classList.remove('cart-nav-bump'), 500);
+    };
 
     const lockBodyScroll = () => {
         scrollLockY = window.scrollY;
@@ -226,7 +338,12 @@
         if (remove) removeFromCart(remove.dataset.id);
     };
 
+    let eventsBound = false;
+
     const bindEvents = () => {
+        if (eventsBound) return;
+        eventsBound = true;
+
         panel = document.getElementById('cart-panel');
         sheet = document.getElementById('cart-mobile-sheet');
 
@@ -242,6 +359,20 @@
         });
 
         window.addEventListener('ligeirinho-cart-changed', render);
+        window.addEventListener('pageshow', () => {
+            if (document.body.style.position === 'fixed' && !isCartOpen()) {
+                clearBodyScrollStyles();
+            }
+        });
+    };
+
+    const clearBodyScrollStyles = () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
     };
 
     let navBound = false;
@@ -270,9 +401,18 @@
             document.body.appendChild(root);
         }
 
+        ensureFeedbackUi();
         bindEvents();
         render();
     };
 
-    window.LigeirinhoCartUI = { init, open, close, render, bindNavToggle, isOpen: isCartOpen };
+    window.LigeirinhoCartUI = {
+        init,
+        open,
+        close,
+        render,
+        bindNavToggle,
+        isOpen: isCartOpen,
+        showAddedFeedback,
+    };
 })();

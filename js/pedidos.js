@@ -36,18 +36,19 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
 
-    const announceCartAdd = (productName) => {
-        let live = document.getElementById('cart-live-region');
-        if (!live) {
-            live = document.createElement('div');
-            live.id = 'cart-live-region';
-            live.setAttribute('aria-live', 'polite');
-            live.setAttribute('aria-atomic', 'true');
-            live.className =
-                'absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0';
-            document.body.appendChild(live);
-        }
-        live.textContent = `${productName} adicionado ao carrinho. Abra o carrinho no menu para revisar.`;
+    const markAddButtonSuccess = (triggerBtn) => {
+        const icon = triggerBtn.querySelector('.material-symbols-outlined');
+        if (!icon) return;
+
+        triggerBtn.classList.add('catalog-add-btn--success');
+        triggerBtn.setAttribute('aria-label', 'Adicionado ao carrinho');
+        icon.textContent = 'check';
+
+        window.setTimeout(() => {
+            triggerBtn.classList.remove('catalog-add-btn--success');
+            triggerBtn.setAttribute('aria-label', 'Adicionar ao carrinho');
+            icon.textContent = 'add_shopping_cart';
+        }, 1100);
     };
 
     const addToCart = (product, triggerBtn) => {
@@ -64,13 +65,10 @@
         saveCart(cart);
         cartUi?.render();
         updateNavCartBadge();
-        announceCartAdd(product.name);
+        cartUi?.showAddedFeedback?.(product.name);
 
         if (triggerBtn) {
-            triggerBtn.classList.add('ring-2', 'ring-gold-accent', 'scale-110');
-            window.setTimeout(() => {
-                triggerBtn.classList.remove('ring-2', 'ring-gold-accent', 'scale-110');
-            }, 450);
+            markAddButtonSuccess(triggerBtn);
         }
     };
 
