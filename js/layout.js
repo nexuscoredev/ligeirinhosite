@@ -28,6 +28,24 @@
                 font-weight: 700;
                 letter-spacing: 0.01em;
             }
+            html.lig-menu-open {
+                overflow: hidden;
+                overscroll-behavior: none;
+            }
+            html.lig-menu-open body {
+                overflow: hidden;
+                overscroll-behavior: none;
+                touch-action: none;
+            }
+            #nav-mobile-menu .nav-mobile-panel {
+                contain: layout style paint;
+                will-change: transform;
+            }
+            @media (prefers-reduced-motion: reduce) {
+                #nav-mobile-menu .nav-mobile-panel {
+                    will-change: auto;
+                }
+            }
         `;
         document.head.appendChild(fontStyle);
     }
@@ -84,7 +102,8 @@ ${navLinksHtml}
 <span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 </button>
 <button type="button" id="nav-menu-toggle" class="md:hidden p-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-mobile-menu">
-<span class="material-symbols-outlined" id="nav-menu-icon" aria-hidden="true">menu</span>
+<span class="material-symbols-outlined nav-menu-icon-menu" aria-hidden="true">menu</span>
+<span class="material-symbols-outlined nav-menu-icon-close hidden" aria-hidden="true">close</span>
 </button>
 </div>
 </div>
@@ -98,7 +117,7 @@ ${navLinksHtml}
 
     const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden" aria-hidden="true">
 <div class="absolute inset-0 bg-deep-black/80" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
-<div class="absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
+<div class="nav-mobile-panel absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
 <div class="flex shrink-0 items-center justify-between border-b border-surface-variant/30 px-4 py-3.5">
 <p id="nav-mobile-menu-title" class="font-nav text-base font-bold text-gold-accent">Menu</p>
 <button type="button" class="rounded-full p-2 text-on-surface-variant hover:bg-surface-variant/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" data-nav-menu-close aria-label="Fechar menu">
@@ -189,77 +208,77 @@ ${brandIcon(brandIcons.maps, 22)}
     const navMount = document.getElementById('site-nav');
     const footerMount = document.getElementById('site-footer');
 
-    let menuScrollLockY = 0;
+    let menuIsOpen = false;
 
     const lockMenuScroll = () => {
-        menuScrollLockY = window.scrollY;
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${menuScrollLockY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.overflow = 'hidden';
+        document.documentElement.classList.add('lig-menu-open');
     };
 
     const unlockMenuScroll = () => {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.overflow = '';
-        window.scrollTo(0, menuScrollLockY);
+        document.documentElement.classList.remove('lig-menu-open');
     };
 
     const bindMobileMenu = () => {
         const menu = document.getElementById('nav-mobile-menu');
         const toggle = document.getElementById('nav-menu-toggle');
-        const icon = document.getElementById('nav-menu-icon');
+        const iconMenu = toggle?.querySelector('.nav-menu-icon-menu');
+        const iconClose = toggle?.querySelector('.nav-menu-icon-close');
         if (!menu || !toggle) return;
 
         const setOpen = (open) => {
+            if (menuIsOpen === open) return;
+            menuIsOpen = open;
+
+            if (open && window.LigeirinhoCartUI?.isOpen?.()) {
+                window.LigeirinhoCartUI.close();
+            }
+
             menu.classList.toggle('hidden', !open);
             menu.setAttribute('aria-hidden', open ? 'false' : 'true');
             toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
             toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
-            if (icon) icon.textContent = open ? 'close' : 'menu';
+            iconMenu?.classList.toggle('hidden', open);
+            iconClose?.classList.toggle('hidden', !open);
 
             if (open) {
-                window.LigeirinhoCartUI?.close?.();
                 lockMenuScroll();
-                menu.querySelector('[data-nav-menu-close][aria-label]')?.focus();
-            } else if (document.body.style.position === 'fixed') {
+            } else {
                 unlockMenuScroll();
             }
         };
 
-        const closeMenu = () => setOpen(false);
+        const closeMobileMenu = () => setOpen(false);
         const openMenu = () => {
             if (window.matchMedia('(min-width: 768px)').matches) return;
             setOpen(true);
         };
 
+        window.LigeirinhoNav = { closeMobileMenu, isOpen: () => menuIsOpen };
+
         toggle.addEventListener('click', () => {
-            const isOpen = toggle.getAttribute('aria-expanded') === 'true';
-            if (isOpen) closeMenu();
+            if (menuIsOpen) closeMobileMenu();
             else openMenu();
         });
 
-        menu.querySelectorAll('[data-nav-menu-close]').forEach((el) => {
-            el.addEventListener('click', closeMenu);
-        });
-
-        menu.querySelectorAll('nav a[href]').forEach((link) => {
-            link.addEventListener('click', closeMenu);
+        menu.addEventListener('click', (e) => {
+            if (e.target.closest('[data-nav-menu-close]')) {
+                closeMobileMenu();
+                return;
+            }
+            if (e.target.closest('nav a[href]')) {
+                closeMobileMenu();
+            }
         });
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
-                closeMenu();
-                toggle.focus();
+            if (e.key === 'Escape' && menuIsOpen) {
+                closeMobileMenu();
+                toggle.focus({ preventScroll: true });
             }
         });
 
         window.matchMedia('(min-width: 768px)').addEventListener('change', (e) => {
-            if (e.matches) closeMenu();
+            if (e.matches) closeMobileMenu();
         });
     };
 

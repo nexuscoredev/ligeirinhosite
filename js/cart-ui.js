@@ -175,11 +175,23 @@
         render();
     };
 
-    const close = () => {
+    const isCartOpen = () => {
+        const panelOpen = panel && !panel.classList.contains('hidden');
+        const sheetOpen = sheet && !sheet.classList.contains('hidden');
+        return panelOpen || sheetOpen;
+    };
+
+    const close = (options = {}) => {
+        const { restoreScroll = true } = options;
+        if (!isCartOpen()) return;
+
         panel?.classList.add('hidden');
         panel?.classList.remove('flex');
         sheet?.classList.add('hidden');
         sheet?.setAttribute('aria-hidden', 'true');
+
+        if (!restoreScroll) return;
+
         if (document.body.style.position === 'fixed') {
             unlockBodyScroll();
         } else {
@@ -189,10 +201,7 @@
 
     const open = () => {
         if (!panel || !sheet) return;
-        const navToggle = document.getElementById('nav-menu-toggle');
-        if (navToggle?.getAttribute('aria-expanded') === 'true') {
-            navToggle.click();
-        }
+        window.LigeirinhoNav?.closeMobileMenu?.();
         render();
         if (window.matchMedia(LG_QUERY).matches) {
             sheet.classList.add('hidden');
@@ -265,5 +274,5 @@
         render();
     };
 
-    window.LigeirinhoCartUI = { init, open, close, render, bindNavToggle };
+    window.LigeirinhoCartUI = { init, open, close, render, bindNavToggle, isOpen: isCartOpen };
 })();
