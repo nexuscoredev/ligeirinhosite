@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v9';
+const CACHE_NAME = 'ligeirinho-app-v10';
 
 const APP_SHELL = [
     '/',
@@ -32,6 +32,7 @@ const APP_SHELL = [
     '/data/version/manifest.json',
     '/data/version/timeline.json',
     '/data/catalogo.json',
+    '/data/site.json',
     '/data/auth-config.json',
     '/data/combos-ocasiao.json',
     '/data/precos-embalagem.json',

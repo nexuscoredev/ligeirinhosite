@@ -24,6 +24,18 @@
     ]
   },
   {
+    "id": "2026-06-04-vercel",
+    "date": "2026-06-04",
+    "appVersion": "2.0.0",
+    "title": "Produção no Vercel",
+    "summary": "Deploy oficial em ligeirinhobebidas.vercel.app com PWA e service worker corrigidos.",
+    "changes": [
+      { "module": "core", "type": "feat", "text": "vercel.json — headers PWA e Service-Worker-Allowed" },
+      { "module": "core", "type": "fix", "text": "Service worker com scope / no domínio Vercel" },
+      { "module": "auth", "type": "docs", "text": "Origens OAuth: localhost + ligeirinhobebidas.vercel.app" }
+    ]
+  },
+  {
     "id": "2026-03-21-v1",
     "date": "2026-03-21",
     "appVersion": "1.0.0",

@@ -3,5 +3,9 @@
   "appleClientId": "",
   "appleRedirectUri": "",
   "requireLogin": false,
-  "_comment": "Produção: Vercel env vars. Dev: .env.local"
+  "_comment": "Produção: Vercel env vars (GOOGLE_CLIENT_ID). Dev: .env.local ou data/auth-config.local.json",
+  "_origensAutorizadas": [
+    "http://localhost:3456",
+    "https://ligeirinhobebidas.vercel.app"
+  ]
 }
