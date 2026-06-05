@@ -1973,6 +1973,10 @@ html.lig-app-standalone .ze-app-header {
     letter-spacing: 0.06em;
 }
 
+.lig-login-divider.hidden {
+    display: none;
+}
+
 .lig-login-divider::before,
 .lig-login-divider::after {
     content: '';
