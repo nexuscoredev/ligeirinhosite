@@ -21,7 +21,7 @@
     const setupSaveBtn = document.getElementById('login-client-id-save');
     const setupOpenBtn = document.getElementById('login-setup-open');
 
-    let activeClientId = '';
+    const isValidGoogleClientId = (id) => id.includes('.apps.googleusercontent.com');
 
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;
@@ -40,6 +40,19 @@
         setupEl.hidden = !show;
     };
 
+    const syncSetupVisibility = (config) => {
+        const googleOk = isValidGoogleClientId(String(config.googleClientId || '').trim());
+
+        if (!googleOk) {
+            showSetup(true);
+            if (setupOpenBtn) setupOpenBtn.hidden = true;
+            return;
+        }
+
+        showSetup(false);
+        if (setupOpenBtn) setupOpenBtn.hidden = false;
+    };
+
     const handleCredential = (response) => {
         if (!response?.credential) {
             setStatus('Não foi possível entrar com Google. Tente novamente.', true);
@@ -51,10 +64,6 @@
     };
 
     const initGoogle = (clientId) => {
-        activeClientId = clientId;
-        showSetup(false);
-        setStatus('');
-
         const boot = () => {
             if (!window.google?.accounts?.id) {
                 window.setTimeout(boot, 200);
@@ -82,9 +91,8 @@
                     width: Math.min(360, googleMount.offsetWidth || 360),
                     locale: 'pt-BR',
                 });
-            googleBtn?.classList.add('hidden');
-            setupOpenBtn && (setupOpenBtn.hidden = false);
-            return;
+                googleBtn?.classList.add('hidden');
+                return;
             }
 
             googleBtn?.classList.remove('hidden');
@@ -100,20 +108,15 @@
         boot();
     };
 
-    const showMissingConfig = () => {
-        showSetup(true);
-        googleBtn?.classList.remove('hidden');
-        googleMount && (googleMount.hidden = true);
-        setStatus('Configure o Google Client ID abaixo para ativar o login.', true);
-    };
-
     setupSaveBtn?.addEventListener('click', () => {
         const id = configApi.saveLocalClientId(setupInput?.value || '');
-        if (!id || !id.includes('.apps.googleusercontent.com')) {
-            setStatus('Cole um Client ID válido (termina com .apps.googleusercontent.com).', true);
+        if (!isValidGoogleClientId(id)) {
+            setStatus('Cole um Client ID Google válido (termina com .apps.googleusercontent.com).', true);
             return;
         }
         initGoogle(id);
+        configApi.loadAuthConfig().then(syncSetupVisibility);
+        setStatus('Google configurado.', false);
     });
 
     setupInput?.addEventListener('keydown', (e) => {
@@ -135,11 +138,16 @@
     }
 
     configApi.loadAuthConfig().then((config) => {
-        const clientId = String(config.googleClientId || '').trim();
-        if (clientId && clientId.includes('.apps.googleusercontent.com')) {
-            initGoogle(clientId);
-            return;
+        const googleId = String(config.googleClientId || '').trim();
+
+        if (isValidGoogleClientId(googleId)) {
+            initGoogle(googleId);
+        } else {
+            googleBtn?.classList.remove('hidden');
+            googleMount && (googleMount.hidden = true);
+            setStatus('Configure o Google Client ID abaixo ou entre com telefone + nome.', true);
         }
-        showMissingConfig();
+
+        syncSetupVisibility(config);
     });
 })();

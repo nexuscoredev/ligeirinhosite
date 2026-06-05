@@ -25,6 +25,8 @@ const APP_SHELL = [
     '/js/profile.js',
     '/js/auth-store.js',
     '/js/auth-config-loader.js',
+    '/js/phone-auth.js',
+    '/js/login-phone.js',
     '/js/login.js',
     '/js/app-version.js',
     '/data/version/manifest.json',
@@ -44,6 +46,7 @@ const APP_SHELL = [
     '/img/icon-instagram.svg',
     '/img/icon-google-maps.svg',
     '/img/icon-google.svg',
+    '/img/icon-apple.svg',
 ];
 
 self.addEventListener('install', (event) => {

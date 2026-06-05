@@ -1,5 +1,7 @@
 {
-  "googleClientId": "SEU_CLIENT_ID.apps.googleusercontent.com",
+  "googleClientId": "",
+  "appleClientId": "",
+  "appleRedirectUri": "",
   "requireLogin": false,
-  "_comment": "Copie para data/auth-config.local.json (gitignored) ou use o formulário em login.html"
+  "_comment": "Produção: Vercel env vars. Dev: .env.local"
 }

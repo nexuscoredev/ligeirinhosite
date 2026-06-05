@@ -36,6 +36,16 @@
 
         if (emailInput && session?.email && !emailInput.value) emailInput.value = session.email;
 
+        const phoneInput = document.getElementById('phone');
+
+        if (phoneInput && session?.phone && !phoneInput.value) {
+            const digits = String(session.phone).replace(/\D/g, '');
+            const local = digits.startsWith('55') ? digits.slice(2) : digits;
+            if (local.length === 11) {
+                phoneInput.value = `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+            }
+        }
+
     };
 
 
@@ -52,7 +62,7 @@
 
             const first = esc(auth.firstName(session));
 
-            const email = esc(session.email || 'Conta Google');
+            const contact = esc(auth.contactLabel(session) || auth.providerLabel(session));
 
             const avatar = /^https?:\/\//i.test(session.picture || '')
                 ? esc(session.picture)
@@ -66,7 +76,7 @@
 
 <p class="lig-profile-auth__name">Olá, ${first}!</p>
 
-<p class="lig-profile-auth__email">${email}</p>
+<p class="lig-profile-auth__email">${contact}</p>
 
 </div>
 
@@ -114,7 +124,7 @@
 
 <span class="material-symbols-outlined text-[18px]">login</span>
 
-Entrar com Google
+Entrar
 
 </a>
 

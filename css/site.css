@@ -1929,7 +1929,8 @@ html.lig-app-standalone .ze-app-header {
     justify-content: center;
 }
 
-.lig-login-google-btn {
+.lig-login-google-btn,
+.lig-login-oauth-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1958,6 +1959,118 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-google-icon {
     flex-shrink: 0;
+}
+
+.lig-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    color: var(--lig-text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.lig-login-divider::before,
+.lig-login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--lig-border);
+}
+
+.lig-login-phone {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    text-align: left;
+}
+
+.lig-login-phone--disabled {
+    opacity: 0.72;
+}
+
+.lig-login-phone__title {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--lig-text);
+    margin-bottom: 0.25rem;
+}
+
+.lig-login-phone__hint {
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--lig-text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.lig-login-phone__otp {
+    margin-top: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.lig-login-phone__otp-input {
+    letter-spacing: 0.25em;
+    text-align: center;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.lig-login-apple-btn {
+    border-color: #000;
+    background: #000;
+    color: #fff;
+}
+
+.lig-login-apple-btn:hover {
+    border-color: #222;
+    background: #222;
+}
+
+.lig-login-apple-btn:active {
+    transform: scale(0.98);
+}
+
+.lig-login-apple-icon {
+    flex-shrink: 0;
+    color: #fff;
+}
+
+[data-theme="dark"] .lig-login-apple-btn {
+    border-color: #fff;
+    background: #fff;
+    color: #000;
+}
+
+[data-theme="dark"] .lig-login-apple-btn:hover {
+    border-color: #e5e5e5;
+    background: #e5e5e5;
+}
+
+[data-theme="dark"] .lig-login-apple-icon {
+    color: #000;
+}
+
+.lig-login-setup__section {
+    margin-top: 1rem;
+    margin-bottom: 0.375rem;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--lig-text-muted);
+}
+
+.lig-login-setup__section:first-of-type {
+    margin-top: 0;
 }
 
 .lig-login-status {
