@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "dev:vercel": "npx vercel dev",
-    "build": "vite build",
+    "build": "echo Static site — deploy direto na Vercel (sem build Vite).",
     "preview": "vite preview"
   },
   "devDependencies": {
