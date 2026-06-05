@@ -1,7 +1,7 @@
 {
-  "googleClientId": "",
+  "googleClientId": "363543352922-n4cav0alonk2jt0fr63oumn5srlc1qh4.apps.googleusercontent.com",
   "appleClientId": "",
   "appleRedirectUri": "",
   "requireLogin": false,
-  "_comment": "Google via GOOGLE_CLIENT_ID no Vercel. Telefone: nome + celular no login (sem SMS)."
+  "_comment": "Telefone: nome + celular no login (sem SMS)."
 }
