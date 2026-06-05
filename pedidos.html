@@ -1,9 +1,17 @@
-<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Ligeirinho Bebidas - Pedidos</title>
-<link rel="icon" href="img/ligeirinhologo.png" type="image/png">
-<link rel="apple-touch-icon" href="img/ligeirinhologo.png">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Ligeirinho App - Pedidos</title>
+<link rel="icon" href="img/app-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="img/app-icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ligeirinho">
+<meta name="description" content="Catálogo completo de bebidas — adicione ao carrinho e peça pelo WhatsApp.">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/site.css">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
@@ -152,70 +160,45 @@
         }
     </style>
 </head>
-<body data-page="pedidos" class="bg-deep-black text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-vibrant-orange selection:text-deep-black">
+<body data-page="pedidos" class="font-body-md antialiased min-h-screen flex flex-col">
 <div id="site-nav"></div>
-<!-- Main Content Area -->
-<main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-<!-- Sidebar Filters -->
-<aside class="hidden lg:block lg:col-span-3 sticky top-24 self-start space-y-4 min-w-0">
-<!-- Search -->
-<div class="relative">
-<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-2.5 pl-9 pr-3 text-on-surface text-sm focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors" placeholder="Buscar bebidas..." type="search">
-<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-[20px]">search</span>
+<main id="lig-page-main" class="flex-grow w-full max-w-container-max mx-auto pb-4">
+<div class="sticky top-[var(--ze-header-offset,7.5rem)] z-20 ze-catalog-sticky">
+<div class="flex items-center justify-between gap-3 px-4 py-2.5">
+<h1 class="font-headline-md text-base font-bold text-[#1a1a1a]">Categorias</h1>
+<p id="catalog-stats" class="text-xs text-[#999] shrink-0">Carregando…</p>
 </div>
-<!-- Categorias -->
-<nav class="bg-surface-gray rounded-xl p-3 border border-surface-variant/50 min-w-0" aria-labelledby="catalog-cat-heading-desktop">
-<h2 id="catalog-cat-heading-desktop" class="font-headline-md text-[14px] text-gold-accent mb-2 px-0.5">Categorias</h2>
-<div id="catalog-filters" class="catalog-cat-panel catalog-cat-list flex flex-col gap-1 max-h-[min(50vh,22rem)] overflow-y-auto pr-0.5" role="list">
-<p class="text-xs text-on-surface-variant px-2 py-2" role="status">Carregando…</p>
+<nav id="catalog-filters-mobile" class="ze-filter-pills" aria-label="Filtrar por categoria">
+<p class="text-xs text-[#999] px-4 py-2" role="status">Carregando…</p>
+</nav>
+<div class="hidden md:flex items-center gap-2 px-4 pb-2.5">
+<label class="sr-only" for="catalog-sort-desktop">Ordenar</label>
+<select id="catalog-sort-desktop" data-catalog-sort class="bg-surface-gray border border-surface-variant/40 rounded-lg text-on-surface text-sm py-2 px-3 focus:border-vibrant-orange focus:outline-none">
+<option value="name">Nome (A–Z)</option>
+<option value="price-asc">Menor preço</option>
+<option value="price-desc">Maior preço</option>
+</select>
 </div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 md:px-margin-desktop pt-3">
+<aside class="hidden lg:block lg:col-span-3">
+<nav id="catalog-filters" class="ze-filter-pills flex-col !overflow-visible flex-wrap gap-1.5 !px-0 sticky top-32" aria-label="Categorias">
+<p class="text-xs text-on-surface-variant py-2" role="status">Carregando…</p>
 </nav>
 </aside>
-<!-- Product Grid -->
-<section class="col-span-1 lg:col-span-9">
-<!-- Mobile: busca + categorias -->
-<div class="lg:hidden space-y-3 mb-5 min-w-0 sticky top-[3.75rem] z-30 bg-deep-black/95 backdrop-blur-md py-2 -mx-margin-mobile px-margin-mobile border-b border-surface-variant/20">
-<div class="relative">
-<input data-catalog-search class="w-full bg-surface-gray border border-surface-variant rounded-lg py-2.5 pl-9 pr-3 text-on-surface text-sm focus:outline-none focus:border-vibrant-orange transition-colors" placeholder="Buscar..." type="search">
-<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-[20px]">search</span>
-</div>
-<nav aria-labelledby="catalog-cat-heading-mobile" class="min-w-0">
-<h2 id="catalog-cat-heading-mobile" class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Categorias</h2>
-<div id="catalog-filters-mobile" class="catalog-cat-scroll catalog-cat-strip flex gap-2 overflow-x-auto pb-1 -mx-0.5 px-0.5" role="list">
-<p class="text-xs text-on-surface-variant shrink-0 py-2" role="status">Carregando…</p>
-</div>
-</nav>
-<label class="flex items-center gap-2 min-w-0">
-<span class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-wider shrink-0" id="catalog-sort-label-mobile">Ordenar</span>
-<select data-catalog-sort class="flex-1 min-w-0 bg-surface-gray border border-surface-variant rounded-lg text-on-surface text-sm py-2.5 pl-3 pr-8 focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange" aria-labelledby="catalog-sort-label-mobile">
-<option value="name">Nome (A–Z)</option>
-<option value="price-asc">Menor preço</option>
-<option value="price-desc">Maior preço</option>
-</select>
-</label>
-</div>
-<!-- Header -->
-<div class="flex justify-between items-end mb-8">
-<div>
-<h1 class="font-display-lg text-[32px] md:text-display-lg text-on-surface mb-2">Catálogo</h1>
-<p id="catalog-stats" class="font-body-md text-body-md text-on-surface-variant">Carregando catálogo…</p>
-</div>
-<div class="hidden md:flex items-center gap-2">
-<span class="font-body-md text-on-surface-variant text-sm" id="catalog-sort-label-desktop">Ordenar por:</span>
-<select data-catalog-sort class="bg-deep-black border border-surface-variant rounded-md text-on-surface py-1 pl-2 pr-8 focus:ring-vibrant-orange focus:border-vibrant-orange text-sm" aria-labelledby="catalog-sort-label-desktop">
-<option value="name">Nome (A–Z)</option>
-<option value="price-asc">Menor preço</option>
-<option value="price-desc">Maior preço</option>
-</select>
-</div>
-</div>
-<!-- Grid -->
-<div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-<p class="col-span-full text-on-surface-variant font-body-md py-8 text-center">Carregando produtos…</p>
+<section class="lg:col-span-9">
+<div id="catalog-grid" class="ze-product-grid">
+<p class="col-span-full text-center text-[#999] py-8 text-sm">Carregando produtos…</p>
 </div>
 </section>
+</div>
 </main>
-<div id="site-footer"></div>
+<div id="site-footer" class="hidden md:block"></div>
+<script src="js/app.js"></script>
+<script src="js/theme-ui.js"></script>
+<script src="js/search-synonyms.js"></script>
+<script src="js/product-pricing.js"></script>
+<script src="js/catalog-utils.js"></script>
 <script src="js/cart-store.js"></script>
 <script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>

@@ -1,421 +1,59 @@
-<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Ligeirinho Bebidas - Início</title>
-<link rel="icon" href="img/ligeirinhologo.png" type="image/png">
-<link rel="apple-touch-icon" href="img/ligeirinhologo.png">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Ligeirinho App - Início</title>
+<link rel="icon" href="img/app-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="img/app-icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ligeirinho">
+<meta name="description" content="Peça bebidas com rapidez — catálogo completo, carrinho e pedido pelo WhatsApp.">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/site.css">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script id="tailwind-config">
         tailwind.config = {
-            darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
-                        "error-container": "#93000a",
-                        "outline-variant": "#544433",
-                        "on-secondary-fixed": "#221b00",
-                        "on-background": "#e5e2e1",
-                        "surface-container-high": "#2a2a2a",
-                        "on-error-container": "#ffdad6",
-                        "gold-accent": "#D4AF37",
-                        "surface-gray": "#1E1E1E",
-                        "tertiary-fixed-dim": "#77d1ff",
-                        "inverse-on-surface": "#313030",
-                        "on-tertiary-fixed": "#001e2c",
-                        "surface-dim": "#131313",
-                        "on-primary": "#482900",
-                        "error": "#ffb4ab",
-                        "surface-container-highest": "#353534",
-                        "inverse-primary": "#885200",
-                        "tertiary-container": "#00c1ff",
-                        "surface-container-lowest": "#0e0e0e",
-                        "on-tertiary": "#003548",
-                        "secondary-fixed": "#ffe16d",
-                        "on-error": "#690005",
-                        "surface-container-low": "#1c1b1b",
-                        "inverse-surface": "#e5e2e1",
-                        "surface": "#131313",
-                        "on-surface-variant": "#dac2ad",
-                        "on-secondary-fixed-variant": "#544600",
-                        "tertiary": "#91d8ff",
-                        "secondary-fixed-dim": "#e9c400",
-                        "surface-variant": "#353534",
-                        "surface-container": "#201f1f",
-                        "background": "#131313",
-                        "secondary-container": "#ffdb3c",
-                        "primary-container": "#ff9d00",
-                        "deep-black": "#080808",
-                        "tertiary-fixed": "#c2e8ff",
-                        "on-primary-container": "#663c00",
-                        "primary-fixed": "#ffdcbb",
-                        "secondary": "#fff9ef",
-                        "on-secondary": "#3a3000",
-                        "status-green": "#00E676",
-                        "on-secondary-container": "#725f00",
-                        "surface-tint": "#ffb869",
-                        "primary-fixed-dim": "#ffb869",
+                    colors: {
                         "vibrant-orange": "#FF6B00",
-                        "outline": "#a28d79",
-                        "on-tertiary-container": "#004b66",
-                        "on-primary-fixed": "#2c1700",
-                        "primary": "#ffc485",
-                        "surface-bright": "#393939",
-                        "on-primary-fixed-variant": "#673d00",
-                        "on-surface": "#e5e2e1",
-                        "on-tertiary-fixed-variant": "#004d68"
+                        "deep-black": "#1a1a1a"
                     },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
+                    spacing: {
                         "margin-desktop": "64px",
                         "container-max": "1280px",
-                        "base": "8px",
-                        "gutter": "24px",
                         "margin-mobile": "16px"
                     },
-                    "fontFamily": {
+                    fontFamily: {
                         "body-md": ["Inter"],
-                        "headline-lg-mobile": ["Hanken Grotesk"],
-                        "display-lg": ["Hanken Grotesk"],
-                        "headline-md": ["Hanken Grotesk"],
-                        "headline-lg": ["Hanken Grotesk"],
-                        "body-lg": ["Inter"],
-                        "label-caps": ["JetBrains Mono"]
-                    },
-                    "fontSize": {
-                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
-                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
-                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
-                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
-                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "700" }],
-                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
-                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700" }]
+                        "headline-md": ["Hanken Grotesk"]
                     }
                 }
             }
         }
     </script>
-<style>
-        body {
-            background-color: #080808;
-            color: #e5e2e1;
-        }
-        .glass-panel {
-            background: rgba(30, 30, 30, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.1);
-        }
-        .text-gradient-brand {
-            background: linear-gradient(90deg, #FF6B00 0%, #D4AF37 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .bg-gradient-brand {
-            background: linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(212,175,55,0.05) 100%);
-        }
-        .glow-hover:hover {
-            box-shadow: 0 0 20px rgba(255, 107, 0, 0.3);
-        }
-        .bg-pattern {
-            background-image: radial-gradient(rgba(212, 175, 55, 0.1) 1px, transparent 1px);
-            background-size: 24px 24px;
-        }
-        .catalog-tile img {
-            filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
-        }
-        .catalog-bento {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
-        @media (min-width: 768px) {
-            .catalog-bento {
-                grid-template-columns: repeat(3, 1fr);
-                grid-auto-rows: minmax(8.75rem, 9.25rem);
-            }
-            .catalog-tile--feature {
-                grid-column: span 2;
-                grid-row: span 2;
-            }
-            .catalog-tile--banner {
-                grid-column: 1 / -1;
-            }
-        }
-        .catalog-tile__shade {
-            position: absolute;
-            inset: 0;
-            background: rgba(20, 20, 20, 0.55);
-            transition: background 0.35s ease;
-            z-index: 1;
-            pointer-events: none;
-        }
-        .catalog-tile:hover .catalog-tile__shade,
-        .catalog-tile:focus-visible .catalog-tile__shade {
-            background: rgba(20, 20, 20, 0.15);
-        }
-        .catalog-tile__media {
-            transition: transform 0.45s ease;
-        }
-        .catalog-tile:hover .catalog-tile__media,
-        .catalog-tile:focus-visible .catalog-tile__media {
-            transform: scale(1.04);
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .catalog-tile__shade,
-            .catalog-tile__media,
-            .catalog-tile {
-                transition: none !important;
-            }
-            .catalog-tile:hover .catalog-tile__media,
-            .catalog-tile:focus-visible .catalog-tile__media {
-                transform: none;
-            }
-        }
-        .catalog-chips {
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 107, 0, 0.4) transparent;
-        }
-        @media (max-width: 767px) {
-            .catalog-tile--banner {
-                min-height: auto;
-            }
-            .catalog-tile--banner .catalog-tile__banner-body {
-                position: relative;
-            }
-        }
-        @media (min-width: 768px) {
-            .catalog-tile--banner .catalog-tile__banner-body {
-                position: absolute;
-                inset: 0;
-            }
-        }
-        .hero-stat {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(145deg, rgba(30, 30, 30, 0.85) 0%, rgba(20, 20, 20, 0.95) 100%);
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            transition: border-color 0.25s ease, transform 0.25s ease;
-        }
-        .hero-stat::before {
-            content: '';
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 107, 0, 0.2) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .hero-stat--gold::before {
-            background: radial-gradient(circle, rgba(212, 175, 55, 0.22) 0%, transparent 70%);
-        }
-        .hero-stat:hover {
-            border-color: rgba(255, 107, 0, 0.35);
-            transform: translateY(-2px);
-        }
-        .hero-stat--gold:hover {
-            border-color: rgba(212, 175, 55, 0.4);
-        }
-        .hero-stat-icon {
-            background: linear-gradient(135deg, rgba(255, 107, 0, 0.2) 0%, rgba(255, 107, 0, 0.05) 100%);
-            border: 1px solid rgba(255, 107, 0, 0.25);
-        }
-        .hero-stat--gold .hero-stat-icon {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.05) 100%);
-            border-color: rgba(212, 175, 55, 0.3);
-        }
-    </style>
 </head>
-<body data-page="inicio" class="antialiased min-h-screen flex flex-col font-body-md text-body-md overflow-x-hidden selection:bg-vibrant-orange selection:text-deep-black">
+<body data-page="inicio" class="antialiased min-h-screen flex flex-col font-body-md overflow-x-hidden">
 <div id="site-nav"></div>
-<!-- Main Content Canvas -->
-<main class="flex-grow flex flex-col">
-<!-- Hero Section -->
-<section class="relative w-full px-margin-mobile md:px-margin-desktop py-6 md:py-10 overflow-hidden bg-pattern">
-<div class="absolute top-1/3 left-1/4 w-64 h-64 bg-vibrant-orange/10 rounded-full blur-[80px] pointer-events-none"></div>
-<div class="absolute top-1/4 right-1/4 w-56 h-56 bg-gold-accent/10 rounded-full blur-[70px] pointer-events-none"></div>
-<div class="max-w-container-max mx-auto w-full grid grid-cols-1 md:grid-cols-[minmax(14rem,18rem)_1fr] lg:grid-cols-[minmax(15rem,20rem)_1fr] gap-4 md:gap-8 items-center relative z-10">
-<!-- Logo hero (só desktop; no mobile o logo já está na navbar) -->
-<div class="hidden md:flex justify-center md:justify-start order-2 md:order-1">
-<div class="glass-panel p-4 md:p-6 rounded-2xl relative w-[11rem] sm:w-[13rem] md:w-[16rem] lg:w-[18rem] shrink-0 shadow-xl shadow-black/40 hover:scale-[1.02] transition-transform duration-300">
-<div class="absolute inset-0 bg-gradient-to-tr from-vibrant-orange/5 to-gold-accent/5 rounded-2xl pointer-events-none"></div>
-<img alt="Ligeirinho Bebidas" class="relative z-10 w-full h-auto max-h-36 sm:max-h-40 md:max-h-48 lg:max-h-52 object-contain drop-shadow-lg" src="img/ligeirinhologo.png" width="288" height="288">
+<main id="lig-page-main" class="flex-grow flex flex-col">
+<div id="home-app" class="min-h-[50vh]">
+<p class="px-4 py-12 text-center text-[#999] text-sm" role="status">Carregando catálogo…</p>
 </div>
-</div>
-<!-- Conteúdo -->
-<div class="flex flex-col items-start gap-3 md:gap-3.5 order-1 md:order-2 min-w-0 w-full">
-<div class="flex w-full items-start justify-between gap-3 md:justify-start">
-<div class="inline-flex items-center gap-1.5 bg-vibrant-orange/15 border border-vibrant-orange/30 px-2.5 py-0.5 rounded-full shrink-0 max-w-[58%]">
-<span class="w-1.5 h-1.5 rounded-full bg-vibrant-orange animate-pulse shrink-0"></span>
-<span class="font-label-caps text-[10px] text-vibrant-orange uppercase tracking-wider leading-tight">Gelada · Rápida · Completa</span>
-</div>
-<div class="md:hidden shrink-0">
-<div class="glass-panel p-2 rounded-xl w-[5.25rem] h-[5.25rem] flex items-center justify-center shadow-lg shadow-black/40 border border-gold-accent/10">
-<img alt="Ligeirinho Bebidas" class="w-full h-full max-h-[4.25rem] object-contain drop-shadow-md" src="img/ligeirinhologo.png" width="84" height="84">
-</div>
-</div>
-</div>
-<h1 class="font-display-lg text-[1.75rem] sm:text-[2rem] md:text-[2.35rem] leading-[1.12] font-extrabold text-on-surface tracking-tight w-full">
-                        Ligeirinho <span class="text-gradient-brand">Bebidas</span>
-</h1>
-<p class="text-gold-accent text-sm md:text-[15px] font-medium leading-snug max-w-lg">Entrega rápida e variedade para qualquer ocasião.</p>
-<p class="text-on-surface-variant text-xs md:text-sm leading-relaxed max-w-lg">Cervejas, destilados, refrigerantes, energéticos, gelo e muito mais.</p>
-<!-- Destaques -->
-<div class="flex flex-wrap gap-2 w-full max-w-lg mt-0.5">
-<article class="hero-stat rounded-lg px-2.5 py-2 flex items-center gap-2 flex-1 min-w-[8.5rem]">
-<div class="hero-stat-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-<span class="material-symbols-outlined text-[18px] text-vibrant-orange">inventory_2</span>
-</div>
-<div class="min-w-0 relative z-[1] leading-tight">
-<p class="text-[17px] font-bold text-gradient-brand leading-none">+100</p>
-<p class="text-[10px] text-on-surface-variant">produtos</p>
-</div>
-</article>
-<article class="hero-stat hero-stat--gold rounded-lg px-2.5 py-2 flex items-center gap-2 flex-1 min-w-[8.5rem]">
-<div class="hero-stat-icon flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
-<span class="material-symbols-outlined text-[18px] text-gold-accent">storefront</span>
-</div>
-<div class="min-w-0 relative z-[1] leading-tight">
-<p class="text-[13px] font-bold text-gold-accent leading-tight">Atacado e varejo</p>
-<p class="text-[10px] text-on-surface-variant">casa ou negócio</p>
-</div>
-</article>
-</div>
-<div class="flex flex-col gap-2 w-full max-w-2xl mt-1 md:flex-row md:flex-wrap md:items-stretch md:gap-2.5">
-<a class="w-full min-h-[44px] md:min-h-0 md:w-auto md:flex-1 bg-vibrant-orange text-deep-black font-headline-md text-sm md:text-[15px] font-semibold py-2.5 md:py-3 px-4 md:px-5 rounded-lg hover:bg-primary-fixed transition-colors inline-flex items-center justify-center gap-2 glow-hover shrink-0" href="pedidos.html">
-<span class="material-symbols-outlined text-[20px] md:text-[22px]">storefront</span>
-                            Ver catálogo
-</a>
-<div class="grid grid-cols-2 gap-2 w-full md:contents">
-<a class="min-h-[44px] md:min-h-0 md:flex-1 border border-[#25D366]/60 bg-[#25D366]/10 text-on-surface font-headline-md text-sm md:text-[15px] font-semibold py-2.5 md:py-3 px-3 md:px-5 rounded-lg hover:bg-[#25D366]/20 transition-colors inline-flex items-center justify-center gap-1.5 md:gap-2 shrink-0" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig" target="_blank" rel="noopener noreferrer">
-<img alt="" src="img/icon-whatsapp.svg" class="w-5 h-5 md:w-[22px] md:h-[22px] shrink-0 object-contain" width="22" height="22">
-                            WhatsApp
-</a>
-<a class="min-h-[44px] md:min-h-0 md:flex-1 border border-surface-variant/60 bg-surface-gray/50 text-on-surface font-headline-md text-sm md:text-[15px] font-semibold py-2.5 md:py-3 px-3 md:px-5 rounded-lg hover:border-gold-accent/50 hover:bg-surface-gray transition-colors inline-flex items-center justify-center gap-1.5 md:gap-2 shrink-0" href="https://www.google.com/maps/search/?api=1&amp;query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001" target="_blank" rel="noopener noreferrer">
-<img alt="" src="img/icon-google-maps.png" class="w-5 h-5 md:w-[22px] md:h-[22px] shrink-0 object-contain" width="22" height="22">
-                            Localização
-</a>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- Categorias — bento compacto -->
-<section id="catalogo" class="w-full px-margin-mobile md:px-margin-desktop py-12 md:py-16 bg-surface-container-lowest" aria-labelledby="catalogo-heading">
-<div class="max-w-container-max mx-auto">
-<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 md:mb-7">
-<div class="max-w-xl">
-<h2 id="catalogo-heading" class="font-headline-lg text-headline-lg text-on-surface">Explore o <span class="text-gold-accent">Catálogo</span></h2>
-<p class="font-body-md text-sm md:text-body-md text-on-surface-variant mt-1.5">Tudo para churrasco, festa, conveniência ou dia a dia — escolha, monte o carrinho e envie pelo WhatsApp.</p>
-</div>
-<a class="text-vibrant-orange hover:text-gold-accent font-label-caps text-[11px] uppercase tracking-wider inline-flex items-center gap-1 min-h-[44px] shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange rounded px-1" href="pedidos.html">
-                        Ver todas <span class="material-symbols-outlined text-[18px]" aria-hidden="true">chevron_right</span>
-</a>
-</div>
-<div class="catalog-bento" role="list">
-<a class="catalog-tile catalog-tile--feature glass-panel rounded-xl overflow-hidden relative group block min-h-[10.5rem] md:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=cervejas" role="listitem" aria-label="Cervejas geladas — 32 produtos">
-<div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
-<div class="catalog-tile__shade"></div>
-<div class="absolute inset-0 flex items-center justify-center p-5 md:p-6 pt-8 z-[5] catalog-tile__media">
-<img alt="" class="max-h-[62%] md:max-h-[68%] max-w-[82%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210180607_gwjieubx17e.webp" loading="lazy" decoding="async" width="320" height="320">
-</div>
-<div class="absolute bottom-0 left-0 right-0 p-4 md:p-5 z-20 bg-gradient-to-t from-deep-black via-deep-black/92 to-transparent">
-<span class="inline-block bg-status-green/20 text-status-green border border-status-green/30 font-label-caps text-[10px] px-2 py-0.5 rounded mb-1.5">GELADA</span>
-<h3 class="font-headline-md text-[20px] md:text-headline-md text-white group-hover:text-gold-accent transition-colors">Cervejas</h3>
-<p class="text-xs md:text-sm text-on-surface-variant mt-0.5 leading-snug">Heineken, Brahma, Skol, Corona e mais</p>
-</div>
-</a>
-<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block min-h-[8.75rem] md:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=destilados" role="listitem" aria-label="Destilados — cachaça, conhaque e mais">
-<div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
-<div class="catalog-tile__shade"></div>
-<div class="absolute inset-0 flex items-center justify-center p-4 z-[5] catalog-tile__media">
-<img alt="" class="max-h-[72%] max-w-[88%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202304112236_wjpwps5p0m.webp" loading="lazy" decoding="async" width="200" height="200">
-</div>
-<div class="absolute bottom-0 left-0 right-0 p-3.5 z-20 bg-gradient-to-t from-deep-black to-transparent">
-<h3 class="font-headline-md text-[17px] text-white group-hover:text-vibrant-orange transition-colors">Destilados</h3>
-<p class="text-[11px] text-on-surface-variant mt-0.5">Whisky, vodka, cachaça…</p>
-</div>
-</a>
-<a class="catalog-tile glass-panel rounded-xl overflow-hidden relative group block min-h-[8.75rem] md:min-h-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=refrigerantes-sucos" role="listitem" aria-label="Refrigerantes e sucos">
-<div class="absolute inset-0 bg-gradient-to-br from-deep-black via-surface-gray to-deep-black z-0"></div>
-<div class="catalog-tile__shade"></div>
-<div class="absolute inset-0 flex items-center justify-center p-4 z-[5] catalog-tile__media">
-<img alt="" class="max-h-[72%] max-w-[88%] object-contain" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/202210190340_0zsv41vq6o7i.webp" loading="lazy" decoding="async" width="200" height="200">
-</div>
-<div class="absolute bottom-0 left-0 right-0 p-3.5 z-20 bg-gradient-to-t from-deep-black to-transparent">
-<h3 class="font-headline-md text-[15px] md:text-[17px] leading-tight text-white group-hover:text-gold-accent transition-colors">Refrigerantes e energéticos</h3>
-<p class="text-[11px] text-on-surface-variant mt-0.5">Coca, Fanta, Red Bull, Monster…</p>
-</div>
-</a>
-<a class="catalog-tile catalog-tile--banner glass-panel rounded-xl overflow-hidden relative group block bg-gradient-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange focus-visible:ring-offset-2 focus-visible:ring-offset-surface-container-lowest" href="pedidos.html?categoria=combos" role="listitem" aria-label="Combos especiais prontos para resenha">
-<div class="absolute inset-0 bg-gradient-to-r from-deep-black/95 via-deep-black/75 to-deep-black/95 z-[2]"></div>
-<div class="catalog-tile__shade opacity-60"></div>
-<div class="catalog-tile__banner-body flex flex-col md:flex-row items-center justify-center gap-2.5 md:gap-6 p-4 md:p-5 z-[5]">
-<img alt="" class="h-14 md:h-20 w-auto max-w-[45%] md:max-w-none object-contain catalog-tile__media shrink-0" src="https://client-assets.anota.ai/produtos/653a86e4e6fcdd0019f543e4/-1714669187247blob.webp" loading="lazy" decoding="async" width="160" height="160">
-<div class="text-center md:text-left relative z-[1] w-full md:w-auto">
-<span class="material-symbols-outlined text-[26px] md:text-[28px] text-gold-accent" aria-hidden="true">local_fire_department</span>
-<h3 class="font-headline-md text-[17px] md:text-[20px] text-white mt-0.5 group-hover:text-vibrant-orange transition-colors">Combos especiais</h3>
-<p class="text-xs md:text-sm text-on-surface-variant max-w-md mx-auto md:mx-0 mt-0.5 leading-snug px-0.5">Kits para churrasco, resenha e comemorações — destilado, energético, gelo e copos.</p>
-</div>
-</div>
-</a>
-</div>
-<nav class="catalog-chips flex flex-wrap sm:flex-nowrap gap-2 mt-4 overflow-x-auto pb-1 -mx-0.5 px-0.5" aria-label="Mais categorias do catálogo">
-<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=whiskys">Whiskys</a>
-<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=energeticos">Energéticos</a>
-<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=gin-s">Gin</a>
-<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-surface-variant/50 bg-surface-gray/40 text-on-surface text-xs font-medium hover:border-vibrant-orange/50 hover:text-vibrant-orange focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html?categoria=vinhos">Vinhos</a>
-<a class="shrink-0 min-h-[40px] inline-flex items-center px-3 py-2 rounded-full border border-vibrant-orange/40 bg-vibrant-orange/10 text-vibrant-orange text-xs font-semibold hover:bg-vibrant-orange/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="pedidos.html">Catálogo completo</a>
-</nav>
-</div>
-</section>
-<!-- Diferenciais -->
-<section class="w-full px-margin-mobile md:px-margin-desktop py-10 md:py-12 bg-surface relative overflow-hidden">
-<div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-gold-accent/30 to-transparent"></div>
-<div class="max-w-container-max mx-auto">
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-<div class="glass-panel p-4 rounded-lg flex items-start gap-3 hover:-translate-y-0.5 transition-transform duration-300">
-<div class="w-10 h-10 shrink-0 rounded-full bg-vibrant-orange/10 flex items-center justify-center border border-vibrant-orange/20">
-<span class="material-symbols-outlined text-[22px] text-vibrant-orange">rocket_launch</span>
-</div>
-<div class="min-w-0">
-<h3 class="font-headline-md text-[15px] leading-snug text-on-surface mb-1">Entrega rápida</h3>
-<p class="font-body-md text-[13px] leading-snug text-on-surface-variant">Pedido agilizado para você não perder tempo.</p>
-</div>
-</div>
-<div class="glass-panel p-4 rounded-lg flex items-start gap-3 hover:-translate-y-0.5 transition-transform duration-300">
-<div class="w-10 h-10 shrink-0 rounded-full bg-surface-gray flex items-center justify-center border border-gold-accent/30">
-<span class="material-symbols-outlined text-[22px] text-gold-accent">ac_unit</span>
-</div>
-<div class="min-w-0">
-<h3 class="font-headline-md text-[15px] leading-snug text-on-surface mb-1">Bebidas geladas</h3>
-<p class="font-body-md text-[13px] leading-snug text-on-surface-variant">Prontas para consumo na temperatura ideal.</p>
-</div>
-</div>
-<div class="glass-panel p-4 rounded-lg flex items-start gap-3 hover:-translate-y-0.5 transition-transform duration-300">
-<div class="w-10 h-10 shrink-0 rounded-full bg-surface-gray flex items-center justify-center border border-surface-variant">
-<span class="material-symbols-outlined text-[22px] text-on-surface">star</span>
-</div>
-<div class="min-w-0">
-<h3 class="font-headline-md text-[15px] leading-snug text-on-surface mb-1">Variedade</h3>
-<p class="font-body-md text-[13px] leading-snug text-on-surface-variant">Marcas populares e premium para qualquer ocasião.</p>
-</div>
-</div>
-</div>
-</div>
-</section>
 </main>
-<div id="site-footer"></div>
+<div id="site-footer" class="hidden md:block"></div>
+<script src="js/theme.js"></script>
+<script src="js/app.js"></script>
+<script src="js/theme-ui.js"></script>
+<script src="js/search-synonyms.js"></script>
+<script src="js/product-pricing.js"></script>
+<script src="js/catalog-utils.js"></script>
 <script src="js/cart-store.js"></script>
 <script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/onboarding.js"></script>
+<script src="js/home.js"></script>
 </body></html>

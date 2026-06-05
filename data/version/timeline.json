@@ -1,0 +1,38 @@
+[
+  {
+    "id": "2026-06-04-v2",
+    "date": "2026-06-04",
+    "appVersion": "2.0.0",
+    "title": "Ligeirinho App 2.0 — experiência completa",
+    "summary": "PWA instalável, login Google, catálogo com embalagens, dark mode e área Minha conta.",
+    "changes": [
+      { "module": "core", "type": "feat", "text": "PWA com manifest, service worker v8 e ícones dedicados do app" },
+      { "module": "core", "type": "feat", "text": "Banner de instalação e modo standalone" },
+      { "module": "theme", "type": "feat", "text": "Dark mode (Claro / Escuro / Auto) no header" },
+      { "module": "auth", "type": "feat", "text": "Login com Google (OAuth) e sessão local" },
+      { "module": "auth", "type": "feat", "text": "Link Minha conta no header e área do usuário" },
+      { "module": "catalog", "type": "feat", "text": "Preços Un. / Cx. / Pal. com pallet calculado" },
+      { "module": "catalog", "type": "fix", "text": "Agrupamento inteligente de SKUs (lógica Brahma)" },
+      { "module": "catalog", "type": "fix", "text": "Cards alinhados — imagem contida e botões na mesma linha" },
+      { "module": "cart", "type": "feat", "text": "Repetir último pedido na home, carrinho e perfil" },
+      { "module": "cart", "type": "feat", "text": "Variantes de embalagem no carrinho (chave composta)" },
+      { "module": "home", "type": "feat", "text": "Combos por ocasião e carrosséis por categoria" },
+      { "module": "search", "type": "feat", "text": "Busca com sinônimos (ex.: cerveja → cervejas)" },
+      { "module": "onboarding", "type": "feat", "text": "Onboarding em 3 telas na primeira visita" },
+      { "module": "profile", "type": "feat", "text": "Preferências de categorias e card de login" },
+      { "module": "core", "type": "feat", "text": "Versionamento modular cronológico in-app" }
+    ]
+  },
+  {
+    "id": "2026-03-21-v1",
+    "date": "2026-03-21",
+    "appVersion": "1.0.0",
+    "title": "Versão inicial",
+    "summary": "Site estático com catálogo, carrinho e pedido via WhatsApp.",
+    "changes": [
+      { "module": "core", "type": "feat", "text": "Site HTML + Tailwind com catálogo Anota AI" },
+      { "module": "cart", "type": "feat", "text": "Carrinho localStorage e envio WhatsApp" },
+      { "module": "catalog", "type": "feat", "text": "Listagem por categorias e filtros" }
+    ]
+  }
+]

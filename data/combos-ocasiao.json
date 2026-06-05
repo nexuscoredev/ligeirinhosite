@@ -1,0 +1,38 @@
+{
+  "combos": [
+    {
+      "id": "churrasco-10",
+      "title": "Churrasco 10 pessoas",
+      "subtitle": "24 cervejas + 2 gelos + 2 refrigerantes",
+      "icon": "outdoor_grill",
+      "items": [
+        { "id": "cerveja-heineken-269ml-c-8", "qty": 3 },
+        { "id": "gelo-coco-170g-colinas-gelos", "qty": 2 },
+        { "id": "refrigerante-fanta-guarana-2l", "qty": 2 }
+      ]
+    },
+    {
+      "id": "festa-20",
+      "title": "Festa 20 pessoas",
+      "subtitle": "40 cervejas + 10 energéticos + 2 vodkas + gelos",
+      "icon": "celebration",
+      "items": [
+        { "id": "cerveja-heineken-269ml-c-8", "qty": 5 },
+        { "id": "energetico-redbull-tradicional-250ml", "qty": 10 },
+        { "id": "vodka-absolut-1l", "qty": 2 },
+        { "id": "gelo-coco-170g-colinas-gelos", "qty": 4 }
+      ]
+    },
+    {
+      "id": "happy-hour",
+      "title": "Happy hour",
+      "subtitle": "Pack cerveja + vodka + gelo saborizado",
+      "icon": "local_bar",
+      "items": [
+        { "id": "cerveja-brahma-duplo-malte-350ml-c-12", "qty": 1 },
+        { "id": "vodka-smirnoff-998ml", "qty": 1 },
+        { "id": "gelo-melancia-170g-colina-gelos", "qty": 2 }
+      ]
+    }
+  ]
+}

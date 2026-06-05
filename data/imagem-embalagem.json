@@ -1,0 +1,18 @@
+{
+  "byGroupKey": {
+    "cervejas::CERVEJA BRAHMA DUPLO MALTE 350ML": {
+      "pallet": "img/embalagens/brahma-pallet.webp"
+    },
+    "cervejas::CERVEJA BRAHMA DUPLO MALTE 269ML": {
+      "pallet": "img/embalagens/brahma-pallet.webp"
+    }
+  },
+  "byBrand": {
+    "BRAHMA": {
+      "pallet": "img/embalagens/brahma-pallet.webp"
+    }
+  },
+  "defaults": {
+    "pallet": "img/embalagens/pallet-generico.webp"
+  }
+}

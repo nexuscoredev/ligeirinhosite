@@ -1,0 +1,5 @@
+{
+  "googleClientId": "SEU_CLIENT_ID.apps.googleusercontent.com",
+  "requireLogin": false,
+  "_comment": "Copie para data/auth-config.local.json (gitignored) ou use o formulário em login.html"
+}

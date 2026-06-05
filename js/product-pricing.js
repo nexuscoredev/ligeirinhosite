@@ -1,0 +1,277 @@
+(function () {
+    const PACK_SUFFIX_RE = /\s+C\/(\d+)\s*$/i;
+    const PACKAGING_WORDS_RE = /\b(LATA|LONG\s*NECK|LN|GFA|GARRAFA|RET(?:ORN[AÁ]VEL)?)\b/gi;
+    const OPTIONAL_BEER_WORDS_RE = /\b(HELLS)\b/gi;
+
+    /** Nomes equivalentes no catálogo (unidade vs caixa com nome abreviado). */
+    const GROUP_NAME_ALIASES = {
+        'ORIGINAL 269ML': 'ANTARCTICA ORIGINAL 269ML',
+    };
+
+    const PALLET_CONFIG = {
+        boxesPerPallet: 48,
+        discount: 0.92,
+    };
+
+    const TIER_LABELS = {
+        unidade: 'Unidade',
+        caixa: 'Caixa',
+        pallet: 'Pallet',
+    };
+
+    const TIER_SHORT = {
+        unidade: 'Un.',
+        caixa: 'Cx.',
+        pallet: 'Pal.',
+    };
+
+    const stripPackSuffix = (name) =>
+        String(name || '')
+            .replace(PACK_SUFFIX_RE, '')
+            .trim();
+
+    const parsePack = (name) => {
+        const match = String(name || '').match(PACK_SUFFIX_RE);
+        if (!match) return { type: 'unidade', packSize: 1 };
+        return { type: 'caixa', packSize: parseInt(match[1], 10) || 1 };
+    };
+
+    const normalizeKey = (name, categoryId) => {
+        let base = stripPackSuffix(name).replace(PACKAGING_WORDS_RE, ' ');
+        if (categoryId === 'cervejas') {
+            base = base.replace(/^CERVEJA\s+/i, '').replace(OPTIONAL_BEER_WORDS_RE, ' ');
+            base = base.replace(/\s+/g, ' ').trim().toUpperCase();
+            if (GROUP_NAME_ALIASES[base]) base = GROUP_NAME_ALIASES[base];
+        } else {
+            base = base.replace(/\s+/g, ' ').trim();
+        }
+        return base
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toUpperCase();
+    };
+
+    const buildGroups = (catalogData) => {
+        const groups = new Map();
+
+        catalogData.categories.forEach((cat) => {
+            cat.products.forEach((product) => {
+                const pack = parsePack(product.name);
+                const key = `${cat.id}::${normalizeKey(product.name, cat.id)}`;
+
+                if (!groups.has(key)) {
+                    groups.set(key, {
+                        key,
+                        baseName: stripPackSuffix(product.name),
+                        categoryId: cat.id,
+                        categoryName: cat.name,
+                        image: product.image,
+                        adultOnly: product.adultOnly,
+                        description: product.description,
+                        variants: {},
+                        primaryId: product.id,
+                    });
+                }
+
+                const group = groups.get(key);
+                group.variants[pack.type] = {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    packSize: pack.packSize,
+                    adultOnly: product.adultOnly,
+                    image: product.image,
+                };
+
+                if (pack.type === 'unidade') {
+                    group.primaryId = product.id;
+                    group.baseName = stripPackSuffix(product.name);
+                    group.image = product.image;
+                    group.adultOnly = product.adultOnly;
+                }
+
+                if (!group.image && product.image) group.image = product.image;
+            });
+        });
+
+        groups.forEach((group) => {
+            const caixa = group.variants.caixa;
+
+            if (caixa && !group.variants.pallet) {
+                const cfg = { ...PALLET_CONFIG, ...window.__ligPackConfig };
+                const boxes = cfg.boxesPerPallet;
+                const unitsInPallet = boxes * (caixa.packSize || 1);
+                group.variants.pallet = {
+                    id: caixa.id,
+                    name: `${group.baseName} — Pallet (${boxes} cx)`,
+                    price: Math.round(caixa.price * boxes * cfg.discount * 100) / 100,
+                    packSize: unitsInPallet,
+                    boxCount: boxes,
+                    computed: true,
+                    adultOnly: caixa.adultOnly,
+                    image: caixa.image,
+                };
+            }
+        });
+
+        applyTierImages(groups, window.__ligTierImages || {});
+
+        return groups;
+    };
+
+    const matchBrand = (baseName, byBrand = {}) => {
+        const upper = String(baseName || '').toUpperCase();
+        for (const brand of Object.keys(byBrand)) {
+            if (upper.includes(brand.toUpperCase())) return byBrand[brand];
+        }
+        return null;
+    };
+
+    const resolveTierImageOverride = (group, tier, config = {}) => {
+        const byKey = config.byGroupKey?.[group.key]?.[tier];
+        if (byKey) return byKey;
+        const brand = matchBrand(group.baseName, config.byBrand);
+        if (brand?.[tier]) return brand[tier];
+        return config.defaults?.[tier] || null;
+    };
+
+    const applyTierImages = (groups, config) => {
+        groups.forEach((group) => {
+            ['caixa', 'pallet'].forEach((tier) => {
+                const variant = group.variants[tier];
+                if (!variant) return;
+                const override = resolveTierImageOverride(group, tier, config);
+                if (override) variant.image = override;
+                else if (tier === 'pallet' && config.defaults?.pallet) variant.image = config.defaults.pallet;
+            });
+            if (group.variants.unidade?.image) group.image = group.variants.unidade.image;
+        });
+    };
+
+    const getTierImage = (group, tier) => {
+        if (!group) return null;
+        const variant = group.variants?.[tier];
+        if (variant?.image) return variant.image;
+        if (tier === 'unidade') return group.image;
+        if (tier === 'caixa') return group.variants?.caixa?.image || group.image;
+        if (tier === 'pallet') {
+            return (
+                group.variants?.pallet?.image ||
+                resolveTierImageOverride(group, 'pallet', window.__ligTierImages || {}) ||
+                group.variants?.caixa?.image ||
+                group.image
+            );
+        }
+        return group.image;
+    };
+
+    const getAvailableTiers = (group) => {
+        const order = ['unidade', 'caixa', 'pallet'];
+        return order.filter((tier) => group?.variants?.[tier]?.price != null);
+    };
+
+    const getDefaultTier = (group) => {
+        const tiers = getAvailableTiers(group);
+        if (tiers.includes('unidade')) return 'unidade';
+        return tiers[0] || 'unidade';
+    };
+
+    const getVariant = (group, tier) => {
+        const variant = group?.variants?.[tier];
+        if (!variant) return null;
+        return { ...variant, tier, tierLabel: TIER_LABELS[tier] || tier };
+    };
+
+    const getDisplayProducts = (catalogData) => {
+        const groups = buildGroups(catalogData);
+        const items = [];
+
+        catalogData.categories.forEach((cat) => {
+            cat.products.forEach((product) => {
+                const pack = parsePack(product.name);
+                const key = `${cat.id}::${normalizeKey(product.name, cat.id)}`;
+                const group = groups.get(key);
+                if (!group) return;
+
+                if (pack.type === 'caixa' && group.variants.unidade) return;
+
+                items.push({
+                    group,
+                    product: {
+                        id: group.primaryId,
+                        name: group.baseName,
+                        price: getVariant(group, getDefaultTier(group))?.price ?? product.price,
+                        image: group.image,
+                        adultOnly: group.adultOnly,
+                        description: group.description,
+                    },
+                    categoryName: cat.name,
+                    categoryId: cat.id,
+                });
+            });
+        });
+
+        return items;
+    };
+
+    const packLineLabel = (variant) => {
+        if (!variant) return '';
+        if (variant.tier === 'unidade') return 'por unidade';
+        if (variant.tier === 'caixa') return `caixa c/ ${variant.packSize || '?'}`;
+        if (variant.tier === 'pallet') {
+            if (variant.boxCount) return `pallet • ${variant.boxCount} cx`;
+            return 'pallet';
+        }
+        return '';
+    };
+
+    const cartItemName = (variant, group) => {
+        const base = group?.baseName || variant.name;
+        if (variant.tier === 'unidade') return base;
+        if (variant.tier === 'caixa') return `${base} (Caixa c/ ${variant.packSize})`;
+        if (variant.tier === 'pallet') {
+            const suffix = variant.boxCount ? `${variant.boxCount} cx` : 'atacado';
+            return `${base} (Pallet · ${suffix})`;
+        }
+        return variant.name;
+    };
+
+    window.LigeirinhoPricing = {
+        TIER_LABELS,
+        TIER_SHORT,
+        PALLET_CONFIG,
+        buildGroups,
+        getAvailableTiers,
+        getDefaultTier,
+        getVariant,
+        getDisplayProducts,
+        packLineLabel,
+        cartItemName,
+        parsePack,
+        loadPackConfig: () =>
+            fetch('data/precos-embalagem.json')
+                .then((r) => (r.ok ? r.json() : {}))
+                .catch(() => ({}))
+                .then((cfg) => {
+                    window.__ligPackConfig = cfg;
+                    return cfg;
+                }),
+        loadTierImages: () =>
+            fetch('data/imagem-embalagem.json')
+                .then((r) => (r.ok ? r.json() : {}))
+                .catch(() => ({}))
+                .then((cfg) => {
+                    window.__ligTierImages = cfg;
+                    return cfg;
+                }),
+        applyTierImages,
+        getTierImage,
+        rebuildGroups: (catalogData) => {
+            const groups = buildGroups(catalogData);
+            window.__ligProductGroups = groups;
+            return groups;
+        },
+    };
+})();

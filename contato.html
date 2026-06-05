@@ -1,9 +1,15 @@
-<!DOCTYPE html><html class="dark" lang="pt-BR"><head>
+<!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Contato - Ligeirinho Bebidas</title>
-<link rel="icon" href="img/ligeirinhologo.png" type="image/png">
-<link rel="apple-touch-icon" href="img/ligeirinhologo.png">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Contato - Ligeirinho App</title>
+<link rel="icon" href="img/app-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="img/app-icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Ligeirinho">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/site.css">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
@@ -103,118 +109,127 @@
         }
     </script>
 <style>
-        .glass-panel {
-            background: rgba(30, 30, 30, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.1);
-        }
-        .glow-hover:hover {
-            box-shadow: 0 0 20px rgba(255, 107, 0, 0.2);
-        }
+        .glass-panel { display: none; }
     </style>
 </head>
-<body data-page="contato" class="bg-deep-black text-on-surface font-body-md min-h-screen flex flex-col">
+<body data-page="contato" class="font-body-md min-h-screen flex flex-col antialiased">
 <div id="site-nav"></div>
-<!-- Main Content Canvas -->
-<main class="flex-grow w-full px-margin-mobile md:px-margin-desktop py-12 max-w-container-max mx-auto">
-<!-- Header Section -->
-<div class="mb-12 md:mb-16 text-center md:text-left">
-<h1 class="font-display-lg text-display-lg text-vibrant-orange mb-4">Fale Conosco</h1>
-<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
-                Dúvidas, sugestões ou pedidos especiais? Nossa equipe está pronta para atender você com a rapidez que só o Ligeirinho tem.
+<main id="lig-page-main" class="flex-grow w-full px-4 md:px-margin-desktop py-8 max-w-container-max mx-auto pb-24 md:pb-12">
+<div id="minha-conta" class="mb-8 scroll-mt-28">
+<h1 class="lig-page-title text-vibrant-orange mb-3">Minha conta</h1>
+<p class="lig-page-lead max-w-2xl">
+                Preferências, login e atendimento — tudo em um só lugar.
             </p>
 </div>
-<!-- Bento Grid Layout -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-<!-- Contact Form (Spans 7 columns on desktop) -->
-<div class="lg:col-span-7 glass-panel rounded-xl p-6 md:p-8 relative overflow-hidden">
-<!-- Decorative element -->
-<div class="absolute -top-24 -right-24 w-48 h-48 bg-vibrant-orange/10 rounded-full blur-3xl"></div>
-<h2 class="font-headline-md text-headline-md text-gold-accent mb-6">Envie uma Mensagem</h2>
-<form class="space-y-6 relative z-10">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div id="profile-settings" class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-8">
+<div id="profile-auth" class="lg:col-span-12 lig-page-card p-6"></div>
+<div id="profile-reorder" class="lg:col-span-12 lig-page-card p-6" hidden>
+<h2 class="lig-page-section-title mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-vibrant-orange">replay</span>
+                Último pedido
+            </h2>
+<p class="text-sm lig-page-lead mb-4"><span id="profile-reorder-count">0 itens</span> · <span id="profile-reorder-total">R$ 0,00</span></p>
+<button type="button" id="profile-reorder-btn" class="lig-btn-primary w-full sm:w-auto">Repetir pedido</button>
+</div>
+<div class="lg:col-span-12 lig-page-card p-6">
+<h2 class="lig-page-section-title mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-vibrant-orange">favorite</span>
+                Preferências de categorias
+            </h2>
+<p class="text-sm lig-page-lead mb-4">Destacamos suas categorias favoritas na home.</p>
+<div id="profile-prefs" class="flex flex-wrap gap-2"></div>
+</div>
+<div class="lg:col-span-12 lig-clube-teaser">
+<div class="lig-clube-teaser__icon mb-2">⚡</div>
+<h2 class="lig-page-section-title">Clube Raios</h2>
+<p class="text-sm lig-page-lead mt-2 max-w-xl mx-auto">Em breve: acumule Raios a cada pedido e troque por descontos e brindes exclusivos.</p>
+</div>
+</div>
+<div class="mb-8 pt-4 border-t border-[var(--lig-border)]">
+<h2 class="lig-page-title mb-3">Fale conosco</h2>
+<p class="lig-page-lead max-w-2xl">
+                Dúvidas, sugestões ou pedidos especiais? Nossa equipe está pronta para atender você.
+            </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+<div class="lg:col-span-7 lig-page-card p-6 md:p-8">
+<h2 class="lig-page-section-title mb-5">Envie uma mensagem</h2>
+<form class="space-y-5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="name">NOME COMPLETO</label>
-<input class="w-full bg-deep-black border border-surface-gray rounded-DEFAULT px-4 py-3 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md text-body-md" id="name" placeholder="Seu nome" type="text">
+<label class="lig-page-label" for="name">Nome completo</label>
+<input class="lig-page-input" id="name" placeholder="Seu nome" type="text">
 </div>
 <div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="phone">TELEFONE / WHATSAPP</label>
-<input class="w-full bg-deep-black border border-surface-gray rounded-DEFAULT px-4 py-3 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md text-body-md" id="phone" placeholder="(00) 00000-0000" type="tel">
+<label class="lig-page-label" for="phone">Telefone / WhatsApp</label>
+<input class="lig-page-input" id="phone" placeholder="(11) 00000-0000" type="tel">
 </div>
 </div>
 <div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="email">E-MAIL</label>
-<input class="w-full bg-deep-black border border-surface-gray rounded-DEFAULT px-4 py-3 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md text-body-md" id="email" placeholder="seu@email.com" type="email">
+<label class="lig-page-label" for="email">E-mail</label>
+<input class="lig-page-input" id="email" placeholder="seu@email.com" type="email">
 </div>
 <div>
-<label class="block font-label-caps text-label-caps text-on-surface-variant mb-2" for="message">MENSAGEM</label>
-<textarea class="w-full bg-deep-black border border-surface-gray rounded-DEFAULT px-4 py-3 text-on-surface focus:outline-none focus:border-vibrant-orange focus:ring-1 focus:ring-vibrant-orange transition-colors font-body-md text-body-md resize-none" id="message" placeholder="Como podemos ajudar?" rows="4"></textarea>
+<label class="lig-page-label" for="message">Mensagem</label>
+<textarea class="lig-page-input resize-none" id="message" placeholder="Como podemos ajudar?" rows="4"></textarea>
 </div>
-<button class="w-full md:w-auto bg-vibrant-orange hover:bg-primary-container text-deep-black font-headline-md text-headline-md py-3 px-8 rounded-DEFAULT transition-colors duration-200 flex items-center justify-center space-x-2 glow-hover" type="submit">
-<span>Enviar Mensagem</span>
+<a class="lig-btn-primary w-full md:w-auto" href="https://api.whatsapp.com/send/?phone=5511970924909&amp;text=Ol%C3%A1!%20Gostaria%20de%20entrar%20em%20contato.&amp;type=phone_number&amp;app_absent=0" target="_blank" rel="noopener noreferrer">
+<span>Enviar no WhatsApp</span>
 <span class="material-symbols-outlined text-xl">send</span>
-</button>
+</a>
 </form>
 </div>
-<!-- Info & Map Sidebar (Spans 5 columns on desktop) -->
-<div class="lg:col-span-5 flex flex-col gap-gutter">
-<!-- Contact Info Card -->
-<div class="bg-surface-gray rounded-xl p-6 glow-hover transition-shadow duration-300">
-<h3 class="font-headline-md text-headline-md text-vibrant-orange mb-6 flex items-center gap-2">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">info</span>
-                        Informações Rápidas
+<div class="lg:col-span-5 flex flex-col gap-4">
+<div class="lig-page-card p-6">
+<h3 class="lig-page-section-title text-vibrant-orange mb-5 flex items-center gap-2">
+<span class="material-symbols-outlined">info</span>
+                        Informações rápidas
                     </h3>
-<div class="space-y-6">
-<div class="flex items-start gap-4">
-<div class="bg-surface-container-high p-3 rounded-full text-gold-accent">
-<span class="material-symbols-outlined">location_on</span>
-</div>
+<div class="space-y-5">
+<div class="flex items-start gap-3">
+<div class="lig-info-icon"><span class="material-symbols-outlined text-[20px]">location_on</span></div>
 <div>
-<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-1">ENDEREÇO</h4>
-<p class="font-body-md text-body-md text-on-surface">Av. Principal, 1234<br>Centro - Cidade, UF<br>CEP: 00000-000</p>
+<p class="lig-page-label mb-0.5">Endereço</p>
+<p class="text-sm text-[#1a1a1a] leading-relaxed">Estr. do Campo Limpo, 2083<br>Vila Prel — São Paulo, SP<br>CEP: 05777-001</p>
 </div>
 </div>
-<div class="flex items-start gap-4">
-<div class="bg-surface-container-high p-3 rounded-full text-gold-accent">
-<span class="material-symbols-outlined">forum</span>
-</div>
+<div class="flex items-start gap-3">
+<div class="lig-info-icon"><span class="material-symbols-outlined text-[20px]">forum</span></div>
 <div>
-<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-1">ATENDIMENTO</h4>
-<p class="font-body-md text-body-md text-on-surface mb-1"><a class="hover:text-vibrant-orange transition-colors" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig" target="_blank" rel="noopener noreferrer">WhatsApp: (11) 97092-4909</a></p>
-<p class="font-body-md text-body-md text-on-surface">Email: contato@ligeirinho.com.br</p>
+<p class="lig-page-label mb-0.5">Atendimento</p>
+<p class="text-sm text-[#1a1a1a]"><a class="text-vibrant-orange font-semibold hover:underline" href="https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer">WhatsApp: (11) 97092-4909</a></p>
 </div>
 </div>
-<div class="flex items-start gap-4">
-<div class="bg-surface-container-high p-3 rounded-full text-gold-accent">
-<span class="material-symbols-outlined">schedule</span>
-</div>
+<div class="flex items-start gap-3">
+<div class="lig-info-icon"><span class="material-symbols-outlined text-[20px]">schedule</span></div>
 <div>
-<h4 class="font-label-caps text-label-caps text-on-surface-variant mb-1">HORÁRIO DE FUNCIONAMENTO</h4>
-<p class="font-body-md text-body-md text-on-surface">Seg - Qui: 10h às 22h</p>
-<p class="font-body-md text-body-md text-vibrant-orange font-bold">Sex - Sáb: 10h às 02h</p>
-<p class="font-body-md text-body-md text-on-surface">Dom: 10h às 20h</p>
+<p class="lig-page-label mb-0.5">Horário</p>
+<p class="text-sm text-[#666]">Seg – Sáb: 08h – 20h</p>
+<p class="text-sm text-vibrant-orange font-semibold">Domingo: 08h – 14h</p>
 </div>
 </div>
 </div>
 </div>
-<!-- Map Placeholder -->
-<div id="localizacao" class="bg-surface-gray rounded-xl overflow-hidden h-48 md:h-full min-h-[200px] relative group scroll-mt-24">
-<img alt="Mapa de localização da distribuidora de bebidas" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300 grayscale contrast-125" data-alt="A stylized, dark-mode satellite map view of a modern urban grid. The map features deep charcoal and black tones for the terrain and buildings, with vibrant neon orange and gold routes glowing to indicate fast delivery paths. A prominent glowing orange marker pinpoints a central location, reinforcing the high-tech, nocturnal 'Hub' aesthetic of the brand." data-location="Sao Paulo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU0yWQTyhOlQNx5_xTe3wiH1GSO1hLcP9dn4EA2UDxOESLe0p0Nupby2YOEfLoOqs6dmmPCaOmUUNE7RUk8WKH8fetflQFFv3PMjh0fzUTzikKlLFo-A-Yz3uFfGw5I6Gj10ioyeZI0jH5syFDWW8LxXRUqLSIMwIDc_yJPqcTQk6hjh0BS8bQ9NRxoMWuKNUh41CJJQFfIkNPa5mIi3kmmMBDtZjKs7Ur3zqGCAzQZLrkMSifLbBZJRzry91PclEXQ2wKpdFZASOH">
-<div class="absolute inset-0 bg-gradient-to-t from-deep-black/80 to-transparent pointer-events-none"></div>
+<a id="localizacao" class="lig-page-card overflow-hidden block relative min-h-[180px] scroll-mt-24" href="https://www.google.com/maps/search/?api=1&query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001" target="_blank" rel="noopener noreferrer">
+<img alt="Mapa — Ligeirinho Bebidas" class="w-full h-full min-h-[180px] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU0yWQTyhOlQNx5_xTe3wiH1GSO1hLcP9dn4EA2UDxOESLe0p0Nupby2YOEfLoOqs6dmmPCaOmUUNE7RUk8WKH8fetflQFFv3PMjh0fzUTzikKlLFo-A-Yz3uFfGw5I6Gj10ioyeZI0jH5syFDWW8LxXRUqLSIMwIDc_yJPqcTQk6hjh0BS8bQ9NRxoMWuKNUh41CJJQFfIkNPa5mIi3kmmMBDtZjKs7Ur3zqGCAzQZLrkMSifLbBZJRzry91PclEXQ2wKpdFZASOH" loading="lazy">
+<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
 <div>
-<span class="inline-block bg-vibrant-orange/15 border border-vibrant-orange text-vibrant-orange font-label-caps text-label-caps px-2 py-1 rounded-sm mb-2">LOCALIZAÇÃO</span>
-<p class="font-headline-md text-headline-md text-on-surface">Nossa Sede</p>
+<span class="inline-block bg-white/95 text-vibrant-orange text-xs font-bold px-2 py-1 rounded-full mb-1">Localização</span>
+<p class="text-white font-semibold text-sm drop-shadow">Como chegar</p>
 </div>
-<button class="bg-surface-gray border border-gold-accent text-gold-accent p-2 rounded-full hover:bg-gold-accent hover:text-deep-black transition-colors duration-200">
-<span class="material-symbols-outlined">directions</span>
-</button>
+<span class="lig-info-icon bg-white text-vibrant-orange"><span class="material-symbols-outlined">directions</span></span>
 </div>
-</div>
+</a>
 </div>
 </div>
 </main>
-<div id="site-footer"></div>
+<div id="site-footer" class="hidden md:block"></div>
+<script src="js/app.js"></script>
+<script src="js/theme-ui.js"></script>
+<script src="js/auth-store.js"></script>
+<script src="js/cart-store.js"></script>
+<script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/profile.js"></script>
 </body></html>

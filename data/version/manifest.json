@@ -1,0 +1,56 @@
+{
+  "app": {
+    "name": "Ligeirinho App",
+    "version": "2.0.0",
+    "codename": "Raio",
+    "releasedAt": "2026-06-04",
+    "channel": "stable"
+  },
+  "modules": {
+    "core": {
+      "version": "2.0.0",
+      "label": "Núcleo & PWA",
+      "description": "Service worker, manifest, ícones e instalação"
+    },
+    "theme": {
+      "version": "1.0.0",
+      "label": "Tema",
+      "description": "Claro, escuro e automático"
+    },
+    "auth": {
+      "version": "1.0.0",
+      "label": "Login & Conta",
+      "description": "Google Sign-In e área Minha conta"
+    },
+    "catalog": {
+      "version": "1.1.0",
+      "label": "Catálogo",
+      "description": "Produtos, filtros e preços por embalagem"
+    },
+    "cart": {
+      "version": "1.1.0",
+      "label": "Carrinho",
+      "description": "Pedido WhatsApp e repetir último pedido"
+    },
+    "home": {
+      "version": "1.0.0",
+      "label": "Home",
+      "description": "Categorias, combos e destaques"
+    },
+    "search": {
+      "version": "1.0.0",
+      "label": "Busca",
+      "description": "Sinônimos e busca inteligente"
+    },
+    "onboarding": {
+      "version": "1.0.0",
+      "label": "Onboarding",
+      "description": "Tour inicial de 3 telas"
+    },
+    "profile": {
+      "version": "1.0.0",
+      "label": "Perfil",
+      "description": "Preferências e contato"
+    }
+  }
+}
