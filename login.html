@@ -121,6 +121,24 @@ Continuar com Google
 </section>
 
 <p id="login-status" class="lig-login-status" hidden></p>
+
+<div id="login-setup" class="lig-login-setup" hidden>
+
+<p class="lig-login-setup__title">Configurar login</p>
+
+<p class="lig-login-setup__section">Google (Vercel)</p>
+
+<p class="lig-login-setup__lead">Cadastre <code>GOOGLE_CLIENT_ID</code> no Vercel ou cole abaixo para dev local.</p>
+
+<label class="lig-login-setup__label" for="login-client-id-input">Google Client ID</label>
+
+<input id="login-client-id-input" class="lig-login-setup__input" type="text" inputmode="verbatim" autocomplete="off" spellcheck="false" placeholder="123456789-xxxx.apps.googleusercontent.com">
+
+<button type="button" id="login-client-id-save" class="lig-login-setup__save">Salvar Google</button>
+</div>
+
+<button type="button" id="login-setup-open" class="lig-login-setup-link" hidden>Configurar login</button>
+
 <button type="button" id="login-skip-btn" class="lig-login-skip">Continuar sem conta</button>
 
 </div>
