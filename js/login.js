@@ -15,7 +15,6 @@
     const statusEl = document.getElementById('login-status');
     const googleBtn = document.getElementById('login-google-btn');
     const googleMount = document.getElementById('google-signin-mount');
-    const skipBtn = document.getElementById('login-skip-btn');
 
     const isValidGoogleClientId = (id) => id.includes('.apps.googleusercontent.com');
 
@@ -85,10 +84,6 @@
 
         boot();
     };
-
-    skipBtn?.addEventListener('click', () => {
-        window.location.href = 'index.html';
-    });
 
     if (auth.isLoggedIn()) {
         redirect();
