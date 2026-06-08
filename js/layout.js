@@ -134,7 +134,7 @@ ${navLinksHtml}
 <span class="material-symbols-outlined lig-nav-account__icon" aria-hidden="true">person</span>
 <span>Minha conta</span>
 </a>
-<div data-lig-theme-mount data-theme-compact="true" class="lig-theme-segment lig-theme-segment--header" role="group" aria-label="Tema do app"></div>
+<div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
 <button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-orange-50 rounded-full transition-all relative text-vibrant-orange" aria-label="Abrir carrinho" aria-expanded="false">
 <span class="material-symbols-outlined">shopping_cart</span>
 <span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-white text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>

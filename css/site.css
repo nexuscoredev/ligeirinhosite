@@ -1269,6 +1269,40 @@ html.lig-app-standalone .ze-app-header {
     transform: scale(0.97);
 }
 
+.lig-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border-radius: 9999px;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.lig-theme-toggle:hover {
+    border-color: var(--lig-orange);
+    background: var(--lig-orange-light);
+    color: var(--lig-orange);
+}
+
+.lig-theme-toggle:active {
+    transform: scale(0.96);
+}
+
+.lig-theme-toggle__icon {
+    font-size: 1.375rem;
+    line-height: 1;
+}
+
+.lig-theme-toggle-mount--header {
+    flex-shrink: 0;
+}
+
 .lig-theme-segment {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
