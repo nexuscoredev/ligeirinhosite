@@ -11,6 +11,7 @@
     "remote": "github",
     "slug": "nexuscoredev/ligeirinhosite",
     "branch": "main",
-    "autoDeploy": true
+    "autoDeploy": true,
+    "lastDeployRequest": "2026-06-09T00:50:00Z"
   }
 }
