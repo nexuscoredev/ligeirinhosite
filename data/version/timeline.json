@@ -3,7 +3,7 @@
     "id": "2026-06-04-v2",
     "date": "2026-06-04",
     "appVersion": "2.0.0",
-    "title": "Ligeirinho App 2.0 — experiência completa",
+    "title": "Ligeirinho Parceiros 2.0 — experiência completa",
     "summary": "PWA instalável, login Google, catálogo com embalagens, dark mode e área Minha conta.",
     "changes": [
       { "module": "core", "type": "feat", "text": "PWA com manifest, service worker v8 e ícones dedicados do app" },

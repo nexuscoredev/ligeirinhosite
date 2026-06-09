@@ -22,7 +22,7 @@
                 .catch(() => null),
         ]);
         cache = {
-            manifest: manifest || { app: { version: '0.0.0', name: 'Ligeirinho App' }, modules: {} },
+            manifest: manifest || { app: { version: '0.0.0', name: 'Ligeirinho Parceiros' }, modules: {} },
             timeline: Array.isArray(timeline) ? timeline : [],
             site: site || null,
         };

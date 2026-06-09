@@ -122,9 +122,9 @@
     const navHtml = `<header class="ze-app-header sticky top-0 z-50">
 <nav class="font-nav-bar">
 <div class="flex justify-between items-center w-full px-4 md:px-margin-desktop py-3 max-w-container-max mx-auto min-h-[52px]">
-<a class="lig-brand nav-brand" href="index.html" aria-label="Ligeirinho App — início">
+<a class="lig-brand nav-brand" href="index.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
-<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">App</span></span>
+<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
 <div class="hidden md:flex items-center gap-6">
 ${navLinksHtml}
@@ -218,9 +218,9 @@ ${bottomTabItems
 <div class="lig-footer-inner">
 <div class="lig-footer-grid">
 <div class="lig-footer-col lig-footer-col--brand">
-<a class="lig-brand lig-footer-brand" href="index.html" aria-label="Ligeirinho App — início">
+<a class="lig-brand lig-footer-brand" href="index.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="32" height="32" decoding="async">
-<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">App</span></span>
+<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
 <p class="lig-footer-lead">Sua distribuidora de bebidas com rapidez, variedade e atendimento de confiança.</p>
 <div class="lig-footer-social">
@@ -272,7 +272,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 </div>
 </div>
 <div class="lig-footer-bar">
-<p class="lig-footer-copy">© 2026 Ligeirinho App · Entrega de confiança · <span id="lig-app-version">…</span></p>
+<p class="lig-footer-copy">© 2026 Ligeirinho Parceiros · Entrega de confiança · <span id="lig-app-version">…</span></p>
 </div>
 </div>
 </footer>`;

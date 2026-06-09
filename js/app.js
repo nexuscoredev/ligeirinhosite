@@ -22,7 +22,7 @@
     ensureMeta('mobile-web-app-capable', 'yes');
     ensureMeta('apple-mobile-web-app-capable', 'yes');
     ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
-    ensureMeta('apple-mobile-web-app-title', 'Ligeirinho');
+    ensureMeta('apple-mobile-web-app-title', 'Parceiros');
     ensureLink('manifest', 'manifest.webmanifest');
 
     if ('serviceWorker' in navigator) {
@@ -60,7 +60,7 @@
         banner.innerHTML = `<div class="flex items-center gap-3 rounded-xl border border-[var(--lig-border)] bg-[var(--lig-surface)] shadow-lg px-4 py-3">
 <img src="img/ligeirinhologo.png" alt="" class="h-10 w-10 shrink-0 rounded-lg object-contain" width="40" height="40">
 <div class="min-w-0 flex-1">
-<p class="text-sm font-bold lig-cart-text leading-tight">Instalar Ligeirinho App</p>
+<p class="text-sm font-bold lig-cart-text leading-tight">Instalar Ligeirinho Parceiros</p>
 <p class="text-xs lig-cart-text-muted mt-0.5">Acesso rápido ao catálogo e pedidos</p>
 </div>
 <button type="button" id="app-install-btn" class="shrink-0 rounded-full bg-vibrant-yellow px-3 py-2 text-xs font-bold text-deep-black min-h-[36px]">Instalar</button>

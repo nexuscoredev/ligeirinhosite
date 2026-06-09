@@ -267,7 +267,7 @@
         const checkout = cartApi.loadCheckout();
         const paymentLabels = { pix: 'Pix', dinheiro: 'Dinheiro', cartao: 'Cartão na entrega' };
 
-        const lines = ['Olá! Gostaria de fazer um pedido pelo Ligeirinho App:', ''];
+        const lines = ['Olá! Gostaria de fazer um pedido pelo Ligeirinho Parceiros:', ''];
         items.forEach((item) => {
             const unit = formatPrice(item.price);
             const subtotal = formatPrice((item.price ?? 0) * item.qty);
