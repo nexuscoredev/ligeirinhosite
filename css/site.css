@@ -7,8 +7,10 @@
     --lig-text-muted: #666666;
     --lig-text-subtle: #999999;
     --lig-yellow: #F7D53C;
+    --lig-yellow-text: #A67C00;
     --lig-yellow-hover: #D9BB35;
-    --lig-yellow-light: rgba(247, 213, 60, 0.1);
+    --lig-yellow-light: rgba(247, 213, 60, 0.2);
+    --lig-accent: var(--lig-yellow-text);
     --lig-border: #ebebeb;
     --lig-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     --lig-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
@@ -29,8 +31,10 @@
     --lig-text-muted: #a8a8a8;
     --lig-text-subtle: #777777;
     --lig-yellow: #F7D53C;
+    --lig-yellow-text: #F7D53C;
     --lig-yellow-hover: #FAE06A;
     --lig-yellow-light: rgba(247, 213, 60, 0.18);
+    --lig-accent: var(--lig-yellow-text);
     --lig-border: #333333;
     --lig-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     --lig-shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.25);
@@ -52,8 +56,10 @@
         --lig-text-muted: #a8a8a8;
         --lig-text-subtle: #777777;
         --lig-yellow: #F7D53C;
+        --lig-yellow-text: #F7D53C;
         --lig-yellow-hover: #FAE06A;
         --lig-yellow-light: rgba(247, 213, 60, 0.18);
+        --lig-accent: var(--lig-yellow-text);
         --lig-border: #333333;
         --lig-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
         --lig-shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.25);
@@ -64,6 +70,14 @@
         --lig-scrollbar: #444;
         --lig-media-bg: #ffffff;
         --lig-cat-circle-bg: #ffffff;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    [data-theme="auto"] {
+        --lig-yellow-text: #A67C00;
+        --lig-accent: var(--lig-yellow-text);
+        --lig-yellow-light: rgba(247, 213, 60, 0.2);
     }
 }
 
@@ -108,7 +122,7 @@ html.lig-app-mode.lig-has-float-cart #site-footer {
 }
 
 .app-tab-active {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .app-tab-active .material-symbols-outlined {
@@ -128,7 +142,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .text-gradient-brand {
-    background: linear-gradient(90deg, #F7D53C 0%, #FAE178 100%);
+    background: linear-gradient(90deg, var(--lig-yellow-text) 0%, #C9920A 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -179,7 +193,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 800;
     letter-spacing: -0.04em;
     line-height: 1;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-brand__wordmark {
@@ -409,7 +423,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-cat-tile__icon {
     font-size: 1.75rem;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .ze-cat-tile__label {
@@ -447,7 +461,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-section__link {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     text-decoration: none;
 }
 
@@ -539,7 +553,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-product-h__price {
     font-size: 0.875rem;
     font-weight: 700;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 /* ── Product grid ── */
@@ -687,7 +701,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-product-card__price {
     font-size: 0.9375rem;
     font-weight: 700;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .ze-price-tiers {
@@ -730,9 +744,19 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-price-tier--active {
-    border-color: var(--lig-yellow);
+    border-color: rgba(166, 124, 0, 0.4);
     background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
+}
+
+[data-theme='dark'] .ze-price-tier--active {
+    border-color: var(--lig-yellow);
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] .ze-price-tier--active {
+        border-color: var(--lig-yellow);
+    }
 }
 
 .ze-price-block {
@@ -817,7 +841,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-qty-value {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     min-width: 1.5rem;
     text-align: center;
 }
@@ -911,7 +935,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-float-cart__badge {
     background: #ffffff;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-size: 0.6875rem;
     font-weight: 800;
     min-width: 1.375rem;
@@ -950,7 +974,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-cart-label {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-cart-divider {
@@ -973,7 +997,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-cart-checkout-label:has(:checked) {
     border-color: var(--lig-yellow);
     background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 #cart-add-toast .lig-toast-inner {
@@ -1021,7 +1045,7 @@ html.lig-app-standalone .ze-app-header {
     border-radius: 9999px;
     background: var(--lig-yellow-light);
     border: 1px solid rgba(247, 213, 60, 0.2);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-size: 0.75rem;
     font-weight: 600;
 }
@@ -1117,7 +1141,7 @@ html.lig-app-standalone .ze-app-header {
     height: 2.5rem;
     border-radius: 9999px;
     background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     flex-shrink: 0;
 }
 
@@ -1143,7 +1167,7 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .ze-reorder__body {
@@ -1223,7 +1247,7 @@ html.lig-app-standalone .ze-app-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .ze-combo-card__title {
@@ -1243,25 +1267,26 @@ html.lig-app-standalone .ze-app-header {
 .ze-combo-card__price {
     font-size: 0.9375rem;
     font-weight: 800;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .ze-combo-card__btn {
     width: 100%;
     padding: 0.5rem;
     border-radius: 9999px;
-    background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    background: var(--lig-yellow);
+    color: #1a1a1a;
     font-size: 0.75rem;
     font-weight: 700;
-    border: 1px solid rgba(247, 213, 60, 0.25);
+    border: none;
     cursor: pointer;
     min-height: 36px;
     transition: background 0.15s, transform 0.15s;
+    box-shadow: 0 1px 4px rgba(166, 124, 0, 0.12);
 }
 
 .ze-combo-card__btn:hover {
-    background: var(--lig-yellow);
+    background: var(--lig-yellow-hover);
     color: #1a1a1a;
 }
 
@@ -1287,7 +1312,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-theme-toggle:hover {
     border-color: var(--lig-yellow);
     background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-theme-toggle:active {
@@ -1334,7 +1359,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-theme-segment__btn--active {
     border-color: var(--lig-yellow);
     background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-theme-segment__icon {
@@ -1491,7 +1516,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-footer-link:hover {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-footer-link--icon span {
@@ -1515,7 +1540,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-footer-card__icon {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-size: 1.25rem;
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -1526,7 +1551,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     margin: 0 0 0.375rem;
 }
 
@@ -1565,11 +1590,11 @@ html.lig-app-standalone .ze-app-header {
     margin-top: 0.375rem;
     padding-top: 0.5rem;
     border-top: 1px solid var(--lig-border);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-footer-schedule-row--highlight span {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-weight: 700;
 }
 
@@ -1583,7 +1608,7 @@ html.lig-app-standalone .ze-app-header {
     border-radius: 0.625rem;
     background: var(--lig-yellow-light);
     border: 1px solid rgba(247, 213, 60, 0.35);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-size: 0.875rem;
     font-weight: 700;
     text-decoration: none;
@@ -1633,7 +1658,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-pref-chip:has(input:checked) {
     border-color: var(--lig-yellow);
     background: var(--lig-yellow-light);
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-pref-chip input {
@@ -1753,12 +1778,12 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-nav-account:hover {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     background: var(--lig-yellow-light);
 }
 
 .lig-nav-account--active {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     background: var(--lig-yellow-light);
 }
 
@@ -1858,7 +1883,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-back:hover {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     background: var(--lig-yellow-light);
 }
 
@@ -1932,7 +1957,7 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-illustration .material-symbols-outlined {
     font-size: 2.25rem;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-login-title {
@@ -2218,7 +2243,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-login-setup__help summary {
     cursor: pointer;
     font-weight: 600;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-login-setup__help ol {
@@ -2250,7 +2275,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-setup-link:hover {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-login-skip {
@@ -2258,7 +2283,7 @@ html.lig-app-standalone .ze-app-header {
     min-height: 2.75rem;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     background: transparent;
     border: none;
     border-radius: 9999px;
@@ -2299,7 +2324,7 @@ html.lig-app-standalone .ze-app-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-size: 1.75rem;
 }
 
@@ -2359,14 +2384,14 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-profile-auth__btn--ghost:hover {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     border-color: rgba(247, 213, 60, 0.35);
     background: var(--lig-yellow-light);
 }
 
 /* ── Versionamento modular ── */
 .lig-version-link {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     font-weight: 700;
     text-decoration: none;
 }
@@ -2394,7 +2419,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     margin-bottom: 0.5rem;
 }
 
@@ -2406,7 +2431,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-version-hero__ver {
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
 }
 
 .lig-version-hero__sub {
@@ -2464,7 +2489,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-version-module__ver {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     margin-left: 0.375rem;
 }
 
@@ -2493,7 +2518,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--lig-yellow);
+    color: var(--lig-yellow-text);
     margin-bottom: 0.25rem;
 }
 
@@ -2801,5 +2826,24 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-btn-secondary:hover {
     background: var(--lig-surface-2, rgba(0, 0, 0, 0.04));
+}
+
+/* Tailwind CDN loads after site.css — text utilities need the contrast token */
+.text-vibrant-yellow {
+    color: var(--lig-yellow-text) !important;
+}
+
+.has-\[\:checked\]\:text-vibrant-yellow:has(:checked) {
+    color: var(--lig-yellow-text) !important;
+}
+
+.hover\:text-vibrant-yellow:hover {
+    color: var(--lig-yellow-text) !important;
+}
+
+.catalog-cat-btn[aria-pressed='true'] {
+    color: var(--lig-yellow-text) !important;
+    background: var(--lig-yellow-light) !important;
+    border-color: rgba(166, 124, 0, 0.35) !important;
 }
 
