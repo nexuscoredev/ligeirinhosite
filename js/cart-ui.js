@@ -36,7 +36,7 @@
 <span class="font-headline-md text-base lig-cart-text">Total</span>
 <span id="cart-total" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn" class="w-full bg-vibrant-yellow hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled aria-disabled="true">
+<button type="button" id="cart-pay-btn" class="w-full bg-vibrant-yellow hover:bg-[#D9BB35] text-deep-black font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(247,213,60,0.35)] pointer-events-none opacity-50 mb-2" disabled aria-disabled="true">
                 Pagar no app
                 <span class="material-symbols-outlined text-sm">payments</span>
 </button>
@@ -79,7 +79,7 @@
 <span class="font-headline-md lig-cart-text">Total</span>
 <span id="cart-total-mobile" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn-mobile" class="w-full bg-vibrant-yellow hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled>Pagar no app</button>
+<button type="button" id="cart-pay-btn-mobile" class="w-full bg-vibrant-yellow hover:bg-[#D9BB35] text-deep-black font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(247,213,60,0.35)] pointer-events-none opacity-50 mb-2" disabled>Pagar no app</button>
 <a id="cart-whatsapp-btn-mobile" class="w-full border border-[#25D366]/40 text-[#128C7E] font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 text-sm pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Pedir pelo WhatsApp</a>
 </div>
 </div>
@@ -138,7 +138,7 @@
 <p class="text-sm font-semibold lig-cart-text leading-tight">Adicionado ao carrinho</p>
 <p id="cart-add-toast-name" class="text-xs lig-cart-text-muted truncate mt-0.5"></p>
 </div>
-<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-yellow hover:text-[#E6B800] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
+<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-yellow hover:text-[#D9BB35] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
 </div>`;
             document.body.appendChild(toast);
 
@@ -177,7 +177,7 @@
 
     const burstConfetti = (x, y, count = 14) => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const colors = ['#FFCC00', '#FFE082', '#FFD700', '#FFD54F'];
+        const colors = ['#F7D53C', '#F9E08A', '#F0C838', '#E8BE30'];
         const originX = x ?? window.innerWidth / 2;
         const originY = y ?? window.innerHeight * 0.65;
         for (let i = 0; i < count; i += 1) {
@@ -304,7 +304,7 @@
 <div class="flex items-center gap-1 shrink-0">
 <button type="button" class="cart-qty-minus w-7 h-7 rounded-full bg-[#f5f5f5] border border-[#ebebeb] lig-cart-text hover:bg-yellow-50" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
 <span class="text-xs w-5 text-center font-semibold text-vibrant-yellow">${item.qty}</span>
-<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-yellow text-deep-black hover:bg-[#E6B800]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
+<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-yellow text-deep-black hover:bg-[#D9BB35]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
 <button type="button" class="cart-remove p-1 lig-cart-text-muted hover:text-red-500" data-id="${escapeHtml(lineKey)}" aria-label="Remover">
 <span class="material-symbols-outlined text-sm">close</span>
 </button>

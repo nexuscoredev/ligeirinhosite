@@ -14,9 +14,9 @@ const buildBackground = (size, radiusRatio = 0.215) => {
     return Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFE082"/>
-      <stop offset="45%" stop-color="#FFCC00"/>
-      <stop offset="100%" stop-color="#D4A800"/>
+      <stop offset="0%" stop-color="#F9E08A"/>
+      <stop offset="45%" stop-color="#F7D53C"/>
+      <stop offset="100%" stop-color="#C9A82A"/>
     </linearGradient>
     <radialGradient id="shine" cx="28%" cy="22%" r="55%">
       <stop offset="0%" stop-color="rgba(255,255,255,0.28)"/>
@@ -35,7 +35,7 @@ const buildBadge = (size) => {
   <rect width="${w}" height="${h}" rx="${h / 2}" fill="#ffffff" fill-opacity="0.96"/>
   <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
     font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="${Math.round(h * 0.48)}"
-    font-weight="800" letter-spacing="0.14em" fill="#FFCC00">APP</text>
+    font-weight="800" letter-spacing="0.14em" fill="#F7D53C">APP</text>
 </svg>`);
 };
 
