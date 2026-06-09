@@ -10,16 +10,16 @@
 <span class="material-symbols-outlined text-vibrant-orange">shopping_bag</span>
                     Seu pedido
                 </h3>
-<span id="cart-count-badge" class="bg-vibrant-orange text-white font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
+<span id="cart-count-badge" class="bg-vibrant-orange text-deep-black font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
 </div>
 <div id="cart-items" class="space-y-3 mb-4 overflow-y-auto pr-1 flex-1 min-h-0"></div>
 <div class="cart-checkout space-y-3 mb-4 lig-cart-divider border-t pt-4 shrink-0">
 <p class="text-xs lig-cart-label font-semibold uppercase tracking-wide">Detalhes do pedido</p>
 <div class="grid grid-cols-2 gap-2">
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-orange-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
 <input type="radio" name="cart-delivery-panel" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
 </label>
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-orange-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
 <input type="radio" name="cart-delivery-panel" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
@@ -36,9 +36,12 @@
 <span class="font-headline-md text-base lig-cart-text">Total</span>
 <span id="cart-total" class="text-lg font-bold text-vibrant-orange">R$ 0,00</span>
 </div>
-<a id="cart-whatsapp-btn" class="w-full bg-vibrant-orange hover:bg-[#e86100] text-white font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,107,0,0.35)] pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">
-                Finalizar pedido
-                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+<button type="button" id="cart-pay-btn" class="w-full bg-vibrant-orange hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled aria-disabled="true">
+                Pagar no app
+                <span class="material-symbols-outlined text-sm">payments</span>
+</button>
+<a id="cart-whatsapp-btn" class="w-full border border-[#25D366]/40 text-[#128C7E] font-semibold py-2.5 rounded-full transition-colors flex items-center justify-center gap-2 text-sm pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+                Pedir pelo WhatsApp
 </a>
 </div>
 </div>
@@ -56,10 +59,10 @@
 <div class="cart-checkout space-y-3 mb-4 lig-cart-divider border-t pt-4 shrink-0">
 <p class="text-xs lig-cart-label font-semibold uppercase tracking-wide">Detalhes do pedido</p>
 <div class="grid grid-cols-2 gap-2">
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-orange-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
 <input type="radio" name="cart-delivery-mobile" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
 </label>
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-orange-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
 <input type="radio" name="cart-delivery-mobile" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
@@ -76,7 +79,8 @@
 <span class="font-headline-md lig-cart-text">Total</span>
 <span id="cart-total-mobile" class="text-lg font-bold text-vibrant-orange">R$ 0,00</span>
 </div>
-<a id="cart-whatsapp-btn-mobile" class="w-full bg-vibrant-orange hover:bg-[#e86100] text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,107,0,0.35)] pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Finalizar pedido</a>
+<button type="button" id="cart-pay-btn-mobile" class="w-full bg-vibrant-orange hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled>Pagar no app</button>
+<a id="cart-whatsapp-btn-mobile" class="w-full border border-[#25D366]/40 text-[#128C7E] font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 text-sm pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Pedir pelo WhatsApp</a>
 </div>
 </div>
 </div>`;
@@ -134,7 +138,7 @@
 <p class="text-sm font-semibold lig-cart-text leading-tight">Adicionado ao carrinho</p>
 <p id="cart-add-toast-name" class="text-xs lig-cart-text-muted truncate mt-0.5"></p>
 </div>
-<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-orange hover:text-[#e86100] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
+<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-orange hover:text-[#E6B800] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
 </div>`;
             document.body.appendChild(toast);
 
@@ -173,7 +177,7 @@
 
     const burstConfetti = (x, y, count = 14) => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const colors = ['#FF6B00', '#FFB869', '#FFD700', '#FF8533'];
+        const colors = ['#FFCC00', '#FFE082', '#FFD700', '#FFD54F'];
         const originX = x ?? window.innerWidth / 2;
         const originY = y ?? window.innerHeight * 0.65;
         for (let i = 0; i < count; i += 1) {
@@ -298,9 +302,9 @@
 <p class="text-xs lig-cart-text-muted mt-1">${item.qty}x · ${subtotal}</p>
 </div>
 <div class="flex items-center gap-1 shrink-0">
-<button type="button" class="cart-qty-minus w-7 h-7 rounded-full bg-[#f5f5f5] border border-[#ebebeb] lig-cart-text hover:bg-orange-50" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
+<button type="button" class="cart-qty-minus w-7 h-7 rounded-full bg-[#f5f5f5] border border-[#ebebeb] lig-cart-text hover:bg-yellow-50" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
 <span class="text-xs w-5 text-center font-semibold text-vibrant-orange">${item.qty}</span>
-<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-orange text-white hover:bg-[#e86100]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
+<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-orange text-deep-black hover:bg-[#E6B800]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
 <button type="button" class="cart-remove p-1 lig-cart-text-muted hover:text-red-500" data-id="${escapeHtml(lineKey)}" aria-label="Remover">
 <span class="material-symbols-outlined text-sm">close</span>
 </button>
@@ -339,24 +343,36 @@
         document.documentElement.classList.toggle('lig-has-float-cart', count > 0);
     };
 
-    const setWhatsAppButtons = (cart) => {
+    const setCheckoutButtons = (cart) => {
         const hasItems = cartApi.cartItemCount(cart) > 0;
         const checkout = cartApi.loadCheckout();
         const needsAddress = checkout.deliveryType === 'entrega';
         const addressOk = !needsAddress || Boolean(checkout.address?.trim());
-        const canSend = hasItems && addressOk;
+        const canCheckout = hasItems && addressOk;
         const url = buildWhatsAppUrl(cart);
-        [document.getElementById('cart-whatsapp-btn'), document.getElementById('cart-whatsapp-btn-mobile')].forEach(
-            (btn) => {
-                if (!btn) return;
-                btn.href = canSend ? url : '#';
-                btn.classList.toggle('pointer-events-none', !canSend);
-                btn.classList.toggle('opacity-50', !canSend);
-                btn.setAttribute('aria-disabled', canSend ? 'false' : 'true');
-                btn.title = needsAddress && !addressOk ? 'Informe o endereço para entrega' : '';
-            }
-        );
+
+        ['cart-whatsapp-btn', 'cart-whatsapp-btn-mobile'].forEach((id) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.href = canCheckout ? url : '#';
+            btn.classList.toggle('pointer-events-none', !canCheckout);
+            btn.classList.toggle('opacity-50', !canCheckout);
+            btn.setAttribute('aria-disabled', canCheckout ? 'false' : 'true');
+            btn.title = needsAddress && !addressOk ? 'Informe o endereço para entrega' : '';
+        });
+
+        ['cart-pay-btn', 'cart-pay-btn-mobile'].forEach((id) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.disabled = !canCheckout;
+            btn.classList.toggle('pointer-events-none', !canCheckout);
+            btn.classList.toggle('opacity-50', !canCheckout);
+            btn.setAttribute('aria-disabled', canCheckout ? 'false' : 'true');
+            btn.title = needsAddress && !addressOk ? 'Informe o endereço para entrega' : '';
+        });
     };
+
+    const setWhatsAppButtons = setCheckoutButtons;
 
     const renderCheckoutFields = () => {
         const checkout = cartApi.loadCheckout();
@@ -415,7 +431,7 @@
         const total = formatPrice(cartApi.cartTotalValue(cart));
         const emptyHtml = cartApi.lastOrderSummary()
             ? `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio.</p>
-<button type="button" id="cart-reorder-btn" class="mt-3 w-full rounded-full border border-vibrant-orange/40 bg-orange-50 text-vibrant-orange text-sm font-bold py-2.5 min-h-[44px] hover:bg-vibrant-orange hover:text-white transition-colors">Repetir último pedido</button>
+<button type="button" id="cart-reorder-btn" class="mt-3 w-full rounded-full border border-vibrant-orange/40 bg-yellow-50 text-vibrant-orange text-sm font-bold py-2.5 min-h-[44px] hover:bg-vibrant-orange hover:text-deep-black transition-colors">Repetir último pedido</button>
 <p class="text-xs lig-cart-text-muted mt-3"><a class="text-vibrant-orange hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`
             : `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio. <a class="text-vibrant-orange hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`;
         const listHtml = items.length ? items.map(cartLineHtml).join('') : emptyHtml;
@@ -499,6 +515,66 @@
         updateFloatCart(cartApi.loadCart());
     };
 
+    const startAppPayment = async () => {
+        const cart = cartApi.loadCart();
+        const checkout = cartApi.loadCheckout();
+        if (!cartApi.cartItemCount(cart)) return;
+
+        const needsAddress = checkout.deliveryType === 'entrega';
+        if (needsAddress && !checkout.address?.trim()) return;
+
+        const session = window.LigeirinhoAuth?.loadSession?.();
+        const items = cartApi.cartEntries(cart).map((item) => ({
+            id: item.id,
+            cartKey: item.cartKey || item.id,
+            name: item.name,
+            price: item.price,
+            qty: item.qty,
+            packType: item.packType,
+        }));
+
+        const payButtons = ['cart-pay-btn', 'cart-pay-btn-mobile'];
+        payButtons.forEach((id) => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Processando…';
+            }
+        });
+
+        try {
+            const res = await fetch('/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    items,
+                    deliveryType: checkout.deliveryType,
+                    address: checkout.address,
+                    notes: checkout.notes,
+                    customer: {
+                        name: session?.name || '',
+                        phone: session?.phone || '',
+                        email: session?.email || '',
+                    },
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Não foi possível iniciar o pagamento');
+
+            cartApi.saveLastOrder(cart, checkout);
+            window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
+        } catch (err) {
+            window.alert(err.message || 'Erro ao iniciar pagamento. Tente pelo WhatsApp.');
+            payButtons.forEach((id) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Pagar no app';
+                }
+            });
+        }
+    };
+
     const handleCartAction = (e) => {
         if (e.target.closest('#cart-reorder-btn')) {
             if (cartApi.restoreLastOrder()) render();
@@ -531,6 +607,10 @@
                     cartApi.saveLastOrder(cart, cartApi.loadCheckout());
                 }
             });
+        });
+
+        ['cart-pay-btn', 'cart-pay-btn-mobile'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('click', startAppPayment);
         });
 
         sheet?.querySelectorAll('[data-cart-close]').forEach((el) => {

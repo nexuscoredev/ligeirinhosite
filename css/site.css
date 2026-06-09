@@ -6,15 +6,15 @@
     --lig-text: #1a1a1a;
     --lig-text-muted: #666666;
     --lig-text-subtle: #999999;
-    --lig-orange: #ff6b00;
-    --lig-orange-hover: #e86100;
-    --lig-orange-light: rgba(255, 107, 0, 0.1);
+    --lig-yellow: #FFCC00;
+    --lig-yellow-hover: #E6B800;
+    --lig-yellow-light: rgba(255, 204, 0, 0.1);
     --lig-border: #ebebeb;
     --lig-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     --lig-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
-    --lig-promo-bg: linear-gradient(135deg, #fff5ee 0%, #fff 100%);
-    --lig-promo-border: rgba(255, 107, 0, 0.2);
-    --lig-brand-logo-bg: #fff5ee;
+    --lig-promo-bg: linear-gradient(135deg, #fffbeb 0%, #fff 100%);
+    --lig-promo-border: rgba(255, 204, 0, 0.2);
+    --lig-brand-logo-bg: #fffbeb;
     --lig-overlay: rgba(0, 0, 0, 0.4);
     --lig-scrollbar: #ccc;
     --lig-media-bg: var(--lig-surface-alt);
@@ -28,15 +28,15 @@
     --lig-text: #f0f0f0;
     --lig-text-muted: #a8a8a8;
     --lig-text-subtle: #777777;
-    --lig-orange: #ff6b00;
-    --lig-orange-hover: #ff8533;
-    --lig-orange-light: rgba(255, 107, 0, 0.18);
+    --lig-yellow: #FFCC00;
+    --lig-yellow-hover: #FFD54F;
+    --lig-yellow-light: rgba(255, 204, 0, 0.18);
     --lig-border: #333333;
     --lig-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
     --lig-shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.25);
-    --lig-promo-bg: linear-gradient(135deg, #2a1a10 0%, #1e1e1e 100%);
-    --lig-promo-border: rgba(255, 107, 0, 0.35);
-    --lig-brand-logo-bg: #2a1a10;
+    --lig-promo-bg: linear-gradient(135deg, #2a2810 0%, #1e1e1e 100%);
+    --lig-promo-border: rgba(255, 204, 0, 0.35);
+    --lig-brand-logo-bg: #2a2810;
     --lig-overlay: rgba(0, 0, 0, 0.65);
     --lig-scrollbar: #444;
     --lig-media-bg: #ffffff;
@@ -51,15 +51,15 @@
         --lig-text: #f0f0f0;
         --lig-text-muted: #a8a8a8;
         --lig-text-subtle: #777777;
-        --lig-orange: #ff6b00;
-        --lig-orange-hover: #ff8533;
-        --lig-orange-light: rgba(255, 107, 0, 0.18);
+        --lig-yellow: #FFCC00;
+        --lig-yellow-hover: #FFD54F;
+        --lig-yellow-light: rgba(255, 204, 0, 0.18);
         --lig-border: #333333;
         --lig-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
         --lig-shadow-sm: 0 1px 6px rgba(0, 0, 0, 0.25);
-        --lig-promo-bg: linear-gradient(135deg, #2a1a10 0%, #1e1e1e 100%);
-        --lig-promo-border: rgba(255, 107, 0, 0.35);
-        --lig-brand-logo-bg: #2a1a10;
+        --lig-promo-bg: linear-gradient(135deg, #2a2810 0%, #1e1e1e 100%);
+        --lig-promo-border: rgba(255, 204, 0, 0.35);
+        --lig-brand-logo-bg: #2a2810;
         --lig-overlay: rgba(0, 0, 0, 0.65);
         --lig-scrollbar: #444;
         --lig-media-bg: #ffffff;
@@ -108,7 +108,7 @@ html.lig-app-mode.lig-has-float-cart #site-footer {
 }
 
 .app-tab-active {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .app-tab-active .material-symbols-outlined {
@@ -128,7 +128,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .text-gradient-brand {
-    background: linear-gradient(90deg, #ff6b00 0%, #ff8c33 100%);
+    background: linear-gradient(90deg, #FFCC00 0%, #FFE566 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -149,7 +149,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--lig-orange);
+    background: var(--lig-yellow);
 }
 
 /* ── Brand wordmark (header) ── */
@@ -168,9 +168,9 @@ html.lig-app-standalone .ze-app-header {
     object-fit: contain;
     flex-shrink: 0;
     background: var(--lig-brand-logo-bg);
-    border: 1px solid rgba(255, 107, 0, 0.15);
+    border: 1px solid rgba(255, 204, 0, 0.15);
     padding: 0.2rem;
-    box-shadow: 0 1px 4px rgba(255, 107, 0, 0.08);
+    box-shadow: 0 1px 4px rgba(255, 204, 0, 0.08);
 }
 
 .lig-brand__text {
@@ -179,7 +179,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 800;
     letter-spacing: -0.04em;
     line-height: 1;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-brand__wordmark {
@@ -274,8 +274,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-search-bar:focus-within {
-    border-color: var(--lig-orange);
-    box-shadow: 0 0 0 3px var(--lig-orange-light);
+    border-color: var(--lig-yellow);
+    box-shadow: 0 0 0 3px var(--lig-yellow-light);
 }
 
 .ze-search-bar input {
@@ -310,7 +310,7 @@ html.lig-app-standalone .ze-app-header {
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
-    background: var(--lig-orange-light);
+    background: var(--lig-yellow-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -393,9 +393,9 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-cat-tile:hover .ze-cat-tile__circle,
 .ze-cat-tile:focus-visible .ze-cat-tile__circle {
-    border-color: var(--lig-orange);
+    border-color: var(--lig-yellow);
     transform: scale(1.04);
-    box-shadow: 0 2px 12px rgba(255, 107, 0, 0.15);
+    box-shadow: 0 2px 12px rgba(255, 204, 0, 0.15);
 }
 
 .ze-cat-tile__img {
@@ -409,7 +409,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-cat-tile__icon {
     font-size: 1.75rem;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .ze-cat-tile__label {
@@ -447,7 +447,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-section__link {
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     text-decoration: none;
 }
 
@@ -539,7 +539,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-product-h__price {
     font-size: 0.875rem;
     font-weight: 700;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 /* ── Product grid ── */
@@ -687,7 +687,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-product-card__price {
     font-size: 0.9375rem;
     font-weight: 700;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .ze-price-tiers {
@@ -725,14 +725,14 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-price-tier:hover {
-    border-color: var(--lig-orange);
+    border-color: var(--lig-yellow);
     color: var(--lig-text);
 }
 
 .ze-price-tier--active {
-    border-color: var(--lig-orange);
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
 }
 
 .ze-price-block {
@@ -770,8 +770,8 @@ html.lig-app-standalone .ze-app-header {
     min-height: 2rem;
     padding: 0.25rem 0.5rem;
     border-radius: 9999px;
-    background: var(--lig-orange);
-    color: #ffffff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
     font-size: 0.6875rem;
     font-weight: 700;
     border: none;
@@ -780,7 +780,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-add-btn:hover {
-    background: var(--lig-orange-hover);
+    background: var(--lig-yellow-hover);
 }
 
 .ze-add-btn:active {
@@ -794,8 +794,8 @@ html.lig-app-standalone .ze-app-header {
     width: 100%;
     min-height: 2rem;
     border-radius: 9999px;
-    background: var(--lig-orange-light);
-    border: 1px solid rgba(255, 107, 0, 0.25);
+    background: var(--lig-yellow-light);
+    border: 1px solid rgba(255, 204, 0, 0.25);
     overflow: hidden;
 }
 
@@ -805,8 +805,8 @@ html.lig-app-standalone .ze-app-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--lig-orange);
-    color: #ffffff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
     font-size: 1.125rem;
     font-weight: 700;
     border: none;
@@ -817,7 +817,7 @@ html.lig-app-standalone .ze-app-header {
 .ze-qty-value {
     font-size: 0.8125rem;
     font-weight: 700;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     min-width: 1.5rem;
     text-align: center;
 }
@@ -853,9 +853,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-filter-pill[aria-pressed='true'] {
-    background: var(--lig-orange);
-    border-color: var(--lig-orange);
-    color: #ffffff;
+    background: var(--lig-yellow);
+    border-color: var(--lig-yellow);
+    color: #1a1a1a;
 }
 
 .ze-catalog-sticky {
@@ -890,13 +890,13 @@ html.lig-app-standalone .ze-app-header {
     min-height: 3rem;
     padding: 0.625rem 1rem;
     border-radius: 9999px;
-    background: var(--lig-orange);
-    color: #ffffff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
     font-weight: 700;
     font-size: 0.875rem;
     border: none;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(255, 107, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(255, 204, 0, 0.4);
 }
 
 .ze-float-cart__btn:active {
@@ -911,7 +911,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-float-cart__badge {
     background: #ffffff;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     font-size: 0.6875rem;
     font-weight: 800;
     min-width: 1.375rem;
@@ -941,7 +941,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-cart-input:focus {
-    border-color: var(--lig-orange);
+    border-color: var(--lig-yellow);
     outline: none;
 }
 
@@ -950,7 +950,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-cart-label {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-cart-divider {
@@ -971,9 +971,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-cart-checkout-label:has(:checked) {
-    border-color: var(--lig-orange);
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
 }
 
 #cart-add-toast .lig-toast-inner {
@@ -1019,9 +1019,9 @@ html.lig-app-standalone .ze-app-header {
     gap: 0.375rem;
     padding: 0.375rem 0.75rem;
     border-radius: 9999px;
-    background: var(--lig-orange-light);
-    border: 1px solid rgba(255, 107, 0, 0.2);
-    color: var(--lig-orange);
+    background: var(--lig-yellow-light);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    color: var(--lig-yellow);
     font-size: 0.75rem;
     font-weight: 600;
 }
@@ -1064,8 +1064,8 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-page-input:focus {
     outline: none;
-    border-color: var(--lig-orange);
-    box-shadow: 0 0 0 3px var(--lig-orange-light);
+    border-color: var(--lig-yellow);
+    box-shadow: 0 0 0 3px var(--lig-yellow-light);
 }
 
 .lig-page-input::placeholder {
@@ -1095,8 +1095,8 @@ html.lig-app-standalone .ze-app-header {
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
     border-radius: 9999px;
-    background: var(--lig-orange);
-    color: #fff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
     font-weight: 700;
     font-size: 0.9375rem;
     border: none;
@@ -1106,7 +1106,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-btn-primary:hover {
-    background: var(--lig-orange-hover);
+    background: var(--lig-yellow-hover);
 }
 
 .lig-info-icon {
@@ -1116,8 +1116,8 @@ html.lig-app-standalone .ze-app-header {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 9999px;
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
     flex-shrink: 0;
 }
 
@@ -1138,12 +1138,12 @@ html.lig-app-standalone .ze-app-header {
     width: 2.75rem;
     height: 2.75rem;
     border-radius: 50%;
-    background: var(--lig-orange-light);
+    background: var(--lig-yellow-light);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .ze-reorder__body {
@@ -1167,8 +1167,8 @@ html.lig-app-standalone .ze-app-header {
     flex-shrink: 0;
     padding: 0.5rem 1rem;
     border-radius: 9999px;
-    background: var(--lig-orange);
-    color: #fff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
     font-size: 0.8125rem;
     font-weight: 700;
     border: none;
@@ -1178,7 +1178,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-reorder__btn:hover {
-    background: var(--lig-orange-hover);
+    background: var(--lig-yellow-hover);
 }
 
 .ze-reorder__btn:active {
@@ -1219,11 +1219,11 @@ html.lig-app-standalone .ze-app-header {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.625rem;
-    background: var(--lig-orange-light);
+    background: var(--lig-yellow-light);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .ze-combo-card__title {
@@ -1243,26 +1243,26 @@ html.lig-app-standalone .ze-app-header {
 .ze-combo-card__price {
     font-size: 0.9375rem;
     font-weight: 800;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .ze-combo-card__btn {
     width: 100%;
     padding: 0.5rem;
     border-radius: 9999px;
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
     font-size: 0.75rem;
     font-weight: 700;
-    border: 1px solid rgba(255, 107, 0, 0.25);
+    border: 1px solid rgba(255, 204, 0, 0.25);
     cursor: pointer;
     min-height: 36px;
     transition: background 0.15s, transform 0.15s;
 }
 
 .ze-combo-card__btn:hover {
-    background: var(--lig-orange);
-    color: #fff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
 }
 
 .ze-combo-card__btn:active {
@@ -1327,14 +1327,14 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-theme-segment__btn:hover {
-    border-color: var(--lig-orange);
+    border-color: var(--lig-yellow);
     color: var(--lig-text);
 }
 
 .lig-theme-segment__btn--active {
-    border-color: var(--lig-orange);
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
 }
 
 .lig-theme-segment__icon {
@@ -1456,8 +1456,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-footer-social-btn:hover {
-    border-color: var(--lig-orange);
-    background: var(--lig-orange-light);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
     transform: translateY(-1px);
 }
 
@@ -1491,7 +1491,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-footer-link:hover {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-footer-link--icon span {
@@ -1515,7 +1515,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-footer-card__icon {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     font-size: 1.25rem;
     flex-shrink: 0;
     margin-top: 0.125rem;
@@ -1526,7 +1526,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     margin: 0 0 0.375rem;
 }
 
@@ -1565,11 +1565,11 @@ html.lig-app-standalone .ze-app-header {
     margin-top: 0.375rem;
     padding-top: 0.5rem;
     border-top: 1px solid var(--lig-border);
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-footer-schedule-row--highlight span {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     font-weight: 700;
 }
 
@@ -1581,9 +1581,9 @@ html.lig-app-standalone .ze-app-header {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 0.625rem;
-    background: var(--lig-orange-light);
-    border: 1px solid rgba(255, 107, 0, 0.35);
-    color: var(--lig-orange);
+    background: var(--lig-yellow-light);
+    border: 1px solid rgba(255, 204, 0, 0.35);
+    color: var(--lig-yellow);
     font-size: 0.875rem;
     font-weight: 700;
     text-decoration: none;
@@ -1591,9 +1591,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-footer-maps-btn:hover {
-    background: var(--lig-orange);
-    border-color: var(--lig-orange);
-    color: #fff;
+    background: var(--lig-yellow);
+    border-color: var(--lig-yellow);
+    color: #1a1a1a;
 }
 
 .lig-footer-bar {
@@ -1631,9 +1631,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-pref-chip:has(input:checked) {
-    border-color: var(--lig-orange);
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
 }
 
 .lig-pref-chip input {
@@ -1712,14 +1712,14 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-onboarding__dot--active {
     width: 1.25rem;
-    background: var(--lig-orange);
+    background: var(--lig-yellow);
 }
 
 .lig-clube-teaser {
     padding: 1rem;
     border-radius: 0.75rem;
-    background: linear-gradient(135deg, var(--lig-orange-light) 0%, var(--lig-surface-alt) 100%);
-    border: 1px dashed rgba(255, 107, 0, 0.35);
+    background: linear-gradient(135deg, var(--lig-yellow-light) 0%, var(--lig-surface-alt) 100%);
+    border: 1px dashed rgba(255, 204, 0, 0.35);
     text-align: center;
 }
 
@@ -1753,13 +1753,13 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-nav-account:hover {
-    color: var(--lig-orange);
-    background: var(--lig-orange-light);
+    color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
 }
 
 .lig-nav-account--active {
-    color: var(--lig-orange);
-    background: var(--lig-orange-light);
+    color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
 }
 
 .lig-nav-account--active .lig-nav-account__icon {
@@ -1858,8 +1858,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-back:hover {
-    color: var(--lig-orange);
-    background: var(--lig-orange-light);
+    color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
 }
 
 .lig-login-theme {
@@ -1916,6 +1916,23 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-wordmark .lig-brand__app {
     font-size: 2.5rem;
+}
+
+.lig-login-illustration {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, var(--lig-yellow-light) 0%, var(--lig-surface-alt) 100%);
+    border: 1px solid rgba(255, 204, 0, 0.2);
+    margin-bottom: 1.25rem;
+}
+
+.lig-login-illustration .material-symbols-outlined {
+    font-size: 2.25rem;
+    color: var(--lig-yellow);
 }
 
 .lig-login-title {
@@ -1975,8 +1992,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-google-btn:hover {
-    border-color: rgba(255, 107, 0, 0.35);
-    background: var(--lig-orange-light);
+    border-color: rgba(255, 204, 0, 0.35);
+    background: var(--lig-yellow-light);
 }
 
 .lig-login-google-btn:active {
@@ -2127,8 +2144,8 @@ html.lig-app-standalone .ze-app-header {
     width: 100%;
     padding: 1rem;
     border-radius: 0.875rem;
-    border: 1px dashed rgba(255, 107, 0, 0.35);
-    background: var(--lig-orange-light);
+    border: 1px dashed rgba(255, 204, 0, 0.35);
+    background: var(--lig-yellow-light);
     text-align: left;
 }
 
@@ -2171,8 +2188,8 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-setup__input:focus {
     outline: none;
-    border-color: var(--lig-orange);
-    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.15);
+    border-color: var(--lig-yellow);
+    box-shadow: 0 0 0 2px rgba(255, 204, 0, 0.15);
 }
 
 .lig-login-setup__save {
@@ -2180,7 +2197,7 @@ html.lig-app-standalone .ze-app-header {
     min-height: 2.5rem;
     border: none;
     border-radius: 9999px;
-    background: var(--lig-orange);
+    background: var(--lig-yellow);
     color: #fff;
     font-size: 0.875rem;
     font-weight: 700;
@@ -2201,7 +2218,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-login-setup__help summary {
     cursor: pointer;
     font-weight: 600;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-login-setup__help ol {
@@ -2233,7 +2250,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-setup-link:hover {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-login-skip {
@@ -2241,7 +2258,7 @@ html.lig-app-standalone .ze-app-header {
     min-height: 2.75rem;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     background: transparent;
     border: none;
     border-radius: 9999px;
@@ -2249,7 +2266,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-skip:hover {
-    background: var(--lig-orange-light);
+    background: var(--lig-yellow-light);
 }
 
 .lig-login-legal {
@@ -2274,7 +2291,7 @@ html.lig-app-standalone .ze-app-header {
     height: 3.5rem;
     border-radius: 9999px;
     object-fit: cover;
-    border: 2px solid rgba(255, 107, 0, 0.35);
+    border: 2px solid rgba(255, 204, 0, 0.35);
     background: var(--lig-surface-alt);
 }
 
@@ -2282,7 +2299,7 @@ html.lig-app-standalone .ze-app-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     font-size: 1.75rem;
 }
 
@@ -2327,8 +2344,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-profile-auth__btn--primary {
-    background: var(--lig-orange);
-    color: #fff;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
 }
 
 .lig-profile-auth__btn--primary:hover {
@@ -2342,14 +2359,14 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-profile-auth__btn--ghost:hover {
-    color: var(--lig-orange);
-    border-color: rgba(255, 107, 0, 0.35);
-    background: var(--lig-orange-light);
+    color: var(--lig-yellow);
+    border-color: rgba(255, 204, 0, 0.35);
+    background: var(--lig-yellow-light);
 }
 
 /* ── Versionamento modular ── */
 .lig-version-link {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     font-weight: 700;
     text-decoration: none;
 }
@@ -2368,8 +2385,8 @@ html.lig-app-standalone .ze-app-header {
     margin-bottom: 2rem;
     padding: 1.5rem 1rem;
     border-radius: 1rem;
-    background: linear-gradient(145deg, var(--lig-orange-light) 0%, var(--lig-surface) 100%);
-    border: 1px solid rgba(255, 107, 0, 0.2);
+    background: linear-gradient(145deg, var(--lig-yellow-light) 0%, var(--lig-surface) 100%);
+    border: 1px solid rgba(255, 204, 0, 0.2);
 }
 
 .lig-version-hero__label {
@@ -2377,7 +2394,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     margin-bottom: 0.5rem;
 }
 
@@ -2389,7 +2406,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-version-hero__ver {
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
 }
 
 .lig-version-hero__sub {
@@ -2447,7 +2464,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-version-module__ver {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     margin-left: 0.375rem;
 }
 
@@ -2476,7 +2493,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--lig-orange);
+    color: var(--lig-yellow);
     margin-bottom: 0.25rem;
 }
 
@@ -2522,7 +2539,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-version-change--feat {
-    border-left-color: var(--lig-orange);
+    border-left-color: var(--lig-yellow);
 }
 
 .lig-version-change--fix {
@@ -2541,5 +2558,248 @@ html.lig-app-standalone .ze-app-header {
     font-size: 0.8125rem;
     color: var(--lig-text);
     line-height: 1.4;
+}
+
+.lig-version-hosting__card {
+    border: 1px solid var(--lig-border);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--lig-surface);
+}
+
+.lig-version-hosting__head {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.lig-version-hosting__icon {
+    font-size: 2rem;
+    color: var(--lig-accent, #FFCC00);
+}
+
+.lig-version-hosting__provider {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--lig-text);
+    margin: 0;
+}
+
+.lig-version-hosting__meta {
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+    margin: 0.25rem 0 0;
+}
+
+.lig-version-hosting__meta code,
+.lig-version-hosting__dl code {
+    font-size: 0.75rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+    background: var(--lig-surface-2, rgba(0, 0, 0, 0.06));
+}
+
+.lig-version-hosting__dl {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+}
+
+.lig-version-hosting__dl dt {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--lig-text-muted);
+}
+
+.lig-version-hosting__dl dd {
+    margin: 0.15rem 0 0;
+    font-size: 0.875rem;
+    color: var(--lig-text);
+}
+
+.lig-version-hosting__dl a {
+    color: var(--lig-accent, #FFCC00);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.lig-version-hosting__dl a:hover {
+    text-decoration: underline;
+}
+
+/* ——— Pagamento Mercado Pago ——— */
+.lig-payment-page {
+    max-width: 28rem;
+    margin: 0 auto;
+}
+
+.lig-payment-card {
+    border: 1px solid var(--lig-border);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    background: var(--lig-surface);
+    text-align: center;
+}
+
+.lig-payment-card--success {
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+.lig-payment-card--error {
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.lig-payment-icon {
+    font-size: 3rem;
+    color: var(--lig-text-muted);
+    display: block;
+    margin: 0 auto 0.75rem;
+}
+
+.lig-payment-icon--ok {
+    color: #22c55e;
+}
+
+.lig-payment-icon--pending {
+    color: var(--lig-accent, #FFCC00);
+}
+
+.lig-payment-title {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--lig-text);
+    margin: 0 0 0.5rem;
+}
+
+.lig-payment-lead {
+    font-size: 0.9375rem;
+    color: var(--lig-text-muted);
+    line-height: 1.5;
+    margin: 0 0 1.25rem;
+}
+
+.lig-payment-summary {
+    text-align: left;
+    border: 1px solid var(--lig-border);
+    border-radius: 0.875rem;
+    padding: 1rem 1.125rem;
+    margin-bottom: 1.25rem;
+    background: var(--lig-surface-2, rgba(0, 0, 0, 0.02));
+}
+
+.lig-payment-summary__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--lig-text-muted);
+    margin: 0 0 0.75rem;
+}
+
+.lig-payment-summary__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.lig-payment-summary__list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--lig-text);
+}
+
+.lig-payment-summary__list--compact li {
+    justify-content: flex-start;
+}
+
+.lig-payment-summary__total {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.875rem 0 0;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--lig-border);
+    font-size: 0.9375rem;
+}
+
+.lig-payment-summary__meta {
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+    margin: 0.5rem 0 0;
+}
+
+.lig-payment-brick {
+    min-height: 420px;
+    margin-bottom: 1rem;
+}
+
+.lig-payment-hint {
+    font-size: 0.75rem;
+    color: var(--lig-text-muted);
+    text-align: center;
+    margin: 0.75rem 0 0;
+}
+
+.lig-payment-pix {
+    margin-top: 1rem;
+}
+
+.lig-payment-pix__qr {
+    display: block;
+    margin: 0 auto 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--lig-border);
+}
+
+.lig-payment-pix__code {
+    width: 100%;
+    font-size: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--lig-border);
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: var(--lig-surface);
+    color: var(--lig-text);
+}
+
+.lig-payment-label {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--lig-text-muted);
+    margin-bottom: 0.35rem;
+    text-align: left;
+}
+
+.lig-payment-actions {
+    margin-top: 1.25rem;
+}
+
+.lig-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    border-radius: 9999px;
+    border: 1px solid var(--lig-border);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--lig-text);
+    background: transparent;
+    text-decoration: none;
+}
+
+.lig-btn-secondary:hover {
+    background: var(--lig-surface-2, rgba(0, 0, 0, 0.04));
 }
 

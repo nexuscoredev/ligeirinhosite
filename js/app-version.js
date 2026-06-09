@@ -10,17 +10,21 @@
 
     const load = async () => {
         if (cache) return cache;
-        const [manifest, timeline] = await Promise.all([
+        const [manifest, timeline, site] = await Promise.all([
             fetch('data/version/manifest.json')
                 .then((r) => (r.ok ? r.json() : null))
                 .catch(() => null),
             fetch('data/version/timeline.json')
                 .then((r) => (r.ok ? r.json() : []))
                 .catch(() => []),
+            fetch('data/site.json')
+                .then((r) => (r.ok ? r.json() : null))
+                .catch(() => null),
         ]);
         cache = {
             manifest: manifest || { app: { version: '0.0.0', name: 'Ligeirinho App' }, modules: {} },
             timeline: Array.isArray(timeline) ? timeline : [],
+            site: site || null,
         };
         return cache;
     };
@@ -45,9 +49,43 @@
         root.innerHTML = `<a href="versao.html" class="lig-version-link" title="Histórico de versões">v${v}</a>`;
     };
 
+    const renderHostingSection = (site) => {
+        if (!site?.hosting?.provider) return '';
+        const provider = site.hosting.provider === 'vercel' ? 'Vercel' : site.hosting.provider;
+        const project = site.hosting.project || '—';
+        const team = site.hosting.team || '';
+        const url = site.productionUrl || '';
+        const repo = site.repository?.slug || '';
+        const branch = site.repository?.branch || 'main';
+        const auto = site.repository?.autoDeploy ? 'automático via Git' : 'manual';
+        const dashboard = site.hosting.dashboardUrl || '';
+
+        return `<section class="lig-version-section lig-version-hosting" aria-labelledby="lig-version-hosting-title">
+<h2 id="lig-version-hosting-title" class="lig-version-section__title">Hospedagem</h2>
+<div class="lig-version-hosting__card">
+<div class="lig-version-hosting__head">
+<span class="material-symbols-outlined lig-version-hosting__icon" aria-hidden="true">cloud_done</span>
+<div>
+<p class="lig-version-hosting__provider">${provider}</p>
+<p class="lig-version-hosting__meta">Projeto <code>${project}</code>${team ? ` · Time ${team}` : ''}</p>
+</div>
+</div>
+<dl class="lig-version-hosting__dl">
+<dt>URL de produção</dt>
+<dd>${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>` : '—'}</dd>
+<dt>Repositório</dt>
+<dd>${repo ? `<code>${repo}</code> · branch <code>${branch}</code>` : '—'}</dd>
+<dt>Deploy</dt>
+<dd>${auto}</dd>
+${dashboard ? `<dt>Painel</dt><dd><a href="${dashboard}" target="_blank" rel="noopener noreferrer">Abrir no Vercel</a></dd>` : ''}
+</dl>
+</div>
+</section>`;
+    };
+
     const renderVersionPage = (root, data) => {
         if (!root || !data) return;
-        const { manifest, timeline } = data;
+        const { manifest, timeline, site } = data;
         const app = manifest.app;
 
         const modulesHtml = Object.entries(manifest.modules || {})
@@ -92,6 +130,7 @@
 <h1 class="lig-version-hero__title">${app.name} <span class="lig-version-hero__ver">v${app.version}</span></h1>
 <p class="lig-version-hero__sub">${app.codename ? `Codinome ${app.codename} · ` : ''}Canal ${app.channel || 'stable'} · ${formatDate(app.releasedAt)}</p>
 </div>
+${renderHostingSection(site)}
 <section class="lig-version-section" aria-labelledby="lig-version-modules-title">
 <h2 id="lig-version-modules-title" class="lig-version-section__title">Módulos</h2>
 <ul class="lig-version-modules">${modulesHtml}</ul>

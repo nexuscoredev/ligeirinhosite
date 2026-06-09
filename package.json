@@ -4,8 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:local": "npx serve -l 3456",
     "dev:vercel": "npx vercel dev",
     "build": "echo Static site — deploy direto na Vercel (sem build Vite).",
+    "deploy": "npx vercel --prod",
     "preview": "vite preview"
   },
   "devDependencies": {

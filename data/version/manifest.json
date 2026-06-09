@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Ligeirinho App",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "codename": "Raio",
     "releasedAt": "2026-06-04",
     "channel": "stable"
@@ -28,9 +28,9 @@
       "description": "Produtos, filtros e preços por embalagem"
     },
     "cart": {
-      "version": "1.1.0",
+      "version": "1.2.0",
       "label": "Carrinho",
-      "description": "Pedido WhatsApp e repetir último pedido"
+      "description": "Pedido WhatsApp, pagamento Mercado Pago e repetir último pedido"
     },
     "home": {
       "version": "1.0.0",
@@ -51,6 +51,11 @@
       "version": "1.0.0",
       "label": "Perfil",
       "description": "Preferências e contato"
+    },
+    "hosting": {
+      "version": "1.0.0",
+      "label": "Hospedagem",
+      "description": "Deploy Vercel, URL de produção e integração Git"
     }
   }
 }

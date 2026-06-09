@@ -1,5 +1,16 @@
 {
+  "name": "Ligeirinho App",
   "productionUrl": "https://ligeirinhobebidas.vercel.app",
-  "hosting": "vercel",
-  "project": "ligeirinhosite"
+  "hosting": {
+    "provider": "vercel",
+    "project": "ligeirinhosite",
+    "team": "NEXUS",
+    "dashboardUrl": "https://vercel.com/nexus/ligeirinhosite"
+  },
+  "repository": {
+    "remote": "github",
+    "slug": "nexuscoredev/ligeirinhosite",
+    "branch": "main",
+    "autoDeploy": true
+  }
 }

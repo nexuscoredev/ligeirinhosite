@@ -1,11 +1,11 @@
 <!DOCTYPE html><html lang="pt-BR"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
-<title>Versões - Ligeirinho App</title>
+<title>Pagamento - Ligeirinho App</title>
 <link rel="icon" href="img/app-icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="img/app-icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#FFCC00">
+<meta name="theme-color" content="#ffffff">
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/site.css">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -15,21 +15,25 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { "vibrant-orange": "#FFCC00" },
+                    colors: { "vibrant-orange": "#FFCC00", "deep-black": "#1a1a1a" },
                     fontFamily: { "body-md": ["Inter"], "headline-md": ["Hanken Grotesk"] }
                 }
             }
         }
     </script>
+<script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
-<body data-page="versao" class="font-body-md antialiased min-h-screen flex flex-col">
+<body data-page="pagamento" class="font-body-md antialiased min-h-screen flex flex-col">
 <div id="site-nav"></div>
-<main id="lig-page-main" class="flex-grow w-full px-4 md:px-margin-desktop py-8 max-w-container-max mx-auto pb-24 md:pb-12">
-<div id="app-version-root" class="lig-version-page" role="status">Carregando versões…</div>
+<main id="lig-page-main" class="flex-grow w-full px-4 md:px-margin-desktop py-8 max-w-lg mx-auto pb-24 md:pb-12">
+<div id="payment-root" class="lig-payment-page" role="status">Carregando pagamento…</div>
 </main>
 <div id="site-footer" class="hidden md:block"></div>
 <script src="js/site-config.js"></script>
 <script src="js/app.js"></script>
 <script src="js/theme-ui.js"></script>
+<script src="js/cart-store.js"></script>
+<script src="js/auth-store.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/payment.js"></script>
 </body></html>

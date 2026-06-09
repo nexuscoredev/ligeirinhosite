@@ -63,7 +63,7 @@
 <p class="text-sm font-bold lig-cart-text leading-tight">Instalar Ligeirinho App</p>
 <p class="text-xs lig-cart-text-muted mt-0.5">Acesso rápido ao catálogo e pedidos</p>
 </div>
-<button type="button" id="app-install-btn" class="shrink-0 rounded-full bg-vibrant-orange px-3 py-2 text-xs font-bold text-white min-h-[36px]">Instalar</button>
+<button type="button" id="app-install-btn" class="shrink-0 rounded-full bg-vibrant-orange px-3 py-2 text-xs font-bold text-deep-black min-h-[36px]">Instalar</button>
 <button type="button" id="app-install-dismiss" class="shrink-0 p-1 lig-cart-text-muted hover:lig-cart-text" aria-label="Fechar">
 <span class="material-symbols-outlined text-[20px]">close</span>
 </button>

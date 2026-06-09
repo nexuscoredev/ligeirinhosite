@@ -8,6 +8,14 @@
     "api/**/*.js": {
       "memory": 128,
       "maxDuration": 10
+    },
+    "api/payments/create.js": {
+      "memory": 128,
+      "maxDuration": 30
+    },
+    "api/orders/create.js": {
+      "memory": 128,
+      "maxDuration": 15
     }
   },
   "headers": [

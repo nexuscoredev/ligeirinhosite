@@ -3,12 +3,12 @@
   "short_name": "Ligeirinho App",
   "version": "2.0.0",
   "description": "Peça bebidas com rapidez — catálogo completo, carrinho e pedido pelo WhatsApp.",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#FF6B00",
-  "theme_color": "#FF6B00",
+  "background_color": "#FFCC00",
+  "theme_color": "#FFCC00",
   "lang": "pt-BR",
   "categories": ["food", "shopping"],
   "icons": [
@@ -35,7 +35,7 @@
     {
       "name": "Fazer pedido",
       "short_name": "Pedidos",
-      "url": "/pedidos.html",
+      "url": "/pedidos",
       "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
     }
   ]

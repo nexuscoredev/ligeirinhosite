@@ -1,13 +1,14 @@
-const CACHE_NAME = 'ligeirinho-app-v10';
+const CACHE_NAME = 'ligeirinho-app-v14';
 
 const APP_SHELL = [
     '/',
-    '/index.html',
-    '/pedidos.html',
-    '/quemsomos.html',
-    '/contato.html',
-    '/login.html',
-    '/versao.html',
+    '/pedidos',
+    '/quemsomos',
+    '/contato',
+    '/login',
+    '/pagamento',
+    '/pedido-confirmado',
+    '/versao',
     '/manifest.webmanifest',
     '/css/site.css',
     '/js/theme.js',
@@ -28,7 +29,10 @@ const APP_SHELL = [
     '/js/phone-auth.js',
     '/js/login-phone.js',
     '/js/login.js',
+    '/js/payment.js',
+    '/js/order-status.js',
     '/js/app-version.js',
+    '/js/site-config.js',
     '/data/version/manifest.json',
     '/data/version/timeline.json',
     '/data/catalogo.json',
@@ -50,9 +54,19 @@ const APP_SHELL = [
     '/img/icon-apple.svg',
 ];
 
+function cacheShellUrls(cache, urls) {
+    return Promise.all(
+        urls.map((url) =>
+            cache.add(url).catch(() => {
+                /* cleanUrls: ignore individual preload failures */
+            })
+        )
+    );
+}
+
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then((cache) => cacheShellUrls(cache, APP_SHELL)).then(() => self.skipWaiting())
     );
 });
 
@@ -64,6 +78,12 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+function shellPath(pathname) {
+    if (pathname === '/index.html') return '/';
+    if (pathname.endsWith('.html')) return pathname.slice(0, -5);
+    return pathname;
+}
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     if (request.method !== 'GET') return;
@@ -72,19 +92,34 @@ self.addEventListener('fetch', (event) => {
 
     if (url.origin !== self.location.origin) return;
 
-    event.respondWith(
-        caches.match(request).then((cached) => {
-            const networkFetch = fetch(request)
-                .then((response) => {
-                    if (response.ok && url.pathname.startsWith('/')) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-                    }
-                    return response;
-                })
-                .catch(() => cached);
+    const isNavigate = request.mode === 'navigate';
+    const canonicalPath = shellPath(url.pathname);
+    const canonicalUrl = canonicalPath === url.pathname ? null : new URL(canonicalPath, url.origin).href;
 
-            return cached || networkFetch;
-        })
+    event.respondWith(
+        (async () => {
+            const cached =
+                (await caches.match(request)) ||
+                (canonicalUrl ? await caches.match(canonicalUrl) : null) ||
+                (isNavigate ? await caches.match('/') : null);
+
+            try {
+                const response = await fetch(canonicalUrl || request);
+                if (response.ok && url.pathname.startsWith('/')) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(canonicalUrl || request, clone);
+                    });
+                }
+                return response;
+            } catch {
+                if (cached) return cached;
+                if (isNavigate) {
+                    const fallback = (await caches.match('/')) || (await caches.match('/index.html'));
+                    if (fallback) return fallback;
+                }
+                throw new Error('offline');
+            }
+        })()
     );
 });

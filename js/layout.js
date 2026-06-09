@@ -82,7 +82,7 @@
     const navActive =
         'font-nav nav-link nav-link-active text-vibrant-orange border-b-2 border-vibrant-orange pb-1 transition-colors duration-200';
     const navLink =
-        'font-nav nav-link text-[#666] hover:text-vibrant-orange transition-colors duration-200 hover:bg-orange-50 px-3 py-1.5 rounded-md';
+        'font-nav nav-link text-[#666] hover:text-vibrant-orange transition-colors duration-200 hover:bg-yellow-50 px-3 py-1.5 rounded-md';
 
     const accountHref = 'contato.html#minha-conta';
     const accountActive = page === 'contato';
@@ -135,9 +135,9 @@ ${navLinksHtml}
 <span>Minha conta</span>
 </a>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-orange-50 rounded-full transition-all relative text-vibrant-orange" aria-label="Abrir carrinho" aria-expanded="false">
+<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-orange" aria-label="Abrir carrinho" aria-expanded="false">
 <span class="material-symbols-outlined">shopping_cart</span>
-<span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-white text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
+<span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 </button>
 </div>
 </div>
@@ -198,7 +198,7 @@ ${bottomTabItems
         if (item.action === 'cart') {
             return `<button type="button" id="app-tab-cart" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors" aria-label="Abrir carrinho">
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
-<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-orange text-white text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
+<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-orange text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 <span class="text-[10px] font-semibold">${item.label}</span>
 </button>`;
         }
