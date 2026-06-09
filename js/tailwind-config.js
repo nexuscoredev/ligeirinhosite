@@ -47,6 +47,7 @@ tailwind.config = {
                 'surface-tint': '#FFE082',
                 'primary-fixed-dim': '#FFE082',
                 'vibrant-yellow': '#FFCC00',
+                'vibrant-orange': '#FFCC00',
                 outline: '#a28d79',
                 'on-tertiary-container': '#004b66',
                 'on-primary-fixed': '#1a1a1a',

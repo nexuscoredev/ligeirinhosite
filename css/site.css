@@ -1285,9 +1285,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-theme-toggle:hover {
-    border-color: var(--lig-orange);
-    background: var(--lig-orange-light);
-    color: var(--lig-orange);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow);
 }
 
 .lig-theme-toggle:active {
