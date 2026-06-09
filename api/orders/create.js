@@ -1,6 +1,8 @@
 import { paymentEnv, assertPaymentBackend } from '../../scripts/payment-env.mjs';
 import { insertOrder, publicOrderView } from '../../scripts/supabase-orders.mjs';
 
+export const config = { maxDuration: 15 };
+
 const roundMoney = (n) => Math.round(Number(n) * 100) / 100;
 
 const normalizeItems = (raw) => {
