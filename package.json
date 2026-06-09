@@ -6,7 +6,7 @@
     "dev": "vite",
     "dev:local": "npx serve -l 3456",
     "dev:vercel": "npx vercel dev",
-    "build": "echo Static site — deploy direto na Vercel (sem build Vite).",
+    "build": "echo \"Static site - deploy direto na Vercel, sem build.\"",
     "deploy": "npx vercel --prod",
     "preview": "vite preview"
   },
