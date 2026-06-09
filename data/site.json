@@ -13,5 +13,13 @@
     "branch": "main",
     "autoDeploy": true,
     "lastDeployRequest": "2026-06-09T00:50:00Z"
+  },
+  "supabase": {
+    "organization": "Ligeirinho Parceiros",
+    "project": "ligeirinhoparceiros",
+    "projectId": "tugbsnjyvfhyvtivfhea",
+    "url": "https://tugbsnjyvfhyvtivfhea.supabase.co",
+    "dashboardUrl": "https://supabase.com/dashboard/project/tugbsnjyvfhyvtivfhea",
+    "tables": ["orders"]
   }
 }
