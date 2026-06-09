@@ -172,7 +172,7 @@
             .join('');
 
         root.innerHTML = `<div class="ze-promo">
-<div class="ze-promo__icon"><span class="material-symbols-outlined text-vibrant-orange text-[28px]">ac_unit</span></div>
+<div class="ze-promo__icon"><span class="material-symbols-outlined text-vibrant-yellow text-[28px]">ac_unit</span></div>
 <div>
 <p class="ze-promo__title">Bebida gelada, em minutos</p>
 <p class="ze-promo__sub">Peça pelo app e receba na porta da sua casa</p>

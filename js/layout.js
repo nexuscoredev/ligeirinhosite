@@ -80,9 +80,9 @@
         'https://www.google.com/maps/search/?api=1&query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001';
 
     const navActive =
-        'font-nav nav-link nav-link-active text-vibrant-orange border-b-2 border-vibrant-orange pb-1 transition-colors duration-200';
+        'font-nav nav-link nav-link-active text-vibrant-yellow border-b-2 border-vibrant-yellow pb-1 transition-colors duration-200';
     const navLink =
-        'font-nav nav-link text-[#666] hover:text-vibrant-orange transition-colors duration-200 hover:bg-yellow-50 px-3 py-1.5 rounded-md';
+        'font-nav nav-link text-[#666] hover:text-vibrant-yellow transition-colors duration-200 hover:bg-yellow-50 px-3 py-1.5 rounded-md';
 
     const accountHref = 'contato.html#minha-conta';
     const accountActive = page === 'contato';
@@ -105,9 +105,9 @@
         .join('\n');
 
     const navMobileLink =
-        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-semibold text-on-surface-variant hover:text-gold-accent hover:bg-surface-variant/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange';
+        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-semibold text-on-surface-variant hover:text-vibrant-yellow hover:bg-surface-variant/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
     const navMobileActive =
-        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-bold text-vibrant-orange bg-vibrant-orange/10 border border-vibrant-orange/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange';
+        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-bold text-vibrant-yellow bg-vibrant-yellow/10 border border-vibrant-yellow/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
 
     const navMobileLinksHtml = navItems
         .map(
@@ -135,14 +135,14 @@ ${navLinksHtml}
 <span>Minha conta</span>
 </a>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-orange" aria-label="Abrir carrinho" aria-expanded="false">
+<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir carrinho" aria-expanded="false">
 <span class="material-symbols-outlined">shopping_cart</span>
-<span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-orange text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
+<span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-yellow text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 </button>
 </div>
 </div>
 ${showAppChrome ? `<button type="button" id="ze-location-bar" class="ze-location-bar w-full max-w-container-max mx-auto text-left">
-<span class="material-symbols-outlined text-vibrant-orange text-[18px] shrink-0">location_on</span>
+<span class="material-symbols-outlined text-vibrant-yellow text-[18px] shrink-0">location_on</span>
 <span class="truncate"><strong>Entregar em</strong> · <span id="ze-location-text">Informe seu endereço no carrinho</span></span>
 <span class="material-symbols-outlined text-[18px] shrink-0 ml-auto text-[#999]">expand_more</span>
 </button>
@@ -163,8 +163,8 @@ ${showAppChrome ? `<button type="button" id="ze-location-bar" class="ze-location
 <div class="nav-mobile-backdrop absolute inset-0" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
 <div class="nav-mobile-panel absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
 <div class="flex shrink-0 items-center justify-between border-b border-surface-variant/30 px-4 py-3.5">
-<p id="nav-mobile-menu-title" class="font-nav text-base font-bold text-gold-accent">Menu</p>
-<button type="button" class="rounded-full p-2 text-on-surface-variant hover:bg-surface-variant/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" data-nav-menu-close aria-label="Fechar menu">
+<p id="nav-mobile-menu-title" class="font-nav text-base font-bold text-vibrant-yellow">Menu</p>
+<button type="button" class="rounded-full p-2 text-on-surface-variant hover:bg-surface-variant/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow" data-nav-menu-close aria-label="Fechar menu">
 <span class="material-symbols-outlined text-[24px]" aria-hidden="true">close</span>
 </button>
 </div>
@@ -175,7 +175,7 @@ Minha conta
 </a>
 ${navMobileLinksHtml}
 </nav>
-<a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-[#25D366]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-orange" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">
+<a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-[#25D366]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">
 <img alt="" src="${brandIcons.whatsapp}" class="h-5 w-5 shrink-0 object-contain" width="20" height="20" decoding="async">
                 WhatsApp
             </a>
@@ -194,15 +194,15 @@ ${navMobileLinksHtml}
 ${bottomTabItems
     .map((item) => {
         const isActive = page === item.id;
-        const activeClass = isActive ? 'app-tab-active text-vibrant-orange' : 'text-[#999]';
+        const activeClass = isActive ? 'app-tab-active text-vibrant-yellow' : 'text-[#999]';
         if (item.action === 'cart') {
             return `<button type="button" id="app-tab-cart" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors" aria-label="Abrir carrinho">
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
-<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-orange text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
+<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-yellow text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 <span class="text-[10px] font-semibold">${item.label}</span>
 </button>`;
         }
-        return `<a href="${item.href}" class="flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-orange" ${isActive ? 'aria-current="page"' : ''}${item.id === 'contato' ? ' aria-label="Minha conta"' : ''}>
+        return `<a href="${item.href}" class="flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow" ${isActive ? 'aria-current="page"' : ''}${item.id === 'contato' ? ' aria-label="Minha conta"' : ''}>
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
 <span class="text-[10px] font-semibold">${item.label}</span>
 </a>`;

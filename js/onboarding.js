@@ -65,7 +65,7 @@
 <p class="text-sm lig-page-lead mt-2">Em breve: ganhe pontos a cada pedido e desbloqueie benefícios exclusivos.</p>
 </div>
 <label class="flex items-center gap-2 text-sm lig-page-lead cursor-pointer mb-5">
-<input type="checkbox" id="onboard-club" class="rounded border-[var(--lig-border)] text-vibrant-orange focus:ring-vibrant-orange">
+<input type="checkbox" id="onboard-club" class="rounded border-[var(--lig-border)] text-vibrant-yellow focus:ring-vibrant-yellow">
 Quero ser avisado quando lançar
 </label>
 <button type="button" class="lig-btn-primary w-full" data-onboard-finish>Começar a pedir</button>

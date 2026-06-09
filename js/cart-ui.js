@@ -7,19 +7,19 @@
 <div class="lig-cart-panel rounded-xl p-5 flex flex-col max-h-[calc(100vh-6rem)]">
 <div class="flex justify-between items-center mb-4 lig-cart-divider border-b pb-3 shrink-0">
 <h3 id="cart-panel-title" class="font-headline-md text-lg flex items-center gap-2 lig-cart-text">
-<span class="material-symbols-outlined text-vibrant-orange">shopping_bag</span>
+<span class="material-symbols-outlined text-vibrant-yellow">shopping_bag</span>
                     Seu pedido
                 </h3>
-<span id="cart-count-badge" class="bg-vibrant-orange text-deep-black font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
+<span id="cart-count-badge" class="bg-vibrant-yellow text-deep-black font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
 </div>
 <div id="cart-items" class="space-y-3 mb-4 overflow-y-auto pr-1 flex-1 min-h-0"></div>
 <div class="cart-checkout space-y-3 mb-4 lig-cart-divider border-t pt-4 shrink-0">
 <p class="text-xs lig-cart-label font-semibold uppercase tracking-wide">Detalhes do pedido</p>
 <div class="grid grid-cols-2 gap-2">
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
 <input type="radio" name="cart-delivery-panel" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
 </label>
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
 <input type="radio" name="cart-delivery-panel" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
@@ -34,9 +34,9 @@
 <div class="lig-cart-divider border-t pt-4 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <span class="font-headline-md text-base lig-cart-text">Total</span>
-<span id="cart-total" class="text-lg font-bold text-vibrant-orange">R$ 0,00</span>
+<span id="cart-total" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn" class="w-full bg-vibrant-orange hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled aria-disabled="true">
+<button type="button" id="cart-pay-btn" class="w-full bg-vibrant-yellow hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled aria-disabled="true">
                 Pagar no app
                 <span class="material-symbols-outlined text-sm">payments</span>
 </button>
@@ -59,10 +59,10 @@
 <div class="cart-checkout space-y-3 mb-4 lig-cart-divider border-t pt-4 shrink-0">
 <p class="text-xs lig-cart-label font-semibold uppercase tracking-wide">Detalhes do pedido</p>
 <div class="grid grid-cols-2 gap-2">
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
 <input type="radio" name="cart-delivery-mobile" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
 </label>
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-orange has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-orange">
+<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
 <input type="radio" name="cart-delivery-mobile" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
@@ -77,9 +77,9 @@
 <div class="lig-cart-divider border-t pt-4 shrink-0">
 <div class="flex justify-between mb-4">
 <span class="font-headline-md lig-cart-text">Total</span>
-<span id="cart-total-mobile" class="text-lg font-bold text-vibrant-orange">R$ 0,00</span>
+<span id="cart-total-mobile" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn-mobile" class="w-full bg-vibrant-orange hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled>Pagar no app</button>
+<button type="button" id="cart-pay-btn-mobile" class="w-full bg-vibrant-yellow hover:bg-[#E6B800] text-deep-black font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(255,204,0,0.35)] pointer-events-none opacity-50 mb-2" disabled>Pagar no app</button>
 <a id="cart-whatsapp-btn-mobile" class="w-full border border-[#25D366]/40 text-[#128C7E] font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 text-sm pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Pedir pelo WhatsApp</a>
 </div>
 </div>
@@ -133,12 +133,12 @@
             toast.setAttribute('aria-live', 'polite');
             toast.setAttribute('aria-atomic', 'true');
             toast.innerHTML = `<div class="lig-toast-inner flex items-center gap-3 rounded-xl px-4 py-3">
-<span class="material-symbols-outlined text-vibrant-orange text-[26px] shrink-0" aria-hidden="true">check_circle</span>
+<span class="material-symbols-outlined text-vibrant-yellow text-[26px] shrink-0" aria-hidden="true">check_circle</span>
 <div class="min-w-0 flex-1">
 <p class="text-sm font-semibold lig-cart-text leading-tight">Adicionado ao carrinho</p>
 <p id="cart-add-toast-name" class="text-xs lig-cart-text-muted truncate mt-0.5"></p>
 </div>
-<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-orange hover:text-[#E6B800] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
+<button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-yellow hover:text-[#E6B800] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
 </div>`;
             document.body.appendChild(toast);
 
@@ -303,8 +303,8 @@
 </div>
 <div class="flex items-center gap-1 shrink-0">
 <button type="button" class="cart-qty-minus w-7 h-7 rounded-full bg-[#f5f5f5] border border-[#ebebeb] lig-cart-text hover:bg-yellow-50" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
-<span class="text-xs w-5 text-center font-semibold text-vibrant-orange">${item.qty}</span>
-<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-orange text-deep-black hover:bg-[#E6B800]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
+<span class="text-xs w-5 text-center font-semibold text-vibrant-yellow">${item.qty}</span>
+<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-yellow text-deep-black hover:bg-[#E6B800]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
 <button type="button" class="cart-remove p-1 lig-cart-text-muted hover:text-red-500" data-id="${escapeHtml(lineKey)}" aria-label="Remover">
 <span class="material-symbols-outlined text-sm">close</span>
 </button>
@@ -431,9 +431,9 @@
         const total = formatPrice(cartApi.cartTotalValue(cart));
         const emptyHtml = cartApi.lastOrderSummary()
             ? `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio.</p>
-<button type="button" id="cart-reorder-btn" class="mt-3 w-full rounded-full border border-vibrant-orange/40 bg-yellow-50 text-vibrant-orange text-sm font-bold py-2.5 min-h-[44px] hover:bg-vibrant-orange hover:text-deep-black transition-colors">Repetir último pedido</button>
-<p class="text-xs lig-cart-text-muted mt-3"><a class="text-vibrant-orange hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`
-            : `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio. <a class="text-vibrant-orange hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`;
+<button type="button" id="cart-reorder-btn" class="mt-3 w-full rounded-full border border-vibrant-yellow/40 bg-yellow-50 text-vibrant-yellow text-sm font-bold py-2.5 min-h-[44px] hover:bg-vibrant-yellow hover:text-deep-black transition-colors">Repetir último pedido</button>
+<p class="text-xs lig-cart-text-muted mt-3"><a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`
+            : `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio. <a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`;
         const listHtml = items.length ? items.map(cartLineHtml).join('') : emptyHtml;
 
         const cartItemsEl = document.getElementById('cart-items');

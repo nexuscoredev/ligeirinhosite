@@ -412,7 +412,7 @@
 
             grid.innerHTML =
 
-                '<p class="col-span-full text-center text-on-surface-variant py-8 text-sm">Erro ao carregar <code class="text-gold-accent">data/catalogo.json</code>.</p>';
+                '<p class="col-span-full text-center text-on-surface-variant py-8 text-sm">Erro ao carregar <code class="text-vibrant-yellow">data/catalogo.json</code>.</p>';
 
         });
 
