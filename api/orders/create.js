@@ -61,6 +61,7 @@ export default async function handler(req, res) {
         }
 
         const customer = body.customer || {};
+        const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
         const row = {
             status: 'pending',
             items,
@@ -71,9 +72,24 @@ export default async function handler(req, res) {
             customer_name: String(customer.name || '').trim().slice(0, 120) || null,
             customer_phone: String(customer.phone || '').trim().slice(0, 32) || null,
             customer_email: String(customer.email || '').trim().slice(0, 120) || null,
+            channel,
+            totem_id: String(body.totemId || '').trim().slice(0, 64) || null,
+            totem_label: String(body.totemLabel || '').trim().slice(0, 120) || null,
+            unit_id: String(body.unitId || '').trim().slice(0, 64) || null,
         };
 
-        const order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, row);
+        let order;
+        try {
+            order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, row);
+        } catch (insertErr) {
+            const msg = String(insertErr.message || '');
+            if (channel === 'totem' && /column/i.test(msg)) {
+                const { channel: _c, totem_id: _t, totem_label: _l, unit_id: _u, ...legacyRow } = row;
+                order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, legacyRow);
+            } else {
+                throw insertErr;
+            }
+        }
 
         return res.status(201).json({
             orderId: order.id,

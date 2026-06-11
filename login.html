@@ -105,6 +105,18 @@ Continuar com Google
 
 <div class="lig-login-divider" aria-hidden="true"><span>ou</span></div>
 
+<section id="login-hub" class="lig-login-phone" aria-labelledby="login-hub-title">
+<h2 id="login-hub-title" class="lig-login-phone__title">Acesso operacional / Totem</h2>
+<p class="lig-login-phone__hint">Use o usuário do Ligeirinho Hub. Perfis Totem abrem o modo autoatendimento automaticamente.</p>
+<label class="lig-login-setup__label" for="login-hub-user">Usuário</label>
+<input id="login-hub-user" class="lig-login-setup__input" type="text" autocomplete="username" placeholder="Ex.: Totem-Loja1">
+<label class="lig-login-setup__label" for="login-hub-password">Senha</label>
+<input id="login-hub-password" class="lig-login-setup__input" type="password" autocomplete="current-password" placeholder="Senha do Hub">
+<button type="button" id="login-hub-submit" class="lig-login-setup__save">Entrar com usuário Hub</button>
+</section>
+
+<div class="lig-login-divider" aria-hidden="true"><span>ou</span></div>
+
 <section id="login-phone" class="lig-login-phone" aria-labelledby="login-phone-title">
 <h2 id="login-phone-title" class="lig-login-phone__title">Entrar com telefone</h2>
 <p id="login-phone-hint" class="lig-login-phone__hint">Informe celular e nome. O nome é obrigatório para identificarmos você nos pedidos.</p>
@@ -134,11 +146,15 @@ Ao continuar, você concorda com nossos termos de uso e política de privacidade
 
 <script src="js/auth-store.js"></script>
 
+<script src="js/auth-routing.js"></script>
+
 <script src="js/auth-config-loader.js"></script>
 
 <script src="js/phone-auth.js"></script>
 
 <script src="js/layout.js"></script>
+
+<script src="js/login-hub.js"></script>
 
 <script src="js/login.js"></script>
 

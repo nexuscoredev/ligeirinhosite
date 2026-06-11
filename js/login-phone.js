@@ -1,7 +1,8 @@
 (function () {
     const auth = window.LigeirinhoAuth;
     const phoneAuth = window.LigeirinhoPhoneAuth;
-    if (!auth || !phoneAuth) return;
+    const routing = window.LigeirinhoAuthRouting;
+    if (!auth || !phoneAuth || !routing) return;
 
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
@@ -9,13 +10,7 @@
     const statusEl = document.getElementById('login-status');
 
     const params = new URLSearchParams(window.location.search);
-    const nextUrl = params.get('next') || 'contato.html#minha-conta';
-    const safeNext = (() => {
-        const base = nextUrl.split('#')[0];
-        if (nextUrl.startsWith('//') || nextUrl.includes('://')) return 'contato.html#minha-conta';
-        if (base.startsWith('/') || base.endsWith('.html')) return nextUrl;
-        return 'contato.html#minha-conta';
-    })();
+    const nextUrl = params.get('next') || '';
 
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;
@@ -31,7 +26,7 @@
         phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
     });
 
-    const submit = () => {
+    const submit = async () => {
         const phone = phoneAuth.normalizePhoneBR(phoneInput?.value || '');
         const name = phoneAuth.normalizeName(nameInput?.value || '');
 
@@ -47,16 +42,23 @@
             return;
         }
 
-        const session = auth.saveFromPhoneProfile({ phone, name });
-        if (!session) {
-            setStatus('Não foi possível entrar. Tente novamente.', true);
-            return;
-        }
+        submitBtn && (submitBtn.disabled = true);
+        setStatus('Validando perfil…', false);
 
-        setStatus('Entrada realizada! Redirecionando…', false);
-        window.setTimeout(() => {
-            window.location.href = safeNext;
-        }, 400);
+        try {
+            const session = await routing.loginWithProfile({ type: 'phone', phone, name });
+            setStatus('Entrada realizada! Redirecionando…', false);
+            window.setTimeout(() => routing.redirectAfterLogin(session.role, nextUrl), 400);
+        } catch {
+            const fallback = auth.saveFromPhoneProfile({ phone, name });
+            if (!fallback) {
+                setStatus('Não foi possível entrar. Tente novamente.', true);
+                submitBtn && (submitBtn.disabled = false);
+                return;
+            }
+            setStatus('Entrada realizada! Redirecionando…', false);
+            window.setTimeout(() => routing.redirectAfterLogin('PARCEIRO', nextUrl), 400);
+        }
     };
 
     submitBtn?.addEventListener('click', submit);

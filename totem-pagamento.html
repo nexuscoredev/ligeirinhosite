@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="totem-kiosk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Pagamento Totem - Ligeirinho</title>
+<link rel="icon" href="img/app-icon-192.png" type="image/png">
+<meta name="theme-color" content="#080808">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/totem.css">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+</head>
+<body data-page="totem-pagamento" class="totem-kiosk font-body-md antialiased min-h-screen">
+<main class="w-full max-w-2xl mx-auto px-4 py-8">
+<div id="payment-root" class="lig-payment-page" role="status">Carregando pagamento…</div>
+</main>
+<script>window.LIG_PAYMENT_MODE = 'totem';</script>
+<script src="js/auth-store.js"></script>
+<script src="js/auth-routing.js"></script>
+<script src="js/cart-store.js"></script>
+<script src="js/payment-providers.js"></script>
+<script src="js/payment.js"></script>
+</body>
+</html>

@@ -16,9 +16,19 @@ create table if not exists public.orders (
   mp_status_detail text,
   pix_qr_code text,
   pix_qr_base64 text,
+  channel text default 'parceiros',
+  totem_id text,
+  totem_label text,
+  unit_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- Migração para bases existentes (rodar se a tabela já existir):
+-- alter table public.orders add column if not exists channel text default 'parceiros';
+-- alter table public.orders add column if not exists totem_id text;
+-- alter table public.orders add column if not exists totem_label text;
+-- alter table public.orders add column if not exists unit_id text;
 
 create index if not exists orders_status_idx on public.orders (status);
 create index if not exists orders_mp_payment_id_idx on public.orders (mp_payment_id);

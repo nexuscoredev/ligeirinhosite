@@ -1,0 +1,429 @@
+/* Ligeirinho Totem — kiosk / autoatendimento */
+
+html.totem-kiosk,
+body.totem-kiosk {
+    height: 100%;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.totem-app {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100dvh;
+    max-height: 100dvh;
+    background: #080808;
+    color: #f5f5f5;
+}
+
+.totem-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: #111;
+    border-bottom: 1px solid rgba(247, 213, 60, 0.2);
+}
+
+.totem-header__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.totem-header__logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.totem-header__title {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 1.125rem;
+    line-height: 1.2;
+}
+
+.totem-header__sub {
+    font-size: 0.75rem;
+    color: #a8a8a8;
+}
+
+.totem-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.totem-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 52px;
+    min-width: 52px;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.totem-btn:active {
+    transform: scale(0.97);
+}
+
+.totem-btn--primary {
+    background: #f7d53c;
+    color: #1a1a1a;
+}
+
+.totem-btn--ghost {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.totem-btn--cart {
+    position: relative;
+    background: #f7d53c;
+    color: #1a1a1a;
+    padding-inline: 1.5rem;
+}
+
+.totem-btn__badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #1a1a1a;
+    color: #f7d53c;
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.totem-main {
+    overflow: hidden;
+    min-height: 0;
+}
+
+.totem-view {
+    display: none;
+    height: 100%;
+    overflow: hidden;
+}
+
+.totem-view--active {
+    display: flex;
+    flex-direction: column;
+}
+
+.totem-welcome {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background: radial-gradient(circle at 50% 20%, rgba(247, 213, 60, 0.12), transparent 55%), #080808;
+}
+
+.totem-welcome__logo {
+    width: min(220px, 50vw);
+    margin-bottom: 1.5rem;
+}
+
+.totem-welcome__title {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+
+.totem-welcome__lead {
+    color: #c8c8c8;
+    font-size: 1.125rem;
+    max-width: 28rem;
+    margin: 0 auto 2rem;
+}
+
+.totem-welcome__cta {
+    min-width: min(100%, 320px);
+    min-height: 72px;
+    font-size: 1.25rem;
+}
+
+.totem-catalog {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 0;
+}
+
+.totem-categories {
+    overflow-y: auto;
+    padding: 1rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0e0e0e;
+}
+
+.totem-cat-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.04);
+    color: #eee;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.totem-cat-btn--active {
+    border-color: rgba(247, 213, 60, 0.5);
+    background: rgba(247, 213, 60, 0.12);
+    color: #f7d53c;
+}
+
+.totem-products {
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.totem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.totem-product {
+    display: flex;
+    flex-direction: column;
+    background: #151515;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    min-height: 260px;
+}
+
+.totem-product__media {
+    position: relative;
+    aspect-ratio: 1;
+    background: #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.totem-product__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.75rem;
+}
+
+.totem-product__body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.totem-product__name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    min-height: 2.6em;
+}
+
+.totem-product__price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #f7d53c;
+}
+
+.totem-product__qty {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+.totem-qty-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    border: none;
+    background: rgba(247, 213, 60, 0.15);
+    color: #f7d53c;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.totem-qty-value {
+    min-width: 2rem;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.totem-cart-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: none;
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.totem-cart-panel--open {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.totem-cart-sheet {
+    width: min(720px, 100%);
+    max-height: 88dvh;
+    background: #121212;
+    border-radius: 1.5rem 1.5rem 0 0;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.totem-cart-list {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.totem-cart-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.totem-cart-line__name {
+    font-weight: 600;
+}
+
+.totem-cart-line__meta {
+    color: #aaa;
+    font-size: 0.875rem;
+}
+
+.totem-cart-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.totem-footer {
+    padding: 0.75rem 1.25rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: #0e0e0e;
+    color: #888;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+.totem-idle-hint {
+    position: fixed;
+    bottom: 4.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 70;
+}
+
+.totem-idle-hint--visible {
+    opacity: 1;
+}
+
+.totem-admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+}
+
+.totem-admin-modal--open {
+    display: flex;
+}
+
+.totem-admin-card {
+    width: min(400px, 100%);
+    background: #181818;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+}
+
+.totem-admin-card h2 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.totem-admin-card input {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #0e0e0e;
+    color: #fff;
+    padding: 0 1rem;
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+    .totem-catalog {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+
+    .totem-categories {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 0.5rem;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .totem-cat-btn {
+        flex: 0 0 auto;
+        width: auto;
+        margin-bottom: 0;
+        white-space: nowrap;
+    }
+}

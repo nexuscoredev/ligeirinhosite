@@ -4,6 +4,13 @@
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
+    const isTotem =
+        window.LIG_PAYMENT_MODE === 'totem' || document.body?.dataset?.page === 'totem-pagamento';
+    const successUrl = (id) =>
+        isTotem
+            ? `totem-sucesso.html?order=${encodeURIComponent(id)}`
+            : `pedido-confirmado.html?order=${encodeURIComponent(id)}`;
+    const catalogUrl = isTotem ? 'totem.html' : 'pedidos.html';
 
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -18,7 +25,7 @@
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error">
 <h1 class="lig-payment-title">Pagamento indisponível</h1>
 <p class="lig-payment-lead">${esc(msg)}</p>
-<a href="pedidos.html" class="lig-btn-primary w-full text-center mt-4">Voltar ao catálogo</a>
+<a href="${catalogUrl}" class="lig-btn-primary w-full text-center mt-4">Voltar ao catálogo</a>
 </div>`;
     };
 
@@ -66,7 +73,7 @@ ${renderSummary(order)}
     };
 
     const renderPaid = (order) => {
-        window.location.replace(`pedido-confirmado.html?order=${encodeURIComponent(order.id)}`);
+        window.location.replace(successUrl(order.id));
     };
 
     const mountBrick = async (order, publicKey) => {
@@ -109,7 +116,7 @@ ${renderSummary(order)}
                                 if (!res.ok) throw new Error(data.error || 'Pagamento recusado');
                                 if (data.status === 'approved') {
                                     window.LigeirinhoCart?.saveCart?.({});
-                                    window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(order.id)}`;
+                                    window.location.href = successUrl(order.id);
                                     resolve();
                                     return;
                                 }
@@ -146,7 +153,7 @@ ${renderSummary(order)}
                 if (order.status === 'paid') {
                     clearInterval(pollTimer);
                     window.LigeirinhoCart?.saveCart?.({});
-                    window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(id)}`;
+                    window.location.href = successUrl(id);
                 }
             } catch {
                 /* ignore */

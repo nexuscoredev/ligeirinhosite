@@ -1,0 +1,15 @@
+{
+  "defaults": {
+    "idleTimeoutMs": 120000,
+    "successTimeoutMs": 18000,
+    "adminPin": "123456"
+  },
+  "units": {
+    "default": {
+      "label": "Ligeirinho",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
+    }
+  },
+  "loginUnitMap": {}
+}

@@ -27,6 +27,8 @@
         }
     };
 
+    const TOTEM_ROLES = new Set(['TOTEM', 'TOTEM_DEVICE']);
+
     const saveSession = (user) => {
         const session = {
             sub: user.sub,
@@ -35,12 +37,22 @@
             phone: user.phone || '',
             picture: user.picture || '',
             provider: user.provider || 'google',
+            role: user.role || 'PARCEIRO',
+            cargo: user.cargo || '',
+            login: user.login || '',
+            hubUserId: user.hubUserId || '',
+            totemUnitId: user.totemUnitId || '',
+            totemLabel: user.totemLabel || '',
             loggedInAt: Date.now(),
         };
         localStorage.setItem(AUTH_KEY, JSON.stringify(session));
         window.dispatchEvent(new CustomEvent('ligeirinho-auth-changed', { detail: session }));
         return session;
     };
+
+    const isTotemRole = (role) => TOTEM_ROLES.has(String(role || '').toUpperCase());
+
+    const isTotemSession = (session) => isTotemRole(session?.role);
 
     const saveFromGoogleCredential = (credential) => {
         const payload = parseJwt(credential);
@@ -127,16 +139,38 @@
         return '';
     };
 
+    const applyProfile = (profile) => {
+        if (!profile?.sub) return null;
+        return saveSession({
+            sub: profile.sub,
+            email: profile.email,
+            name: profile.name,
+            phone: profile.phone,
+            picture: profile.picture || '',
+            provider: profile.provider,
+            role: profile.role,
+            cargo: profile.cargo,
+            login: profile.login,
+            hubUserId: profile.hubUserId,
+            totemUnitId: profile.totemUnitId,
+            totemLabel: profile.totemLabel,
+        });
+    };
+
     window.LigeirinhoAuth = {
         AUTH_KEY,
+        TOTEM_ROLES,
         parseJwt,
         loadSession,
         saveSession,
+        applyProfile,
         saveFromGoogleCredential,
         saveFromAppleAuthorization,
         saveFromPhoneProfile,
         logout,
         isLoggedIn,
+        isTotemRole,
+        isTotemSession,
         firstName,
         contactLabel,
         providerLabel: (session) => {

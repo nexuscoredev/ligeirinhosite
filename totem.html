@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="totem-kiosk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Totem - Ligeirinho Parceiros</title>
+<link rel="icon" href="img/app-icon-192.png" type="image/png">
+<meta name="theme-color" content="#080808">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/totem.css">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+</head>
+<body data-page="totem" class="totem-kiosk font-body-md antialiased">
+<div id="totem-app" class="totem-app">
+<header class="totem-header">
+<div class="totem-header__brand" id="totem-brand-tap">
+<img class="totem-header__logo" src="img/ligeirinhologo.png" alt="Ligeirinho" width="48" height="48">
+<div>
+<div class="totem-header__title" id="totem-unit-label">Ligeirinho Totem</div>
+<div class="totem-header__sub" id="totem-device-label">Autoatendimento</div>
+</div>
+</div>
+<div class="totem-header__actions">
+<button type="button" class="totem-btn totem-btn--ghost" id="totem-home-btn" hidden>
+<span class="material-symbols-outlined">home</span>
+Início
+</button>
+<button type="button" class="totem-btn totem-btn--cart" id="totem-cart-btn" hidden>
+<span class="material-symbols-outlined">shopping_cart</span>
+Carrinho
+<span class="totem-btn__badge" id="totem-cart-badge">0</span>
+</button>
+</div>
+</header>
+
+<main class="totem-main">
+<section id="totem-view-welcome" class="totem-view totem-view--active totem-welcome" aria-label="Boas-vindas">
+<img class="totem-welcome__logo" src="img/ligeirinhologo.png" alt="Ligeirinho">
+<h1 class="totem-welcome__title">Faça seu pedido</h1>
+<p class="totem-welcome__lead">Toque para começar. Escolha os produtos, pague com Pix, crédito ou débito e retire na loja.</p>
+<button type="button" class="totem-btn totem-btn--primary totem-welcome__cta" id="totem-start-btn">Toque para começar</button>
+</section>
+
+<section id="totem-view-catalog" class="totem-view totem-catalog" aria-label="Catálogo" hidden>
+<nav class="totem-categories" id="totem-categories" aria-label="Categorias"></nav>
+<div class="totem-products">
+<div class="totem-grid" id="totem-products-grid" role="list"></div>
+</div>
+</section>
+</main>
+
+<footer class="totem-footer" id="totem-footer-tap">Ligeirinho Totem · Toque e pague com segurança</footer>
+</div>
+
+<div id="totem-cart-panel" class="totem-cart-panel" aria-hidden="true">
+<div class="totem-cart-sheet" role="dialog" aria-labelledby="totem-cart-title">
+<div class="flex justify-between items-center">
+<h2 id="totem-cart-title" class="text-xl font-bold">Seu pedido</h2>
+<button type="button" class="totem-btn totem-btn--ghost" id="totem-cart-close" aria-label="Fechar">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="totem-cart-list" id="totem-cart-list"></div>
+<div class="totem-cart-total">
+<span>Total</span>
+<strong id="totem-cart-total">R$ 0,00</strong>
+</div>
+<button type="button" class="totem-btn totem-btn--primary w-full" id="totem-checkout-btn" disabled>Ir para pagamento</button>
+</div>
+</div>
+
+<div id="totem-idle-hint" class="totem-idle-hint" aria-live="polite">Toque na tela para continuar</div>
+
+<div id="totem-admin-modal" class="totem-admin-modal" aria-hidden="true">
+<div class="totem-admin-card" role="dialog" aria-labelledby="totem-admin-title">
+<h2 id="totem-admin-title">Acesso administrativo</h2>
+<p class="text-sm text-gray-400 mb-3">Informe o PIN para sair do modo Totem.</p>
+<input id="totem-admin-pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN administrativo">
+<div class="flex gap-2">
+<button type="button" class="totem-btn totem-btn--ghost flex-1" id="totem-admin-cancel">Cancelar</button>
+<button type="button" class="totem-btn totem-btn--primary flex-1" id="totem-admin-confirm">Sair</button>
+</div>
+</div>
+</div>
+
+<script src="js/site-config.js"></script>
+<script src="js/auth-store.js"></script>
+<script src="js/auth-routing.js"></script>
+<script src="js/cart-store.js"></script>
+<script src="js/product-pricing.js"></script>
+<script src="js/catalog-utils.js"></script>
+<script src="js/payment-providers.js"></script>
+<script src="js/totem.js"></script>
+</body>
+</html>

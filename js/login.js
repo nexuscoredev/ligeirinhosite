@@ -1,16 +1,11 @@
 (function () {
     const auth = window.LigeirinhoAuth;
     const configApi = window.LigeirinhoAuthConfig;
-    if (!auth || !configApi) return;
+    const routing = window.LigeirinhoAuthRouting;
+    if (!auth || !configApi || !routing) return;
 
     const params = new URLSearchParams(window.location.search);
-    const nextUrl = params.get('next') || 'contato.html#minha-conta';
-    const safeNext = (() => {
-        const base = nextUrl.split('#')[0];
-        if (nextUrl.startsWith('//') || nextUrl.includes('://')) return 'contato.html#minha-conta';
-        if (base.startsWith('/') || base.endsWith('.html')) return nextUrl;
-        return 'contato.html#minha-conta';
-    })();
+    const nextUrl = params.get('next') || '';
 
     const statusEl = document.getElementById('login-status');
     const googleBtn = document.getElementById('login-google-btn');
@@ -26,18 +21,33 @@
         statusEl.classList.toggle('lig-login-status--ok', !isError && Boolean(msg));
     };
 
-    const redirect = () => {
-        window.location.href = safeNext;
+    const redirect = (role) => {
+        routing.redirectAfterLogin(role, nextUrl);
     };
 
-    const handleCredential = (response) => {
+    const handleCredential = async (response) => {
         if (!response?.credential) {
             setStatus('Não foi possível entrar com Google. Tente novamente.', true);
             return;
         }
-        auth.saveFromGoogleCredential(response.credential);
-        setStatus('Entrada realizada! Redirecionando…', false);
-        window.setTimeout(redirect, 400);
+        try {
+            setStatus('Validando perfil…', false);
+            const payload = auth.parseJwt(response.credential);
+            const profile = await routing.resolveProfile({
+                type: 'google',
+                credential: response.credential,
+            });
+            const session = auth.applyProfile({
+                ...profile,
+                picture: payload?.picture || '',
+            });
+            setStatus('Entrada realizada! Redirecionando…', false);
+            window.setTimeout(() => redirect(session.role), 400);
+        } catch {
+            const session = auth.saveFromGoogleCredential(response.credential);
+            setStatus('Entrada realizada! Redirecionando…', false);
+            window.setTimeout(() => redirect(session?.role || 'PARCEIRO'), 400);
+        }
     };
 
     const initGoogle = (clientId) => {
@@ -86,7 +96,8 @@
     };
 
     if (auth.isLoggedIn()) {
-        redirect();
+        const session = auth.loadSession();
+        redirect(session?.role || 'PARCEIRO');
         return;
     }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v19';
+const CACHE_NAME = 'ligeirinho-app-v20';
 
 const APP_SHELL = [
     '/',
@@ -6,6 +6,9 @@ const APP_SHELL = [
     '/quemsomos',
     '/contato',
     '/login',
+    '/totem',
+    '/totem-pagamento',
+    '/totem-sucesso',
     '/pagamento',
     '/pedido-confirmado',
     '/versao',
@@ -29,8 +32,15 @@ const APP_SHELL = [
     '/js/phone-auth.js',
     '/js/login-phone.js',
     '/js/login.js',
+    '/js/login-hub.js',
+    '/js/auth-routing.js',
+    '/js/payment-providers.js',
     '/js/payment.js',
+    '/js/totem.js',
+    '/js/totem-success.js',
     '/js/order-status.js',
+    '/css/totem.css',
+    '/data/totem-units.json',
     '/js/app-version.js',
     '/js/site-config.js',
     '/data/version/manifest.json',
