@@ -28,6 +28,7 @@
 <option value="pix">Pagamento: Pix</option>
 <option value="dinheiro">Pagamento: Dinheiro</option>
 <option value="cartao">Pagamento: Cartão na entrega</option>
+<option value="fiado">Pagamento: Fiado (crédito)</option>
 </select>
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm resize-none"></textarea>
 </div>
@@ -71,6 +72,7 @@
 <option value="pix">Pagamento: Pix</option>
 <option value="dinheiro">Pagamento: Dinheiro</option>
 <option value="cartao">Pagamento: Cartão na entrega</option>
+<option value="fiado">Pagamento: Fiado (crédito)</option>
 </select>
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm resize-none"></textarea>
 </div>
@@ -551,10 +553,13 @@
                     deliveryType: checkout.deliveryType,
                     address: checkout.address,
                     notes: checkout.notes,
+                    paymentMethod: checkout.payment || 'pix',
+                    hubUserId: session?.hubUserId || '',
                     customer: {
                         name: session?.name || '',
                         phone: session?.phone || '',
                         email: session?.email || '',
+                        hubUserId: session?.hubUserId || '',
                     },
                 }),
             });
@@ -562,7 +567,13 @@
             if (!res.ok) throw new Error(data.error || 'Não foi possível iniciar o pagamento');
 
             cartApi.saveLastOrder(cart, checkout);
-            window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
+            const payMethod = checkout.payment || 'pix';
+            if (payMethod === 'fiado' || payMethod === 'credito') {
+                cartApi.saveCart({});
+                window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(data.orderId)}&fiado=1`;
+            } else {
+                window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
+            }
         } catch (err) {
             window.alert(err.message || 'Erro ao iniciar pagamento. Tente pelo WhatsApp.');
             payButtons.forEach((id) => {

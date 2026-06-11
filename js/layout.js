@@ -97,6 +97,12 @@
         { id: 'contato', href: 'contato.html', label: 'Contato', icon: 'chat' },
     ];
 
+    const session = window.LigeirinhoAuth?.loadSession?.();
+    const financeRole = String(session?.role || '').toUpperCase();
+    if (financeRole === 'ADMIN' || financeRole === 'OPERADOR') {
+        navItems.push({ id: 'financeiro', href: 'financeiro.html', label: 'Financeiro', icon: 'payments' });
+    }
+
     const navLinksHtml = navItems
         .map(
             (item) =>

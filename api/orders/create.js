@@ -1,5 +1,11 @@
 import { paymentEnv, assertPaymentBackend } from '../../scripts/payment-env.mjs';
 import { insertOrder, publicOrderView } from '../../scripts/supabase-orders.mjs';
+import {
+    upsertCustomer,
+    fetchCustomerByHubUserId,
+    reserveCredit,
+    getFinanceSettings,
+} from '../../scripts/supabase-finance.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -24,6 +30,14 @@ const normalizeItems = (raw) => {
         })
         .filter(Boolean);
 };
+
+function addDays(date, days) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+}
+
+const CREDIT_METHODS = new Set(['fiado', 'credito', 'boleto', 'prazo']);
 
 export default async function handler(req, res) {
     const host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -61,7 +75,50 @@ export default async function handler(req, res) {
         }
 
         const customer = body.customer || {};
+        const hubUserId = String(body.hubUserId || customer.hubUserId || '').trim() || null;
+        const paymentMethod = String(body.paymentMethod || body.payment || 'pix').toLowerCase();
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
+        const isCreditOrder = CREDIT_METHODS.has(paymentMethod);
+
+        let customerRow = null;
+        let settings = null;
+        try {
+            settings = await getFinanceSettings(config.supabaseUrl, config.supabaseServiceKey);
+        } catch {
+            /* finance tables may not exist yet */
+        }
+
+        if (hubUserId || customer.email || customer.phone) {
+            try {
+                customerRow =
+                    (hubUserId &&
+                        (await fetchCustomerByHubUserId(
+                            config.supabaseUrl,
+                            config.supabaseServiceKey,
+                            hubUserId
+                        ))) ||
+                    null;
+                if (!customerRow && (hubUserId || customer.name)) {
+                    customerRow = await upsertCustomer(config.supabaseUrl, config.supabaseServiceKey, {
+                        hub_user_id: hubUserId,
+                        name: String(customer.name || 'Cliente').slice(0, 120),
+                        email: String(customer.email || '').slice(0, 120) || null,
+                        phone: String(customer.phone || '').slice(0, 32) || null,
+                    });
+                }
+                if (customerRow && isCreditOrder) {
+                    await reserveCredit(config.supabaseUrl, config.supabaseServiceKey, customerRow.id, total);
+                }
+            } catch (creditErr) {
+                if (isCreditOrder) {
+                    return res.status(402).json({ error: creditErr.message || 'Limite de crédito excedido.' });
+                }
+            }
+        }
+
+        const dueDays = Number(settings?.default_due_days) || 30;
+        const financialStatus = isCreditOrder ? 'pendente' : paymentMethod === 'mercado_pago' ? 'em_cobranca' : 'pendente';
+
         const row = {
             status: 'pending',
             items,
@@ -76,6 +133,11 @@ export default async function handler(req, res) {
             totem_id: String(body.totemId || '').trim().slice(0, 64) || null,
             totem_label: String(body.totemLabel || '').trim().slice(0, 120) || null,
             unit_id: String(body.unitId || '').trim().slice(0, 64) || null,
+            customer_id: customerRow?.id || null,
+            hub_user_id: hubUserId,
+            payment_method: paymentMethod,
+            due_date: isCreditOrder || financialStatus === 'pendente' ? addDays(new Date(), dueDays) : null,
+            financial_status: financialStatus,
         };
 
         let order;
@@ -83,7 +145,22 @@ export default async function handler(req, res) {
             order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, row);
         } catch (insertErr) {
             const msg = String(insertErr.message || '');
-            if (channel === 'totem' && /column/i.test(msg)) {
+            if (/column/i.test(msg)) {
+                const {
+                    customer_id: _a,
+                    hub_user_id: _b,
+                    payment_method: _c,
+                    due_date: _d,
+                    financial_status: _e,
+                    ...legacyRow
+                } = row;
+                if (channel === 'totem') {
+                    const { channel: _f, totem_id: _g, totem_label: _h, unit_id: _i, ...minimal } = legacyRow;
+                    order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, minimal);
+                } else {
+                    order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, legacyRow);
+                }
+            } else if (channel === 'totem' && /column/i.test(msg)) {
                 const { channel: _c, totem_id: _t, totem_label: _l, unit_id: _u, ...legacyRow } = row;
                 order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, legacyRow);
             } else {
@@ -95,6 +172,8 @@ export default async function handler(req, res) {
             orderId: order.id,
             total: Number(order.total),
             order: publicOrderView(order),
+            financialStatus: order.financial_status || financialStatus,
+            dueDate: order.due_date || row.due_date,
         });
     } catch (err) {
         console.error('orders/create', err);
