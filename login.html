@@ -113,7 +113,12 @@ Continuar com Google
 
 <div class="lig-login-divider" aria-hidden="true"><span>ou</span></div>
 
-<section id="login-phone" class="lig-login-phone" aria-labelledby="login-phone-title">
+<button type="button" id="login-phone-toggle" class="lig-login-oauth-btn lig-login-phone-btn" aria-expanded="false" aria-controls="login-phone">
+<span class="material-symbols-outlined lig-login-phone-btn__icon" aria-hidden="true">phone_iphone</span>
+Entrar com telefone
+</button>
+
+<section id="login-phone" class="lig-login-phone lig-login-phone-panel" aria-labelledby="login-phone-title" hidden>
 <h2 id="login-phone-title" class="lig-login-phone__title">Entrar com telefone</h2>
 <p id="login-phone-hint" class="lig-login-phone__hint">Informe celular e nome. O nome é obrigatório para identificarmos você nos pedidos.</p>
 <label class="lig-login-setup__label" for="login-phone-input">Celular (WhatsApp)</label>

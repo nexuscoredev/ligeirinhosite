@@ -1,4 +1,27 @@
-/* Ligeirinho Totem — kiosk / autoatendimento */
+/* Ligeirinho Totem — visual alinhado ao Parceiros (light) */
+
+html.totem-kiosk,
+html.totem-kiosk[data-theme='dark'],
+html.totem-kiosk[data-theme='auto'],
+html.totem-kiosk[data-theme='light'] {
+    color-scheme: light;
+    --lig-bg: #f5f5f5;
+    --lig-surface: #ffffff;
+    --lig-surface-alt: #fafafa;
+    --lig-text: #1a1a1a;
+    --lig-text-muted: #666666;
+    --lig-text-subtle: #999999;
+    --lig-yellow: #f7d53c;
+    --lig-yellow-text: #a67c00;
+    --lig-yellow-hover: #d9bb35;
+    --lig-yellow-light: rgba(247, 213, 60, 0.2);
+    --lig-border: #ebebeb;
+    --lig-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --lig-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+    --lig-overlay: rgba(0, 0, 0, 0.4);
+    --lig-media-bg: #fafafa;
+    --lig-brand-logo-bg: #fffbeb;
+}
 
 html.totem-kiosk,
 body.totem-kiosk {
@@ -7,6 +30,9 @@ body.totem-kiosk {
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
+    background: var(--lig-bg);
+    color: var(--lig-text);
+    font-family: Inter, system-ui, sans-serif;
 }
 
 .totem-app {
@@ -14,8 +40,8 @@ body.totem-kiosk {
     grid-template-rows: auto 1fr auto;
     height: 100dvh;
     max-height: 100dvh;
-    background: #080808;
-    color: #f5f5f5;
+    background: var(--lig-bg);
+    color: var(--lig-text);
 }
 
 .totem-header {
@@ -23,9 +49,10 @@ body.totem-kiosk {
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1rem 1.25rem;
-    background: #111;
-    border-bottom: 1px solid rgba(247, 213, 60, 0.2);
+    padding: 0.875rem 1.25rem;
+    background: var(--lig-surface);
+    border-bottom: 1px solid var(--lig-border);
+    box-shadow: var(--lig-shadow-sm);
 }
 
 .totem-header__brand {
@@ -39,18 +66,27 @@ body.totem-kiosk {
     width: 48px;
     height: 48px;
     object-fit: contain;
+    background: var(--lig-brand-logo-bg);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
 }
 
 .totem-header__title {
     font-family: 'Hanken Grotesk', system-ui, sans-serif;
     font-weight: 800;
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
     line-height: 1.2;
+    color: var(--lig-text);
+}
+
+.totem-header__title .lig-brand__app {
+    color: var(--lig-yellow-text);
+    font-weight: 700;
 }
 
 .totem-header__sub {
     font-size: 0.75rem;
-    color: #a8a8a8;
+    color: var(--lig-text-muted);
 }
 
 .totem-header__actions {
@@ -72,7 +108,7 @@ body.totem-kiosk {
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.12s ease, opacity 0.12s ease;
+    transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
 .totem-btn:active {
@@ -80,20 +116,32 @@ body.totem-kiosk {
 }
 
 .totem-btn--primary {
-    background: #f7d53c;
+    background: var(--lig-yellow);
     color: #1a1a1a;
+    box-shadow: 0 4px 16px rgba(247, 213, 60, 0.35);
+}
+
+.totem-btn--primary:hover {
+    background: var(--lig-yellow-hover);
 }
 
 .totem-btn--ghost {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border: 1px solid var(--lig-border);
+}
+
+.totem-btn--ghost:hover {
+    border-color: rgba(247, 213, 60, 0.35);
+    background: var(--lig-yellow-light);
 }
 
 .totem-btn--cart {
     position: relative;
-    background: #f7d53c;
+    background: var(--lig-yellow);
     color: #1a1a1a;
     padding-inline: 1.5rem;
+    box-shadow: 0 4px 16px rgba(247, 213, 60, 0.35);
 }
 
 .totem-btn__badge {
@@ -105,7 +153,7 @@ body.totem-kiosk {
     padding: 0 6px;
     border-radius: 999px;
     background: #1a1a1a;
-    color: #f7d53c;
+    color: var(--lig-yellow);
     font-size: 0.75rem;
     font-weight: 800;
     display: inline-flex;
@@ -134,24 +182,32 @@ body.totem-kiosk {
     justify-content: center;
     text-align: center;
     padding: 2rem;
-    background: radial-gradient(circle at 50% 20%, rgba(247, 213, 60, 0.12), transparent 55%), #080808;
+    background:
+        radial-gradient(circle at 50% 15%, rgba(247, 213, 60, 0.18), transparent 55%),
+        var(--lig-bg);
 }
 
 .totem-welcome__logo {
-    width: min(220px, 50vw);
-    margin-bottom: 1.5rem;
+    width: min(200px, 46vw);
+    margin-bottom: 1.25rem;
+    background: var(--lig-brand-logo-bg);
+    border-radius: 1.5rem;
+    padding: 1rem;
+    box-shadow: var(--lig-shadow-sm);
 }
 
 .totem-welcome__title {
     font-family: 'Hanken Grotesk', system-ui, sans-serif;
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: clamp(1.75rem, 4.5vw, 2.5rem);
     font-weight: 800;
     margin-bottom: 0.75rem;
+    color: var(--lig-text);
 }
 
 .totem-welcome__lead {
-    color: #c8c8c8;
-    font-size: 1.125rem;
+    color: var(--lig-text-muted);
+    font-size: 1.0625rem;
+    line-height: 1.5;
     max-width: 28rem;
     margin: 0 auto 2rem;
 }
@@ -159,7 +215,7 @@ body.totem-kiosk {
 .totem-welcome__cta {
     min-width: min(100%, 320px);
     min-height: 72px;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
 }
 
 .totem-catalog {
@@ -171,33 +227,34 @@ body.totem-kiosk {
 .totem-categories {
     overflow-y: auto;
     padding: 1rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    background: #0e0e0e;
+    border-right: 1px solid var(--lig-border);
+    background: var(--lig-surface);
 }
 
 .totem-cat-btn {
     display: block;
     width: 100%;
     text-align: left;
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     margin-bottom: 0.5rem;
-    border-radius: 1rem;
-    border: 1px solid transparent;
-    background: rgba(255, 255, 255, 0.04);
-    color: #eee;
+    border-radius: 999px;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .totem-cat-btn--active {
-    border-color: rgba(247, 213, 60, 0.5);
-    background: rgba(247, 213, 60, 0.12);
-    color: #f7d53c;
+    border-color: rgba(247, 213, 60, 0.55);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow-text);
 }
 
 .totem-products {
     overflow-y: auto;
     padding: 1rem;
+    background: var(--lig-bg);
 }
 
 .totem-grid {
@@ -209,17 +266,18 @@ body.totem-kiosk {
 .totem-product {
     display: flex;
     flex-direction: column;
-    background: #151515;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1.25rem;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
+    border-radius: 0.875rem;
     overflow: hidden;
     min-height: 260px;
+    box-shadow: var(--lig-shadow-sm);
 }
 
 .totem-product__media {
     position: relative;
     aspect-ratio: 1;
-    background: #1e1e1e;
+    background: var(--lig-media-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -232,6 +290,10 @@ body.totem-kiosk {
     padding: 0.75rem;
 }
 
+.totem-product__media .material-symbols-outlined {
+    color: #ddd;
+}
+
 .totem-product__body {
     padding: 1rem;
     display: flex;
@@ -242,15 +304,16 @@ body.totem-kiosk {
 
 .totem-product__name {
     font-weight: 700;
-    font-size: 0.95rem;
-    line-height: 1.3;
+    font-size: 0.9rem;
+    line-height: 1.35;
     min-height: 2.6em;
+    color: var(--lig-text);
 }
 
 .totem-product__price {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 800;
-    color: #f7d53c;
+    color: var(--lig-yellow-text);
 }
 
 .totem-product__qty {
@@ -265,11 +328,15 @@ body.totem-kiosk {
     width: 48px;
     height: 48px;
     border-radius: 999px;
-    border: none;
-    background: rgba(247, 213, 60, 0.15);
-    color: #f7d53c;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow-text);
     font-size: 1.5rem;
     font-weight: 700;
+}
+
+.totem-qty-btn:disabled {
+    opacity: 0.45;
 }
 
 .totem-qty-value {
@@ -277,6 +344,7 @@ body.totem-kiosk {
     text-align: center;
     font-size: 1.25rem;
     font-weight: 800;
+    color: var(--lig-text);
 }
 
 .totem-cart-panel {
@@ -284,7 +352,7 @@ body.totem-kiosk {
     inset: 0;
     z-index: 80;
     display: none;
-    background: rgba(0, 0, 0, 0.72);
+    background: var(--lig-overlay);
 }
 
 .totem-cart-panel--open {
@@ -296,12 +364,19 @@ body.totem-kiosk {
 .totem-cart-sheet {
     width: min(720px, 100%);
     max-height: 88dvh;
-    background: #121212;
+    background: var(--lig-surface);
     border-radius: 1.5rem 1.5rem 0 0;
     padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    box-shadow: var(--lig-shadow);
+    border-top: 1px solid var(--lig-border);
+}
+
+.totem-cart-sheet h2 {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    color: var(--lig-text);
 }
 
 .totem-cart-list {
@@ -316,15 +391,16 @@ body.totem-kiosk {
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--lig-border);
 }
 
 .totem-cart-line__name {
     font-weight: 600;
+    color: var(--lig-text);
 }
 
 .totem-cart-line__meta {
-    color: #aaa;
+    color: var(--lig-text-muted);
     font-size: 0.875rem;
 }
 
@@ -334,13 +410,18 @@ body.totem-kiosk {
     align-items: center;
     font-size: 1.25rem;
     font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-cart-total strong {
+    color: var(--lig-yellow-text);
 }
 
 .totem-footer {
     padding: 0.75rem 1.25rem 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: #0e0e0e;
-    color: #888;
+    border-top: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text-subtle);
     font-size: 0.75rem;
     text-align: center;
 }
@@ -350,7 +431,7 @@ body.totem-kiosk {
     bottom: 4.5rem;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.85);
+    background: var(--lig-text);
     color: #fff;
     padding: 0.5rem 1rem;
     border-radius: 999px;
@@ -359,6 +440,7 @@ body.totem-kiosk {
     pointer-events: none;
     transition: opacity 0.2s ease;
     z-index: 70;
+    box-shadow: var(--lig-shadow);
 }
 
 .totem-idle-hint--visible {
@@ -372,7 +454,7 @@ body.totem-kiosk {
     display: none;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--lig-overlay);
     padding: 1rem;
 }
 
@@ -382,27 +464,47 @@ body.totem-kiosk {
 
 .totem-admin-card {
     width: min(400px, 100%);
-    background: #181818;
-    border-radius: 1.25rem;
+    background: var(--lig-surface);
+    border-radius: 1rem;
     padding: 1.5rem;
+    border: 1px solid var(--lig-border);
+    box-shadow: var(--lig-shadow);
 }
 
 .totem-admin-card h2 {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
     font-size: 1.25rem;
     font-weight: 800;
     margin-bottom: 1rem;
+    color: var(--lig-text);
+}
+
+.totem-muted {
+    color: var(--lig-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
 }
 
 .totem-admin-card input {
     width: 100%;
     min-height: 52px;
     border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: #0e0e0e;
-    color: #fff;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
     padding: 0 1rem;
     font-size: 1.125rem;
     margin-bottom: 1rem;
+}
+
+body.totem-kiosk .lig-payment-page {
+    min-height: auto;
+}
+
+body.totem-kiosk .lig-payment-card {
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
+    box-shadow: var(--lig-shadow-sm);
 }
 
 @media (max-width: 768px) {
@@ -417,7 +519,7 @@ body.totem-kiosk {
         overflow-y: hidden;
         gap: 0.5rem;
         border-right: none;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--lig-border);
     }
 
     .totem-cat-btn {

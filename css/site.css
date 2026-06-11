@@ -2029,6 +2029,25 @@ html.lig-app-standalone .ze-app-header {
     flex-shrink: 0;
 }
 
+.lig-login-phone-btn:hover {
+    border-color: rgba(247, 213, 60, 0.35);
+    background: var(--lig-yellow-light);
+}
+
+.lig-login-phone-btn:active {
+    transform: scale(0.98);
+}
+
+.lig-login-phone-btn__icon {
+    flex-shrink: 0;
+    font-size: 1.35rem;
+    color: var(--lig-text);
+}
+
+.lig-login-phone-panel {
+    margin-top: 0.75rem;
+}
+
 .lig-login-divider {
     display: flex;
     align-items: center;

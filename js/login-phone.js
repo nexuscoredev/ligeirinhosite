@@ -4,13 +4,28 @@
     const routing = window.LigeirinhoAuthRouting;
     if (!auth || !phoneAuth || !routing) return;
 
+    const phonePanel = document.getElementById('login-phone');
+    const phoneToggle = document.getElementById('login-phone-toggle');
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
     const submitBtn = document.getElementById('login-phone-submit');
     const statusEl = document.getElementById('login-status');
-
     const params = new URLSearchParams(window.location.search);
     const nextUrl = params.get('next') || '';
+
+    const openPhonePanel = () => {
+        if (!phonePanel || !phoneToggle) return;
+        phonePanel.hidden = false;
+        phoneToggle.hidden = true;
+        phoneToggle.setAttribute('aria-expanded', 'true');
+        window.setTimeout(() => phoneInput?.focus(), 80);
+    };
+
+    phoneToggle?.addEventListener('click', openPhonePanel);
+
+    if (params.get('metodo') === 'telefone') {
+        openPhonePanel();
+    }
 
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;

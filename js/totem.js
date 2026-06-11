@@ -213,7 +213,7 @@
 </div>`
                   )
                   .join('')
-            : '<p class="text-gray-400">Seu carrinho está vazio.</p>';
+            : '<p class="totem-muted">Seu carrinho está vazio.</p>';
     };
 
     const openCart = () => {
@@ -370,9 +370,14 @@
 
         const s = session();
         unitSettings = resolveUnitSettings();
-        if (unitLabel) unitLabel.textContent = unitSettings.label || 'Ligeirinho Totem';
+        if (unitLabel) {
+            unitLabel.innerHTML =
+                '<span class="lig-brand__text">Ligeirinho</span> <span class="lig-brand__app">Parceiros</span>';
+        }
         if (deviceLabel) {
-            deviceLabel.textContent = s?.totemLabel || s?.login || s?.name || 'Autoatendimento';
+            const unitName = unitSettings?.label;
+            const device = s?.totemLabel || s?.login || s?.name;
+            deviceLabel.textContent = [unitName, device].filter(Boolean).join(' · ') || 'Autoatendimento';
         }
 
         const [catalogRes, configRes, packCfg, tierCfg] = await Promise.all([

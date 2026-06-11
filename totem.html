@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="totem-kiosk">
+<html lang="pt-BR" class="totem-kiosk" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <title>Totem - Ligeirinho Parceiros</title>
 <link rel="icon" href="img/app-icon-192.png" type="image/png">
-<meta name="theme-color" content="#080808">
+<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script src="js/theme.js"></script>
+<script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="css/totem.css">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,7 +21,7 @@
 <div class="totem-header__brand" id="totem-brand-tap">
 <img class="totem-header__logo" src="img/ligeirinhologo.png" alt="Ligeirinho" width="48" height="48">
 <div>
-<div class="totem-header__title" id="totem-unit-label">Ligeirinho Totem</div>
+<div class="totem-header__title" id="totem-unit-label"><span class="lig-brand__text">Ligeirinho</span> <span class="lig-brand__app">Parceiros</span></div>
 <div class="totem-header__sub" id="totem-device-label">Autoatendimento</div>
 </div>
 </div>
@@ -53,7 +54,7 @@ Carrinho
 </section>
 </main>
 
-<footer class="totem-footer" id="totem-footer-tap">Ligeirinho Totem · Toque e pague com segurança</footer>
+<footer class="totem-footer" id="totem-footer-tap">Ligeirinho Parceiros · Toque e pague com segurança</footer>
 </div>
 
 <div id="totem-cart-panel" class="totem-cart-panel" aria-hidden="true">
@@ -78,7 +79,7 @@ Carrinho
 <div id="totem-admin-modal" class="totem-admin-modal" aria-hidden="true">
 <div class="totem-admin-card" role="dialog" aria-labelledby="totem-admin-title">
 <h2 id="totem-admin-title">Acesso administrativo</h2>
-<p class="text-sm text-gray-400 mb-3">Informe o PIN para sair do modo Totem.</p>
+<p class="totem-muted">Informe o PIN para sair do modo Totem.</p>
 <input id="totem-admin-pin" type="password" inputmode="numeric" autocomplete="off" placeholder="PIN administrativo">
 <div class="flex gap-2">
 <button type="button" class="totem-btn totem-btn--ghost flex-1" id="totem-admin-cancel">Cancelar</button>
