@@ -372,12 +372,15 @@
         unitSettings = resolveUnitSettings();
         if (unitLabel) {
             unitLabel.innerHTML =
-                '<span class="lig-brand__text">Ligeirinho</span> <span class="lig-brand__app">Parceiros</span>';
+                '<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Totem</span></span>';
         }
         if (deviceLabel) {
             const unitName = unitSettings?.label;
             const device = s?.totemLabel || s?.login || s?.name;
-            deviceLabel.textContent = [unitName, device].filter(Boolean).join(' · ') || 'Autoatendimento';
+            const parts = [];
+            if (unitName && unitName !== 'Ligeirinho') parts.push(unitName);
+            if (device && !/^totem$/i.test(String(device))) parts.push(device);
+            deviceLabel.textContent = parts.join(' · ') || 'Autoatendimento';
         }
 
         const [catalogRes, configRes, packCfg, tierCfg] = await Promise.all([

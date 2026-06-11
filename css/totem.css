@@ -71,17 +71,8 @@ body.totem-kiosk {
     padding: 0.25rem;
 }
 
-.totem-header__title {
-    font-family: 'Hanken Grotesk', system-ui, sans-serif;
-    font-weight: 800;
-    font-size: 1.0625rem;
-    line-height: 1.2;
-    color: var(--lig-text);
-}
-
-.totem-header__title .lig-brand__app {
-    color: var(--lig-yellow-text);
-    font-weight: 700;
+.totem-header__title .lig-brand__wordmark {
+    font-size: 1.25rem;
 }
 
 .totem-header__sub {
