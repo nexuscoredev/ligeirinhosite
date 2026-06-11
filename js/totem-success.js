@@ -34,7 +34,7 @@
         }
 
         if (!orderId) {
-            root.innerHTML = `<div class="lig-payment-card"><h1 class="lig-payment-title">Pedido confirmado</h1><p class="lig-payment-lead">Obrigado pela preferência.</p><button type="button" class="totem-btn totem-btn--primary w-full mt-6" id="totem-success-home">Novo pedido</button></div>`;
+            root.innerHTML = `<div class="lig-payment-card"><div class="totem-success-icon"><span class="material-symbols-outlined">check_circle</span></div><h1 class="lig-payment-title">Pedido confirmado</h1><p class="lig-payment-lead">Obrigado pela preferência.</p><button type="button" class="totem-btn totem-btn--primary totem-btn--xl w-full mt-6" id="totem-success-home">Novo pedido</button></div>`;
             document.getElementById('totem-success-home')?.addEventListener('click', goHome);
             window.setTimeout(goHome, timeoutMs);
             return;
@@ -46,14 +46,14 @@
             if (!res.ok) throw new Error(data.error || 'Pedido não encontrado');
             const order = data.order;
 
-            root.innerHTML = `<div class="lig-payment-card">
-<span class="material-symbols-outlined lig-payment-icon" style="color:#00e676;font-size:3rem">check_circle</span>
-<h1 class="lig-payment-title">Pagamento confirmado!</h1>
-<p class="lig-payment-lead">Retire seu pedido no balcão. Mostre o número abaixo se solicitado.</p>
-<p class="text-3xl font-extrabold my-4 tracking-widest">${esc(order.id.slice(0, 8).toUpperCase())}</p>
+            root.innerHTML = `<div class="lig-payment-card lig-payment-card--success">
+<div class="totem-success-icon"><span class="material-symbols-outlined">check_circle</span></div>
+<h1 class="lig-payment-title">Pagamento confirmado</h1>
+<p class="lig-payment-lead">Retire seu pedido no balcão. Mostre o código abaixo se solicitado.</p>
+<p class="totem-success-code">${esc(order.id.slice(0, 8).toUpperCase())}</p>
 <p class="lig-payment-summary__total"><span>Total pago</span><strong>${formatPrice(order.total)}</strong></p>
 <p class="lig-payment-hint mt-4">A tela reinicia automaticamente em alguns segundos.</p>
-<button type="button" class="totem-btn totem-btn--primary w-full mt-6" id="totem-success-home">Novo pedido</button>
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl w-full mt-6" id="totem-success-home">Novo pedido</button>
 </div>`;
 
             cartApi?.saveCart?.({});

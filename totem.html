@@ -40,10 +40,24 @@ Carrinho
 
 <main class="totem-main">
 <section id="totem-view-welcome" class="totem-view totem-view--active totem-welcome" aria-label="Boas-vindas">
+<div class="totem-welcome__glow" aria-hidden="true"></div>
+<div class="totem-welcome__content">
+<div class="totem-welcome__logo-wrap">
 <img class="totem-welcome__logo" src="img/ligeirinhologo.png" alt="Ligeirinho">
-<h1 class="totem-welcome__title">Faça seu pedido</h1>
-<p class="totem-welcome__lead">Toque para começar. Escolha os produtos, pague com Pix, crédito ou débito e retire na loja.</p>
-<button type="button" class="totem-btn totem-btn--primary totem-welcome__cta" id="totem-start-btn">Toque para começar</button>
+</div>
+<p class="totem-welcome__eyebrow">Bem-vindo ao</p>
+<h1 class="totem-welcome__wordmark"><span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Totem</span></span></h1>
+<p class="totem-welcome__lead">Escolha suas bebidas, pague com segurança e retire no balcão em poucos toques.</p>
+<ul class="totem-welcome__features" aria-label="Benefícios">
+<li><span class="material-symbols-outlined" aria-hidden="true">qr_code_2</span> Pix instantâneo</li>
+<li><span class="material-symbols-outlined" aria-hidden="true">credit_card</span> Crédito e débito</li>
+<li><span class="material-symbols-outlined" aria-hidden="true">storefront</span> Retirada na loja</li>
+</ul>
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl totem-welcome__cta" id="totem-start-btn">
+<span>Toque para começar</span>
+<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+</button>
+</div>
 </section>
 
 <section id="totem-view-catalog" class="totem-view totem-catalog" aria-label="Catálogo" hidden>
@@ -54,11 +68,12 @@ Carrinho
 </section>
 </main>
 
-<footer class="totem-footer" id="totem-footer-tap">Ligeirinho Totem · Toque e pague com segurança</footer>
+<footer class="totem-footer" id="totem-footer-tap">Ligeirinho Totem · Pagamento seguro · Retirada no balcão</footer>
 </div>
 
 <div id="totem-cart-panel" class="totem-cart-panel" aria-hidden="true">
 <div class="totem-cart-sheet" role="dialog" aria-labelledby="totem-cart-title">
+<div class="totem-cart-sheet__handle" aria-hidden="true"></div>
 <div class="flex justify-between items-center">
 <h2 id="totem-cart-title" class="text-xl font-bold">Seu pedido</h2>
 <button type="button" class="totem-btn totem-btn--ghost" id="totem-cart-close" aria-label="Fechar">
@@ -67,10 +82,10 @@ Carrinho
 </div>
 <div class="totem-cart-list" id="totem-cart-list"></div>
 <div class="totem-cart-total">
-<span>Total</span>
+<span>Total do pedido</span>
 <strong id="totem-cart-total">R$ 0,00</strong>
 </div>
-<button type="button" class="totem-btn totem-btn--primary w-full" id="totem-checkout-btn" disabled>Ir para pagamento</button>
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl w-full" id="totem-checkout-btn" disabled>Ir para pagamento</button>
 </div>
 </div>
 

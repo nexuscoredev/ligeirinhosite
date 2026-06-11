@@ -75,6 +75,10 @@
             const active = key === name;
             el.classList.toggle('totem-view--active', active);
             el.hidden = !active;
+            if (active) {
+                el.classList.add('totem-view--entering');
+                window.setTimeout(() => el.classList.remove('totem-view--entering'), 480);
+            }
         });
         const inCatalog = name === 'catalog';
         homeBtn.hidden = !inCatalog;
@@ -142,7 +146,7 @@
                     ? pricing.cartItemName({ ...variant, tier: pricing.getDefaultTier(group) }, group)
                     : product.name;
                 const price = active.price;
-                return `<article class="totem-product" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}">
+                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}">
 <div class="totem-product__media">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined" style="font-size:3rem;color:#555">liquor</span>'}</div>
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
