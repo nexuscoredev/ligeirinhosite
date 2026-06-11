@@ -23,7 +23,7 @@
         const login = String(loginInput?.value || '').trim();
         const password = String(passwordInput?.value || '');
         if (!login || !password) {
-            setStatus('Informe usuário e senha do Hub.', true);
+            setStatus('Informe usuário e senha.', true);
             return;
         }
 
