@@ -94,9 +94,21 @@ async function fetchUsuarioByPhone(config, phone) {
     return Array.isArray(rows) ? rows[0] : null;
 }
 
+const TOTEM_LOGINS = new Set(['totem', 'totem_device', 'totem-loja', 'totemloja']);
+
+function resolveRoleFromUsuario(usuario) {
+    const loginKey = String(usuario?.login || '')
+        .trim()
+        .toLowerCase();
+    if (TOTEM_LOGINS.has(loginKey) || loginKey.startsWith('totem')) {
+        return loginKey.includes('device') ? 'TOTEM_DEVICE' : 'TOTEM';
+    }
+    return normalizeRole(usuario.cargo);
+}
+
 function profileFromUsuario(usuario, extras = {}) {
     if (!usuario?.ativo) return null;
-    const role = normalizeRole(usuario.cargo);
+    const role = resolveRoleFromUsuario(usuario);
     return {
         sub: usuario.id,
         email: usuario.email || extras.email || '',
