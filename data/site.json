@@ -20,6 +20,6 @@
     "projectId": "tugbsnjyvfhyvtivfhea",
     "url": "https://tugbsnjyvfhyvtivfhea.supabase.co",
     "dashboardUrl": "https://supabase.com/dashboard/project/tugbsnjyvfhyvtivfhea",
-    "tables": ["orders"]
+    "tables": ["orders", "customers", "mp_charges", "wallet", "wallet_transactions", "finance_settings", "payment_events"]
   }
 }

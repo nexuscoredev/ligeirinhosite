@@ -10,6 +10,7 @@
     "deploy": "npx vercel --prod",
     "preview": "vite preview",
     "sync:catalogo": "node scripts/sync-catalogo-from-hub.mjs",
+    "migrate:finance": "node scripts/apply-finance-migration.mjs",
     "totem": "echo \"Abra http://localhost:5173/totem.html após login Hub com cargo Totem\""
   },
   "devDependencies": {

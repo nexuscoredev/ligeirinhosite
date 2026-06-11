@@ -1,4 +1,4 @@
-import { paymentEnv, assertPaymentBackend } from '../scripts/payment-env.mjs';
+import { paymentEnv, assertPaymentBackend } from '../../scripts/payment-env.mjs';
 
 export default function handler(req, res) {
     const host = req.headers['x-forwarded-host'] || req.headers.host;
