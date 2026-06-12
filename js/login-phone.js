@@ -4,28 +4,16 @@
     const routing = window.LigeirinhoAuthRouting;
     if (!auth || !phoneAuth || !routing) return;
 
-    const phonePanel = document.getElementById('login-phone');
+    const phoneModal = document.getElementById('login-phone-modal');
     const phoneToggle = document.getElementById('login-phone-toggle');
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
     const submitBtn = document.getElementById('login-phone-submit');
-    const statusEl = document.getElementById('login-status');
+    const statusEl = document.getElementById('login-phone-status');
     const params = new URLSearchParams(window.location.search);
     const nextUrl = params.get('next') || '';
 
-    const openPhonePanel = () => {
-        if (!phonePanel || !phoneToggle) return;
-        phonePanel.hidden = false;
-        phoneToggle.hidden = true;
-        phoneToggle.setAttribute('aria-expanded', 'true');
-        window.setTimeout(() => phoneInput?.focus(), 80);
-    };
-
-    phoneToggle?.addEventListener('click', openPhonePanel);
-
-    if (params.get('metodo') === 'telefone') {
-        openPhonePanel();
-    }
+    const closeTriggers = () => phoneModal?.querySelectorAll('[data-login-phone-close]') || [];
 
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;
@@ -34,6 +22,42 @@
         statusEl.classList.toggle('lig-login-status--error', isError);
         statusEl.classList.toggle('lig-login-status--ok', !isError && Boolean(msg));
     };
+
+    const openPhoneModal = () => {
+        if (!phoneModal) return;
+        phoneModal.classList.add('lig-login-modal--open');
+        phoneModal.setAttribute('aria-hidden', 'false');
+        document.documentElement.classList.add('lig-login-modal-open');
+        phoneToggle?.setAttribute('aria-expanded', 'true');
+        window.setTimeout(() => phoneInput?.focus(), 80);
+    };
+
+    const closePhoneModal = () => {
+        if (!phoneModal) return;
+        phoneModal.classList.remove('lig-login-modal--open');
+        phoneModal.setAttribute('aria-hidden', 'true');
+        document.documentElement.classList.remove('lig-login-modal-open');
+        phoneToggle?.setAttribute('aria-expanded', 'false');
+        setStatus('');
+        phoneToggle?.focus();
+    };
+
+    phoneToggle?.addEventListener('click', openPhoneModal);
+
+    closeTriggers().forEach((el) => {
+        el.addEventListener('click', closePhoneModal);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && phoneModal?.classList.contains('lig-login-modal--open')) {
+            e.preventDefault();
+            closePhoneModal();
+        }
+    });
+
+    if (params.get('metodo') === 'telefone') {
+        openPhoneModal();
+    }
 
     phoneInput?.addEventListener('input', () => {
         if (!phoneInput) return;

@@ -2052,7 +2052,71 @@ body.lig-login-page {
 }
 
 .lig-login-phone-panel {
-    margin-top: 0.75rem;
+    margin-top: 0;
+}
+
+.lig-login-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.lig-login-modal--open {
+    display: flex;
+}
+
+html.lig-login-modal-open {
+    overflow: hidden;
+}
+
+.lig-login-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--lig-overlay);
+}
+
+.lig-login-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 24rem);
+    max-height: min(90dvh, 32rem);
+    overflow-y: auto;
+    margin: 0;
+}
+
+.lig-login-modal__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--lig-text-muted);
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+}
+
+.lig-login-modal__close .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.lig-login-modal__close:hover {
+    color: var(--lig-text);
+    background: rgba(127, 127, 127, 0.12);
+}
+
+.lig-login-modal__dialog .lig-login-phone__title {
+    padding-right: 2rem;
 }
 
 .lig-login-divider {
