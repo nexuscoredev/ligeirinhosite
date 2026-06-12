@@ -169,7 +169,7 @@ async function main() {
     if (test.error) throw new Error(`Teste de login falhou: ${test.error}`);
 
     console.log('Login test OK.');
-    console.log('Use em https://ligeirinhobebidas.vercel.app/login');
+    console.log('Use em https://ligeirinhoparceiros.vercel.app/');
     console.log('  Usuário Hub: Totem');
     console.log('  Senha: admin123');
 }

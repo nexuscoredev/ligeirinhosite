@@ -6,6 +6,8 @@
   "_comment": "Produção: Vercel env vars (GOOGLE_CLIENT_ID). Dev: .env.local ou data/auth-config.local.json",
   "_origensAutorizadas": [
     "http://localhost:3456",
-    "https://ligeirinhobebidas.vercel.app"
+    "https://ligeirinhoparceiros.vercel.app",
+    "https://ligeirinhosite-nexus-79f43b6c.vercel.app",
+    "https://ligeirinhosite-git-main-nexus-79f43b6c.vercel.app"
   ]
 }

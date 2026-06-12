@@ -1,6 +1,6 @@
 {
   "name": "Ligeirinho Parceiros",
-  "productionUrl": "https://ligeirinhobebidas.vercel.app",
+  "productionUrl": "https://ligeirinhoparceiros.vercel.app",
   "hosting": {
     "provider": "vercel",
     "project": "ligeirinhosite",

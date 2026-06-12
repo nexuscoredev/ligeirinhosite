@@ -3,5 +3,5 @@
   "appleClientId": "",
   "appleRedirectUri": "",
   "requireLogin": false,
-  "_comment": "Telefone: nome + celular no login (sem SMS)."
+  "_comment": "Telefone: nome + celular no login (sem SMS). OAuth: registrar origens em auth-config.example.json (ligeirinhoparceiros.vercel.app)."
 }
