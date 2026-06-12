@@ -1985,62 +1985,63 @@ html.lig-app-standalone .ze-app-header {
     width: 100%;
 }
 
-.lig-login-google-mount {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
-
-.lig-login-google-mount > div {
-    width: 100% !important;
-    display: flex;
-    justify-content: center;
-}
-
-.lig-login-google-btn,
-.lig-login-oauth-btn {
+.lig-login-oauth-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.625rem;
+    gap: 0.875rem;
     width: 100%;
-    min-height: 3.25rem;
-    padding: 0 1.25rem;
-    border-radius: 9999px;
-    border: 1px solid var(--lig-border);
-    background: var(--lig-surface);
-    color: var(--lig-text);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    transition: background 0.2s, border-color 0.2s, transform 0.15s;
 }
 
-.lig-login-google-btn:hover {
-    border-color: rgba(247, 213, 60, 0.35);
-    background: var(--lig-yellow-light);
-}
-
-.lig-login-google-btn:active {
-    transform: scale(0.98);
-}
-
-.lig-login-google-icon {
+.lig-login-google-mount {
+    display: flex;
+    justify-content: center;
+    width: auto;
     flex-shrink: 0;
 }
 
+.lig-login-google-mount > div {
+    width: auto !important;
+    display: flex;
+    justify-content: center;
+}
+
+.lig-login-oauth-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    cursor: pointer;
+}
+
+.lig-login-google-btn:hover,
 .lig-login-phone-btn:hover {
     border-color: rgba(247, 213, 60, 0.35);
     background: var(--lig-yellow-light);
 }
 
+.lig-login-google-btn:active,
 .lig-login-phone-btn:active {
-    transform: scale(0.98);
+    transform: scale(0.96);
+}
+
+.lig-login-google-icon {
+    flex-shrink: 0;
+    width: 1.375rem;
+    height: 1.375rem;
 }
 
 .lig-login-phone-btn__icon {
     flex-shrink: 0;
-    font-size: 1.35rem;
+    font-size: 1.375rem;
     color: var(--lig-text);
 }
 

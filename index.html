@@ -87,15 +87,15 @@
 
 <div class="lig-login-actions">
 
+<div class="lig-login-oauth-row" role="group" aria-label="Entrar com Google ou telefone">
 <div id="google-signin-mount" class="lig-login-google-mount" hidden></div>
-
-<button type="button" id="login-google-btn" class="lig-login-oauth-btn lig-login-google-btn">
-
-<img src="img/icon-google.svg" alt="" width="20" height="20" class="lig-login-google-icon">
-
-Continuar com Google
-
+<button type="button" id="login-google-btn" class="lig-login-oauth-icon lig-login-google-btn" aria-label="Continuar com Google" hidden>
+<img src="img/icon-google.svg" alt="" width="22" height="22" class="lig-login-google-icon">
 </button>
+<button type="button" id="login-phone-toggle" class="lig-login-oauth-icon lig-login-phone-btn" aria-expanded="false" aria-controls="login-phone" aria-label="Entrar com telefone">
+<span class="material-symbols-outlined lig-login-phone-btn__icon" aria-hidden="true">phone_iphone</span>
+</button>
+</div>
 
 <div class="lig-login-divider" aria-hidden="true"><span>ou</span></div>
 
@@ -104,13 +104,6 @@ Continuar com Google
 <input id="login-hub-password" class="lig-login-setup__input" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
 <button type="button" id="login-hub-submit" class="lig-login-setup__save">Entrar</button>
 </section>
-
-<div class="lig-login-divider" aria-hidden="true"><span>ou</span></div>
-
-<button type="button" id="login-phone-toggle" class="lig-login-oauth-btn lig-login-phone-btn" aria-expanded="false" aria-controls="login-phone">
-<span class="material-symbols-outlined lig-login-phone-btn__icon" aria-hidden="true">phone_iphone</span>
-Entrar com telefone
-</button>
 
 <section id="login-phone" class="lig-login-phone lig-login-phone-panel" aria-labelledby="login-phone-title" hidden>
 <h2 id="login-phone-title" class="lig-login-phone__title">Entrar com telefone</h2>

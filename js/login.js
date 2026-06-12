@@ -70,19 +70,17 @@
                 googleMount.innerHTML = '';
                 googleMount.hidden = false;
                 window.google.accounts.id.renderButton(googleMount, {
-                    type: 'standard',
+                    type: 'icon',
                     theme: 'outline',
-                    size: 'large',
-                    text: 'continue_with',
-                    shape: 'pill',
-                    width: Math.min(360, googleMount.offsetWidth || 360),
+                    size: 'medium',
+                    shape: 'circle',
                     locale: 'pt-BR',
                 });
-                googleBtn?.classList.add('hidden');
+                googleBtn?.setAttribute('hidden', '');
                 return;
             }
 
-            googleBtn?.classList.remove('hidden');
+            googleBtn?.removeAttribute('hidden');
             googleBtn?.addEventListener(
                 'click',
                 () => {
@@ -109,7 +107,7 @@
             return;
         }
 
-        googleBtn?.classList.remove('hidden');
+        googleBtn?.removeAttribute('hidden');
         googleMount && (googleMount.hidden = true);
     });
 })();
