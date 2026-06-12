@@ -2062,7 +2062,7 @@ body.lig-login-page {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 0.75rem;
 }
 
 .lig-login-modal--open {
@@ -2082,21 +2082,25 @@ html.lig-login-modal-open {
 .lig-login-modal__dialog {
     position: relative;
     z-index: 1;
-    width: min(100%, 24rem);
-    max-height: min(90dvh, 32rem);
+    width: min(calc(100vw - 1.5rem), 17.5rem);
+    max-height: min(90dvh, 28rem);
     overflow-y: auto;
     margin: 0;
 }
 
+.lig-login-modal__dialog.lig-login-phone {
+    padding: 0.875rem 0.75rem 0.875rem;
+}
+
 .lig-login-modal__close {
     position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+    top: 0.5rem;
+    right: 0.5rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    width: 1.75rem;
+    height: 1.75rem;
     padding: 0;
     border: none;
     border-radius: 9999px;
@@ -2107,7 +2111,7 @@ html.lig-login-modal-open {
 }
 
 .lig-login-modal__close .material-symbols-outlined {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
 }
 
 .lig-login-modal__close:hover {
@@ -2116,7 +2120,40 @@ html.lig-login-modal-open {
 }
 
 .lig-login-modal__dialog .lig-login-phone__title {
-    padding-right: 2rem;
+    padding-right: 1.5rem;
+    margin-bottom: 0.125rem;
+    font-size: 0.9375rem;
+}
+
+.lig-login-modal__dialog .lig-login-phone__hint {
+    margin-bottom: 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.lig-login-modal__dialog .lig-login-setup__label {
+    margin-bottom: 0.25rem;
+}
+
+.lig-login-modal__dialog .lig-login-setup__input {
+    min-height: 2.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.lig-login-modal__dialog .lig-login-setup__input + .lig-login-setup__label {
+    margin-top: 0.5rem;
+}
+
+.lig-login-modal__dialog .lig-login-setup__save {
+    min-height: 2.375rem;
+    margin-top: 0.625rem;
+    font-size: 0.875rem;
+}
+
+.lig-login-modal__dialog .lig-login-status {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
 }
 
 .lig-login-divider {
