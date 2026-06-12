@@ -2027,16 +2027,62 @@ body.lig-login-page {
     background: var(--lig-yellow-light);
 }
 
-.lig-login-google-btn:active,
-.lig-login-phone-btn:active {
-    transform: scale(0.96);
+.lig-login-google-proxy {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+.lig-login-google-mount {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.011;
+    cursor: pointer;
+}
+
+.lig-login-google-mount > div {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.lig-login-google-mount iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    margin: 0 !important;
 }
 
 .lig-login-google-icon {
+    position: relative;
+    z-index: 1;
     flex-shrink: 0;
     display: block;
     width: 1.5em;
     height: 1.5em;
+    pointer-events: none;
+}
+
+.lig-login-google-btn--disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.lig-login-google-btn--disabled .lig-login-google-mount {
+    display: none;
+}
+
+.lig-login-google-btn:active,
+.lig-login-phone-btn:active {
+    transform: scale(0.96);
 }
 
 .lig-login-phone-btn__icon {

@@ -9,6 +9,7 @@
 
     const statusEl = document.getElementById('login-status');
     const googleBtn = document.getElementById('login-google-btn');
+    const googleMount = document.getElementById('google-signin-mount');
 
     const isValidGoogleClientId = (id) => id.includes('.apps.googleusercontent.com');
 
@@ -49,10 +50,21 @@
         }
     };
 
-    const initGoogle = (clientId) => {
+    const disableGoogleBtn = (title) => {
+        googleBtn?.classList.add('lig-login-google-btn--disabled');
+        googleBtn?.setAttribute('aria-disabled', 'true');
+        if (title) googleBtn?.setAttribute('title', title);
+    };
+
+    const renderGoogleButton = (clientId) => {
         const boot = () => {
             if (!window.google?.accounts?.id) {
                 window.setTimeout(boot, 200);
+                return;
+            }
+
+            if (!googleMount) {
+                disableGoogleBtn('Login com Google indisponível');
                 return;
             }
 
@@ -62,16 +74,21 @@
                 auto_select: false,
                 cancel_on_tap_outside: true,
                 locale: 'pt-BR',
-                use_fedcm_for_prompt: true,
+                use_fedcm_for_prompt: false,
             });
 
-            googleBtn?.addEventListener(
-                'click',
-                () => {
-                    window.google.accounts.id.prompt();
-                },
-                { once: false }
-            );
+            googleMount.innerHTML = '';
+            googleMount.removeAttribute('aria-hidden');
+
+            window.google.accounts.id.renderButton(googleMount, {
+                type: 'icon',
+                theme: 'outline',
+                size: 'large',
+                shape: 'circle',
+                locale: 'pt-BR',
+            });
+
+            googleBtn?.classList.add('lig-login-google-btn--ready');
         };
 
         boot();
@@ -87,12 +104,11 @@
         const googleId = String(config.googleClientId || '').trim();
 
         if (isValidGoogleClientId(googleId)) {
-            initGoogle(googleId);
+            renderGoogleButton(googleId);
             return;
         }
 
-        googleBtn?.setAttribute('disabled', '');
-        googleBtn?.setAttribute('aria-disabled', 'true');
-        googleBtn?.setAttribute('title', 'Login com Google indisponível');
+        disableGoogleBtn('Login com Google indisponível');
+        setStatus('Login com Google não configurado neste ambiente.', true);
     });
 })();
