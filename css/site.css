@@ -1850,9 +1850,17 @@ html.lig-app-standalone .ze-app-header {
 }
 
 /* ── Login (estilo Zé Delivery) ── */
+html:has(body.lig-login-page),
+body.lig-login-page {
+    overflow: hidden;
+    height: 100dvh;
+}
+
 .lig-login-page {
-    --login-u: clamp(1rem, 0.9rem + 0.4vw, 1.1875rem);
-    min-height: 100dvh;
+    --login-u: clamp(0.8125rem, 0.76rem + 0.25vw, 0.9375rem);
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1861,6 +1869,7 @@ html.lig-app-standalone .ze-app-header {
     color: var(--lig-text);
     position: relative;
     font-size: var(--login-u);
+    overflow: hidden;
 }
 
 .lig-login-page #site-nav,
@@ -1901,9 +1910,12 @@ html.lig-app-standalone .ze-app-header {
 .lig-login-main {
     display: flex;
     flex-direction: column;
-    width: min(100%, clamp(20rem, 92vw, 30rem));
+    width: min(100%, clamp(20rem, 92vw, 28rem));
+    max-height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(1rem, env(safe-area-inset-bottom)));
     margin: 0 auto;
-    padding: max(1.25rem, env(safe-area-inset-top)) clamp(1.25rem, 4vw, 2rem) max(1.5rem, env(safe-area-inset-bottom));
+    padding: max(0.75rem, env(safe-area-inset-top)) clamp(1rem, 3vw, 1.5rem) max(0.75rem, env(safe-area-inset-bottom));
+    transform: scale(min(1, calc((100dvh - 2rem) / 700)));
+    transform-origin: center center;
 }
 
 .lig-login-hero {
@@ -1911,20 +1923,20 @@ html.lig-app-standalone .ze-app-header {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 0 0 1.75em;
+    padding: 0 0 1em;
 }
 
 .lig-login-logo-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.875em;
-    margin-bottom: 1.75em;
+    gap: 0.5em;
+    margin-bottom: 1em;
 }
 
 .lig-login-logo {
-    width: clamp(8.5rem, 24vw, 11.5rem);
-    height: clamp(8.5rem, 24vw, 11.5rem);
+    width: clamp(5.75rem, 15dvh, 8rem);
+    height: clamp(5.75rem, 15dvh, 8rem);
     object-fit: contain;
 }
 
@@ -1935,11 +1947,11 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-wordmark .lig-brand__text {
-    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-size: clamp(1.625rem, 4.5dvh, 2.25rem);
 }
 
 .lig-login-wordmark .lig-brand__app {
-    font-size: clamp(2.25rem, 5.5vw, 3rem);
+    font-size: clamp(1.875rem, 5dvh, 2.5rem);
 }
 
 .lig-login-illustration {
@@ -1980,7 +1992,7 @@ html.lig-app-standalone .ze-app-header {
 .lig-login-actions {
     display: flex;
     flex-direction: column;
-    gap: 1em;
+    gap: 0.75em;
     width: 100%;
 }
 
@@ -1996,8 +2008,8 @@ html.lig-app-standalone .ze-app-header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 3.25em;
-    height: 3.25em;
+    width: 3em;
+    height: 3em;
     padding: 0;
     border-radius: 50%;
     border: 1px solid var(--lig-border);
@@ -2065,7 +2077,7 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-phone {
     width: 100%;
-    padding: 1.125em;
+    padding: 0.875em;
     border-radius: 0.875em;
     border: 1px solid var(--lig-border);
     background: var(--lig-surface-alt);
@@ -2215,8 +2227,8 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-setup__input {
     width: 100%;
-    min-height: 3em;
-    padding: 0.65em 0.85em;
+    min-height: 2.65em;
+    padding: 0.55em 0.75em;
     border-radius: 0.625em;
     border: 1px solid var(--lig-border);
     background: var(--lig-surface);
@@ -2233,7 +2245,7 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-login-setup__save {
     width: 100%;
-    min-height: 3em;
+    min-height: 2.65em;
     border: none;
     border-radius: 9999px;
     background: var(--lig-yellow);
@@ -2309,22 +2321,22 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-login-legal {
-    margin-top: 1.5em;
-    padding-top: 0.25em;
-    font-size: 0.75em;
-    line-height: 1.5;
+    margin-top: 1em;
+    padding-top: 0;
+    font-size: 0.6875em;
+    line-height: 1.4;
     text-align: center;
     color: var(--lig-text-muted);
     opacity: 0.85;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (min-height: 820px) {
     .lig-login-page {
-        --login-u: clamp(1.0625rem, 0.95rem + 0.55vw, 1.25rem);
+        --login-u: clamp(0.875rem, 0.82rem + 0.3vw, 1rem);
     }
 
     .lig-login-main {
-        width: min(100%, 30rem);
+        width: min(100%, 28rem);
     }
 }
 
