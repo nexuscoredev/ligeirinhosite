@@ -9,7 +9,6 @@
 
     const statusEl = document.getElementById('login-status');
     const googleBtn = document.getElementById('login-google-btn');
-    const googleMount = document.getElementById('google-signin-mount');
 
     const isValidGoogleClientId = (id) => id.includes('.apps.googleusercontent.com');
 
@@ -66,21 +65,6 @@
                 use_fedcm_for_prompt: true,
             });
 
-            if (googleMount) {
-                googleMount.innerHTML = '';
-                googleMount.hidden = false;
-                window.google.accounts.id.renderButton(googleMount, {
-                    type: 'icon',
-                    theme: 'outline',
-                    size: 'medium',
-                    shape: 'circle',
-                    locale: 'pt-BR',
-                });
-                googleBtn?.setAttribute('hidden', '');
-                return;
-            }
-
-            googleBtn?.removeAttribute('hidden');
             googleBtn?.addEventListener(
                 'click',
                 () => {
@@ -107,7 +91,8 @@
             return;
         }
 
-        googleBtn?.removeAttribute('hidden');
-        googleMount && (googleMount.hidden = true);
+        googleBtn?.setAttribute('disabled', '');
+        googleBtn?.setAttribute('aria-disabled', 'true');
+        googleBtn?.setAttribute('title', 'Login com Google indisponível');
     });
 })();
