@@ -4,6 +4,13 @@
   "buildCommand": "",
   "outputDirectory": ".",
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/",
+      "permanent": false
+    }
+  ],
   "functions": {
     "api/**/*.js": {
       "memory": 128,

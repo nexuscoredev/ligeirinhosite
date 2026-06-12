@@ -91,7 +91,7 @@
         : 'font-nav lig-nav-account';
 
     const navItems = [
-        { id: 'inicio', href: 'index.html', label: 'Início', icon: 'home' },
+        { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Pedidos', icon: 'local_mall' },
         { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
         { id: 'contato', href: 'contato.html', label: 'Contato', icon: 'chat' },
@@ -128,7 +128,7 @@
     const navHtml = `<header class="ze-app-header sticky top-0 z-50">
 <nav class="font-nav-bar">
 <div class="flex justify-between items-center w-full px-4 md:px-margin-desktop py-3 max-w-container-max mx-auto min-h-[52px]">
-<a class="lig-brand nav-brand" href="index.html" aria-label="Ligeirinho Parceiros — início">
+<a class="lig-brand nav-brand" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
@@ -189,7 +189,7 @@ ${navMobileLinksHtml}
 </div>`;
 
     const bottomTabItems = [
-        { id: 'inicio', href: 'index.html', label: 'Início', icon: 'home' },
+        { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Categorias', icon: 'grid_view' },
         { id: 'cart', action: 'cart', label: 'Carrinho', icon: 'shopping_cart' },
         { id: 'contato', href: accountHref, label: 'Conta', icon: 'person' },
@@ -224,7 +224,7 @@ ${bottomTabItems
 <div class="lig-footer-inner">
 <div class="lig-footer-grid">
 <div class="lig-footer-col lig-footer-col--brand">
-<a class="lig-brand lig-footer-brand" href="index.html" aria-label="Ligeirinho Parceiros — início">
+<a class="lig-brand lig-footer-brand" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="32" height="32" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
@@ -238,7 +238,7 @@ ${bottomTabItems
 <div class="lig-footer-col">
 <h4 class="lig-footer-title">Navegação</h4>
 <nav class="lig-footer-nav" aria-label="Links do site">
-<a class="lig-footer-link" href="index.html">Início</a>
+<a class="lig-footer-link" href="inicio.html">Início</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
 <a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>

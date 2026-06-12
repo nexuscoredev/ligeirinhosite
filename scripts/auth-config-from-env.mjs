@@ -14,7 +14,7 @@ export function authConfigFromEnv(env = process.env, requestOrigin = null) {
         appleClientId: String(env.APPLE_CLIENT_ID || '').trim(),
         appleRedirectUri:
             String(env.APPLE_REDIRECT_URI || '').trim() ||
-            (normalizedBase ? `${normalizedBase}/login.html` : ''),
+            (normalizedBase ? `${normalizedBase}/` : ''),
         requireLogin: String(env.REQUIRE_LOGIN || '').toLowerCase() === 'true',
     };
 }

@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>Ligeirinho Parceiros - Início</title>
+<link rel="icon" href="img/app-icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="img/app-icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Parceiros">
+<meta name="description" content="Peça bebidas com rapidez — catálogo completo, carrinho e pedido pelo WhatsApp.">
+<script src="js/theme.js"></script>
+<link rel="stylesheet" href="css/site.css">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "vibrant-yellow": "#F7D53C",
+                        "vibrant-orange": "#F7D53C",
+                        "deep-black": "#1a1a1a"
+                    },
+                    spacing: {
+                        "margin-desktop": "64px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body data-page="inicio" class="antialiased min-h-screen flex flex-col font-body-md overflow-x-hidden">
+<div id="site-nav"></div>
+<main id="lig-page-main" class="flex-grow flex flex-col">
+<div id="home-app" class="min-h-[50vh]">
+<p class="px-4 py-12 text-center text-[#999] text-sm" role="status">Carregando catálogo…</p>
+</div>
+</main>
+<div id="site-footer" class="hidden md:block"></div>
+<script src="js/theme.js"></script>
+<script src="js/site-config.js"></script>
+<script src="js/app.js"></script>
+<script src="js/theme-ui.js"></script>
+<script src="js/search-synonyms.js"></script>
+<script src="js/product-pricing.js"></script>
+<script src="js/catalog-utils.js"></script>
+<script src="js/cart-store.js"></script>
+<script src="js/cart-ui.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/onboarding.js"></script>
+<script src="js/home.js"></script>
+</body></html>

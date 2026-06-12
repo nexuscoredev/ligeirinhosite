@@ -3,9 +3,9 @@
     if (!auth) return;
 
     const TOTEM_HOME = 'totem.html';
-    const PARCEIRO_HOME = 'index.html';
+    const PARCEIRO_HOME = 'inicio.html';
     const ACCOUNT_HOME = 'contato.html#minha-conta';
-    const LOGIN_PAGE = 'login.html';
+    const LOGIN_PAGE = 'index.html';
 
     const TOTEM_PAGES = new Set(['totem', 'totem-pagamento', 'totem-sucesso']);
     const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro']);

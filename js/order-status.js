@@ -38,7 +38,7 @@
 <ul class="lig-payment-summary__list lig-payment-summary__list--compact">${itemsHtml}</ul>
 </div>
 <div class="lig-payment-actions">
-<a href="index.html" class="lig-btn-primary w-full text-center">Voltar ao início</a>
+<a href="inicio.html" class="lig-btn-primary w-full text-center">Voltar ao início</a>
 <a href="pedidos.html" class="lig-btn-secondary w-full text-center mt-3">Fazer novo pedido</a>
 </div>
 </div>`;
