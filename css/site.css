@@ -1935,8 +1935,8 @@ body.lig-login-page {
 }
 
 .lig-login-logo {
-    width: clamp(5.75rem, 15dvh, 8rem);
-    height: clamp(5.75rem, 15dvh, 8rem);
+    width: clamp(7.5rem, 22dvh, 11rem);
+    height: clamp(7.5rem, 22dvh, 11rem);
     object-fit: contain;
 }
 
@@ -2077,11 +2077,15 @@ body.lig-login-page {
 
 .lig-login-phone {
     width: 100%;
-    padding: 0.875em;
-    border-radius: 0.875em;
-    border: 1px solid var(--lig-border);
-    background: var(--lig-surface-alt);
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: none;
+    background: #212121;
     text-align: left;
+}
+
+[data-theme="light"] .lig-login-phone {
+    background: #e8e8e8;
 }
 
 .lig-login-phone--disabled {
@@ -2115,6 +2119,15 @@ body.lig-login-page {
     text-align: center;
     font-size: 1.125rem;
     font-weight: 700;
+    border: none;
+    outline: none;
+    border-radius: 9999px;
+    background: none;
+    box-shadow: inset 2px 5px 10px rgba(5, 5, 5, 0.14);
+}
+
+[data-theme="dark"] .lig-login-phone__otp-input {
+    box-shadow: inset 2px 5px 10px rgba(0, 0, 0, 0.72);
 }
 
 .lig-login-apple-btn {
@@ -2227,30 +2240,54 @@ body.lig-login-page {
 
 .lig-login-setup__input {
     width: 100%;
-    min-height: 2.65em;
-    padding: 0.55em 0.75em;
-    border-radius: 0.625em;
-    border: 1px solid var(--lig-border);
-    background: var(--lig-surface);
+    max-width: none;
+    min-height: 2.75rem;
+    padding: 0.625rem 1.25rem;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    border: none;
+    outline: none;
+    border-radius: 9999px;
+    background: none;
     color: var(--lig-text);
-    font-size: 0.9375em;
-    margin-bottom: 0.65em;
+    box-shadow: inset 2px 5px 10px rgba(5, 5, 5, 0.14);
+}
+
+.lig-login-setup__input::placeholder {
+    color: #6c757d;
+}
+
+[data-theme="dark"] .lig-login-setup__input {
+    color: #fff;
+    box-shadow: inset 2px 5px 10px rgba(0, 0, 0, 0.72);
+}
+
+[data-theme="dark"] .lig-login-setup__input::placeholder {
+    color: #8a9199;
 }
 
 .lig-login-setup__input:focus {
     outline: none;
-    border-color: var(--lig-yellow);
-    box-shadow: 0 0 0 2px rgba(247, 213, 60, 0.15);
+    box-shadow:
+        inset 2px 5px 10px rgba(5, 5, 5, 0.18),
+        0 0 0 2px rgba(247, 213, 60, 0.35);
+}
+
+[data-theme="dark"] .lig-login-setup__input:focus {
+    box-shadow:
+        inset 2px 5px 10px rgba(0, 0, 0, 0.72),
+        0 0 0 2px rgba(247, 213, 60, 0.4);
 }
 
 .lig-login-setup__save {
     width: 100%;
-    min-height: 2.65em;
+    min-height: 2.75rem;
+    margin-top: 0.625rem;
     border: none;
     border-radius: 9999px;
     background: var(--lig-yellow);
     color: #fff;
-    font-size: 1em;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
 }
