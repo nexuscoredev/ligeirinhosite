@@ -387,13 +387,12 @@
             deviceLabel.textContent = parts.join(' · ') || 'Autoatendimento';
         }
 
-        const [catalogRes, configRes, packCfg, tierCfg] = await Promise.all([
-            fetch('data/catalogo.json'),
+        const [rawCatalog, configRes, packCfg, tierCfg] = await Promise.all([
+            window.LigeirinhoCatalogLoader.load(),
             fetch('data/totem-units.json'),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
         ]);
-        const rawCatalog = await catalogRes.json();
         totemConfig = await configRes.json();
         unitSettings = resolveUnitSettings();
         catalogData = filterCatalog(rawCatalog);

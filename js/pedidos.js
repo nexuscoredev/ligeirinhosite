@@ -352,15 +352,7 @@
 
 
 
-    fetch('data/catalogo.json')
-
-        .then((r) => {
-
-            if (!r.ok) throw new Error();
-
-            return r.json();
-
-        })
+    window.LigeirinhoCatalogLoader.load()
 
         .then((data) => Promise.all([pricing.loadPackConfig(), pricing.loadTierImages()]).then(() => data))
 
@@ -412,7 +404,7 @@
 
             grid.innerHTML =
 
-                '<p class="col-span-full text-center text-on-surface-variant py-8 text-sm">Erro ao carregar <code class="text-vibrant-yellow">data/catalogo.json</code>.</p>';
+                '<p class="col-span-full text-center text-on-surface-variant py-8 text-sm">Erro ao carregar o catálogo.</p>';
 
         });
 

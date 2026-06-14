@@ -17,6 +17,12 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    {
+      "path": "/api/catalog",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/js/sw.js",

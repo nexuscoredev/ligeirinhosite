@@ -220,10 +220,7 @@ ${sections}`;
     };
 
     Promise.all([
-        fetch('data/catalogo.json').then((r) => {
-            if (!r.ok) throw new Error();
-            return r.json();
-        }),
+        window.LigeirinhoCatalogLoader.load(),
         fetch('data/combos-ocasiao.json')
             .then((r) => (r.ok ? r.json() : { combos: [] }))
             .catch(() => ({ combos: [] })),

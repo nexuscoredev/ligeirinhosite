@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v32';
+const CACHE_NAME = 'ligeirinho-app-v33';
 
 const APP_SHELL = [
     '/',
@@ -23,6 +23,7 @@ const APP_SHELL = [
     '/js/cart-ui.js',
     '/js/product-pricing.js',
     '/js/catalog-utils.js',
+    '/js/catalog-loader.js',
     '/js/search-synonyms.js',
     '/js/home.js',
     '/js/pedidos.js',
