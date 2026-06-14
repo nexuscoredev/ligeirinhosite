@@ -142,7 +142,7 @@ ${navLinksHtml}
 </a>
 <div id="lig-notifications-mount" class="shrink-0"></div>
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
-<span class="material-symbols-outlined" aria-hidden="true">download</span>
+<span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
 <button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir carrinho" aria-expanded="false">
@@ -185,8 +185,8 @@ Minha conta
 </a>
 ${navMobileLinksHtml}
 <button type="button" class="${navMobileLink} w-full text-left" data-install-trigger>
-<span class="material-symbols-outlined text-[18px] align-middle mr-1" aria-hidden="true">download</span>
-Baixar app
+<span class="material-symbols-outlined text-[18px] align-middle mr-1 lig-install-trigger-icon" aria-hidden="true">download</span>
+<span class="lig-install-trigger-label">Baixar app</span>
 </button>
 </nav>
 <a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-[#25D366]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">

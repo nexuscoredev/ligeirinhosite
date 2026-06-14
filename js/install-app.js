@@ -1,5 +1,6 @@
 (function () {
     const DISMISS_KEY = 'ligeirinho-parceiros-pwa-install-dismissed';
+    const INSTALLED_KEY = 'ligeirinho-parceiros-pwa-installed';
     const DISMISS_DAYS = 14;
 
     let deferredPrompt = null;
@@ -10,6 +11,23 @@
             window.matchMedia('(display-mode: fullscreen)').matches ||
             window.navigator.standalone === true
         );
+    }
+
+    function markInstalled() {
+        try {
+            localStorage.setItem(INSTALLED_KEY, '1');
+        } catch {
+            /* ignore */
+        }
+    }
+
+    function hasInstalledApp() {
+        if (isStandalone()) return true;
+        try {
+            return localStorage.getItem(INSTALLED_KEY) === '1';
+        } catch {
+            return false;
+        }
     }
 
     function isIos() {
@@ -43,15 +61,57 @@
         }
     }
 
+    function getShareUrl() {
+        const site = window.LigeirinhoSite?.get?.() || window.LigeirinhoSite;
+        const productionUrl = site?.productionUrl;
+        if (productionUrl) return String(productionUrl).replace(/\/$/, '') + '/';
+        return window.location.origin.replace(/\/$/, '') + '/';
+    }
+
     function getModalMode() {
-        if (isStandalone()) return 'installed';
+        if (hasInstalledApp()) return 'share';
         if (isIos()) return 'ios';
         if (deferredPrompt) return 'native';
         if (isAndroid()) return 'android';
         return 'unavailable';
     }
 
-    function stepsHtml(mode) {
+    async function shareApp() {
+        const url = getShareUrl();
+        const shareData = {
+            title: 'Ligeirinho Parceiros',
+            text: 'Peça bebidas com rapidez — catálogo completo, carrinho e pedido pelo WhatsApp.',
+            url,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return 'shared';
+            } catch (err) {
+                if (err && err.name === 'AbortError') return 'cancelled';
+            }
+        }
+
+        if (navigator.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(url);
+                return 'copied';
+            } catch {
+                /* ignore */
+            }
+        }
+
+        return 'failed';
+    }
+
+    function stepsHtml(mode, shareFeedback) {
+        if (mode === 'share') {
+            return (
+                '<p class="lig-install-modal__hint">O Ligeirinho Parceiros já está na sua tela inicial. Envie o link para outros parceiros instalarem também.</p>' +
+                (shareFeedback ? `<p class="lig-install-modal__ok">${shareFeedback}</p>` : '')
+            );
+        }
         if (mode === 'ios') {
             return (
                 '<ol class="lig-install-modal__steps">' +
@@ -73,9 +133,6 @@
         if (mode === 'native') {
             return '<p class="lig-install-modal__hint">Toque em instalar — o app vai para sua tela inicial em segundos.</p>';
         }
-        if (mode === 'installed') {
-            return '<p class="lig-install-modal__ok">Você já pode abrir pelo ícone na home.</p>';
-        }
         return '<p class="lig-install-modal__hint">Abra no Chrome (Android) ou Safari (iPhone) para instalar o Ligeirinho Parceiros.</p>';
     }
 
@@ -91,6 +148,10 @@
     }
 
     function openModal() {
+        renderModal();
+    }
+
+    function renderModal(shareFeedback) {
         const existing = document.getElementById('lig-install-modal');
         if (existing) existing.remove();
 
@@ -103,24 +164,30 @@
             '<div class="lig-install-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="lig-install-title">' +
             '<div class="lig-install-modal__head">' +
             '<div><h2 id="lig-install-title" class="lig-install-modal__title">' +
-            (mode === 'installed' ? 'App instalado' : 'Baixar o app') +
+            (mode === 'share' ? 'Compartilhar o app' : 'Baixar o app') +
             '</h2>' +
-            '<p class="lig-install-modal__sub">Instale o Ligeirinho Parceiros — catálogo e pedidos na tela inicial.</p></div>' +
+            '<p class="lig-install-modal__sub">' +
+            (mode === 'share'
+                ? 'Indique o Ligeirinho Parceiros para outros revendedores.'
+                : 'Instale o Ligeirinho Parceiros — catálogo e pedidos na tela inicial.') +
+            '</p></div>' +
             '<button type="button" class="lig-install-modal__close" data-install-close aria-label="Fechar">' +
             '<span class="material-symbols-outlined" aria-hidden="true">close</span></button></div>' +
             '<div class="lig-install-modal__preview">' +
             '<img src="img/app-icon-192.png" alt="" width="48" height="48" />' +
             '<div><p class="lig-install-modal__app">Ligeirinho Parceiros</p><p class="lig-install-modal__meta">Catálogo · carrinho · pedidos</p></div></div>' +
-            stepsHtml(mode) +
+            stepsHtml(mode, shareFeedback) +
             '<div class="lig-install-modal__actions">' +
             (mode === 'native'
                 ? '<button type="button" class="lig-install-modal__primary" id="lig-install-confirm">Instalar app</button>'
-                : mode === 'ios' || mode === 'android'
-                  ? '<button type="button" class="lig-install-modal__primary" data-install-close>Entendi</button>'
-                  : '') +
-            (mode !== 'installed'
+                : mode === 'share'
+                  ? '<button type="button" class="lig-install-modal__primary" id="lig-install-share">Compartilhar</button>'
+                  : mode === 'ios' || mode === 'android'
+                    ? '<button type="button" class="lig-install-modal__primary" data-install-close>Entendi</button>'
+                    : '') +
+            (mode !== 'share'
                 ? '<button type="button" class="lig-install-modal__ghost" data-install-close>Agora não</button>'
-                : '') +
+                : '<button type="button" class="lig-install-modal__ghost" data-install-close>Fechar</button>') +
             '</div></div>';
 
         document.body.appendChild(overlay);
@@ -136,8 +203,34 @@
                 if (!deferredPrompt) return;
                 await deferredPrompt.prompt();
                 const choice = await deferredPrompt.userChoice;
-                if (choice.outcome === 'accepted') deferredPrompt = null;
+                if (choice.outcome === 'accepted') {
+                    deferredPrompt = null;
+                    markInstalled();
+                    updateInstallButtons();
+                }
                 closeModal();
+            });
+        }
+
+        const shareBtn = document.getElementById('lig-install-share');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => {
+                shareBtn.disabled = true;
+                shareBtn.textContent = 'Compartilhando…';
+                shareApp().then((outcome) => {
+                    if (outcome === 'shared') {
+                        closeModal();
+                        return;
+                    }
+                    shareBtn.disabled = false;
+                    shareBtn.textContent = 'Compartilhar';
+                    if (outcome === 'copied') {
+                        renderModal('Link copiado para a área de transferência.');
+                        return;
+                    }
+                    if (outcome === 'cancelled') return;
+                    renderModal('Não foi possível compartilhar. Copie o link manualmente.');
+                });
             });
         }
 
@@ -145,7 +238,7 @@
     }
 
     function injectBanner() {
-        if (isStandalone() || !isMobile() || isBannerDismissed()) return;
+        if (hasInstalledApp() || !isMobile() || isBannerDismissed()) return;
         const main = document.getElementById('lig-page-main');
         if (!main || main.querySelector('.lig-install-banner')) return;
 
@@ -178,8 +271,21 @@
     }
 
     function updateInstallButtons() {
+        const installed = hasInstalledApp();
+        const label = installed ? 'Compartilhar app' : 'Baixar app';
+
         document.querySelectorAll('[data-install-trigger]').forEach((btn) => {
-            btn.hidden = isStandalone();
+            btn.hidden = false;
+            btn.setAttribute('aria-label', label);
+            btn.setAttribute('title', label);
+
+            btn.querySelectorAll('.lig-install-trigger-icon').forEach((icon) => {
+                icon.textContent = installed ? 'share' : 'download';
+            });
+
+            btn.querySelectorAll('.lig-install-trigger-label').forEach((el) => {
+                el.textContent = installed ? 'Compartilhar app' : 'Baixar app';
+            });
         });
     }
 
@@ -205,6 +311,7 @@
 
         window.addEventListener('appinstalled', () => {
             deferredPrompt = null;
+            markInstalled();
             document.querySelector('.lig-install-banner')?.remove();
             updateInstallButtons();
         });
@@ -213,7 +320,9 @@
     window.LigeirinhoInstall = {
         init,
         open: openModal,
+        share: shareApp,
         isStandalone,
+        hasInstalledApp,
     };
 
     if (document.readyState === 'loading') {
