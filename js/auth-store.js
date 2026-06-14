@@ -1,5 +1,9 @@
 (function () {
     const AUTH_KEY = 'ligeirinho-auth-v1';
+    const HUB_SESSION_KEY = 'ligeirinho-hub-session-v1';
+    const HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
+    const HUB_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxpc3pwd29jd3ZreXR6eWF4dml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjczNzUsImV4cCI6MjA5NTMwMzM3NX0.rMfpheVgAKQ4HelKB0ZoNDZXiU_3XQdv7ujLHxgdjEA';
 
     const parseJwt = (token) => {
         try {
@@ -103,8 +107,79 @@
         });
     };
 
+    const loadHubSession = () => {
+        try {
+            return JSON.parse(localStorage.getItem(HUB_SESSION_KEY) || 'null');
+        } catch {
+            return null;
+        }
+    };
+
+    const saveHubSession = (session) => {
+        if (!session?.accessToken) {
+            localStorage.removeItem(HUB_SESSION_KEY);
+            return null;
+        }
+        const payload = {
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken || '',
+            expiresAt: session.expiresAt || Date.now() + 3600 * 1000,
+        };
+        localStorage.setItem(HUB_SESSION_KEY, JSON.stringify(payload));
+        return payload;
+    };
+
+    const clearHubSession = () => {
+        localStorage.removeItem(HUB_SESSION_KEY);
+    };
+
+    let refreshInflight = null;
+
+    const refreshHubAccessToken = async () => {
+        const hubSession = loadHubSession();
+        if (!hubSession?.refreshToken) return null;
+
+        if (refreshInflight) return refreshInflight;
+
+        refreshInflight = (async () => {
+            const res = await fetch(`${HUB_URL}/auth/v1/token?grant_type=refresh_token`, {
+                method: 'POST',
+                headers: {
+                    apikey: HUB_ANON_KEY,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refresh_token: hubSession.refreshToken }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                clearHubSession();
+                return null;
+            }
+            return saveHubSession({
+                accessToken: data.access_token,
+                refreshToken: data.refresh_token || hubSession.refreshToken,
+                expiresAt: Date.now() + (data.expires_in || 3600) * 1000,
+            });
+        })();
+
+        try {
+            return await refreshInflight;
+        } finally {
+            refreshInflight = null;
+        }
+    };
+
+    const getHubAccessToken = async () => {
+        const hubSession = loadHubSession();
+        if (!hubSession?.accessToken) return null;
+        if (Date.now() < hubSession.expiresAt - 60_000) return hubSession.accessToken;
+        const refreshed = await refreshHubAccessToken();
+        return refreshed?.accessToken || null;
+    };
+
     const logout = () => {
         localStorage.removeItem(AUTH_KEY);
+        clearHubSession();
         window.dispatchEvent(new CustomEvent('ligeirinho-auth-changed', { detail: null }));
         if (window.google?.accounts?.id) {
             window.google.accounts.id.disableAutoSelect();
@@ -159,7 +234,12 @@
 
     window.LigeirinhoAuth = {
         AUTH_KEY,
+        HUB_SESSION_KEY,
         TOTEM_ROLES,
+        loadHubSession,
+        saveHubSession,
+        clearHubSession,
+        getHubAccessToken,
         parseJwt,
         loadSession,
         saveSession,

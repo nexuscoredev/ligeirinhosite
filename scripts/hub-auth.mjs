@@ -64,7 +64,7 @@ async function hubSignIn(config, login, password) {
         return { error: data.error_description || data.msg || 'Usuário ou senha incorretos.' };
     }
 
-    return { accessToken: data.access_token, userId: data.user?.id, email };
+    return { accessToken: data.access_token, refreshToken: data.refresh_token, userId: data.user?.id, email };
 }
 
 async function fetchUsuarioByAuthId(config, userId, accessToken) {
@@ -132,7 +132,7 @@ export async function resolveHubLogin(config, login, password) {
     const profile = profileFromUsuario(usuario, { provider: 'hub' });
     if (!profile) return { error: 'Usuário inativo.' };
 
-    return { profile, accessToken: auth.accessToken };
+    return { profile, accessToken: auth.accessToken, refreshToken: auth.refreshToken };
 }
 
 export async function resolveProfileByEmail(config, email, extras = {}) {

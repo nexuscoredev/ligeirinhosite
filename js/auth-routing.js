@@ -65,8 +65,21 @@
     };
 
     const loginWithProfile = async (payload) => {
-        const profile = await resolveProfile(payload);
-        const session = auth.applyProfile(profile);
+        const res = await fetch('/api/auth/resolve-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Não foi possível validar o perfil.');
+
+        if (data.hubSession?.accessToken) {
+            auth.saveHubSession(data.hubSession);
+        } else if (payload.type === 'hub') {
+            auth.clearHubSession?.();
+        }
+
+        const session = auth.applyProfile(data.profile);
         if (!session) throw new Error('Não foi possível iniciar a sessão.');
         return session;
     };

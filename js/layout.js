@@ -140,6 +140,10 @@ ${navLinksHtml}
 <span class="material-symbols-outlined lig-nav-account__icon" aria-hidden="true">person</span>
 <span>Minha conta</span>
 </a>
+<div id="lig-notifications-mount" class="shrink-0"></div>
+<button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
+<span class="material-symbols-outlined" aria-hidden="true">download</span>
+</button>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
 <button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir carrinho" aria-expanded="false">
 <span class="material-symbols-outlined">shopping_cart</span>
@@ -180,6 +184,10 @@ ${showAppChrome ? `<button type="button" id="ze-location-bar" class="ze-location
 Minha conta
 </a>
 ${navMobileLinksHtml}
+<button type="button" class="${navMobileLink} w-full text-left" data-install-trigger>
+<span class="material-symbols-outlined text-[18px] align-middle mr-1" aria-hidden="true">download</span>
+Baixar app
+</button>
 </nav>
 <a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-[#25D366]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">
 <img alt="" src="${brandIcons.whatsapp}" class="h-5 w-5 shrink-0 object-contain" width="20" height="20" decoding="async">
@@ -455,6 +463,30 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         syncTabBadge();
     };
 
+    const ensureScript = (src) =>
+        new Promise((resolve) => {
+            if (document.querySelector(`script[src="${src}"]`)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => resolve();
+            script.onerror = () => resolve();
+            document.body.appendChild(script);
+        });
+
+    const initHeaderExtras = () => {
+        Promise.all([
+            ensureScript('js/auth-store.js'),
+            ensureScript('js/install-app.js'),
+            ensureScript('js/hub-notifications.js'),
+        ]).then(() => {
+            window.LigeirinhoInstall?.init?.();
+            window.LigeirinhoHubNotifications?.mount?.('#lig-notifications-mount');
+        });
+    };
+
     if (navMount && page !== 'login') {
         navMount.outerHTML = navHtml;
         if (!document.getElementById('nav-mobile-menu')) {
@@ -466,7 +498,12 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         bindMobileMenu();
         bindBottomNav();
         bindAppChrome();
+        initHeaderExtras();
     }
+
+    window.addEventListener('ligeirinho-auth-changed', () => {
+        window.LigeirinhoHubNotifications?.mount?.('#lig-notifications-mount');
+    });
 
     if (page === 'login') {
         window.LigeirinhoThemeUI?.renderAll?.();

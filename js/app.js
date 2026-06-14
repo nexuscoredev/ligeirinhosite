@@ -33,57 +33,15 @@
 
     const isStandalone =
         window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
         window.navigator.standalone === true;
 
     if (isStandalone) {
         document.documentElement.classList.add('lig-app-standalone');
     }
 
-    let deferredPrompt = null;
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        showInstallBanner();
-    });
-
-    const dismissKey = 'ligeirinho-install-dismissed';
-
-    const showInstallBanner = () => {
-        if (isStandalone || localStorage.getItem(dismissKey)) return;
-        if (document.getElementById('app-install-banner')) return;
-
-        const banner = document.createElement('div');
-        banner.id = 'app-install-banner';
-        banner.className =
-            'fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-[65] md:bottom-6 md:left-auto md:right-6 md:max-w-sm';
-        banner.innerHTML = `<div class="flex items-center gap-3 rounded-xl border border-[var(--lig-border)] bg-[var(--lig-surface)] shadow-lg px-4 py-3">
-<img src="img/ligeirinhologo.png" alt="" class="h-10 w-10 shrink-0 rounded-lg object-contain" width="40" height="40">
-<div class="min-w-0 flex-1">
-<p class="text-sm font-bold lig-cart-text leading-tight">Instalar Ligeirinho Parceiros</p>
-<p class="text-xs lig-cart-text-muted mt-0.5">Acesso rápido ao catálogo e pedidos</p>
-</div>
-<button type="button" id="app-install-btn" class="shrink-0 rounded-full bg-vibrant-yellow px-3 py-2 text-xs font-bold text-deep-black min-h-[36px]">Instalar</button>
-<button type="button" id="app-install-dismiss" class="shrink-0 p-1 lig-cart-text-muted hover:lig-cart-text" aria-label="Fechar">
-<span class="material-symbols-outlined text-[20px]">close</span>
-</button>
-</div>`;
-
-        document.body.appendChild(banner);
-
-        banner.querySelector('#app-install-btn')?.addEventListener('click', async () => {
-            if (!deferredPrompt) return;
-            deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            banner.remove();
-        });
-
-        banner.querySelector('#app-install-dismiss')?.addEventListener('click', () => {
-            localStorage.setItem(dismissKey, '1');
-            banner.remove();
-        });
+    window.LigeirinhoApp = {
+        isStandalone,
+        promptInstall: () => window.LigeirinhoInstall?.open?.(),
     };
-
-    window.LigeirinhoApp = { isStandalone, promptInstall: () => deferredPrompt?.prompt() };
 })();
