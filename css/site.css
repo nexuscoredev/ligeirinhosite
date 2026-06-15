@@ -2027,16 +2027,61 @@ body.lig-login-page {
     background: var(--lig-yellow-light);
 }
 
-.lig-login-google-btn:active,
-.lig-login-phone-btn:active {
-    transform: scale(0.96);
+.lig-login-google-proxy {
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+.lig-login-google-mount {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.011;
+    cursor: pointer;
+}
+
+.lig-login-google-mount > div {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.lig-login-google-mount iframe {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    margin: 0 !important;
 }
 
 .lig-login-google-icon {
+    position: relative;
+    z-index: 1;
     flex-shrink: 0;
     display: block;
     width: 1.5em;
     height: 1.5em;
+}
+
+.lig-login-google-btn--disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.lig-login-google-btn--disabled .lig-login-google-mount {
+    display: none;
+}
+
+.lig-login-google-btn:active,
+.lig-login-phone-btn:active {
+    transform: scale(0.96);
 }
 
 .lig-login-phone-btn__icon {
@@ -2049,6 +2094,108 @@ body.lig-login-page {
 .lig-login-google-btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+}
+
+.lig-login-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.lig-login-modal--open {
+    display: flex;
+}
+
+html.lig-login-modal-open {
+    overflow: hidden;
+}
+
+.lig-login-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--lig-overlay);
+}
+
+.lig-login-modal__dialog {
+    position: relative;
+    z-index: 1;
+    max-height: min(90dvh, 28rem);
+    overflow-y: auto;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.lig-login-modal__dialog.lig-login-phone {
+    width: min(calc(100vw - 1.5rem), 16rem);
+    max-width: 16rem;
+    padding: 0.75rem 0.625rem 0.75rem;
+}
+
+.lig-login-modal__close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--lig-text-muted);
+    cursor: pointer;
+}
+
+.lig-login-modal__close .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
+.lig-login-modal__close:hover {
+    color: var(--lig-text);
+    background: rgba(127, 127, 127, 0.12);
+}
+
+.lig-login-modal__dialog .lig-login-phone__title {
+    padding-right: 1.5rem;
+    margin-bottom: 0.125rem;
+    font-size: 0.9375rem;
+}
+
+.lig-login-modal__dialog .lig-login-phone__hint {
+    margin-bottom: 0.625rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.lig-login-modal__dialog .lig-login-setup__label {
+    margin-bottom: 0.25rem;
+}
+
+.lig-login-modal__dialog .lig-login-setup__input {
+    min-height: 2.25rem;
+    padding: 0.45rem 0.625rem;
+    font-size: 0.875rem;
+}
+
+.lig-login-modal__dialog .lig-login-setup__input + .lig-login-setup__label {
+    margin-top: 0.5rem;
+}
+
+.lig-login-modal__dialog .lig-login-setup__save {
+    min-height: 2.375rem;
+    margin-top: 0.625rem;
+    font-size: 0.875rem;
+}
+
+.lig-login-modal__dialog .lig-login-status {
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
 }
 
 .lig-login-phone-panel {
