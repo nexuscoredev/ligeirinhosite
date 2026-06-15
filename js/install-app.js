@@ -21,6 +21,34 @@
         }
     }
 
+    function clearInstalledMark() {
+        try {
+            localStorage.removeItem(INSTALLED_KEY);
+        } catch {
+            /* ignore */
+        }
+    }
+
+    async function reconcileInstallState() {
+        if (isStandalone()) {
+            markInstalled();
+            return;
+        }
+
+        if (typeof navigator.getInstalledRelatedApps !== 'function') return;
+
+        try {
+            const apps = await navigator.getInstalledRelatedApps();
+            if (apps?.length) {
+                markInstalled();
+            } else {
+                clearInstalledMark();
+            }
+        } catch {
+            /* keep existing state */
+        }
+    }
+
     function hasInstalledApp() {
         if (isStandalone()) return true;
         try {
@@ -294,19 +322,30 @@
     function init() {
         if (initialized) {
             bindTriggers();
-            updateInstallButtons();
+            void reconcileInstallState().then(() => {
+                updateInstallButtons();
+                if (!hasInstalledApp() && isMobile() && !isBannerDismissed()) {
+                    injectBanner();
+                }
+            });
             return;
         }
         initialized = true;
 
-        injectBanner();
         bindTriggers();
-        updateInstallButtons();
+        void reconcileInstallState().then(() => {
+            updateInstallButtons();
+            if (!hasInstalledApp() && isMobile() && !isBannerDismissed()) {
+                injectBanner();
+            }
+        });
 
         window.addEventListener('beforeinstallprompt', (event) => {
             event.preventDefault();
+            clearInstalledMark();
             deferredPrompt = event;
             bindTriggers();
+            updateInstallButtons();
         });
 
         window.addEventListener('appinstalled', () => {
