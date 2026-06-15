@@ -1,6 +1,6 @@
 (function () {
-    const WHATSAPP_PHONE = '5511970924909';
     const LG_QUERY = '(min-width: 1024px)';
+    const PAY_BTN_LABEL = 'Pagar com Mercado Pago';
 
     const cartShellHtml = `
 <div id="cart-panel" class="fixed bottom-8 right-8 z-[70] hidden w-96 max-w-[calc(100vw-2rem)] flex-col" role="dialog" aria-modal="true" aria-labelledby="cart-panel-title">
@@ -24,26 +24,17 @@
 </label>
 </div>
 <input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm min-h-[44px]" autocomplete="street-address">
-<select data-checkout="payment" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm min-h-[44px]">
-<option value="pix">Pagamento: Pix</option>
-<option value="dinheiro">Pagamento: Dinheiro</option>
-<option value="cartao">Pagamento: Cartão na entrega</option>
-<option value="fiado">Pagamento: Fiado (crédito)</option>
-</select>
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm resize-none"></textarea>
+<p class="text-[11px] lig-cart-text-muted leading-snug">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </div>
 <div class="lig-cart-divider border-t pt-4 shrink-0">
 <div class="flex justify-between items-center mb-4">
 <span class="font-headline-md text-base lig-cart-text">Total</span>
 <span id="cart-total" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn" class="w-full bg-vibrant-yellow hover:bg-[#D9BB35] text-deep-black font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(247,213,60,0.35)] pointer-events-none opacity-50 mb-2" disabled aria-disabled="true">
-                Pagar no app
-                <span class="material-symbols-outlined text-sm">payments</span>
+<button type="button" id="cart-pay-btn" class="lig-cart-mp-btn w-full font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 pointer-events-none opacity-50" disabled aria-disabled="true">
+                ${PAY_BTN_LABEL}
 </button>
-<a id="cart-whatsapp-btn" class="w-full border border-[#25D366]/40 text-[#128C7E] font-semibold py-2.5 rounded-full transition-colors flex items-center justify-center gap-2 text-sm pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">
-                Pedir pelo WhatsApp
-</a>
 </div>
 </div>
 </div>
@@ -68,21 +59,15 @@
 </label>
 </div>
 <input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm min-h-[44px]" autocomplete="street-address">
-<select data-checkout="payment" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm min-h-[44px]">
-<option value="pix">Pagamento: Pix</option>
-<option value="dinheiro">Pagamento: Dinheiro</option>
-<option value="cartao">Pagamento: Cartão na entrega</option>
-<option value="fiado">Pagamento: Fiado (crédito)</option>
-</select>
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm resize-none"></textarea>
+<p class="text-[11px] lig-cart-text-muted leading-snug">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </div>
 <div class="lig-cart-divider border-t pt-4 shrink-0">
 <div class="flex justify-between mb-4">
 <span class="font-headline-md lig-cart-text">Total</span>
 <span id="cart-total-mobile" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn-mobile" class="w-full bg-vibrant-yellow hover:bg-[#D9BB35] text-deep-black font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(247,213,60,0.35)] pointer-events-none opacity-50 mb-2" disabled>Pagar no app</button>
-<a id="cart-whatsapp-btn-mobile" class="w-full border border-[#25D366]/40 text-[#128C7E] font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 text-sm pointer-events-none opacity-50" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">Pedir pelo WhatsApp</a>
+<button type="button" id="cart-pay-btn-mobile" class="lig-cart-mp-btn w-full font-bold py-3 rounded-full flex items-center justify-center gap-2 pointer-events-none opacity-50" disabled>${PAY_BTN_LABEL}</button>
 </div>
 </div>
 </div>`;
@@ -262,39 +247,6 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
 
-    const buildWhatsAppMessage = (cart) => {
-        const items = cartApi.cartEntries(cart);
-        if (!items.length) return '';
-
-        const checkout = cartApi.loadCheckout();
-        const paymentLabels = { pix: 'Pix', dinheiro: 'Dinheiro', cartao: 'Cartão na entrega' };
-
-        const lines = ['Olá! Gostaria de fazer um pedido pelo Ligeirinho Parceiros:', ''];
-        items.forEach((item) => {
-            const unit = formatPrice(item.price);
-            const subtotal = formatPrice((item.price ?? 0) * item.qty);
-            lines.push(`${item.qty}x ${item.name} — ${unit} (subtotal ${subtotal})`);
-        });
-        lines.push('');
-        lines.push(`Total: ${formatPrice(cartApi.cartTotalValue(cart))}`);
-        lines.push('');
-        lines.push(`Tipo: ${checkout.deliveryType === 'retirada' ? 'Retirada na loja' : 'Entrega'}`);
-        if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {
-            lines.push(`Endereço: ${checkout.address.trim()}`);
-        }
-        lines.push(`Pagamento: ${paymentLabels[checkout.payment] || checkout.payment}`);
-        if (checkout.notes?.trim()) {
-            lines.push(`Observações: ${checkout.notes.trim()}`);
-        }
-        return lines.join('\n');
-    };
-
-    const buildWhatsAppUrl = (cart) => {
-        const text = buildWhatsAppMessage(cart);
-        if (!text) return '#';
-        return `https://api.whatsapp.com/send/?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(text)}&type=phone_number&app_absent=0`;
-    };
-
     const cartLineHtml = (item) => {
         const lineKey = item.cartKey || item.id;
         const subtotal = formatPrice((item.price ?? 0) * item.qty);
@@ -345,23 +297,12 @@
         document.documentElement.classList.toggle('lig-has-float-cart', count > 0);
     };
 
-    const setCheckoutButtons = (cart) => {
+    const setPayButtons = (cart) => {
         const hasItems = cartApi.cartItemCount(cart) > 0;
         const checkout = cartApi.loadCheckout();
         const needsAddress = checkout.deliveryType === 'entrega';
         const addressOk = !needsAddress || Boolean(checkout.address?.trim());
         const canCheckout = hasItems && addressOk;
-        const url = buildWhatsAppUrl(cart);
-
-        ['cart-whatsapp-btn', 'cart-whatsapp-btn-mobile'].forEach((id) => {
-            const btn = document.getElementById(id);
-            if (!btn) return;
-            btn.href = canCheckout ? url : '#';
-            btn.classList.toggle('pointer-events-none', !canCheckout);
-            btn.classList.toggle('opacity-50', !canCheckout);
-            btn.setAttribute('aria-disabled', canCheckout ? 'false' : 'true');
-            btn.title = needsAddress && !addressOk ? 'Informe o endereço para entrega' : '';
-        });
 
         ['cart-pay-btn', 'cart-pay-btn-mobile'].forEach((id) => {
             const btn = document.getElementById(id);
@@ -374,8 +315,6 @@
         });
     };
 
-    const setWhatsAppButtons = setCheckoutButtons;
-
     const renderCheckoutFields = () => {
         const checkout = cartApi.loadCheckout();
         document.querySelectorAll('.cart-checkout').forEach((section) => {
@@ -383,14 +322,12 @@
                 input.checked = input.value === checkout.deliveryType;
             });
             const addressEl = section.querySelector('[data-checkout="address"]');
-            const paymentEl = section.querySelector('[data-checkout="payment"]');
             const notesEl = section.querySelector('[data-checkout="notes"]');
             if (addressEl) {
                 addressEl.value = checkout.address || '';
                 addressEl.closest('.cart-checkout')?.classList.toggle('cart-checkout--retirada', checkout.deliveryType === 'retirada');
                 addressEl.classList.toggle('hidden', checkout.deliveryType === 'retirada');
             }
-            if (paymentEl) paymentEl.value = checkout.payment || 'pix';
             if (notesEl) notesEl.value = checkout.notes || '';
         });
     };
@@ -403,11 +340,11 @@
                 cartApi.saveCheckout({
                     deliveryType: deliveryInput?.value || 'entrega',
                     address: section?.querySelector('[data-checkout="address"]')?.value || '',
-                    payment: section?.querySelector('[data-checkout="payment"]')?.value || 'pix',
+                    payment: 'mercado_pago',
                     notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
                 });
                 renderCheckoutFields();
-                setWhatsAppButtons(cartApi.loadCart());
+                setPayButtons(cartApi.loadCart());
             });
             if (field.tagName === 'TEXTAREA' || field.tagName === 'INPUT') {
                 field.addEventListener('input', () => {
@@ -416,10 +353,10 @@
                     cartApi.saveCheckout({
                         deliveryType: deliveryInput?.value || 'entrega',
                         address: section?.querySelector('[data-checkout="address"]')?.value || '',
-                        payment: section?.querySelector('[data-checkout="payment"]')?.value || 'pix',
+                        payment: 'mercado_pago',
                         notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
                     });
-                    setWhatsAppButtons(cartApi.loadCart());
+                    setPayButtons(cartApi.loadCart());
                 });
             }
         });
@@ -451,7 +388,7 @@
         if (cartCountBadge) {
             cartCountBadge.textContent = count === 1 ? '1 item' : `${count} itens`;
         }
-        setWhatsAppButtons(cart);
+        setPayButtons(cart);
         cartApi.updateNavCartBadge();
         renderCheckoutFields();
         updateFloatCart(cart);
@@ -553,7 +490,7 @@
                     deliveryType: checkout.deliveryType,
                     address: checkout.address,
                     notes: checkout.notes,
-                    paymentMethod: checkout.payment || 'pix',
+                    paymentMethod: 'mercado_pago',
                     hubUserId: session?.hubUserId || '',
                     customer: {
                         name: session?.name || '',
@@ -567,20 +504,15 @@
             if (!res.ok) throw new Error(data.error || 'Não foi possível iniciar o pagamento');
 
             cartApi.saveLastOrder(cart, checkout);
-            const payMethod = checkout.payment || 'pix';
-            if (payMethod === 'fiado' || payMethod === 'credito') {
-                cartApi.saveCart({});
-                window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(data.orderId)}&fiado=1`;
-            } else {
-                window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
-            }
+            cartApi.saveCheckout({ payment: 'mercado_pago' });
+            window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
         } catch (err) {
-            window.alert(err.message || 'Erro ao iniciar pagamento. Tente pelo WhatsApp.');
+            window.alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
             payButtons.forEach((id) => {
                 const btn = document.getElementById(id);
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = 'Pagar no app';
+                    btn.textContent = PAY_BTN_LABEL;
                 }
             });
         }
@@ -611,15 +543,6 @@
         document.getElementById('cart-items')?.addEventListener('click', handleCartAction);
         document.getElementById('cart-items-mobile')?.addEventListener('click', handleCartAction);
 
-        ['cart-whatsapp-btn', 'cart-whatsapp-btn-mobile'].forEach((id) => {
-            document.getElementById(id)?.addEventListener('click', () => {
-                const cart = cartApi.loadCart();
-                if (cartApi.cartItemCount(cart) > 0) {
-                    cartApi.saveLastOrder(cart, cartApi.loadCheckout());
-                }
-            });
-        });
-
         ['cart-pay-btn', 'cart-pay-btn-mobile'].forEach((id) => {
             document.getElementById(id)?.addEventListener('click', startAppPayment);
         });
@@ -635,7 +558,7 @@
         window.addEventListener('ligeirinho-cart-changed', render);
         window.addEventListener('ligeirinho-checkout-changed', () => {
             renderCheckoutFields();
-            setWhatsAppButtons(cartApi.loadCart());
+            setPayButtons(cartApi.loadCart());
         });
         window.addEventListener('pageshow', () => {
             if (document.body.style.position === 'fixed' && !isCartOpen()) {

@@ -1000,6 +1000,20 @@ html.lig-app-standalone .ze-app-header {
     color: var(--lig-yellow-text);
 }
 
+.lig-cart-mp-btn {
+    background: #009ee3;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(0, 158, 227, 0.35);
+}
+
+.lig-cart-mp-btn:not(:disabled):hover {
+    background: #0088c7;
+}
+
+.lig-cart-mp-btn:not(:disabled):active {
+    background: #007ab3;
+}
+
 #cart-add-toast .lig-toast-inner {
     background: var(--lig-surface);
     border: 1px solid var(--lig-border);
