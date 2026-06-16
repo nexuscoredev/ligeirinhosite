@@ -194,9 +194,15 @@ ${desktopNavHtml}
 </button>
 </div>
 </div>
-${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-location-bar ze-address-bar w-full max-w-container-max mx-auto text-left" aria-label="Endereço de entrega">
-<span class="material-symbols-outlined text-[18px] shrink-0 ze-address-bar__pin">location_on</span>
-<span class="truncate ze-address-bar__text"><span id="ze-location-text">Informe seu endereço de entrega</span></span>
+${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-fulfillment-bar ze-location-bar w-full max-w-container-max mx-auto text-left" aria-label="Forma de recebimento e endereço">
+<span class="ze-fulfillment-bar__icon-wrap" aria-hidden="true">
+<span class="material-symbols-outlined ze-fulfillment-bar__icon" id="ze-location-icon">location_on</span>
+</span>
+<span class="ze-fulfillment-bar__copy min-w-0">
+<span class="ze-fulfillment-bar__label" id="ze-location-label">Entrega</span>
+<span class="ze-fulfillment-bar__meta truncate" id="ze-location-text">Informe seu endereço de entrega</span>
+</span>
+<span class="material-symbols-outlined ze-fulfillment-bar__chev" aria-hidden="true">expand_more</span>
 </button>
 <form id="ze-search-form" class="ze-search-bar max-w-container-max mx-auto" role="search" action="pedidos.html" method="get">
 <span class="material-symbols-outlined text-[20px] text-[var(--lig-text-subtle)] shrink-0">search</span>
@@ -439,23 +445,45 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
     const bindAppChrome = () => {
         const locationBar = document.getElementById('ze-location-bar');
-        const locationText = document.getElementById('ze-location-text');
         const searchForm = document.getElementById('ze-search-form');
         const searchInput = document.getElementById('ze-search-input');
 
+        const PICKUP_META = 'Estr. Campo Limpo, 2083 · SP';
+
         const syncLocation = () => {
-            if (!locationText) return;
+            const labelEl = document.getElementById('ze-location-label');
+            const metaEl = document.getElementById('ze-location-text');
+            const iconEl = document.getElementById('ze-location-icon');
+            if (!labelEl || !metaEl) return;
+
             const checkout = window.LigeirinhoCart?.loadCheckout?.();
-            const emptyLabel = 'Informe seu endereço de entrega';
+            const emptyAddress = 'Toque para informar o endereço';
+
             if (!checkout) {
-                locationText.textContent = emptyLabel;
+                labelEl.textContent = 'Entrega';
+                metaEl.textContent = emptyAddress;
+                if (iconEl) iconEl.textContent = 'add_location_alt';
+                locationBar?.setAttribute('aria-label', 'Entrega. Toque para informar o endereço.');
                 return;
             }
+
             if (checkout.deliveryType === 'retirada') {
-                locationText.textContent = 'Retirada na loja';
+                labelEl.textContent = 'Retirada no depósito';
+                metaEl.textContent = PICKUP_META;
+                if (iconEl) iconEl.textContent = 'storefront';
+                locationBar?.setAttribute('aria-label', 'Retirada no depósito. Toque para alterar.');
                 return;
             }
-            locationText.textContent = checkout.address?.trim() || emptyLabel;
+
+            labelEl.textContent = 'Entrega';
+            metaEl.textContent = checkout.address?.trim() || emptyAddress;
+            if (iconEl) iconEl.textContent = checkout.address?.trim() ? 'location_on' : 'add_location_alt';
+            locationBar?.setAttribute(
+                'aria-label',
+                checkout.address?.trim()
+                    ? `Entrega em ${checkout.address}. Toque para alterar.`
+                    : 'Entrega. Toque para informar o endereço.'
+            );
         };
 
         locationBar?.addEventListener('click', () => {
