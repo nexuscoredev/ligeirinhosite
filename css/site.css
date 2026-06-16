@@ -3247,6 +3247,7 @@ html.lig-app-standalone .ze-app-header {
     flex: 1;
     padding: 1rem;
     padding-bottom: 1.5rem;
+    color: var(--lig-text);
 }
 
 .raios-body-content--grid {
@@ -3332,7 +3333,7 @@ html.lig-app-standalone .ze-app-header {
     width: 3rem;
     height: 3rem;
     border-radius: 50%;
-    background: conic-gradient(var(--lig-yellow) var(--raios-progress, 0%), #eee 0);
+    background: conic-gradient(var(--lig-yellow) var(--raios-progress, 0%), var(--lig-border) 0);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3501,8 +3502,8 @@ html.lig-app-standalone .ze-app-header {
 .raios-mission-card {
     flex-shrink: 0;
     width: 11rem;
-    background: #fff;
-    border: 1px solid #ebebeb;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     overflow: hidden;
 }
@@ -3611,8 +3612,8 @@ html.lig-app-standalone .ze-app-header {
     width: 100%;
     aspect-ratio: 1;
     border-radius: 0.75rem;
-    background: var(--raios-cat-bg, #fff);
-    border: 1px solid #ebebeb;
+    background: var(--raios-cat-bg, var(--lig-surface));
+    border: 1px solid var(--lig-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3620,7 +3621,7 @@ html.lig-app-standalone .ze-app-header {
 
 .raios-cat-tile__icon {
     font-size: 2rem;
-    color: #666;
+    color: var(--lig-text-muted);
 }
 
 .raios-cat-tile__label {
@@ -3628,7 +3629,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 600;
     text-align: center;
     line-height: 1.2;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .raios-btn {
@@ -3652,9 +3653,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .raios-btn--outline {
-    background: #fff;
-    color: #1a1a1a;
-    border: 2px solid #1a1a1a;
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border: 2px solid var(--lig-text);
 }
 
 .raios-btn--dark {
@@ -3724,22 +3725,22 @@ html.lig-app-standalone .ze-app-header {
 
 .raios-sub-lead {
     font-size: 0.875rem;
-    color: #666;
+    color: var(--lig-text-muted);
     margin: 0 0 1rem;
 }
 
 .raios-tx-balance {
-    background: #fff;
+    background: var(--lig-surface);
     border-radius: 0.75rem;
     padding: 1.125rem;
     text-align: center;
     margin-bottom: 1rem;
-    border: 1px solid #ebebeb;
+    border: 1px solid var(--lig-border);
 }
 
 .raios-tx-balance__label {
     font-size: 0.75rem;
-    color: #666;
+    color: var(--lig-text-muted);
     margin: 0 0 0.25rem;
 }
 
@@ -3750,9 +3751,9 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .raios-tx-list {
-    background: #fff;
+    background: var(--lig-surface);
     border-radius: 0.75rem;
-    border: 1px solid #ebebeb;
+    border: 1px solid var(--lig-border);
     overflow: hidden;
 }
 
@@ -3761,7 +3762,7 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     gap: 0.75rem;
     padding: 1rem 1.125rem;
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid var(--lig-border);
 }
 
 .raios-tx-row:last-child {
@@ -3781,14 +3782,14 @@ html.lig-app-standalone .ze-app-header {
 
 .raios-tx-row__date {
     font-size: 0.75rem;
-    color: #999;
+    color: var(--lig-text-muted);
     margin: 0;
 }
 
 .raios-tx-row__amt {
     font-size: 0.9375rem;
     font-weight: 800;
-    color: #666;
+    color: var(--lig-text-muted);
 }
 
 .raios-tx-row__amt--pos {
@@ -3798,13 +3799,13 @@ html.lig-app-standalone .ze-app-header {
 .raios-empty {
     padding: 2rem 1rem;
     text-align: center;
-    color: #666;
+    color: var(--lig-text-muted);
     font-size: 0.875rem;
 }
 
 .raios-terms-doc {
     font-size: 0.875rem;
-    color: #444;
+    color: var(--lig-text-muted);
     line-height: 1.5;
 }
 

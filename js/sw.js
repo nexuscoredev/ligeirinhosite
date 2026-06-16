@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v51';
+const CACHE_NAME = 'ligeirinho-app-v52';
 
 const APP_SHELL = [
     '/',

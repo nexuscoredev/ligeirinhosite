@@ -166,8 +166,7 @@ ${
             .join('');
 
     const renderResgatar = () => {
-        root.innerHTML = `${memberHeader()}
-${subHeader('Resgatar prêmios')}
+        root.innerHTML = `${subHeader('Resgatar prêmios')}
 <div class="raios-body-content raios-body-content--grid">
 <p class="raios-sub-lead">Use seus Raios em produtos do catálogo. Cada categoria traz ofertas para membros.</p>
 <div class="raios-cat-grid">${renderCategoryGrid(config?.redeemCategories || [])}</div>
@@ -191,8 +190,7 @@ ${subHeader('Resgatar prêmios')}
                   .join('')
             : `<p class="raios-empty">Nenhuma movimentação ainda. Faça um pedido para ganhar Raios.</p>`;
 
-        root.innerHTML = `${memberHeader()}
-${subHeader('Transações')}
+        root.innerHTML = `${subHeader('Transações')}
 <div class="raios-body-content">
 <div class="raios-tx-balance">
 <p class="raios-tx-balance__label">Saldo atual</p>
