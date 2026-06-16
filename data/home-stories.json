@@ -1,0 +1,98 @@
+{
+  "stories": [
+    {
+      "id": "promo-ofertas",
+      "label": "Ofertas",
+      "ringColor": "#F7D53C",
+      "thumbCategory": "cervejas",
+      "slides": [
+        {
+          "imageCategory": "cervejas",
+          "kicker": "Descontos",
+          "title": "Até 18% em cervejas",
+          "body": "Marcas selecionadas para revendedores parceiros.",
+          "cta": { "label": "Ver ofertas", "href": "ofertas.html" },
+          "theme": "yellow"
+        }
+      ]
+    },
+    {
+      "id": "promo-destilados",
+      "label": "Destilados",
+      "ringColor": "#e91e63",
+      "thumbCategory": "destilados",
+      "slides": [
+        {
+          "imageCategory": "destilados",
+          "kicker": "Destaques",
+          "title": "Whiskys, vodkas e gins",
+          "body": "Preços parceiro em caixa e pallet.",
+          "cta": { "label": "Ver catálogo", "href": "pedidos.html?categoria=destilados" },
+          "theme": "wine"
+        }
+      ]
+    },
+    {
+      "id": "promo-refrigerantes",
+      "label": "Refri",
+      "ringColor": "#009ee3",
+      "thumbCategory": "refrigerantes",
+      "slides": [
+        {
+          "imageCategory": "refrigerantes",
+          "kicker": "Promoção",
+          "title": "Refrigerantes e águas",
+          "body": "Reposição rápida para sua loja.",
+          "cta": { "label": "Comprar", "href": "pedidos.html?categoria=refrigerantes" },
+          "theme": "blue"
+        }
+      ]
+    },
+    {
+      "id": "promo-raios",
+      "label": "Raios",
+      "ringColor": "#7c4dff",
+      "thumbIcon": "bolt",
+      "slides": [
+        {
+          "kicker": "Club Raios",
+          "title": "Ganhe Raios a cada pedido",
+          "body": "Acumule pontos e troque por benefícios no app.",
+          "cta": { "label": "Participar", "href": "raios.html" },
+          "theme": "purple"
+        }
+      ]
+    },
+    {
+      "id": "promo-combos",
+      "label": "Combos",
+      "ringColor": "#00c853",
+      "thumbIcon": "celebration",
+      "slides": [
+        {
+          "kicker": "Sugestão",
+          "title": "Monte seu combo",
+          "body": "Cervejas, gelos e destilados para festas e revenda.",
+          "cta": { "label": "Montar pedido", "href": "pedidos.html" },
+          "theme": "green"
+        }
+      ]
+    },
+    {
+      "id": "promo-energeticos",
+      "label": "Energético",
+      "ringColor": "#ff6d00",
+      "thumbCategory": "energetico",
+      "slides": [
+        {
+          "imageCategory": "energetico",
+          "kicker": "Alta rotação",
+          "title": "Energéticos em caixa",
+          "body": "Monster, Red Bull e mais marcas para seu estoque.",
+          "cta": { "label": "Ver produtos", "href": "pedidos.html?categoria=energetico" },
+          "theme": "orange"
+        }
+      ]
+    }
+  ]
+}

@@ -17,9 +17,8 @@
         'gelos',
     ];
 
-    const STORY_RING_COLORS = ['#009ee3', '#7c4dff', '#00c853', '#ff6d00', '#e91e63', '#5c6bc0', '#00897b', '#d81b60'];
-
     let catalogData = null;
+    let homeStoriesConfig = { stories: [] };
 
     const addProduct = (ctx, qty = 1) => {
         const line = catalog.buildCartLineFields(ctx, pricing);
@@ -120,13 +119,23 @@
             .join('')}</div>`;
     };
 
-    const storiesHtml = (categories) => {
-        const featured = categories.slice(0, 8);
-        if (!featured.length) return '';
-        const items = featured
-            .map((cat, i) => catalog.categoryStoryHtml(cat, STORY_RING_COLORS[i % STORY_RING_COLORS.length], categories))
-            .join('');
-        return `<div class="home-stories-scroll" aria-label="Destaques">${items}</div>`;
+    const promoStoriesHtml = () => {
+        const storiesApi = window.LigeirinhoHomeStories;
+        if (!storiesApi || !homeStoriesConfig.stories?.length) return '';
+        return storiesApi.storyRailHtml(homeStoriesConfig.stories, catalog, catalogData);
+    };
+
+    const bindPromoStories = () => {
+        const storiesApi = window.LigeirinhoHomeStories;
+        const mount = root.querySelector('[data-home-promo-stories]');
+        if (!storiesApi || !mount || !homeStoriesConfig.stories?.length) return;
+
+        const refreshRail = () => {
+            mount.innerHTML = storiesApi.storyRailHtml(homeStoriesConfig.stories, catalog, catalogData);
+            storiesApi.bindRail(mount, homeStoriesConfig.stories, catalog, catalogData, refreshRail);
+        };
+
+        storiesApi.bindRail(mount, homeStoriesConfig.stories, catalog, catalogData, refreshRail);
     };
 
     const suggestedSectionHtml = (items) => {
@@ -139,17 +148,6 @@
 </div>
 <div class="home-suggested-scroll" id="home-suggested-scroll">${cards}</div>
 <button type="button" class="home-add-all-btn" id="home-add-all-btn">Adicionar tudo</button>
-</section>`;
-    };
-
-    const categoryGridHtml = (categories) => {
-        const tiles = categories.map((cat, i) => catalog.categoryGridTileHtml(cat, i, categories)).join('');
-        return `<section class="home-cat-grid-section ze-section" aria-labelledby="home-grid-title">
-<div class="ze-section__head">
-<h2 id="home-grid-title" class="ze-section__title">Categorias de produtos</h2>
-<a class="home-section__link" href="pedidos.html">Ver catálogo</a>
-</div>
-<div class="home-cat-grid">${tiles}</div>
 </section>`;
     };
 
@@ -193,9 +191,8 @@
 
         root.innerHTML = `<div class="home-page">
 ${quickChipsHtml()}
-${storiesHtml(categories)}
+<div data-home-promo-stories>${promoStoriesHtml()}</div>
 ${suggestedSectionHtml(suggestedItems)}
-${categoryGridHtml(categories)}
 <section class="home-mobile-sections" aria-label="Mais produtos">
 ${sectionOrder()
     .map((id) => catalog.resolveCatalogCategory(data, id))
@@ -218,6 +215,8 @@ ${sectionOrder()
 </section>
 <div class="home-desktop-only">${sections}</div>
 </div>`;
+
+        bindPromoStories();
 
         root.querySelector('[data-home-reorder]')?.addEventListener('click', () => {
             if (cartApi.restoreLastOrder()) {
@@ -251,8 +250,10 @@ ${sectionOrder()
         window.LigeirinhoCatalogLoader.load(),
         pricing.loadPackConfig(),
         pricing.loadTierImages(),
+        window.LigeirinhoHomeStories?.loadConfig?.() ?? Promise.resolve({ stories: [] }),
     ])
-        .then(([catalogJson]) => {
+        .then(([catalogJson, , , storiesCfg]) => {
+            homeStoriesConfig = storiesCfg?.stories ? storiesCfg : { stories: [] };
             const displayItems = pricing.getDisplayProducts(catalogJson);
             renderHome(catalogJson, displayItems);
         })

@@ -2403,6 +2403,310 @@ body[data-page='pedidos'] .ze-filter-pills--sidebar {
     white-space: nowrap;
 }
 
+/* ── Home: promo stories (estilo Instagram/WhatsApp) ── */
+.home-promo-stories {
+    display: flex;
+    gap: 0.875rem;
+    overflow-x: auto;
+    padding: 0.625rem 1rem 0.75rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.home-promo-stories::-webkit-scrollbar {
+    display: none;
+}
+
+.home-promo-story {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    width: 4.5rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+}
+
+.home-promo-story__ring {
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(135deg, var(--home-promo-ring, #f7d53c), #ff6d00 55%, #e91e63);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: transform 0.15s ease, opacity 0.2s ease;
+}
+
+.home-promo-story--seen .home-promo-story__ring {
+    background: var(--lig-border);
+}
+
+.home-promo-story:active .home-promo-story__ring {
+    transform: scale(0.96);
+}
+
+.home-promo-story__img,
+.home-promo-story__icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--lig-surface);
+    box-sizing: border-box;
+    border: 2px solid var(--lig-surface);
+}
+
+.home-promo-story__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: var(--lig-yellow-text);
+}
+
+.home-promo-story__label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.01em;
+    color: var(--lig-text);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+html.lig-story-open {
+    overflow: hidden;
+}
+
+.lig-story-viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.88);
+}
+
+.lig-story-viewer__shell {
+    position: relative;
+    width: min(100%, 24rem);
+    height: min(92vh, 42rem);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #111;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.lig-story-viewer__top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 4;
+    padding: 0.625rem 0.75rem 0.5rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
+}
+
+.lig-story-viewer__progress {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.lig-story-viewer__bar {
+    flex: 1;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    overflow: hidden;
+}
+
+.lig-story-viewer__bar-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: #fff;
+}
+
+.lig-story-viewer__bar--done .lig-story-viewer__bar-fill {
+    width: 100%;
+}
+
+.lig-story-viewer__bar--active .lig-story-viewer__bar-fill {
+    animation: lig-story-progress 5.5s linear forwards;
+}
+
+@keyframes lig-story-progress {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+.lig-story-viewer__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.lig-story-viewer__name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.lig-story-viewer__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+}
+
+.lig-story-viewer__body {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.lig-story-viewer__bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lig-story-viewer__shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.15) 20%, rgba(0, 0, 0, 0.82) 100%);
+}
+
+.lig-story-viewer__body--yellow {
+    background: linear-gradient(160deg, #f7d53c 0%, #c9a000 100%);
+}
+
+.lig-story-viewer__body--purple {
+    background: linear-gradient(160deg, #7c4dff 0%, #4527a0 100%);
+}
+
+.lig-story-viewer__body--blue {
+    background: linear-gradient(160deg, #009ee3 0%, #00629b 100%);
+}
+
+.lig-story-viewer__body--green {
+    background: linear-gradient(160deg, #00c853 0%, #00796b 100%);
+}
+
+.lig-story-viewer__body--orange {
+    background: linear-gradient(160deg, #ff6d00 0%, #e65100 100%);
+}
+
+.lig-story-viewer__body--wine {
+    background: linear-gradient(160deg, #e91e63 0%, #880e4f 100%);
+}
+
+.lig-story-viewer__body--dark {
+    background: linear-gradient(160deg, #2a2a2a 0%, #111 100%);
+}
+
+.lig-story-viewer__content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding: 1.5rem 1.25rem 1.75rem;
+    color: #fff;
+}
+
+.lig-story-viewer__kicker {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.9;
+    margin-bottom: 0.375rem;
+}
+
+.lig-story-viewer__title {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+}
+
+.lig-story-viewer__text {
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    opacity: 0.92;
+    margin: 0 0 1rem;
+}
+
+.lig-story-viewer__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.lig-story-viewer__tap {
+    position: absolute;
+    top: 3.5rem;
+    bottom: 0;
+    width: 38%;
+    z-index: 3;
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.lig-story-viewer__tap--prev {
+    left: 0;
+}
+
+.lig-story-viewer__tap--next {
+    right: 0;
+}
+
+@media (min-width: 768px) {
+    .lig-story-viewer__shell {
+        width: min(24rem, 100%);
+    }
+}
+
 .home-section__link {
     font-size: 0.8125rem;
     font-weight: 600;
