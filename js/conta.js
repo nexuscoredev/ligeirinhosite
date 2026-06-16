@@ -16,6 +16,29 @@
             .replace(/</g, '&lt;')
             .replace(/"/g, '&quot;');
 
+    const formatPhoneDisplay = (phone) => {
+        const digits = String(phone || '').replace(/\D/g, '');
+        const local = digits.startsWith('55') ? digits.slice(2) : digits;
+        if (local.length === 11) {
+            return `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+        }
+        return phone || '';
+    };
+
+    const formatRole = (role) => {
+        const r = String(role || '').toUpperCase();
+        if (r === 'PARCEIRO') return 'Parceiro';
+        if (r === 'ADMIN') return 'Administrador';
+        if (r === 'OPERADOR') return 'Operador';
+        return role || '';
+    };
+
+    const profileMeta = (s) => {
+        if (s?.phone) return formatPhoneDisplay(s.phone);
+        if (s?.email) return s.email;
+        return '';
+    };
+
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -102,7 +125,12 @@ ${bodyHtml}
         const attrs = item.href
             ? `${href} class="conta-menu-row"`
             : ` type="button" class="conta-menu-row" data-conta-nav="${esc(item.nav || '')}"`;
-        return `<${tag}${attrs}>
+        const iconHtml = item.icon
+            ? `<span class="conta-menu-row__icon" aria-hidden="true"><span class="material-symbols-outlined">${esc(item.icon)}</span></span>`
+            : '';
+        const external = item.href && /^https?:/i.test(item.href) ? ' target="_blank" rel="noopener noreferrer"' : '';
+        return `<${tag}${attrs}${external}>
+${iconHtml}
 <div class="conta-menu-row__body">
 <p class="conta-menu-row__title">${esc(item.title)}</p>
 ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
@@ -115,20 +143,21 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
         const s = session();
         const summary = cart?.lastOrderSummary?.();
         const first = s && auth?.firstName ? auth.firstName(s) : null;
-        const contact = s && auth?.contactLabel ? auth.contactLabel(s) : '';
 
         const menuItems = [
             {
                 title: 'Pedidos',
+                icon: 'inventory_2',
                 sub: summary
                     ? `Último pedido: ${summary.count} item(ns) · ${formatPrice(summary.total)}`
-                    : 'Verifique o status dos seus pedidos e muito mais.',
+                    : 'Acompanhe status e histórico dos seus pedidos.',
                 nav: 'pedidos',
             },
             ...(showFinance()
                 ? [
                       {
                           title: 'Finanças',
+                          icon: 'payments',
                           sub: 'Pagamentos, limite e saldo.',
                           href: 'financeiro.html',
                       },
@@ -136,21 +165,25 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
                 : []),
             {
                 title: 'Informação pessoal',
-                sub: 'Gerencie seus dados como nome e contato.',
+                icon: 'badge',
+                sub: 'Nome, telefone e dados da conta.',
                 nav: 'dados',
             },
             {
                 title: 'Preferências',
+                icon: 'tune',
                 sub: 'Categorias favoritas na home.',
                 nav: 'preferencias',
             },
             {
                 title: 'Ajuda e suporte',
-                sub: 'Obtenha ajuda da nossa equipe.',
+                icon: 'help',
+                sub: 'Fale com nossa equipe.',
                 nav: 'ajuda',
             },
             {
                 title: 'Contato e localização',
+                icon: 'location_on',
                 sub: 'WhatsApp, endereço e horários.',
                 href: 'contato.html',
             },
@@ -158,11 +191,11 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
 
         const authBlock = s?.sub
             ? `<div class="conta-user-card">
-<img class="conta-user-card__avatar" src="${esc(/^https?:\/\//i.test(s.picture || '') ? s.picture : 'img/app-icon-192.png')}" alt="" width="48" height="48" loading="lazy" referrerpolicy="no-referrer">
+<img class="conta-user-card__avatar" src="${esc(/^https?:\/\//i.test(s.picture || '') ? s.picture : 'img/app-icon-192.png')}" alt="" width="52" height="52" loading="lazy" referrerpolicy="no-referrer">
 <div class="conta-user-card__info">
-<p class="conta-user-card__name">${esc(first || s.name || 'Parceiro')}</p>
-<p class="conta-user-card__meta">${esc(contact || s.email || '')}</p>
-${s.role ? `<p class="conta-user-card__role">${esc(s.role)}</p>` : ''}
+<p class="conta-user-card__name">${esc(s.name || first || 'Parceiro')}</p>
+${profileMeta(s) ? `<p class="conta-user-card__meta">${esc(profileMeta(s))}</p>` : ''}
+${s.role ? `<span class="conta-user-card__role">${esc(formatRole(s.role))}</span>` : ''}
 </div>
 </div>`
             : `<div class="conta-user-card conta-user-card--guest">
@@ -187,10 +220,10 @@ ${desktopAsideHtml('')}
 <span class="material-symbols-outlined">settings</span>
 </button>
 </div>
-<button type="button" class="conta-store-bar" data-conta-open-cart>
+<button type="button" class="conta-store-bar" data-conta-open-cart aria-label="Abrir caminhão">
 <img src="img/ligeirinhologo.png" alt="" class="conta-store-bar__logo" width="20" height="20">
 <span class="conta-store-bar__name">Ligeirinho Parceiros</span>
-<span class="material-symbols-outlined conta-store-bar__chev">expand_more</span>
+<span class="conta-store-bar__action"><span class="material-symbols-outlined">local_shipping</span><span>Caminhão</span></span>
 </button>
 </header>
 <div class="conta-menu-body">
@@ -210,10 +243,10 @@ ${menuItems.map(menuRow).join('')}
 <span class="material-symbols-outlined">settings</span>
 </button>
 </div>
-<button type="button" class="conta-store-bar" data-conta-open-cart>
+<button type="button" class="conta-store-bar" data-conta-open-cart aria-label="Abrir caminhão">
 <img src="img/ligeirinhologo.png" alt="" class="conta-store-bar__logo" width="20" height="20">
 <span class="conta-store-bar__name">Ligeirinho Parceiros</span>
-<span class="material-symbols-outlined conta-store-bar__chev">expand_more</span>
+<span class="conta-store-bar__action"><span class="material-symbols-outlined">local_shipping</span><span>Caminhão</span></span>
 </button>
 </header>
 <div class="conta-menu-body">
@@ -339,16 +372,19 @@ ${esc(cat.label)}
 <nav class="conta-menu-list conta-menu-list--flush">
 ${menuRow({
     title: 'Fale conosco',
+    icon: 'chat',
     sub: 'WhatsApp · (11) 97092-4909',
     href: WHATSAPP_URL,
 })}
 ${menuRow({
     title: 'Como chegar',
+    icon: 'map',
     sub: 'Estr. do Campo Limpo, 2083 — São Paulo',
     href: MAPS_URL,
 })}
 ${menuRow({
     title: 'Perguntas frequentes',
+    icon: 'quiz',
     sub: 'Horários, entrega e pagamento.',
     nav: 'ajuda-faq',
 })}
@@ -391,7 +427,7 @@ ${menuRow({
 <section class="conta-settings-group">
 <h2 class="conta-settings-group__title">Conta</h2>
 <div class="conta-menu-list conta-menu-list--flush">
-${s?.sub ? menuRow({ title: 'Sair da conta', nav: 'logout' }) : menuRow({ title: 'Entrar', href: LOGIN('conta.html') })}
+${s?.sub ? menuRow({ title: 'Sair da conta', icon: 'logout', nav: 'logout' }) : menuRow({ title: 'Entrar', icon: 'login', href: LOGIN('conta.html') })}
 </div>
 </section>
 <section class="conta-settings-group">
@@ -402,6 +438,7 @@ ${s?.sub ? menuRow({ title: 'Sair da conta', nav: 'logout' }) : menuRow({ title:
 <h2 class="conta-settings-group__title">Sobre</h2>
 <div class="conta-menu-list conta-menu-list--flush">
 <a href="versao.html" class="conta-menu-row">
+<span class="conta-menu-row__icon" aria-hidden="true"><span class="material-symbols-outlined">info</span></span>
 <div class="conta-menu-row__body">
 <p class="conta-menu-row__title">Notas de versão</p>
 </div>
@@ -471,6 +508,7 @@ ${
                 renderMenu();
         }
         bindCommon();
+        window.LigeirinhoMotion?.refresh?.();
     };
 
     const bindCommon = () => {

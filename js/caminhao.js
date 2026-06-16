@@ -77,6 +77,10 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
 </article>`;
     };
 
+    const payBtnLogoHtml = () =>
+        cartUi?.payButtonHtml?.() ||
+        '<img src="img/mercado-pago-logo-white-horizontal.svg" alt="" class="lig-mp-pay-logo" width="108" height="27" decoding="async">';
+
     const checkoutHtml = () => `<section class="caminhao-checkout cart-checkout" aria-label="Detalhes do pedido">
 <p class="caminhao-checkout__label">Detalhes do pedido</p>
 <div class="caminhao-checkout__delivery">
@@ -96,7 +100,7 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
 <span>Total</span>
 <strong id="caminhao-total">R$ 0,00</strong>
 </div>
-<button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn" disabled>${PAY_LABEL}</button>
+<button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn lig-cart-mp-btn" disabled aria-label="${PAY_LABEL}">${payBtnLogoHtml()}</button>
 </div>`;
 
     const setPayButton = (cart) => {

@@ -1,39 +1,53 @@
 (function () {
     const LG_QUERY = '(min-width: 1024px)';
     const PAY_BTN_LABEL = 'Pagar com Mercado Pago';
+    const MP_PAY_LOGO = 'img/mercado-pago-logo-white-horizontal.svg';
+    const payBtnInnerHtml = () =>
+        `<img src="${MP_PAY_LOGO}" alt="" class="lig-mp-pay-logo" width="108" height="27" decoding="async">`;
+
+    const setPayButtonContent = (btn, mode = 'default') => {
+        if (!btn) return;
+        if (mode === 'loading') {
+            btn.textContent = 'Processando…';
+            btn.classList.add('lig-cart-mp-btn--loading');
+            return;
+        }
+        btn.classList.remove('lig-cart-mp-btn--loading');
+        btn.innerHTML = payBtnInnerHtml();
+    };
 
     const cartShellHtml = `
-<div id="cart-panel" class="fixed bottom-8 right-8 z-[70] hidden w-96 max-w-[calc(100vw-2rem)] flex-col" role="dialog" aria-modal="true" aria-labelledby="cart-panel-title">
+<div id="cart-panel" class="fixed bottom-8 right-8 z-[70] hidden w-[min(100vw-2rem,26rem)] max-w-[calc(100vw-2rem)] flex-col" role="dialog" aria-modal="true" aria-labelledby="cart-panel-title">
 <div class="lig-cart-panel rounded-xl p-5 flex flex-col max-h-[calc(100vh-6rem)]">
-<div class="flex justify-between items-center mb-4 lig-cart-divider border-b pb-3 shrink-0">
-<h3 id="cart-panel-title" class="font-headline-md text-lg flex items-center gap-2 lig-cart-text">
-<span class="material-symbols-outlined text-vibrant-yellow">local_shipping</span>
-                    Seu caminhão
-                </h3>
-<span id="cart-count-badge" class="bg-vibrant-yellow text-deep-black font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
+<div class="lig-cart-header">
+<div class="lig-cart-header__brand" id="cart-panel-title">
+<span class="material-symbols-outlined lig-cart-header__icon" aria-hidden="true">local_shipping</span>
+<span class="lig-cart-header__title">Seu caminhão</span>
 </div>
-<div id="cart-items" class="space-y-3 mb-4 overflow-y-auto pr-1 flex-1 min-h-0"></div>
-<div class="cart-checkout space-y-3 mb-4 lig-cart-divider border-t pt-4 shrink-0">
-<p class="text-xs lig-cart-label font-semibold uppercase tracking-wide">Detalhes do pedido</p>
-<div class="grid grid-cols-2 gap-2">
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
+<span id="cart-count-badge" class="lig-cart-header__count">0 itens</span>
+</div>
+<div id="cart-items" class="lig-cart-items"></div>
+<div class="cart-checkout lig-cart-checkout shrink-0">
+<p class="lig-cart-checkout__label">Detalhes do pedido</p>
+<div class="lig-cart-checkout__delivery">
+<label class="lig-cart-checkout-label">
 <input type="radio" name="cart-delivery-panel" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
 </label>
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
+<label class="lig-cart-checkout-label">
 <input type="radio" name="cart-delivery-panel" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
-<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm min-h-[44px]" autocomplete="street-address">
-<textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm resize-none"></textarea>
-<p class="text-[11px] lig-cart-text-muted leading-snug">Pix, cartão de crédito ou débito via Mercado Pago.</p>
+<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
+<textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
+<p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </div>
-<div class="lig-cart-divider border-t pt-4 shrink-0">
-<div class="flex justify-between items-center mb-4">
-<span class="font-headline-md text-base lig-cart-text">Total</span>
-<span id="cart-total" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
+<div class="lig-cart-footer shrink-0">
+<div class="lig-cart-footer__total">
+<span class="lig-cart-footer__label">Total</span>
+<span id="cart-total" class="lig-cart-footer__value">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn" class="lig-cart-mp-btn w-full font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2 pointer-events-none opacity-50" disabled aria-disabled="true">
-                ${PAY_BTN_LABEL}
+<button type="button" id="cart-pay-btn" class="lig-cart-mp-btn w-full py-3 rounded-full transition-colors flex items-center justify-center pointer-events-none opacity-50" disabled aria-disabled="true" aria-label="${PAY_BTN_LABEL}">
+${payBtnInnerHtml()}
 </button>
 </div>
 </div>
@@ -41,33 +55,36 @@
 <div id="cart-mobile-sheet" class="fixed inset-0 z-[70] hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cart-sheet-title">
 <div class="absolute inset-0 lig-cart-overlay" data-cart-close></div>
 <div class="absolute bottom-0 left-0 right-0 lig-cart-sheet rounded-t-2xl p-5 max-h-[85vh] flex flex-col">
-<div class="flex justify-between items-center mb-4 shrink-0">
-<h3 id="cart-sheet-title" class="font-headline-md lig-cart-text">Seu caminhão</h3>
-<button type="button" class="p-2 lig-cart-text-muted hover:lig-cart-text" data-cart-close aria-label="Fechar caminhão">
+<div class="lig-cart-header lig-cart-header--sheet">
+<div class="lig-cart-header__brand" id="cart-sheet-title">
+<span class="material-symbols-outlined lig-cart-header__icon" aria-hidden="true">local_shipping</span>
+<span class="lig-cart-header__title">Seu caminhão</span>
+</div>
+<button type="button" class="lig-cart-header__close" data-cart-close aria-label="Fechar caminhão">
 <span class="material-symbols-outlined">close</span>
 </button>
 </div>
-<div id="cart-items-mobile" class="overflow-y-auto flex-1 min-h-0 mb-4 space-y-3"></div>
-<div class="cart-checkout space-y-3 mb-4 lig-cart-divider border-t pt-4 shrink-0">
-<p class="text-xs lig-cart-label font-semibold uppercase tracking-wide">Detalhes do pedido</p>
-<div class="grid grid-cols-2 gap-2">
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
+<div id="cart-items-mobile" class="lig-cart-items"></div>
+<div class="cart-checkout lig-cart-checkout shrink-0">
+<p class="lig-cart-checkout__label">Detalhes do pedido</p>
+<div class="lig-cart-checkout__delivery">
+<label class="lig-cart-checkout-label">
 <input type="radio" name="cart-delivery-mobile" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
 </label>
-<label class="lig-cart-checkout-label flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer has-[:checked]:border-vibrant-yellow has-[:checked]:bg-yellow-50 has-[:checked]:text-vibrant-yellow">
+<label class="lig-cart-checkout-label">
 <input type="radio" name="cart-delivery-mobile" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
-<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm min-h-[44px]" autocomplete="street-address">
-<textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input w-full rounded-lg px-3 py-2.5 text-sm resize-none"></textarea>
-<p class="text-[11px] lig-cart-text-muted leading-snug">Pix, cartão de crédito ou débito via Mercado Pago.</p>
+<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
+<textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
+<p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </div>
-<div class="lig-cart-divider border-t pt-4 shrink-0">
-<div class="flex justify-between mb-4">
-<span class="font-headline-md lig-cart-text">Total</span>
-<span id="cart-total-mobile" class="text-lg font-bold text-vibrant-yellow">R$ 0,00</span>
+<div class="lig-cart-footer shrink-0">
+<div class="lig-cart-footer__total">
+<span class="lig-cart-footer__label">Total</span>
+<span id="cart-total-mobile" class="lig-cart-footer__value">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn-mobile" class="lig-cart-mp-btn w-full font-bold py-3 rounded-full flex items-center justify-center gap-2 pointer-events-none opacity-50" disabled>${PAY_BTN_LABEL}</button>
+<button type="button" id="cart-pay-btn-mobile" class="lig-cart-mp-btn w-full py-3 rounded-full flex items-center justify-center pointer-events-none opacity-50" disabled aria-label="${PAY_BTN_LABEL}">${payBtnInnerHtml()}</button>
 </div>
 </div>
 </div>`;
@@ -251,20 +268,20 @@
     const cartLineHtml = (item) => {
         const lineKey = item.cartKey || item.id;
         const subtotal = formatPrice((item.price ?? 0) * item.qty);
-        return `<div class="flex justify-between items-start gap-2" data-cart-line="${escapeHtml(lineKey)}">
-<div class="flex-1 min-w-0">
-<p class="text-sm lig-cart-text line-clamp-2">${escapeHtml(item.name)}</p>
-<p class="text-xs lig-cart-text-muted mt-1">${item.qty}x · ${subtotal}</p>
+        return `<article class="lig-cart-line" data-cart-line="${escapeHtml(lineKey)}">
+<div class="lig-cart-line__info">
+<p class="lig-cart-line__name">${escapeHtml(item.name)}</p>
+<p class="lig-cart-line__meta">${item.qty}x · ${subtotal}</p>
 </div>
-<div class="flex items-center gap-1 shrink-0">
-<button type="button" class="cart-qty-minus w-7 h-7 rounded-full bg-[#f5f5f5] border border-[#ebebeb] lig-cart-text hover:bg-yellow-50" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
-<span class="text-xs w-5 text-center font-semibold text-vibrant-yellow">${item.qty}</span>
-<button type="button" class="cart-qty-plus w-7 h-7 rounded-full bg-vibrant-yellow text-deep-black hover:bg-[#D9BB35]" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
-<button type="button" class="cart-remove p-1 lig-cart-text-muted hover:text-red-500" data-id="${escapeHtml(lineKey)}" aria-label="Remover">
-<span class="material-symbols-outlined text-sm">close</span>
+<div class="lig-cart-line__stepper" aria-label="Quantidade">
+<button type="button" class="lig-cart-line__btn lig-cart-line__btn--minus cart-qty-minus" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
+<span class="lig-cart-line__qty">${item.qty}</span>
+<button type="button" class="lig-cart-line__btn lig-cart-line__btn--plus cart-qty-plus" data-id="${escapeHtml(lineKey)}" aria-label="Aumentar">+</button>
+</div>
+<button type="button" class="lig-cart-line__remove cart-remove" data-id="${escapeHtml(lineKey)}" aria-label="Remover">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
-</div>
-</div>`;
+</article>`;
     };
 
     const updateFloatCart = (cart) => {
@@ -370,10 +387,10 @@
         const count = cartApi.cartItemCount(cart);
         const total = formatPrice(cartApi.cartTotalValue(cart));
         const emptyHtml = cartApi.lastOrderSummary()
-            ? `<p class="text-sm lig-cart-text-muted">Seu caminhão está vazio.</p>
-<button type="button" id="cart-reorder-btn" class="mt-3 w-full rounded-full border border-vibrant-yellow/40 bg-yellow-50 text-vibrant-yellow text-sm font-bold py-2.5 min-h-[44px] hover:bg-vibrant-yellow hover:text-deep-black transition-colors">Repetir último pedido</button>
-<p class="text-xs lig-cart-text-muted mt-3"><a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Adicionar produtos</a></p>`
-            : `<p class="text-sm lig-cart-text-muted">Seu caminhão está vazio. <a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Adicionar produtos</a></p>`;
+            ? `<div class="lig-cart-empty"><p class="lig-cart-empty__text">Seu caminhão está vazio.</p>
+<button type="button" id="cart-reorder-btn" class="lig-cart-empty__btn">Repetir último pedido</button>
+<p class="lig-cart-empty__link"><a href="pedidos.html">Adicionar produtos</a></p></div>`
+            : `<div class="lig-cart-empty"><p class="lig-cart-empty__text">Seu caminhão está vazio. <a href="pedidos.html">Adicionar produtos</a></p></div>`;
         const listHtml = items.length ? items.map(cartLineHtml).join('') : emptyHtml;
 
         const cartItemsEl = document.getElementById('cart-items');
@@ -474,7 +491,7 @@
             const btn = document.getElementById(id);
             if (btn) {
                 btn.disabled = true;
-                btn.textContent = 'Processando…';
+                setPayButtonContent(btn, 'loading');
             }
         });
 
@@ -509,7 +526,7 @@
                 const btn = document.getElementById(id);
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = PAY_BTN_LABEL;
+                    setPayButtonContent(btn);
                 }
             });
         }
@@ -619,5 +636,8 @@
         showAddedFeedback,
         burstConfetti,
         startPayment: startAppPayment,
+        payButtonHtml: payBtnInnerHtml,
+        payButtonLabel: PAY_BTN_LABEL,
+        setPayButtonContent,
     };
 })();

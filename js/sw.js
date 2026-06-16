@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v43';
+const CACHE_NAME = 'ligeirinho-app-v44';
 
 const APP_SHELL = [
     '/',
@@ -78,6 +78,7 @@ const APP_SHELL = [
     '/img/icon-google-maps.svg',
     '/img/icon-google.svg',
     '/img/icon-apple.svg',
+    '/img/mercado-pago-logo-white-horizontal.svg',
 ];
 
 function cacheShellUrls(cache, urls) {

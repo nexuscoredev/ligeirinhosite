@@ -14,6 +14,7 @@
         '.raios-summary-card',
         '.conta-menu-row',
         '.conta-user-card',
+        '.conta-store-bar',
         '.conta-aside-link',
         '.caminhao-item',
         '.ze-combo-card',
