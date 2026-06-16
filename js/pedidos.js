@@ -81,17 +81,17 @@
 
         const search = window.LigeirinhoSearch;
 
-        const queryInfo = search?.expandSearchQuery?.(searchQuery) || { raw: searchQuery, terms: searchQuery ? [searchQuery] : [] };
+        const queryInfo = search?.expandSearchQuery?.(searchQuery) || { raw: searchQuery, words: searchQuery ? [searchQuery] : [], volumes: [] };
 
         return displayItems.filter((item) => {
 
             if (activeCategory && item.categoryId !== activeCategory) return false;
 
-            const haystack = `${item.product.name} ${item.product.description || ''} ${item.categoryName}`.toLowerCase();
+            const haystack = `${item.product.id} ${item.product.name} ${item.product.description || ''} ${item.categoryName}`;
 
             if (search?.matchesSearch) return search.matchesSearch(haystack, queryInfo);
 
-            return !searchQuery || haystack.includes(searchQuery);
+            return !searchQuery || haystack.toLowerCase().includes(searchQuery);
 
         });
 
@@ -101,9 +101,33 @@
 
     const sortItems = (items) => {
 
+        const search = window.LigeirinhoSearch;
+
+        const queryInfo = search?.expandSearchQuery?.(searchQuery);
+
         const mode = sortSelects[0]?.value || 'name';
 
         const sorted = [...items];
+
+        if (searchQuery && queryInfo?.raw && search?.scoreSearch) {
+
+            sorted.sort((a, b) => {
+
+                const hayA = `${a.product.id} ${a.product.name} ${a.product.description || ''} ${a.categoryName}`;
+
+                const hayB = `${b.product.id} ${b.product.name} ${b.product.description || ''} ${b.categoryName}`;
+
+                const scoreDiff = search.scoreSearch(hayB, queryInfo) - search.scoreSearch(hayA, queryInfo);
+
+                if (scoreDiff !== 0) return scoreDiff;
+
+                return a.product.name.localeCompare(b.product.name, 'pt-BR');
+
+            });
+
+            return sorted;
+
+        }
 
         if (mode === 'price-asc') {
 

@@ -1,0 +1,18 @@
+{
+  "broadcasts": [
+    {
+      "id": "ofertas-semana",
+      "title": "Promoções ativas",
+      "body": "Descontos em cervejas, destilados e refrigerantes — só para parceiros.",
+      "href": "ofertas.html",
+      "activeUntil": "2026-12-31T23:59:59.000Z"
+    },
+    {
+      "id": "catalogo-novo",
+      "title": "Catálogo atualizado",
+      "body": "Novos produtos e preços de atacado. Confira agora.",
+      "href": "pedidos.html",
+      "activeUntil": "2026-12-31T23:59:59.000Z"
+    }
+  ]
+}

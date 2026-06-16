@@ -61,6 +61,13 @@ ${raiosEarned}
             if (!res.ok) throw new Error(data.error);
             render(data.order);
             if (data.order.status === 'paid') {
+                window.LigeirinhoClientNotifications?.push?.({
+                    id: `order-${data.order.id}-paid`,
+                    title: 'Pagamento confirmado',
+                    body: `Pedido ${String(data.order.id).slice(0, 8)} recebido. Em breve confirmamos a entrega.`,
+                    href: `pedido-confirmado.html?order=${encodeURIComponent(data.order.id)}`,
+                    source: 'order',
+                });
                 window.LigeirinhoRaios?.creditOrder?.(data.order.id, data.order.total);
             }
             if (data.order.status === 'pending_payment') {

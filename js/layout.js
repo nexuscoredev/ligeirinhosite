@@ -194,7 +194,8 @@ ${desktopNavHtml}
 </div>
 </div>
 ${showAppChrome && page !== 'conta' && page !== 'raios' ? `<div class="ze-app-chrome">
-<button type="button" id="ze-location-bar" class="ze-fulfillment-bar ze-location-bar text-left" aria-label="Forma de recebimento e endereço">
+<div class="ze-fulfillment-bar ze-location-bar" id="ze-location-wrap">
+<button type="button" id="ze-location-main" class="ze-fulfillment-bar__main" aria-label="Forma de recebimento e endereço">
 <span class="ze-fulfillment-bar__icon-wrap" aria-hidden="true">
 <span class="material-symbols-outlined ze-fulfillment-bar__icon" id="ze-location-icon">location_on</span>
 </span>
@@ -202,8 +203,29 @@ ${showAppChrome && page !== 'conta' && page !== 'raios' ? `<div class="ze-app-ch
 <span class="ze-fulfillment-bar__label" id="ze-location-label">Entrega</span>
 <span class="ze-fulfillment-bar__meta truncate" id="ze-location-text">Informe seu endereço de entrega</span>
 </span>
+</button>
+<div class="ze-fulfillment-bar__menu-wrap">
+<button type="button" id="ze-location-menu" class="ze-fulfillment-bar__menu-btn" aria-label="Opções de entrega" aria-expanded="false" aria-haspopup="menu">
 <span class="material-symbols-outlined ze-fulfillment-bar__chev" aria-hidden="true">expand_more</span>
 </button>
+<div id="ze-location-dropdown" class="ze-location-dropdown hidden" role="menu" aria-label="Forma de recebimento">
+<button type="button" class="ze-location-dropdown__item" role="menuitem" data-fulfillment="entrega">
+<span class="material-symbols-outlined ze-location-dropdown__icon" aria-hidden="true">add_location_alt</span>
+<span class="ze-location-dropdown__copy">
+<span class="ze-location-dropdown__title" id="ze-location-opt-entrega-label">Adicionar endereço de entrega</span>
+<span class="ze-location-dropdown__meta hidden" id="ze-location-opt-entrega-meta"></span>
+</span>
+</button>
+<button type="button" class="ze-location-dropdown__item" role="menuitem" data-fulfillment="retirada">
+<span class="material-symbols-outlined ze-location-dropdown__icon" aria-hidden="true">storefront</span>
+<span class="ze-location-dropdown__copy">
+<span class="ze-location-dropdown__title">Retirada no depósito</span>
+<span class="ze-location-dropdown__meta">Estr. Campo Limpo, 2083 · SP</span>
+</span>
+</button>
+</div>
+</div>
+</div>
 <form id="ze-search-form" class="ze-search-bar" role="search" action="pedidos.html" method="get">
 <span class="ze-search-bar__icon material-symbols-outlined" aria-hidden="true">search</span>
 <input type="search" name="q" id="ze-search-input" placeholder="${searchPlaceholder}" autocomplete="off" aria-label="Buscar produtos">
@@ -473,26 +495,88 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     };
 
     const bindAppChrome = () => {
-        const locationBar = document.getElementById('ze-location-bar');
+        const locationWrap = document.getElementById('ze-location-wrap');
+        const locationMain = document.getElementById('ze-location-main');
+        const locationMenu = document.getElementById('ze-location-menu');
+        const locationDropdown = document.getElementById('ze-location-dropdown');
         const searchForm = document.getElementById('ze-search-form');
         const searchInput = document.getElementById('ze-search-input');
 
         const PICKUP_META = 'Estr. Campo Limpo, 2083 · SP';
 
+        const closeLocationMenu = () => {
+            locationDropdown?.classList.add('hidden');
+            locationMenu?.setAttribute('aria-expanded', 'false');
+            locationMenu?.classList.remove('ze-fulfillment-bar__menu-btn--open');
+        };
+
+        const openLocationMenu = () => {
+            locationDropdown?.classList.remove('hidden');
+            locationMenu?.setAttribute('aria-expanded', 'true');
+            locationMenu?.classList.add('ze-fulfillment-bar__menu-btn--open');
+        };
+
+        const toggleLocationMenu = () => {
+            if (locationDropdown?.classList.contains('hidden')) openLocationMenu();
+            else closeLocationMenu();
+        };
+
+        const openDeliveryAddress = () => {
+            closeLocationMenu();
+            if (window.LigeirinhoCartUI?.openDeliveryAddress) {
+                window.LigeirinhoCartUI.openDeliveryAddress();
+                return;
+            }
+            window.LigeirinhoCart?.saveCheckout?.({ deliveryType: 'entrega' });
+            window.LigeirinhoCartUI?.open?.({ focusAddress: true });
+        };
+
+        const selectRetirada = () => {
+            closeLocationMenu();
+            window.LigeirinhoCart?.saveCheckout?.({ deliveryType: 'retirada' });
+            window.LigeirinhoCartUI?.open?.();
+        };
+
         const syncLocation = () => {
             const labelEl = document.getElementById('ze-location-label');
             const metaEl = document.getElementById('ze-location-text');
             const iconEl = document.getElementById('ze-location-icon');
+            const entregaLabel = document.getElementById('ze-location-opt-entrega-label');
+            const entregaMeta = document.getElementById('ze-location-opt-entrega-meta');
             if (!labelEl || !metaEl) return;
 
             const checkout = window.LigeirinhoCart?.loadCheckout?.();
             const emptyAddress = 'Toque para informar o endereço';
+            const address = checkout?.address?.trim() || '';
+
+            locationDropdown?.querySelectorAll('[data-fulfillment]').forEach((btn) => {
+                const active =
+                    checkout?.deliveryType === 'retirada'
+                        ? btn.dataset.fulfillment === 'retirada'
+                        : btn.dataset.fulfillment === 'entrega';
+                btn.classList.toggle('ze-location-dropdown__item--active', active);
+            });
+
+            if (entregaLabel) {
+                entregaLabel.textContent = address
+                    ? 'Alterar endereço de entrega'
+                    : 'Adicionar endereço de entrega';
+            }
+            if (entregaMeta) {
+                if (address) {
+                    entregaMeta.textContent = address;
+                    entregaMeta.classList.remove('hidden');
+                } else {
+                    entregaMeta.textContent = '';
+                    entregaMeta.classList.add('hidden');
+                }
+            }
 
             if (!checkout) {
                 labelEl.textContent = 'Entrega';
                 metaEl.textContent = emptyAddress;
                 if (iconEl) iconEl.textContent = 'add_location_alt';
-                locationBar?.setAttribute('aria-label', 'Entrega. Toque para informar o endereço.');
+                locationMain?.setAttribute('aria-label', 'Entrega. Toque para informar o endereço.');
                 return;
             }
 
@@ -500,23 +584,49 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
                 labelEl.textContent = 'Retirada no depósito';
                 metaEl.textContent = PICKUP_META;
                 if (iconEl) iconEl.textContent = 'storefront';
-                locationBar?.setAttribute('aria-label', 'Retirada no depósito. Toque para alterar.');
+                locationMain?.setAttribute('aria-label', 'Retirada no depósito. Toque para ver opções.');
                 return;
             }
 
             labelEl.textContent = 'Entrega';
-            metaEl.textContent = checkout.address?.trim() || emptyAddress;
-            if (iconEl) iconEl.textContent = checkout.address?.trim() ? 'location_on' : 'add_location_alt';
-            locationBar?.setAttribute(
+            metaEl.textContent = address || emptyAddress;
+            if (iconEl) iconEl.textContent = address ? 'location_on' : 'add_location_alt';
+            locationMain?.setAttribute(
                 'aria-label',
-                checkout.address?.trim()
-                    ? `Entrega em ${checkout.address}. Toque para alterar.`
-                    : 'Entrega. Toque para informar o endereço.'
+                address ? `Entrega em ${address}. Toque para alterar.` : 'Entrega. Toque para informar o endereço.'
             );
         };
 
-        locationBar?.addEventListener('click', () => {
-            window.LigeirinhoCartUI?.open?.({ focusAddress: true });
+        locationMain?.addEventListener('click', () => {
+            const checkout = window.LigeirinhoCart?.loadCheckout?.();
+            if (checkout?.deliveryType === 'retirada') {
+                toggleLocationMenu();
+                return;
+            }
+            openDeliveryAddress();
+        });
+
+        locationMenu?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleLocationMenu();
+        });
+
+        locationDropdown?.querySelector('[data-fulfillment="entrega"]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openDeliveryAddress();
+        });
+
+        locationDropdown?.querySelector('[data-fulfillment="retirada"]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectRetirada();
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (!locationWrap?.contains(e.target)) closeLocationMenu();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLocationMenu();
         });
 
         window.addEventListener('ligeirinho-checkout-changed', syncLocation);
@@ -578,10 +688,10 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         Promise.all([
             ensureScript('js/auth-store.js'),
             ensureScript('js/install-app.js'),
-            ensureScript('js/hub-notifications.js'),
+            ensureScript('js/client-notifications.js'),
         ]).then(() => {
             window.LigeirinhoInstall?.init?.();
-            window.LigeirinhoHubNotifications?.mount?.('#lig-notifications-mount');
+            window.LigeirinhoClientNotifications?.mount?.('#lig-notifications-mount');
         });
     };
 
@@ -601,7 +711,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     }
 
     window.addEventListener('ligeirinho-auth-changed', () => {
-        window.LigeirinhoHubNotifications?.mount?.('#lig-notifications-mount');
+        window.LigeirinhoClientNotifications?.mount?.('#lig-notifications-mount');
     });
 
     if (page === 'login') {

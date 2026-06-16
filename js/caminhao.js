@@ -209,6 +209,11 @@ ${thumb}
 
     const focusAddressIfNeeded = () => {
         if (window.location.hash !== '#endereco') return;
+        const checkout = cartApi.loadCheckout();
+        if (checkout.deliveryType !== 'entrega') {
+            cartApi.saveCheckout({ deliveryType: 'entrega' });
+            renderCheckoutFields();
+        }
         window.requestAnimationFrame(() => {
             const el = document.getElementById('caminhao-address');
             el?.focus?.();

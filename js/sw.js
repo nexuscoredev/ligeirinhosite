@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v62';
+const CACHE_NAME = 'ligeirinho-app-v64';
 
 const APP_SHELL = [
     '/',
@@ -23,7 +23,7 @@ const APP_SHELL = [
     '/js/theme-ui.js',
     '/js/app.js',
     '/js/install-app.js',
-    '/js/hub-notifications.js',
+    '/js/client-notifications.js',
     '/js/auth-store.js',
     '/js/layout.js',
     '/js/motion.js',
@@ -39,6 +39,7 @@ const APP_SHELL = [
     '/js/ofertas.js',
     '/js/caminhao.js',
     '/data/ofertas-config.json',
+    '/data/client-notifications.json',
     '/data/home-stories.json',
     '/js/onboarding.js',
     '/js/conta.js',

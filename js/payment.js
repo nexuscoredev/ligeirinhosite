@@ -72,7 +72,18 @@ ${renderSummary(order)}
         });
     };
 
+    const notifyOrderPaid = (order) => {
+        window.LigeirinhoClientNotifications?.push?.({
+            id: `order-${order.id}-paid`,
+            title: 'Pagamento confirmado',
+            body: `Pedido ${String(order.id).slice(0, 8)} recebido. Em breve confirmamos a entrega.`,
+            href: successUrl(order.id),
+            source: 'order',
+        });
+    };
+
     const renderPaid = (order) => {
+        notifyOrderPaid(order);
         window.location.replace(successUrl(order.id));
     };
 
@@ -116,6 +127,7 @@ ${renderSummary(order)}
                                 if (!res.ok) throw new Error(data.error || 'Pagamento recusado');
                                 if (data.status === 'approved') {
                                     window.LigeirinhoCart?.saveCart?.({});
+                                    notifyOrderPaid(order);
                                     window.location.href = successUrl(order.id);
                                     resolve();
                                     return;
@@ -153,6 +165,7 @@ ${renderSummary(order)}
                 if (order.status === 'paid') {
                     clearInterval(pollTimer);
                     window.LigeirinhoCart?.saveCart?.({});
+                    notifyOrderPaid(order);
                     window.location.href = successUrl(id);
                 }
             } catch {

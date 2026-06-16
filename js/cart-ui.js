@@ -576,9 +576,24 @@ ${lineThumbHtml(item)}
         updateFloatCart(cartApi.loadCart());
     };
 
+    const openDeliveryAddress = () => {
+        const checkout = cartApi.loadCheckout();
+        if (checkout.deliveryType !== 'entrega') {
+            cartApi.saveCheckout({ deliveryType: 'entrega' });
+            renderCheckoutFields();
+        }
+        open({ focusAddress: true });
+    };
+
     const open = (options = {}) => {
         if (!panel || !sheet) return;
         window.LigeirinhoNav?.closeMobileMenu?.();
+        if (options.focusAddress) {
+            const checkout = cartApi.loadCheckout();
+            if (checkout.deliveryType !== 'entrega') {
+                cartApi.saveCheckout({ deliveryType: 'entrega' });
+            }
+        }
         render();
         if (window.matchMedia(LG_QUERY).matches) {
             sheet.classList.add('hidden');
@@ -595,7 +610,10 @@ ${lineThumbHtml(item)}
             }
         } else {
             const url = new URL('caminhao.html', window.location.href);
-            if (options.focusAddress) url.hash = 'endereco';
+            if (options.focusAddress) {
+                cartApi.saveCheckout({ deliveryType: 'entrega' });
+                url.hash = 'endereco';
+            }
             window.location.href = url.toString();
         }
         updateFloatCart(cartApi.loadCart());
@@ -766,6 +784,7 @@ ${lineThumbHtml(item)}
     window.LigeirinhoCartUI = {
         init,
         open,
+        openDeliveryAddress,
         close,
         render,
         bindNavToggle,
