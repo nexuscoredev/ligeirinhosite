@@ -115,7 +115,7 @@
     const appNavItems = [
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
-        { id: 'raios', href: 'raios.html', label: 'Club Raios', icon: 'redeem' },
+        { id: 'raios', href: 'raios.html', label: 'Club Raios', icon: 'bolt' },
     ];
 
     const institutionalNavItems = [
@@ -248,7 +248,7 @@ ${navMobileLinksHtml}
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
-        { id: 'raios', href: 'raios.html', label: 'Raios', icon: 'redeem' },
+        { id: 'raios', href: 'raios.html', label: 'Raios', icon: 'bolt' },
         { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];

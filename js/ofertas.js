@@ -134,7 +134,7 @@ ${offer.daysLeft ? `<p class="ofertas-points-row__timer"><span class="ofertas-po
     const renderShell = () => {
         const tabs = [
             { id: 'descontos', label: 'Descontos', icon: 'sell' },
-            { id: 'pontos', label: 'Pontos', icon: 'redeem' },
+            { id: 'pontos', label: 'Pontos', icon: 'bolt' },
         ];
 
         const showToolbar = activeTab !== 'pontos';
