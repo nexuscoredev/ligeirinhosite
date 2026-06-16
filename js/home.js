@@ -335,7 +335,7 @@ ${sectionOrder()
         })
         .catch(() => {
             root.innerHTML =
-                '<p class="px-4 py-8 text-center text-[#999] text-sm">Não foi possível carregar o catálogo. Use um servidor local.</p>';
+                '<p class="px-4 py-8 text-center text-[var(--lig-text-subtle)] text-sm">Não foi possível carregar o catálogo. Use um servidor local.</p>';
         });
 
     window.addEventListener('ligeirinho-cart-changed', refreshSteppers);

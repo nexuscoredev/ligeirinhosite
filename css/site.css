@@ -25,6 +25,14 @@
     --lig-motion-duration-fast: 0.2s;
     --lig-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
     --lig-motion-stagger: 45ms;
+    --lig-on-yellow: #1a1a1a;
+    --lig-on-yellow-muted: rgba(0, 0, 0, 0.55);
+    --lig-on-yellow-surface: rgba(0, 0, 0, 0.06);
+    --lig-on-yellow-surface-press: rgba(0, 0, 0, 0.1);
+    --lig-on-yellow-chip: rgba(255, 255, 255, 0.65);
+    --lig-cta-bg: #1a1a1a;
+    --lig-cta-fg: #ffffff;
+    --lig-cta-hover: #333333;
 }
 
 [data-theme="dark"] {
@@ -49,6 +57,14 @@
     --lig-scrollbar: #444;
     --lig-media-bg: #ffffff;
     --lig-cat-circle-bg: #ffffff;
+    --lig-on-yellow: #1a1a1a;
+    --lig-on-yellow-muted: rgba(0, 0, 0, 0.55);
+    --lig-on-yellow-surface: rgba(0, 0, 0, 0.06);
+    --lig-on-yellow-surface-press: rgba(0, 0, 0, 0.1);
+    --lig-on-yellow-chip: rgba(255, 255, 255, 0.65);
+    --lig-cta-bg: #f0f0f0;
+    --lig-cta-fg: #121212;
+    --lig-cta-hover: #e0e0e0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -74,6 +90,14 @@
         --lig-scrollbar: #444;
         --lig-media-bg: #ffffff;
         --lig-cat-circle-bg: #ffffff;
+        --lig-on-yellow: #1a1a1a;
+        --lig-on-yellow-muted: rgba(0, 0, 0, 0.55);
+        --lig-on-yellow-surface: rgba(0, 0, 0, 0.06);
+        --lig-on-yellow-surface-press: rgba(0, 0, 0, 0.1);
+        --lig-on-yellow-chip: rgba(255, 255, 255, 0.65);
+        --lig-cta-bg: #f0f0f0;
+        --lig-cta-fg: #121212;
+        --lig-cta-hover: #e0e0e0;
     }
 }
 
@@ -88,6 +112,26 @@
 body {
     background-color: var(--lig-bg);
     color: var(--lig-text);
+}
+
+[data-theme="light"] {
+    color-scheme: light;
+}
+
+[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] {
+        color-scheme: dark;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    [data-theme="auto"] {
+        color-scheme: light;
+    }
 }
 
 .sr-only {
@@ -1139,7 +1183,7 @@ html.lig-app-standalone .ze-app-header {
     padding: 0.3125rem 0.625rem;
     border-radius: 0.5rem;
     background: var(--lig-yellow);
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     font-size: 0.75rem;
     font-weight: 800;
     line-height: 1.2;
@@ -2154,30 +2198,30 @@ html.lig-app-standalone .ze-app-header {
 
     .ze-app-header--home-mobile .ze-store-bar {
         background: transparent;
-        color: #1a1a1a;
+        color: var(--lig-on-yellow);
         font-size: 0.875rem;
         font-weight: 700;
         padding-top: 0;
     }
 
     .ze-app-header--home-mobile .ze-store-bar__pin {
-        color: #1a1a1a;
+        color: var(--lig-on-yellow);
     }
 
     .ze-app-header--home-mobile .ze-search-bar {
-        background: #fff;
+        background: var(--lig-surface);
         border: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--lig-shadow-sm);
         margin-bottom: 0.75rem;
     }
 
     .ze-app-header--home-mobile .lig-theme-toggle-mount,
     .ze-app-header--home-mobile .lig-install-nav-btn {
-        background: rgba(255, 255, 255, 0.85);
+        background: var(--lig-on-yellow-chip);
     }
 
     html.lig-app-mode body[data-page='inicio'] {
-        background: #fafafa;
+        background: var(--lig-bg);
     }
 }
 
@@ -2215,7 +2259,7 @@ html.lig-app-standalone .ze-app-header {
 .conta-hero-header__title {
     font-size: 1.125rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     margin: 0;
 }
 
@@ -2231,14 +2275,14 @@ html.lig-app-standalone .ze-app-header {
     justify-content: center;
     border: none;
     background: transparent;
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     cursor: pointer;
     border-radius: 9999px;
     transition: background var(--lig-motion-duration-fast) ease, transform var(--lig-motion-duration-fast) var(--lig-motion-ease);
 }
 
 .conta-hero-header__settings:active {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--lig-on-yellow-surface);
     transform: translateY(-50%) scale(0.94);
 }
 
@@ -2249,10 +2293,10 @@ html.lig-app-standalone .ze-app-header {
     width: 100%;
     padding: 0.5rem 0.625rem;
     border: none;
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--lig-on-yellow-surface);
     border-radius: 0.625rem;
     cursor: pointer;
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     font-size: 0.875rem;
     font-weight: 700;
     text-align: left;
@@ -2261,7 +2305,7 @@ html.lig-app-standalone .ze-app-header {
 
 .conta-store-bar:active {
     transform: scale(0.98);
-    background: rgba(0, 0, 0, 0.1);
+    background: var(--lig-on-yellow-surface-press);
 }
 
 .conta-store-bar__logo {
@@ -2281,7 +2325,7 @@ html.lig-app-standalone .ze-app-header {
 
 .conta-store-bar__chev {
     font-size: 1.125rem;
-    color: #666;
+    color: var(--lig-on-yellow-muted);
 }
 
 .conta-store-bar__action {
@@ -2291,10 +2335,10 @@ html.lig-app-standalone .ze-app-header {
     flex-shrink: 0;
     padding: 0.25rem 0.5rem;
     border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.65);
+    background: var(--lig-on-yellow-chip);
     font-size: 0.6875rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
 }
 
 .conta-store-bar__action .material-symbols-outlined {
@@ -2385,7 +2429,7 @@ html.lig-app-standalone .ze-app-header {
     padding: 0.625rem 1rem;
     border-radius: 9999px;
     background: var(--lig-yellow);
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     font-size: 0.875rem;
     font-weight: 700;
     text-align: center;
@@ -2490,7 +2534,7 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
-    background: #fff;
+    background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     min-height: 3.25rem;
     position: sticky;
@@ -2513,7 +2557,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .conta-sub-header__back:active {
-    background: #f0f0f0;
+    background: var(--lig-surface-alt);
 }
 
 .conta-sub-header__title {
@@ -2528,7 +2572,7 @@ html.lig-app-standalone .ze-app-header {
 
 .conta-sub-body {
     padding: 1rem;
-    background: #fafafa;
+    background: var(--lig-bg);
     flex: 1;
 }
 
@@ -2539,7 +2583,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .conta-info-card {
-    background: #fff;
+    background: var(--lig-surface);
     border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     overflow: hidden;
@@ -2569,7 +2613,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .conta-order-card {
-    background: #fff;
+    background: var(--lig-surface);
     border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     padding: 1.125rem;
@@ -2602,7 +2646,7 @@ html.lig-app-standalone .ze-app-header {
 .conta-empty {
     text-align: center;
     padding: 2.5rem 1rem;
-    background: #fff;
+    background: var(--lig-surface);
     border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     margin-bottom: 1rem;
@@ -2644,21 +2688,21 @@ html.lig-app-standalone .ze-app-header {
 
 .conta-btn--primary {
     background: var(--lig-yellow);
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     width: 100%;
     margin-bottom: 0.5rem;
 }
 
 .conta-btn--outline {
-    background: #fff;
-    color: #1a1a1a;
-    border: 2px solid #1a1a1a;
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border: 2px solid var(--lig-border);
     width: 100%;
 }
 
 .conta-btn--dark {
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--lig-cta-bg);
+    color: var(--lig-cta-fg);
 }
 
 .conta-btn--full {
@@ -2674,7 +2718,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .conta-help-hero {
-    background: linear-gradient(135deg, #fde8ef 0%, #fff3e0 100%);
+    background: var(--lig-promo-bg);
+    border: 1px solid var(--lig-promo-border);
     border-radius: 0.875rem;
     padding: 2rem 1rem;
     text-align: center;
@@ -2690,12 +2735,12 @@ html.lig-app-standalone .ze-app-header {
 .conta-help-hero__title {
     font-size: 1.125rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-text);
     margin: 0;
 }
 
 .conta-faq__item {
-    background: #fff;
+    background: var(--lig-surface);
     border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     margin-bottom: 0.5rem;
@@ -2815,7 +2860,7 @@ html.lig-app-standalone .ze-app-header {
 
 /* ── Club Raios ── */
 .raios-body {
-    background: #f5f5f5;
+    background: var(--lig-bg);
 }
 
 .raios-page {
@@ -2912,11 +2957,11 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .raios-body-content--grid {
-    background: #f5f5f5;
+    background: var(--lig-bg);
 }
 
 .raios-body-content--plain {
-    background: #fff;
+    background: var(--lig-surface);
 }
 
 .raios-summary-row {
@@ -2927,8 +2972,8 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .raios-summary-card {
-    background: #fff;
-    border: 1px solid #ebebeb;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     padding: 0.875rem;
     display: flex;
@@ -3088,7 +3133,7 @@ html.lig-app-standalone .ze-app-header {
 .raios-section__title {
     font-size: 1.0625rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-text);
     margin: 0;
 }
 
@@ -3119,8 +3164,8 @@ html.lig-app-standalone .ze-app-header {
 .raios-challenge-card {
     flex-shrink: 0;
     width: 10.5rem;
-    background: #fff;
-    border: 1px solid #ebebeb;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     padding: 0.875rem;
 }
@@ -3129,12 +3174,12 @@ html.lig-app-standalone .ze-app-header {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.5rem;
-    background: #f5f5f5;
+    background: var(--lig-surface-alt);
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 0.5rem;
-    color: #666;
+    color: var(--lig-text-muted);
 }
 
 .raios-challenge-card__title {
@@ -3146,7 +3191,7 @@ html.lig-app-standalone .ze-app-header {
 
 .raios-challenge-card__sub {
     font-size: 0.6875rem;
-    color: #666;
+    color: var(--lig-text-muted);
     margin: 0 0 0.5rem;
 }
 
@@ -3206,7 +3251,7 @@ html.lig-app-standalone .ze-app-header {
 .raios-mission-card__pts {
     font-size: 0.6875rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .raios-mission-card__cta {
@@ -3220,8 +3265,8 @@ html.lig-app-standalone .ze-app-header {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background: #fff;
-    border: 1px solid #ebebeb;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
     border-radius: 0.875rem;
     padding: 1rem 1.125rem;
 }
@@ -3239,7 +3284,7 @@ html.lig-app-standalone .ze-app-header {
 
 .raios-earn-card__sub {
     font-size: 0.8125rem;
-    color: #666;
+    color: var(--lig-text-muted);
     margin: 0 0 0.75rem;
 }
 
@@ -3512,7 +3557,7 @@ html.lig-app-standalone .ze-app-header {
 
 /* ── Ofertas (estilo BEES) ── */
 .ofertas-body {
-    background: #fff;
+    background: var(--lig-bg);
 }
 
 .ofertas-page {
@@ -3532,8 +3577,8 @@ html.lig-app-standalone .ze-app-header {
 .ofertas-header {
     padding: 0.875rem 1rem;
     padding-top: max(0.875rem, env(safe-area-inset-top, 0px));
-    background: #fff;
-    border-bottom: 1px solid #eee;
+    background: var(--lig-surface);
+    border-bottom: 1px solid var(--lig-border);
     text-align: center;
 }
 
@@ -3541,7 +3586,7 @@ html.lig-app-standalone .ze-app-header {
     margin: 0;
     font-size: 1.0625rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .ofertas-toolbar {
@@ -3549,7 +3594,7 @@ html.lig-app-standalone .ze-app-header {
     grid-template-columns: 1fr 1fr;
     gap: 0.625rem;
     padding: 0.75rem 1rem;
-    background: #fff;
+    background: var(--lig-surface);
 }
 
 .ofertas-toolbar__btn,
@@ -3560,12 +3605,12 @@ html.lig-app-standalone .ze-app-header {
     gap: 0.35rem;
     min-height: 2.5rem;
     padding: 0 0.75rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--lig-border);
     border-radius: 999px;
-    background: #f7f7f7;
+    background: var(--lig-surface-alt);
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #333;
+    color: var(--lig-text);
 }
 
 .ofertas-toolbar__btn {
@@ -3574,7 +3619,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ofertas-toolbar__chev {
     font-size: 1.125rem !important;
-    color: #888;
+    color: var(--lig-text-subtle);
 }
 
 .ofertas-toolbar__sort {
@@ -3600,23 +3645,24 @@ html.lig-app-standalone .ze-app-header {
     position: absolute;
     right: 0.65rem;
     font-size: 1.125rem !important;
-    color: #888;
+    color: var(--lig-text-subtle);
     pointer-events: none;
 }
 
 .ofertas-filter-panel {
     padding: 0 1rem 0.75rem;
-    background: #fff;
+    background: var(--lig-surface);
 }
 
 .ofertas-filter-panel__select {
     width: 100%;
     min-height: 2.5rem;
     padding: 0 0.75rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--lig-border);
     border-radius: 0.5rem;
-    background: #fff;
+    background: var(--lig-surface);
     font-size: 0.875rem;
+    color: var(--lig-text);
 }
 
 .ofertas-tabs {
@@ -3624,7 +3670,7 @@ html.lig-app-standalone .ze-app-header {
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
     padding: 0 1rem 0.75rem;
-    background: #fff;
+    background: var(--lig-surface);
 }
 
 .ofertas-tab {
@@ -3633,9 +3679,9 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     gap: 0.35rem;
     padding: 0.625rem 0.35rem;
-    border: 2px solid #e8e8e8;
+    border: 2px solid var(--lig-border);
     border-radius: 0.625rem;
-    background: #fff;
+    background: var(--lig-surface);
     cursor: pointer;
     transition: border-color 0.15s;
 }
@@ -3654,7 +3700,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ofertas-tab__icon .material-symbols-outlined {
     font-size: 1.75rem;
-    color: #555;
+    color: var(--lig-text-muted);
 }
 
 .ofertas-tab--active .ofertas-tab__icon .material-symbols-outlined {
@@ -3664,18 +3710,18 @@ html.lig-app-standalone .ze-app-header {
 .ofertas-tab__label {
     font-size: 0.6875rem;
     font-weight: 700;
-    color: #333;
+    color: var(--lig-text);
 }
 
 .ofertas-list {
     flex: 1;
-    background: #fff;
+    background: var(--lig-surface);
 }
 
 .ofertas-empty {
     padding: 2.5rem 1rem;
     text-align: center;
-    color: #888;
+    color: var(--lig-text-muted);
     font-size: 0.875rem;
 }
 
@@ -3684,7 +3730,7 @@ html.lig-app-standalone .ze-app-header {
     grid-template-columns: 6.5rem 1fr;
     gap: 0.75rem;
     padding: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--lig-border);
 }
 
 .ofertas-product-row__media {
@@ -3692,7 +3738,7 @@ html.lig-app-standalone .ze-app-header {
     width: 6.5rem;
     height: 6.5rem;
     border-radius: 0.5rem;
-    background: #f5f5f5;
+    background: var(--lig-media-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3733,13 +3779,13 @@ html.lig-app-standalone .ze-app-header {
     font-size: 0.8125rem;
     font-weight: 700;
     line-height: 1.35;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .ofertas-product-row__sub {
     margin: 0;
     font-size: 0.6875rem;
-    color: #888;
+    color: var(--lig-text-muted);
 }
 
 .ofertas-product-row__prices {
@@ -3752,7 +3798,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ofertas-product-row__old {
     font-size: 0.75rem;
-    color: #999;
+    color: var(--lig-text-subtle);
     text-decoration: line-through;
 }
 
@@ -3768,7 +3814,7 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     gap: 0.2rem;
     font-size: 0.6875rem;
-    color: #888;
+    color: var(--lig-text-muted);
 }
 
 .ofertas-product-row__seller .material-symbols-outlined {
@@ -3779,7 +3825,7 @@ html.lig-app-standalone .ze-app-header {
     margin: 0;
     font-size: 0.75rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .ofertas-product-row__actions {
@@ -3797,7 +3843,7 @@ html.lig-app-standalone .ze-app-header {
     grid-template-columns: 5.5rem 1fr;
     gap: 0.75rem;
     padding: 1rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--lig-border);
     position: relative;
 }
 
@@ -3986,7 +4032,7 @@ html.lig-app-standalone .ze-app-header {
 
     .ofertas-header {
         border-radius: 0.75rem 0.75rem 0 0;
-        border: 1px solid #eee;
+        border: 1px solid var(--lig-border);
         border-bottom: none;
     }
 
@@ -3994,19 +4040,19 @@ html.lig-app-standalone .ze-app-header {
     .ofertas-filter-panel,
     .ofertas-tabs,
     .ofertas-list {
-        border-left: 1px solid #eee;
-        border-right: 1px solid #eee;
+        border-left: 1px solid var(--lig-border);
+        border-right: 1px solid var(--lig-border);
     }
 
     .ofertas-list {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--lig-border);
         border-radius: 0 0 0.75rem 0.75rem;
     }
 }
 
 /* ── Caminhão (carrinho distribuidora) ── */
 .caminhao-body {
-    background: #fff;
+    background: var(--lig-bg);
 }
 
 .caminhao-page {
@@ -4035,7 +4081,7 @@ html.lig-app-standalone .ze-app-header {
     margin: 0 0 0.5rem;
     font-size: 1.25rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
 }
 
 .caminhao-header__store {
@@ -4046,7 +4092,7 @@ html.lig-app-standalone .ze-app-header {
     background: transparent;
     padding: 0;
     cursor: default;
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
 }
 
 .caminhao-header__store-name {
@@ -4063,7 +4109,7 @@ html.lig-app-standalone .ze-app-header {
     margin: 0.35rem 0 0;
     font-size: 0.75rem;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.55);
+    color: var(--lig-on-yellow-muted);
 }
 
 .caminhao-content {
@@ -4097,13 +4143,13 @@ html.lig-app-standalone .ze-app-header {
     margin: 0 0 0.5rem;
     font-size: 1.375rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .caminhao-empty__text {
     margin: 0 0 1.5rem;
     font-size: 0.9375rem;
-    color: #666;
+    color: var(--lig-text-muted);
     max-width: 16rem;
     line-height: 1.45;
 }
@@ -4116,15 +4162,15 @@ html.lig-app-standalone .ze-app-header {
     min-height: 3rem;
     padding: 0 1.5rem;
     border-radius: 999px;
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--lig-cta-bg);
+    color: var(--lig-cta-fg);
     font-size: 0.9375rem;
     font-weight: 700;
     text-decoration: none;
 }
 
 .caminhao-empty__cta:hover {
-    background: #333;
+    background: var(--lig-cta-hover);
 }
 
 .caminhao-empty__reorder {
@@ -4162,13 +4208,13 @@ html.lig-app-standalone .ze-app-header {
     font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.35;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .caminhao-item__meta {
     margin: 0.25rem 0 0;
     font-size: 0.75rem;
-    color: #888;
+    color: var(--lig-text-muted);
 }
 
 .caminhao-item__actions {
@@ -4182,19 +4228,19 @@ html.lig-app-standalone .ze-app-header {
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 50%;
-    border: 1px solid #e0e0e0;
-    background: #f7f7f7;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface-alt);
     font-size: 1rem;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    color: #333;
+    color: var(--lig-text);
 }
 
 .caminhao-item__qty--plus {
     background: var(--lig-yellow);
     border-color: var(--lig-yellow);
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
 }
 
 .caminhao-item__qty-val {
@@ -4202,7 +4248,7 @@ html.lig-app-standalone .ze-app-header {
     text-align: center;
     font-size: 0.8125rem;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .caminhao-item__remove {
@@ -4210,7 +4256,7 @@ html.lig-app-standalone .ze-app-header {
     background: transparent;
     padding: 0.15rem;
     margin-left: 0.15rem;
-    color: #bbb;
+    color: var(--lig-text-subtle);
     cursor: pointer;
 }
 
@@ -4224,8 +4270,8 @@ html.lig-app-standalone .ze-app-header {
 
 .caminhao-checkout {
     padding: 1rem;
-    border-top: 1px solid #eee;
-    background: #fafafa;
+    border-top: 1px solid var(--lig-border);
+    background: var(--lig-surface-alt);
 }
 
 .caminhao-checkout__label {
@@ -4234,7 +4280,7 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #888;
+    color: var(--lig-text-muted);
 }
 
 .caminhao-checkout__delivery {
@@ -4249,19 +4295,19 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     justify-content: center;
     min-height: 2.5rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--lig-border);
     border-radius: 0.5rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: #555;
+    color: var(--lig-text-muted);
     cursor: pointer;
-    background: #fff;
+    background: var(--lig-surface);
 }
 
 .caminhao-delivery-opt--active {
     border-color: var(--lig-yellow);
-    background: #fffbeb;
-    color: #1a1a1a;
+    background: var(--lig-yellow-light);
+    color: var(--lig-text);
 }
 
 .caminhao-input,
@@ -4289,15 +4335,15 @@ html.lig-app-standalone .ze-app-header {
 .caminhao-checkout__hint {
     margin: 0;
     font-size: 0.6875rem;
-    color: #999;
+    color: var(--lig-text-subtle);
     line-height: 1.4;
 }
 
 .caminhao-footer {
     padding: 1rem;
     padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid #eee;
-    background: #fff;
+    border-top: 1px solid var(--lig-border);
+    background: var(--lig-surface);
 }
 
 .caminhao-footer__total {
@@ -4306,7 +4352,7 @@ html.lig-app-standalone .ze-app-header {
     justify-content: space-between;
     margin-bottom: 0.75rem;
     font-size: 1rem;
-    color: #1a1a1a;
+    color: var(--lig-text);
 }
 
 .caminhao-footer__total strong {
@@ -4344,7 +4390,7 @@ html.lig-app-standalone .ze-app-header {
         max-width: 40rem;
         margin: 1rem auto 0;
         width: 100%;
-        border: 1px solid #eee;
+        border: 1px solid var(--lig-border);
         border-radius: 0.75rem;
         overflow: hidden;
         padding-bottom: 0;
@@ -4843,6 +4889,7 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-bottom-nav-grid {
     background: var(--lig-surface);
+    border-top: 1px solid var(--lig-border);
 }
 
 /* ── Header: Minha conta ── */

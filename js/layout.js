@@ -94,7 +94,7 @@
     const navActive =
         'font-nav nav-link nav-link-active text-vibrant-yellow border-b-2 border-vibrant-yellow pb-1 transition-colors duration-200';
     const navLink =
-        'font-nav nav-link text-[#666] hover:text-vibrant-yellow transition-colors duration-200 hover:bg-yellow-50 px-3 py-1.5 rounded-md';
+        'font-nav nav-link text-[var(--lig-text-muted)] hover:text-vibrant-yellow transition-colors duration-200 hover:bg-[var(--lig-yellow-light)] px-3 py-1.5 rounded-md';
 
     const accountHref = 'conta.html';
     const accountActive = page === 'conta';
@@ -171,7 +171,7 @@ ${navLinksHtml}
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir caminhão" aria-expanded="false">
+<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-[var(--lig-yellow-light)] rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir caminhão" aria-expanded="false">
 <span class="material-symbols-outlined">local_shipping</span>
 <span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-yellow text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 </button>
@@ -180,10 +180,10 @@ ${navLinksHtml}
 ${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-location-bar ze-store-bar w-full max-w-container-max mx-auto text-left">
 <span class="material-symbols-outlined text-[18px] shrink-0 ze-store-bar__pin">storefront</span>
 <span class="truncate ze-store-bar__text"><span id="ze-location-text">Ligeirinho Parceiros</span></span>
-<span class="material-symbols-outlined text-[18px] shrink-0 ml-auto text-[#666]">expand_more</span>
+<span class="material-symbols-outlined text-[18px] shrink-0 ml-auto text-[var(--lig-text-muted)]">expand_more</span>
 </button>
 <form id="ze-search-form" class="ze-search-bar max-w-container-max mx-auto" role="search" action="pedidos.html" method="get">
-<span class="material-symbols-outlined text-[20px] text-[#999] shrink-0">search</span>
+<span class="material-symbols-outlined text-[20px] text-[var(--lig-text-subtle)] shrink-0">search</span>
 <input type="search" name="q" id="ze-search-input" placeholder="${searchPlaceholder}" autocomplete="off" aria-label="Buscar produtos">
 </form>` : ''}
 </nav>
@@ -236,7 +236,7 @@ ${navMobileLinksHtml}
 ${bottomTabItems
     .map((item) => {
         const isActive = page === item.id;
-        const activeClass = isActive ? 'app-tab-active text-vibrant-yellow' : 'text-[#999]';
+        const activeClass = isActive ? 'app-tab-active text-vibrant-yellow' : 'text-[var(--lig-text-subtle)]';
         return `<a href="${item.href}" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow"${item.id === 'caminhao' ? ' id="app-tab-cart"' : ''} ${isActive ? 'aria-current="page"' : ''}${item.id === 'conta' ? ' aria-label="Minha conta"' : ''}${item.id === 'caminhao' ? ' aria-label="Caminhão"' : ''}>
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
 ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-yellow text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>' : ''}
