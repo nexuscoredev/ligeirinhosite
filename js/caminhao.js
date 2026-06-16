@@ -223,8 +223,13 @@ ${thumb}
 
         root.innerHTML = `<div class="caminhao-shell">
 <header class="caminhao-header">
+<button type="button" class="caminhao-header__back" id="caminhao-back-btn" aria-label="Voltar">
+<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+</button>
+<div class="caminhao-header__main">
 <h1 class="caminhao-header__title">Caminhão</h1>
 ${count > 0 ? `<p class="caminhao-header__count">${count === 1 ? '1 item no caminhão' : `${count} itens no caminhão`}</p>` : '<p class="caminhao-header__count caminhao-header__count--empty">Seu pedido em um só lugar</p>'}
+</div>
 </header>
 <div class="caminhao-content">
 ${items.length ? `<div class="caminhao-items">${items.map(itemRowHtml).join('')}</div>` : emptyStateHtml()}
@@ -244,6 +249,11 @@ ${items.length ? checkoutHtml() : ''}
     };
 
     const bindActions = () => {
+        root.querySelector('#caminhao-back-btn')?.addEventListener('click', () => {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = 'pedidos.html';
+        });
+
         root.querySelector('#caminhao-reorder-btn')?.addEventListener('click', () => {
             if (cartApi.restoreLastOrder()) render();
         });

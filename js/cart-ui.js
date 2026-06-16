@@ -24,8 +24,14 @@
 <span class="material-symbols-outlined lig-cart-header__icon" aria-hidden="true">local_shipping</span>
 <span class="lig-cart-header__title">Seu caminhão</span>
 </div>
+<div class="lig-cart-header__actions">
 <span id="cart-count-badge" class="lig-cart-header__count">0 itens</span>
+<button type="button" class="lig-cart-header__close" data-cart-close aria-label="Fechar caminhão">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
 </div>
+</div>
+<div class="lig-cart-scroll">
 <div id="cart-items" class="lig-cart-items"></div>
 <a href="pedidos.html" class="lig-cart-continue" id="cart-continue-link">Continuar comprando</a>
 <div class="cart-checkout lig-cart-checkout shrink-0">
@@ -44,6 +50,7 @@
 <p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </div>
 <div id="cart-summary" class="lig-cart-summary-wrap shrink-0"></div>
+</div>
 <div class="lig-cart-footer shrink-0">
 <div class="lig-cart-footer__total">
 <span class="lig-cart-footer__label">Total</span>
@@ -64,9 +71,10 @@ ${payBtnInnerHtml()}
 <span class="lig-cart-header__title">Seu caminhão</span>
 </div>
 <button type="button" class="lig-cart-header__close" data-cart-close aria-label="Fechar caminhão">
-<span class="material-symbols-outlined">close</span>
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
 </div>
+<div class="lig-cart-scroll">
 <div id="cart-items-mobile" class="lig-cart-items"></div>
 <div class="cart-checkout lig-cart-checkout shrink-0">
 <p class="lig-cart-checkout__label">Detalhes do pedido</p>
@@ -81,6 +89,7 @@ ${payBtnInnerHtml()}
 <input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
 <p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
+</div>
 </div>
 <div class="lig-cart-footer shrink-0">
 <div class="lig-cart-footer__total">
@@ -439,6 +448,12 @@ ${lineThumbHtml(item)}
         });
     };
 
+    const resetCartScroll = () => {
+        document.querySelectorAll('.lig-cart-scroll').forEach((el) => {
+            el.scrollTop = 0;
+        });
+    };
+
     const render = () => {
         if (!cartApi) return;
         const cart = cartApi.loadCart();
@@ -473,6 +488,7 @@ ${lineThumbHtml(item)}
         cartApi.updateNavCartBadge();
         renderCheckoutFields();
         updateFloatCart(cart);
+        resetCartScroll();
     };
 
     const changeQty = (id, delta) => {
@@ -569,6 +585,7 @@ ${lineThumbHtml(item)}
             sheet.setAttribute('aria-hidden', 'true');
             panel.classList.remove('hidden');
             panel.classList.add('flex');
+            resetCartScroll();
             if (options.focusAddress) {
                 window.requestAnimationFrame(() => {
                     const addressEl = panel.querySelector('[data-checkout="address"]');
@@ -678,6 +695,10 @@ ${lineThumbHtml(item)}
         });
 
         sheet?.querySelectorAll('[data-cart-close]').forEach((el) => {
+            el.addEventListener('click', close);
+        });
+
+        panel?.querySelectorAll('[data-cart-close]').forEach((el) => {
             el.addEventListener('click', close);
         });
 

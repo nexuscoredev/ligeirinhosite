@@ -24,6 +24,9 @@
         const member = raios.isMember();
         return `<header class="raios-hero">
 <div class="raios-hero__top">
+<button type="button" class="raios-hero__back" data-raios-exit aria-label="Voltar">
+<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+</button>
 <h1 class="raios-hero__title">Club Raios</h1>
 </div>
 <div class="raios-points-pill">
@@ -230,6 +233,11 @@ ${
             raios.join();
             raios.creditWelcomeBonus(config?.welcomeBonus);
             render();
+        });
+
+        root.querySelector('[data-raios-exit]')?.addEventListener('click', () => {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = 'inicio.html';
         });
     };
 
