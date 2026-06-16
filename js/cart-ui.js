@@ -340,12 +340,18 @@ ${lineThumbHtml(item)}
         if (!floatEl) {
             floatEl = document.createElement('div');
             floatEl.id = 'ze-float-cart';
-            floatEl.innerHTML = `<button type="button" class="ze-float-cart__btn" id="ze-float-cart-btn">
-<span class="ze-float-cart__left">
+            floatEl.innerHTML = `<button type="button" class="ze-float-cart__btn" id="ze-float-cart-btn" aria-label="Abrir caminhão">
+<span class="ze-float-cart__action">
+<span class="ze-float-cart__icon" aria-hidden="true">
+<span class="material-symbols-outlined">local_shipping</span>
 <span class="ze-float-cart__badge" id="ze-float-count">0</span>
-<span id="ze-float-label">Ver caminhão</span>
 </span>
-<span id="ze-float-total">R$ 0,00</span>
+<span class="ze-float-cart__copy">
+<span class="ze-float-cart__title">Ver caminhão</span>
+<span class="ze-float-cart__meta" id="ze-float-meta">0 itens</span>
+</span>
+</span>
+<span class="ze-float-cart__total" id="ze-float-total">R$ 0,00</span>
 </button>`;
             document.body.appendChild(floatEl);
             floatEl.querySelector('#ze-float-cart-btn')?.addEventListener('click', open);
@@ -355,11 +361,18 @@ ${lineThumbHtml(item)}
         const total = formatPrice(cartApi.cartTotalValue(cart));
         const countEl = document.getElementById('ze-float-count');
         const totalEl = document.getElementById('ze-float-total');
-        const labelEl = document.getElementById('ze-float-label');
+        const metaEl = document.getElementById('ze-float-meta');
+        const btn = document.getElementById('ze-float-cart-btn');
 
         if (countEl) countEl.textContent = count > 99 ? '99+' : String(count);
         if (totalEl) totalEl.textContent = total;
-        if (labelEl) labelEl.textContent = count === 1 ? 'Ver caminhão · 1 item' : `Ver caminhão · ${count} itens`;
+        if (metaEl) metaEl.textContent = count === 1 ? '1 item' : `${count} itens`;
+        if (btn) {
+            btn.setAttribute(
+                'aria-label',
+                count === 1 ? `Ver caminhão, 1 item, total ${total}` : `Ver caminhão, ${count} itens, total ${total}`
+            );
+        }
 
         const visible = count > 0 && !isCartOpen() && document.body.dataset.page !== 'caminhao';
         floatEl.classList.toggle('ze-float-cart--visible', visible);
