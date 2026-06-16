@@ -106,12 +106,16 @@ html.lig-app-mode.lig-has-float-cart body {
     padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
-html.lig-app-mode #site-footer {
-    margin-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+html.lig-app-mode .lig-site-footer {
+    display: none;
 }
 
-html.lig-app-mode.lig-has-float-cart #site-footer {
-    margin-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
+@media (min-width: 768px) {
+    html.lig-app-mode body[data-page='quemsomos'] .lig-site-footer,
+    html.lig-app-mode body[data-page='contato'] .lig-site-footer,
+    html.lig-app-mode body[data-page='versao'] .lig-site-footer {
+        display: block;
+    }
 }
 
 #app-bottom-nav {

@@ -73,6 +73,18 @@
     }
 
     const page = document.body.dataset.page || '';
+    const appSectionPages = new Set([
+        'inicio',
+        'ofertas',
+        'pedidos',
+        'raios',
+        'caminhao',
+        'conta',
+        'pagamento',
+        'pedido',
+        'financeiro',
+    ]);
+    const showSiteFooter = !appSectionPages.has(page);
     const instagramUrl = 'https://www.instagram.com/oficialligeirinhobebidas/?hl=pt';
     const whatsappUrl =
         'https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0&utm_source=ig';
@@ -238,7 +250,8 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
     const brandIcon = (src, px) =>
         `<img src="${src}" alt="" width="${px}" height="${px}" class="block shrink-0 object-contain" style="width:${px}px;height:${px}px" decoding="async">`;
 
-    const footerHtml = `<footer class="lig-site-footer">
+    const footerClass = showSiteFooter ? 'lig-site-footer hidden md:block' : 'lig-site-footer';
+    const footerHtml = `<footer class="${footerClass}">
 <div class="lig-footer-inner">
 <div class="lig-footer-grid">
 <div class="lig-footer-col lig-footer-col--brand">
@@ -525,7 +538,11 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         return;
     }
     if (footerMount) {
-        footerMount.outerHTML = footerHtml;
+        if (showSiteFooter) {
+            footerMount.outerHTML = footerHtml;
+        } else {
+            footerMount.remove();
+        }
     }
 
     window.LigeirinhoThemeUI?.renderAll?.();
