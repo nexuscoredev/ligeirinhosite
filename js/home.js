@@ -124,7 +124,7 @@
         const featured = categories.slice(0, 8);
         if (!featured.length) return '';
         const items = featured
-            .map((cat, i) => catalog.categoryStoryHtml(cat, STORY_RING_COLORS[i % STORY_RING_COLORS.length]))
+            .map((cat, i) => catalog.categoryStoryHtml(cat, STORY_RING_COLORS[i % STORY_RING_COLORS.length], categories))
             .join('');
         return `<div class="home-stories-scroll" aria-label="Destaques">${items}</div>`;
     };
@@ -143,7 +143,7 @@
     };
 
     const categoryGridHtml = (categories) => {
-        const tiles = categories.map((cat, i) => catalog.categoryGridTileHtml(cat, i)).join('');
+        const tiles = categories.map((cat, i) => catalog.categoryGridTileHtml(cat, i, categories)).join('');
         return `<section class="home-cat-grid-section ze-section" aria-labelledby="home-grid-title">
 <div class="ze-section__head">
 <h2 id="home-grid-title" class="ze-section__title">Categorias de produtos</h2>
@@ -166,12 +166,19 @@
             itemsByCategory[item.categoryId].push(item);
         });
 
+        const itemsForCategory = (cat, limit = 8) => {
+            if (cat.id === 'gelos') {
+                return displayItems.filter((item) => catalog.isGeloProductName(item.product.name)).slice(0, limit);
+            }
+            return (itemsByCategory[cat.id] || []).slice(0, limit);
+        };
+
         const sections = sectionOrder()
-            .map((id) => data.categories.find((c) => c.id === id))
+            .map((id) => catalog.resolveCatalogCategory(data, id))
             .filter(Boolean)
             .slice(0, 5)
             .map((cat) => {
-                const items = (itemsByCategory[cat.id] || []).slice(0, 8);
+                const items = itemsForCategory(cat, 8);
                 const cards = items.map((item) => catalog.productCardHorizontal(item)).join('');
                 const title = catalog.formatCategoryLabel(cat.name);
                 return `<section class="ze-section home-desktop-only" aria-labelledby="sec-${cat.id}">
@@ -191,11 +198,11 @@ ${suggestedSectionHtml(suggestedItems)}
 ${categoryGridHtml(categories)}
 <section class="home-mobile-sections" aria-label="Mais produtos">
 ${sectionOrder()
-    .map((id) => data.categories.find((c) => c.id === id))
+    .map((id) => catalog.resolveCatalogCategory(data, id))
     .filter(Boolean)
     .slice(0, 3)
     .map((cat) => {
-        const items = (itemsByCategory[cat.id] || []).slice(0, 6);
+        const items = itemsForCategory(cat, 6);
         if (!items.length) return '';
         const cards = items.map((item) => catalog.productCardSuggested(item)).join('');
         const title = catalog.formatCategoryLabel(cat.name);

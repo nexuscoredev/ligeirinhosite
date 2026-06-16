@@ -67,38 +67,139 @@
 
 
     const categoryIcons = {
-
+        cerveja: 'sports_bar',
         cervejas: 'sports_bar',
-
+        insumos: 'inventory_2',
         destilados: 'liquor',
-
+        whisky: 'wine_bar',
         whiskys: 'wine_bar',
-
+        bebidas: 'local_bar',
+        vodka: 'liquor',
         vodkas: 'local_bar',
-
         'gin-s': 'local_bar',
-
+        refrigerante: 'local_drink',
+        refrigerantes: 'local_cafe',
         'refrigerantes-sucos': 'local_cafe',
-
-        energeticos: 'bolt',
-
-        combos: 'local_fire_department',
-
-        gelos: 'ac_unit',
-
-        vinhos: 'wine_bar',
-
+        agua: 'water_drop',
         aguas: 'water_drop',
-
+        energetico: 'bolt',
+        energeticos: 'bolt',
+        combos: 'local_fire_department',
+        gelos: 'ac_unit',
+        vinhos: 'wine_bar',
         salgadinho: 'fastfood',
-
         tabacaria: 'smoking_rooms',
-
         cigarros: 'smoking_rooms',
-
     };
 
+    const CATALOG_CATEGORY_ALIASES = {
+        'refrigerantes-sucos': 'refrigerantes',
+        energeticos: 'energetico',
+        whiskys: 'whisky',
+        aguas: 'agua',
+    };
 
+    const isGeloProductName = (name) => {
+        const n = String(name || '').toUpperCase();
+        if (/GELINHO/i.test(n)) return false;
+        return /^GELO\s/.test(n) || /\bGELO\s+\d/.test(n) || n === 'GELO 5K';
+    };
+
+    const categoryProductScore = (categoryId, name) => {
+        const n = String(name || '').toUpperCase();
+        const rules = {
+            gelos: [
+                [/^GELO\s/, 100],
+                [/\bGELO\s+\d/, 90],
+            ],
+            insumos: [
+                [/^GELO\s/, 95],
+                [/^COPO\s/, 50],
+                [/CANUDO/, 40],
+                [/CARVAO/, 35],
+            ],
+            cerveja: [
+                [/\bCX\b|\bCAIXA\b/, 40],
+                [/AMSTEL|SKOL|HEINEKEN|BRAHMA/i, 60],
+            ],
+            cervejas: [[/^CERVEJA\s/, 100]],
+            whisky: [[/WHISKY|BALLANTINE|BUCHANAN|CHIVAS|JACK/i, 100]],
+            whiskys: [[/WHISKY|BALLANTINE|BUCHANAN|CHIVAS|JACK/i, 100]],
+            destilados: [[/APEROL|GIN\s|CACHACA|CACHAÇA|RUM|TEQUILA|VODKA|WHISKY/i, 80]],
+            vinhos: [[/VINHO/i, 100]],
+            vodka: [[/VODKA/i, 100]],
+            refrigerante: [[/COCA|PEPSI|GUARANA|GUARANÁ|H2OH|SPRITE|FANTA/i, 100]],
+            refrigerantes: [
+                [/COCA|PEPSI|GUARANA|GUARANÁ|H2OH|SPRITE|FANTA/i, 95],
+                [/^AGUA|^ÁGUA/i, 75],
+                [/SUCO/i, 70],
+            ],
+            'refrigerantes-sucos': [
+                [/COCA|PEPSI|GUARANA|GUARANÁ|H2OH|SPRITE|FANTA/i, 95],
+                [/^AGUA|^ÁGUA/i, 75],
+                [/SUCO/i, 70],
+            ],
+            agua: [[/^AGUA|^ÁGUA/i, 100]],
+            energetico: [[/MONSTER|RED BULL|REDBULL|ENERGET|BALY|FUSION/i, 100]],
+            energeticos: [[/MONSTER|RED BULL|REDBULL|ENERGET|BALY|FUSION/i, 100]],
+            bebidas: [[/GELINHO/i, -100], [/BAIANINHA|ISOTON|GATORADE/i, 70]],
+        };
+        let score = 0;
+        (rules[categoryId] || []).forEach(([pattern, points]) => {
+            if (pattern.test(n)) score += points;
+        });
+        return score;
+    };
+
+    const pickRepresentativeProduct = (category, allCategories = []) => {
+        const id = category?.id;
+        let pool = category?.products || [];
+
+        if (id === 'gelos') {
+            pool = (allCategories || []).flatMap((c) => c.products || []).filter((p) => isGeloProductName(p.name));
+        }
+
+        let best = null;
+        let bestScore = -Infinity;
+        pool.forEach((product) => {
+            const score = categoryProductScore(id, product.name);
+            if (score > bestScore) {
+                bestScore = score;
+                best = product;
+            }
+        });
+
+        if (bestScore > 0) return best;
+
+        const neutral = pool.find((p) => p.image && categoryProductScore(id, p.name) >= 0);
+        return neutral || null;
+    };
+
+    const resolveCatalogCategory = (catalogData, id) => {
+        if (!catalogData?.categories) return null;
+        if (id === 'gelos') {
+            const products = [];
+            catalogData.categories.forEach((c) => {
+                (c.products || []).forEach((p) => {
+                    if (isGeloProductName(p.name)) products.push(p);
+                });
+            });
+            if (!products.length) return null;
+            return { id: 'gelos', name: 'GELOS', products };
+        }
+        const mapped = CATALOG_CATEGORY_ALIASES[id] || id;
+        return catalogData.categories.find((c) => c.id === mapped) || null;
+    };
+
+    const categoryCoverMedia = (category, allCategories = []) => {
+        const icon = categoryIcons[category?.id] || 'category';
+        const product = pickRepresentativeProduct(category, allCategories);
+        const src = productImageUrl(product?.image);
+        if (src && categoryProductScore(category.id, product.name) > 0) {
+            return { type: 'img', src, icon };
+        }
+        return { type: 'icon', icon };
+    };
 
     const cartKeyFor = (variant) => {
 
@@ -456,19 +557,13 @@ ${imageBlock}
 
 
 
-    const categoryStoryHtml = (category, ringColor = '#009ee3') => {
-
-        const imgSrc = productImageUrl(category.products?.[0]?.image);
-
-        const icon = categoryIcons[category.id] || 'category';
-
+    const categoryStoryHtml = (category, ringColor = '#009ee3', allCategories = []) => {
+        const cover = categoryCoverMedia(category, allCategories);
         const label = formatCategoryLabel(category.name).split(' ')[0].slice(0, 8).toUpperCase();
-
-        const media = imgSrc
-
-            ? `<img alt="" class="home-story__img" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
-
-            : `<span class="material-symbols-outlined home-story__icon">${icon}</span>`;
+        const media =
+            cover.type === 'img'
+                ? `<img alt="" class="home-story__img" src="${escapeHtml(cover.src)}" loading="lazy" decoding="async">`
+                : `<span class="material-symbols-outlined home-story__icon">${cover.icon}</span>`;
 
         return `<a href="pedidos.html?categoria=${encodeURIComponent(category.id)}" class="home-story" style="--home-story-ring:${escapeHtml(ringColor)}" aria-label="${escapeHtml(formatCategoryLabel(category.name))}">
 
@@ -486,21 +581,14 @@ ${imageBlock}
 
 
 
-    const categoryGridTileHtml = (category, index = 0) => {
-
-        const imgSrc = productImageUrl(category.products?.[0]?.image);
-
-        const icon = categoryIcons[category.id] || 'category';
-
+    const categoryGridTileHtml = (category, index = 0, allCategories = []) => {
+        const cover = categoryCoverMedia(category, allCategories);
         const label = formatCategoryLabel(category.name);
-
         const bg = GRID_PASTELS[index % GRID_PASTELS.length];
-
-        const media = imgSrc
-
-            ? `<img alt="" class="home-cat-grid__img" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
-
-            : `<span class="material-symbols-outlined home-cat-grid__icon">${icon}</span>`;
+        const media =
+            cover.type === 'img'
+                ? `<img alt="" class="home-cat-grid__img" src="${escapeHtml(cover.src)}" loading="lazy" decoding="async">`
+                : `<span class="material-symbols-outlined home-cat-grid__icon">${cover.icon}</span>`;
 
         return `<a href="pedidos.html?categoria=${encodeURIComponent(category.id)}" class="home-cat-grid__tile" style="--home-cat-bg:${bg}" aria-label="${escapeHtml(label)}">
 
@@ -580,19 +668,13 @@ ${imageBlock}
 
 
 
-    const categoryTileHtml = (category) => {
-
-        const imgSrc = productImageUrl(category.products?.[0]?.image);
-
-        const icon = categoryIcons[category.id] || 'category';
-
+    const categoryTileHtml = (category, allCategories = []) => {
+        const cover = categoryCoverMedia(category, allCategories);
         const label = formatCategoryLabel(category.name);
-
-        const media = imgSrc
-
-            ? `<img alt="" class="ze-cat-tile__img" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
-
-            : `<span class="material-symbols-outlined ze-cat-tile__icon">${icon}</span>`;
+        const media =
+            cover.type === 'img'
+                ? `<img alt="" class="ze-cat-tile__img" src="${escapeHtml(cover.src)}" loading="lazy" decoding="async">`
+                : `<span class="material-symbols-outlined ze-cat-tile__icon">${cover.icon}</span>`;
 
 
 
@@ -731,6 +813,12 @@ ${imageBlock}
         categoryGridTileHtml,
 
         categoryTileHtml,
+
+        categoryCoverMedia,
+
+        resolveCatalogCategory,
+
+        isGeloProductName,
 
         bindQtySteppers,
 

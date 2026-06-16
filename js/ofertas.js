@@ -64,9 +64,12 @@
     };
 
     const categoryImage = (categoryId) => {
-        const cat = catalogData?.categories?.find((c) => c.id === categoryId);
-        const url = catalog.productImageUrl(cat?.products?.[0]?.image);
-        return url || null;
+        const cat =
+            catalog.resolveCatalogCategory(catalogData, categoryId) ||
+            catalogData?.categories?.find((c) => c.id === categoryId);
+        if (!cat) return null;
+        const cover = catalog.categoryCoverMedia(cat, catalogData?.categories || []);
+        return cover.type === 'img' ? cover.src : null;
     };
 
     const offerProductRow = (item) => {
