@@ -76,7 +76,14 @@
         bebidas: 'local_bar',
         vodka: 'liquor',
         vodkas: 'local_bar',
+        gin: 'local_bar',
+        gins: 'local_bar',
         'gin-s': 'local_bar',
+        rum: 'liquor',
+        tequila: 'liquor',
+        cachaca: 'liquor',
+        vinho: 'wine_bar',
+        espumantes: 'wine_bar',
         refrigerante: 'local_drink',
         refrigerantes: 'local_cafe',
         'refrigerantes-sucos': 'local_cafe',
@@ -105,8 +112,10 @@
         return /^GELO\s/.test(n) || /\bGELO\s+\d/.test(n) || n === 'GELO 5K';
     };
 
-    const categoryProductScore = (categoryId, name) => {
+    const categoryProductScore = (categoryId, name, productId = '') => {
         const n = String(name || '').toUpperCase();
+        const pid = String(productId || '').toLowerCase();
+        const cid = String(categoryId || '').toLowerCase();
         const rules = {
             gelos: [
                 [/^GELO\s/, 100],
@@ -123,11 +132,26 @@
                 [/AMSTEL|SKOL|HEINEKEN|BRAHMA/i, 60],
             ],
             cervejas: [[/^CERVEJA\s/, 100]],
-            whisky: [[/WHISKY|BALLANTINE|BUCHANAN|CHIVAS|JACK/i, 100]],
-            whiskys: [[/WHISKY|BALLANTINE|BUCHANAN|CHIVAS|JACK/i, 100]],
+            whisky: [[/WHISKY|WHISKIE|BALLANTINE|BUCHANAN|CHIVAS|JACK|OLD PARR|RED LABEL/i, 100]],
+            whiskys: [[/WHISKY|WHISKIE|BALLANTINE|BUCHANAN|CHIVAS|JACK|OLD PARR|RED LABEL/i, 100]],
             destilados: [[/APEROL|GIN\s|CACHACA|CACHAÇA|RUM|TEQUILA|VODKA|WHISKY/i, 80]],
             vinhos: [[/VINHO/i, 100]],
-            vodka: [[/VODKA/i, 100]],
+            vinho: [[/VINHO/i, 100]],
+            espumantes: [[/ESPUMANTE|CHAMPAGNE|PROSECCO|SPUMANTE/i, 100]],
+            vodka: [
+                [/VODKA/i, 100],
+                [/ABSOLUT|SMIRNOFF|ASKOV|CIROC|ORLOFF|GREY GOOSE|HYPNOTIC|WYBOROWA|SKYY/i, 92],
+            ],
+            vodkas: [
+                [/VODKA/i, 100],
+                [/ABSOLUT|SMIRNOFF|ASKOV|CIROC|ORLOFF|GREY GOOSE|HYPNOTIC|WYBOROWA|SKYY/i, 92],
+            ],
+            gin: [[/^GIN\s/i, 100], [/BEEFEATER|BOMBAY|TANQUERAY|SEAGERS|LARIOS|INVICTUS|ETERNITY/i, 88]],
+            gins: [[/^GIN\s/i, 100], [/BEEFEATER|BOMBAY|TANQUERAY|SEAGERS|LARIOS|INVICTUS|ETERNITY/i, 88]],
+            'gin-s': [[/^GIN\s/i, 100], [/BEEFEATER|BOMBAY|TANQUERAY|SEAGERS|LARIOS|INVICTUS|ETERNITY/i, 88]],
+            rum: [[/^RUM\s|\bRUM\b/i, 100]],
+            tequila: [[/TEQUILA/i, 100]],
+            cachaca: [[/CACHACA|CACHAÇA/i, 100]],
             refrigerante: [[/COCA|PEPSI|GUARANA|GUARANÁ|H2OH|SPRITE|FANTA/i, 100]],
             refrigerantes: [
                 [/COCA|PEPSI|GUARANA|GUARANÁ|H2OH|SPRITE|FANTA/i, 95],
@@ -145,9 +169,15 @@
             bebidas: [[/GELINHO/i, -100], [/BAIANINHA|ISOTON|GATORADE/i, 70]],
         };
         let score = 0;
-        (rules[categoryId] || []).forEach(([pattern, points]) => {
+        (rules[categoryId] || rules[cid] || []).forEach(([pattern, points]) => {
             if (pattern.test(n)) score += points;
         });
+
+        const slugStem = cid.replace(/s$/, '');
+        if (slugStem && pid.startsWith(`${slugStem}-`)) score += 85;
+        if (cid === 'gin-s' && pid.startsWith('gin-')) score += 90;
+        if (cid === 'vodkas' && pid.startsWith('vodka-')) score += 90;
+
         return score;
     };
 
@@ -162,7 +192,7 @@
         let best = null;
         let bestScore = -Infinity;
         pool.forEach((product) => {
-            const score = categoryProductScore(id, product.name);
+            const score = categoryProductScore(id, product.name, product.id);
             if (score > bestScore) {
                 bestScore = score;
                 best = product;
@@ -171,8 +201,15 @@
 
         if (bestScore > 0) return best;
 
-        const neutral = pool.find((p) => p.image && categoryProductScore(id, p.name) >= 0);
-        return neutral || null;
+        const withImage = pool
+            .filter((p) => p.image && categoryProductScore(id, p.name, p.id) >= 0)
+            .sort(
+                (a, b) =>
+                    categoryProductScore(id, b.name, b.id) - categoryProductScore(id, a.name, a.id)
+            );
+        if (withImage.length) return withImage[0];
+
+        return null;
     };
 
     const resolveCatalogCategory = (catalogData, id) => {
@@ -188,17 +225,40 @@
             return { id: 'gelos', name: 'GELOS', products };
         }
         const mapped = CATALOG_CATEGORY_ALIASES[id] || id;
-        return catalogData.categories.find((c) => c.id === mapped) || null;
+        const direct = catalogData.categories.find((c) => c.id === mapped);
+        if (direct) return direct;
+
+        const spiritPools = {
+            gin: (p) => /^GIN\s/i.test(p.name) || String(p.id || '').startsWith('gin-'),
+            gins: (p) => /^GIN\s/i.test(p.name) || String(p.id || '').startsWith('gin-'),
+            'gin-s': (p) => /^GIN\s/i.test(p.name) || String(p.id || '').startsWith('gin-'),
+            vodkas: (p) => /VODKA/i.test(p.name) || String(p.id || '').startsWith('vodka-'),
+        };
+        const matchSpirit = spiritPools[id];
+        if (matchSpirit) {
+            const products = [];
+            catalogData.categories.forEach((c) => {
+                (c.products || []).forEach((p) => {
+                    if (matchSpirit(p)) products.push(p);
+                });
+            });
+            if (products.length) {
+                const label = id === 'gin-s' || id === 'gins' ? 'GINS' : id.toUpperCase().replace(/-/g, ' ');
+                return { id, name: label, products };
+            }
+        }
+
+        return null;
     };
 
     const categoryCoverMedia = (category, allCategories = []) => {
         const icon = categoryIcons[category?.id] || 'category';
         const product = pickRepresentativeProduct(category, allCategories);
         const src = productImageUrl(product?.image);
-        if (src && categoryProductScore(category.id, product.name) > 0) {
-            return { type: 'img', src, icon };
-        }
-        return { type: 'icon', icon };
+        if (!src || !product) return { type: 'icon', icon };
+        const score = categoryProductScore(category.id, product.name, product.id);
+        if (score < 0) return { type: 'icon', icon };
+        return { type: 'img', src, icon };
     };
 
     const cartKeyFor = (variant) => {

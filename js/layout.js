@@ -167,7 +167,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
 
     const showAppChrome = page === 'inicio' || page === 'pedidos';
     const searchPlaceholder =
-        page === 'pedidos' ? 'Buscar no catálogo...' : page === 'inicio' ? 'Pesquisar no Ligeirinho' : 'O que você quer pedir?';
+        page === 'pedidos' ? 'Buscar produtos…' : page === 'inicio' ? 'O que você procura?' : 'Buscar…';
 
     const navHtml = `<header class="ze-app-header sticky top-0 z-50">
 <nav class="font-nav-bar">
@@ -193,7 +193,8 @@ ${desktopNavHtml}
 </button>
 </div>
 </div>
-${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-fulfillment-bar ze-location-bar w-full max-w-container-max mx-auto text-left" aria-label="Forma de recebimento e endereço">
+${showAppChrome && page !== 'conta' && page !== 'raios' ? `<div class="ze-app-chrome">
+<button type="button" id="ze-location-bar" class="ze-fulfillment-bar ze-location-bar text-left" aria-label="Forma de recebimento e endereço">
 <span class="ze-fulfillment-bar__icon-wrap" aria-hidden="true">
 <span class="material-symbols-outlined ze-fulfillment-bar__icon" id="ze-location-icon">location_on</span>
 </span>
@@ -203,10 +204,11 @@ ${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button"
 </span>
 <span class="material-symbols-outlined ze-fulfillment-bar__chev" aria-hidden="true">expand_more</span>
 </button>
-<form id="ze-search-form" class="ze-search-bar max-w-container-max mx-auto" role="search" action="pedidos.html" method="get">
-<span class="material-symbols-outlined text-[20px] text-[var(--lig-text-subtle)] shrink-0">search</span>
+<form id="ze-search-form" class="ze-search-bar" role="search" action="pedidos.html" method="get">
+<span class="ze-search-bar__icon material-symbols-outlined" aria-hidden="true">search</span>
 <input type="search" name="q" id="ze-search-input" placeholder="${searchPlaceholder}" autocomplete="off" aria-label="Buscar produtos">
-</form>` : ''}
+</form>
+</div>` : ''}
 </nav>
 </header>`;
 

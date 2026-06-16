@@ -662,37 +662,98 @@ html.lig-app-standalone .ze-app-header {
     color: var(--lig-text);
 }
 
+.ze-app-chrome {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+    max-width: var(--lig-container-max, 1280px);
+    margin: 0 auto;
+    padding: 0 1rem 0.5rem;
+}
+
+.ze-app-chrome .ze-fulfillment-bar,
+.ze-app-chrome .ze-location-bar {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.375rem 0;
+}
+
+.ze-app-chrome .ze-search-bar {
+    width: 100%;
+    margin: 0;
+}
+
 .ze-search-bar {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    margin: 0 1rem 0.75rem;
-    padding: 0.625rem 1rem;
-    background: var(--lig-bg);
+    gap: 0.5rem;
+    padding: 0.375rem 0.625rem 0.375rem 0.5rem;
+    background: var(--lig-surface-alt);
     border: 1px solid var(--lig-border);
-    border-radius: 9999px;
+    border-radius: 0.75rem;
     color: var(--lig-text-subtle);
-    font-size: 0.875rem;
-    min-height: 44px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.8125rem;
+    min-height: 2.375rem;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.ze-search-bar__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1.125rem;
+    line-height: 1;
+    flex-shrink: 0;
+    color: var(--lig-text-subtle);
 }
 
 .ze-search-bar:focus-within {
     border-color: var(--lig-yellow);
-    box-shadow: 0 0 0 3px var(--lig-yellow-light);
+    background: var(--lig-surface);
+    box-shadow: 0 0 0 2px var(--lig-yellow-light);
 }
 
 .ze-search-bar input {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     outline: none;
     color: var(--lig-text);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.25;
 }
 
 .ze-search-bar input::placeholder {
     color: var(--lig-text-subtle);
+}
+
+@media (min-width: 768px) {
+    .ze-app-chrome {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.5rem 1rem;
+        padding: 0 4rem 0.625rem;
+    }
+
+    .ze-app-chrome .ze-fulfillment-bar,
+    .ze-app-chrome .ze-location-bar {
+        flex: 1 1 14rem;
+        min-width: 0;
+        max-width: 26rem;
+        margin-right: auto;
+    }
+
+    .ze-app-chrome .ze-search-bar {
+        flex: 0 1 16rem;
+        width: 16rem;
+        max-width: 100%;
+    }
 }
 
 /* ── Promo banner ── */
