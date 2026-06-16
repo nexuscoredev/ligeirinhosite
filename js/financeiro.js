@@ -272,7 +272,7 @@ ${statCard('Cashback', fin.formatMoney(data.wallet?.balance || 0), 'fin-stat--ok
     const init = () => {
         if (routing && !routing.guardPageAccess()) return;
         if (!canAccessFinance()) {
-            root.innerHTML = `<div class="fin-empty"><p>Acesso restrito a administradores e operadores.</p><p class="mt-2"><a href="login.html">Fazer login</a></p></div>`;
+            root.innerHTML = `<div class="fin-empty"><p>Acesso restrito a administradores e operadores.</p><p class="mt-2"><a href="/">Fazer login</a></p></div>`;
             return;
         }
         if (fin.isLoggedIn()) renderApp();

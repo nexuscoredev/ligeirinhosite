@@ -108,7 +108,7 @@
         const url = getShareUrl();
         const shareData = {
             title: 'Ligeirinho Parceiros',
-            text: 'Peça bebidas com rapidez — catálogo completo, carrinho e pedido pelo WhatsApp.',
+            text: 'Peça bebidas com rapidez — catálogo, ofertas, caminhão e Mercado Pago.',
             url,
         };
 
@@ -203,7 +203,7 @@
             '<span class="material-symbols-outlined" aria-hidden="true">close</span></button></div>' +
             '<div class="lig-install-modal__preview">' +
             '<img src="img/app-icon-192.png" alt="" width="48" height="48" />' +
-            '<div><p class="lig-install-modal__app">Ligeirinho Parceiros</p><p class="lig-install-modal__meta">Catálogo · carrinho · pedidos</p></div></div>' +
+            '<div><p class="lig-install-modal__app">Ligeirinho Parceiros</p><p class="lig-install-modal__meta">Catálogo · ofertas · caminhão</p></div></div>' +
             stepsHtml(mode, shareFeedback) +
             '<div class="lig-install-modal__actions">' +
             (mode === 'native'

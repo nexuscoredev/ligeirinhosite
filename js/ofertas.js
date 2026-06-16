@@ -319,6 +319,17 @@ ${tabs
         if (filterEl) filterEl.value = filterCategory;
     };
 
+    const pointsFromRaios = (raiosCfg) =>
+        (raiosCfg?.missions || []).map((m) => ({
+            id: m.id,
+            title: m.title,
+            subtitle: m.subtitle || 'Valendo mais Raios!',
+            points: m.points,
+            daysLeft: 14,
+            categoryId: m.categoryId,
+            imageCategory: m.categoryId,
+        }));
+
     const init = () => {
         const tabParam = new URLSearchParams(window.location.search).get('tab');
         if (tabParam && ['descontos', 'pontos', 'combos'].includes(tabParam)) activeTab = tabParam;
@@ -326,11 +337,12 @@ ${tabs
         Promise.all([
             window.LigeirinhoCatalogLoader.load(),
             fetch('data/ofertas-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+            fetch('data/raios-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
             fetch('data/combos-ocasiao.json').then((r) => (r.ok ? r.json() : { combos: [] })).catch(() => ({ combos: [] })),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
-        ]).then(([catalogJson, cfg, combosJson]) => {
-            config = cfg;
+        ]).then(([catalogJson, cfg, raiosCfg, combosJson]) => {
+            config = { ...cfg, pointsOffers: pointsFromRaios(raiosCfg) };
             catalogData = catalogJson;
             combos = combosJson.combos || [];
             displayItems = pricing.getDisplayProducts(catalogJson);

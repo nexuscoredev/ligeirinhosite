@@ -90,11 +90,23 @@
         ? 'font-nav lig-nav-account lig-nav-account--active'
         : 'font-nav lig-nav-account';
 
+    const loginHref = (next) => {
+        const q = next ? `?next=${encodeURIComponent(next)}` : '';
+        return `/${q}`;
+    };
+
+    const appNavItems = [
+        { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
+        { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
+        { id: 'raios', href: 'raios.html', label: 'Club Raios', icon: 'redeem' },
+        { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
+    ];
+
     const navItems = [
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
-        { id: 'pedidos', href: 'pedidos.html', label: 'Pedidos', icon: 'local_mall' },
+        ...appNavItems,
         { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
-        { id: 'contato', href: 'contato.html', label: 'Contato', icon: 'chat' },
+        { id: 'contato', href: 'contato.html', label: 'Fale conosco', icon: 'chat' },
     ];
 
     const session = window.LigeirinhoAuth?.loadSession?.();
@@ -126,10 +138,8 @@
     const searchPlaceholder =
         page === 'pedidos' ? 'Buscar no catálogo...' : page === 'inicio' ? 'Pesquisar no Ligeirinho' : 'O que você quer pedir?';
     const homeMobileHeader = page === 'inicio' ? ' ze-app-header--home-mobile' : '';
-    const contaMobileHeader = page === 'conta' ? ' ze-app-header--conta-mobile' : '';
-    const raiosMobileHeader = page === 'raios' ? ' ze-app-header--raios-mobile' : '';
 
-    const navHtml = `<header class="ze-app-header${homeMobileHeader}${contaMobileHeader}${raiosMobileHeader} sticky top-0 z-50">
+    const navHtml = `<header class="ze-app-header${homeMobileHeader} sticky top-0 z-50">
 <nav class="font-nav-bar">
 <div class="flex justify-between items-center w-full px-4 md:px-margin-desktop py-3 max-w-container-max mx-auto min-h-[52px]">
 <a class="lig-brand nav-brand" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
@@ -247,10 +257,13 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <h4 class="lig-footer-title">Navegação</h4>
 <nav class="lig-footer-nav" aria-label="Links do site">
 <a class="lig-footer-link" href="inicio.html">Início</a>
+<a class="lig-footer-link" href="ofertas.html">Ofertas</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
-<a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
+<a class="lig-footer-link" href="raios.html">Club Raios</a>
+<a class="lig-footer-link" href="caminhao.html">Caminhão</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>
-<a class="lig-footer-link" href="contato.html">Contato</a>
+<a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
+<a class="lig-footer-link" href="contato.html">Fale conosco</a>
 </nav>
 </div>
 <div class="lig-footer-col">
@@ -361,7 +374,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             setOpen(true);
         };
 
-        window.LigeirinhoNav = { closeMobileMenu, isOpen: () => menuIsOpen, resetPageLocks };
+        window.LigeirinhoNav = { closeMobileMenu, isOpen: () => menuIsOpen, resetPageLocks, loginHref };
 
         window.addEventListener('pageshow', resetPageLocks);
         document.addEventListener('visibilitychange', () => {
@@ -520,6 +533,14 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     window.LigeirinhoCart?.updateNavCartBadge();
     window.LigeirinhoCartUI?.init();
     window.LigeirinhoCartUI?.bindNavToggle();
+
+    const caminhaoParam = new URLSearchParams(window.location.search).get('caminhao');
+    if (caminhaoParam === 'open' && window.LigeirinhoCartUI) {
+        window.LigeirinhoCartUI.open?.();
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('caminhao');
+        window.history.replaceState({}, '', cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    }
 
     if (document.body.dataset.page === 'quemsomos') {
         resetPageLocks();

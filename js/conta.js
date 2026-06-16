@@ -6,6 +6,7 @@
     const auth = window.LigeirinhoAuth;
     const WHATSAPP_URL =
         'https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0';
+    const LOGIN = (next) => `/?next=${encodeURIComponent(next || 'conta.html')}`;
     const MAPS_URL =
         'https://www.google.com/maps/search/?api=1&query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001';
 
@@ -39,6 +40,52 @@
     const showFinance = () => {
         const role = String(session()?.role || '').toUpperCase();
         return role === 'ADMIN' || role === 'OPERADOR';
+    };
+
+    const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
+
+    const asideLinks = () => [
+        { nav: '', label: 'Visão geral', icon: 'person' },
+        { nav: 'pedidos', label: 'Pedidos', icon: 'inventory_2' },
+        { nav: 'dados', label: 'Dados pessoais', icon: 'badge' },
+        { nav: 'preferencias', label: 'Preferências', icon: 'tune' },
+        { nav: 'ajuda', label: 'Ajuda', icon: 'help' },
+        { nav: 'ajustes', label: 'Ajustes', icon: 'settings' },
+    ];
+
+    const desktopAsideHtml = (active) => {
+        if (!isDesktop()) return '';
+        return `<aside class="conta-desktop-aside" aria-label="Menu da conta">${asideLinks()
+            .map((item) => {
+                const isActive = active === item.nav;
+                return `<button type="button" data-conta-nav="${esc(item.nav)}" class="conta-aside-link${isActive ? ' conta-aside-link--active' : ''}">
+<span class="material-symbols-outlined">${item.icon}</span>
+<span>${esc(item.label)}</span>
+</button>`;
+            })
+            .join('')}</aside>`;
+    };
+
+    const wrapPage = (title, backHash, bodyHtml, activeNav) => {
+        if (isDesktop()) {
+            root.innerHTML = `<div class="conta-desktop-layout">
+${desktopAsideHtml(activeNav)}
+<div class="conta-desktop-main">
+${subHeader(title, backHash)}
+${bodyHtml}
+</div>
+</div>`;
+            return;
+        }
+        root.innerHTML = `${subHeader(title, backHash)}${bodyHtml}`;
+    };
+
+    const openCaminhao = () => {
+        if (window.matchMedia('(min-width: 1024px)').matches) {
+            window.LigeirinhoCartUI?.open?.();
+        } else {
+            window.location.href = 'caminhao.html';
+        }
     };
 
     const subHeader = (title, backHash = '') =>
@@ -126,10 +173,36 @@ ${s.role ? `<p class="conta-user-card__role">${esc(s.role)}</p>` : ''}
 <p class="conta-user-card__name">Entre na sua conta</p>
 <p class="conta-user-card__meta">Salve preferências e acesse mais rápido nos pedidos.</p>
 </div>
-<a href="login.html?next=conta.html" class="conta-user-card__login">Entrar</a>
+<a href="${LOGIN('conta.html')}" class="conta-user-card__login">Entrar</a>
 </div>`;
 
-        root.innerHTML = `<div class="conta-menu-view">
+        if (isDesktop()) {
+            root.innerHTML = `<div class="conta-desktop-layout">
+${desktopAsideHtml('')}
+<div class="conta-desktop-main conta-desktop-main--menu">
+<header class="conta-hero-header">
+<div class="conta-hero-header__top">
+<h1 class="conta-hero-header__title">Conta</h1>
+<button type="button" class="conta-hero-header__settings" data-conta-nav="ajustes" aria-label="Ajustes">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<button type="button" class="conta-store-bar" data-conta-open-cart>
+<img src="img/ligeirinhologo.png" alt="" class="conta-store-bar__logo" width="20" height="20">
+<span class="conta-store-bar__name">Ligeirinho Parceiros</span>
+<span class="material-symbols-outlined conta-store-bar__chev">expand_more</span>
+</button>
+</header>
+<div class="conta-menu-body">
+${authBlock}
+<nav class="conta-menu-list" aria-label="Menu da conta">
+${menuItems.map(menuRow).join('')}
+</nav>
+</div>
+</div>
+</div>`;
+        } else {
+            root.innerHTML = `<div class="conta-menu-view">
 <header class="conta-hero-header">
 <div class="conta-hero-header__top">
 <h1 class="conta-hero-header__title">Conta</h1>
@@ -150,12 +223,12 @@ ${menuItems.map(menuRow).join('')}
 </nav>
 </div>
 </div>`;
+        }
     };
 
     const renderPedidos = () => {
         const summary = cart?.lastOrderSummary?.();
-        root.innerHTML = `${subHeader('Pedidos', '')}
-<div class="conta-sub-body">
+        const body = `<div class="conta-sub-body">
 ${
     summary
         ? `<div class="conta-order-card">
@@ -177,11 +250,12 @@ ${
 }
 <p class="conta-hint">Histórico completo de pedidos em breve nesta área.</p>
 </div>`;
+        wrapPage('Pedidos', isDesktop() ? '' : '', body, 'pedidos');
 
         root.querySelector('#conta-reorder-btn')?.addEventListener('click', () => {
             if (cart?.restoreLastOrder?.()) {
                 window.LigeirinhoCartUI?.render?.();
-                window.LigeirinhoCartUI?.open?.();
+                openCaminhao();
             }
         });
     };
@@ -194,8 +268,7 @@ ${
             { label: 'E-mail', value: s?.email || '—', editable: false },
         ];
 
-        root.innerHTML = `${subHeader('Informação pessoal', '')}
-<div class="conta-sub-body">
+        const body = `<div class="conta-sub-body">
 ${
     s?.sub
         ? `<div class="conta-info-card">
@@ -215,10 +288,11 @@ ${rows
         : `<div class="conta-empty">
 <span class="material-symbols-outlined conta-empty__icon">person</span>
 <p class="conta-empty__title">Faça login para ver seus dados</p>
-<a href="login.html?next=conta.html%23dados" class="conta-btn conta-btn--primary">Entrar</a>
+<a href="${LOGIN('conta.html%23dados')}" class="conta-btn conta-btn--primary">Entrar</a>
 </div>`
 }
 </div>`;
+        wrapPage('Informação pessoal', isDesktop() ? '' : '', body, 'dados');
     };
 
     const renderPreferencias = () => {
@@ -234,8 +308,7 @@ ${esc(cat.label)}
             })
             .join('');
 
-        root.innerHTML = `${subHeader('Preferências', '')}
-<div class="conta-sub-body">
+        const body = `<div class="conta-sub-body">
 <p class="conta-sub-lead">Destacamos suas categorias favoritas na página inicial.</p>
 <div class="conta-prefs-chips" id="conta-prefs">${chips}</div>
 <div class="conta-clube-teaser">
@@ -245,6 +318,7 @@ ${esc(cat.label)}
 <a href="raios.html" class="conta-btn conta-btn--outline conta-btn--full mt-3">Abrir Club Raios</a>
 </div>
 </div>`;
+        wrapPage('Preferências', isDesktop() ? '' : '', body, 'preferencias');
 
         root.querySelectorAll('input[name="conta-cat"]').forEach((input) => {
             input.addEventListener('change', () => {
@@ -257,8 +331,7 @@ ${esc(cat.label)}
     };
 
     const renderAjuda = () => {
-        root.innerHTML = `${subHeader('Ajuda e suporte', '')}
-<div class="conta-sub-body">
+        const body = `<div class="conta-sub-body">
 <div class="conta-help-hero">
 <span class="material-symbols-outlined conta-help-hero__icon">support_agent</span>
 <p class="conta-help-hero__title">Estamos aqui para ajudar</p>
@@ -281,6 +354,7 @@ ${menuRow({
 })}
 </nav>
 </div>`;
+        wrapPage('Ajuda e suporte', isDesktop() ? '' : '', body, 'ajuda');
     };
 
     const renderAjudaFaq = () => {
@@ -298,8 +372,7 @@ ${menuRow({
                 a: 'Seg–Sáb 08h–20h · Domingo 08h–14h.',
             },
         ];
-        root.innerHTML = `${subHeader('Perguntas frequentes', 'ajuda')}
-<div class="conta-sub-body">
+        const body = `<div class="conta-sub-body">
 <div class="conta-faq">${faqs
             .map(
                 (f) => `<details class="conta-faq__item">
@@ -309,16 +382,16 @@ ${menuRow({
             )
             .join('')}</div>
 </div>`;
+        wrapPage('Perguntas frequentes', 'ajuda', body, 'ajuda');
     };
 
     const renderAjustes = () => {
         const s = session();
-        root.innerHTML = `${subHeader('Ajustes', '')}
-<div class="conta-sub-body">
+        const body = `<div class="conta-sub-body">
 <section class="conta-settings-group">
 <h2 class="conta-settings-group__title">Conta</h2>
 <div class="conta-menu-list conta-menu-list--flush">
-${s?.sub ? menuRow({ title: 'Sair da conta', nav: 'logout' }) : menuRow({ title: 'Entrar', href: 'login.html?next=conta.html' })}
+${s?.sub ? menuRow({ title: 'Sair da conta', nav: 'logout' }) : menuRow({ title: 'Entrar', href: LOGIN('conta.html') })}
 </div>
 </section>
 <section class="conta-settings-group">
@@ -343,6 +416,7 @@ ${
 }
 <p class="conta-version" id="conta-app-version">…</p>
 </div>`;
+        wrapPage('Ajustes', isDesktop() ? '' : '', body, 'ajustes');
 
         window.LigeirinhoThemeUI?.renderAll?.();
         root.querySelector('#conta-logout-btn')?.addEventListener('click', () => {
@@ -413,9 +487,7 @@ ${
         });
 
         root.querySelectorAll('[data-conta-open-cart]').forEach((el) => {
-            el.addEventListener('click', () => {
-                window.LigeirinhoCartUI?.open?.();
-            });
+            el.addEventListener('click', openCaminhao);
         });
     };
 

@@ -1,34 +1,5 @@
 {
   "discountPercentMin": 5,
   "discountPercentMax": 18,
-  "discountCategories": ["cervejas", "refrigerantes-sucos", "destilados", "energeticos", "combos"],
-  "pointsOffers": [
-    {
-      "id": "pts-refri",
-      "title": "Compra de 2 produtos diferentes de Não Alcoólicos",
-      "subtitle": "Valendo mais Raios!",
-      "points": 200,
-      "daysLeft": 14,
-      "categoryId": "refrigerantes-sucos",
-      "imageCategory": "refrigerantes-sucos"
-    },
-    {
-      "id": "pts-cerveja",
-      "title": "Compra de 3 produtos diferentes de Cerveja",
-      "subtitle": "Valendo mais Raios!",
-      "points": 600,
-      "daysLeft": 14,
-      "categoryId": "cervejas",
-      "imageCategory": "cervejas"
-    },
-    {
-      "id": "pts-energetico",
-      "title": "Compra de 2 caixas de Energéticos",
-      "subtitle": "Valendo mais Raios!",
-      "points": 420,
-      "daysLeft": 14,
-      "categoryId": "energeticos",
-      "imageCategory": "energeticos"
-    }
-  ]
+  "discountCategories": ["cervejas", "refrigerantes-sucos", "destilados", "energeticos", "combos"]
 }

@@ -9,6 +9,11 @@
       "source": "/login",
       "destination": "/",
       "permanent": false
+    },
+    {
+      "source": "/login.html",
+      "destination": "/",
+      "permanent": false
     }
   ],
   "functions": {

@@ -1,8 +1,8 @@
 {
   "name": "Ligeirinho Parceiros",
   "short_name": "Parceiros",
-  "version": "2.0.0",
-  "description": "Peça bebidas com rapidez — catálogo completo, carrinho e pedido pelo WhatsApp.",
+  "version": "2.1.0",
+  "description": "Peça bebidas com rapidez — catálogo, ofertas, caminhão e pagamento via Mercado Pago.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -33,9 +33,21 @@
   ],
   "shortcuts": [
     {
-      "name": "Fazer pedido",
-      "short_name": "Pedidos",
+      "name": "Catálogo",
+      "short_name": "Catálogo",
       "url": "/pedidos",
+      "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ofertas",
+      "short_name": "Ofertas",
+      "url": "/ofertas",
+      "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Caminhão",
+      "short_name": "Caminhão",
+      "url": "/caminhao",
       "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
     }
   ]

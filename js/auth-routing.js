@@ -8,7 +8,7 @@
     const LOGIN_PAGE = 'index.html';
 
     const TOTEM_PAGES = new Set(['totem', 'totem-pagamento', 'totem-sucesso']);
-    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro']);
+    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro']);
 
     const defaultPathForRole = (role) => {
         if (auth.isTotemRole(role)) return TOTEM_HOME;

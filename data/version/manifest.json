@@ -28,9 +28,9 @@
       "description": "Produtos, filtros e preços por embalagem"
     },
     "cart": {
-      "version": "1.2.0",
-      "label": "Carrinho",
-      "description": "Pedido WhatsApp, pagamento Mercado Pago e repetir último pedido"
+      "version": "1.3.0",
+      "label": "Caminhão",
+      "description": "Caminhão de pedidos, Mercado Pago e repetir último pedido"
     },
     "home": {
       "version": "1.0.0",
@@ -48,9 +48,9 @@
       "description": "Tour inicial de 3 telas"
     },
     "profile": {
-      "version": "1.0.0",
-      "label": "Perfil",
-      "description": "Preferências e contato"
+      "version": "1.1.0",
+      "label": "Conta",
+      "description": "Área da conta, preferências e ajuda"
     },
     "hosting": {
       "version": "1.0.0",

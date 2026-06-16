@@ -1,5 +1,20 @@
 [
   {
+    "id": "2026-06-14-v21",
+    "date": "2026-06-14",
+    "appVersion": "2.1.0",
+    "title": "App Parceiros — Ofertas, Raios, Conta e Caminhão",
+    "summary": "Navegação unificada, páginas do app no desktop e caminhão como centro do pedido.",
+    "changes": [
+      { "module": "home", "type": "feat", "text": "Home mobile estilo distribuidora com ofertas e categorias" },
+      { "module": "catalog", "type": "feat", "text": "Página Ofertas com descontos, pontos e combos" },
+      { "module": "profile", "type": "feat", "text": "Área Conta com menu lateral no desktop" },
+      { "module": "cart", "type": "feat", "text": "Caminhão — pedido renomeado e página dedicada no mobile" },
+      { "module": "auth", "type": "fix", "text": "Login com retorno (?next=) após entrar" },
+      { "module": "core", "type": "feat", "text": "Club Raios com pontos e missões" }
+    ]
+  },
+  {
     "id": "2026-06-04-v2",
     "date": "2026-06-04",
     "appVersion": "2.0.0",

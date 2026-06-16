@@ -163,7 +163,7 @@ ${renderSummary(order)}
 
     const init = async () => {
         if (!orderId) {
-            showError('Pedido não informado. Volte ao carrinho e tente novamente.');
+            showError('Pedido não informado. Volte ao caminhão e tente novamente.');
             return;
         }
 

@@ -6129,3 +6129,119 @@ body.lig-install-open {
     }
 }
 
+/* ── Desktop: nav, conta, ofertas wide ── */
+@media (min-width: 768px) {
+    .ofertas-shell,
+    .caminhao-shell {
+        max-width: min(72rem, 96vw);
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .raios-body-content {
+        max-width: min(72rem, 96vw);
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .conta-page {
+        max-width: min(72rem, 96vw);
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .conta-desktop-layout {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 1.25rem;
+        align-items: start;
+        padding: 1rem;
+    }
+
+    .conta-desktop-aside {
+        position: sticky;
+        top: 5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--lig-border);
+        background: var(--lig-surface);
+    }
+
+    .conta-aside-link {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.625rem 0.75rem;
+        border: none;
+        border-radius: 0.5rem;
+        background: transparent;
+        color: var(--lig-text);
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .conta-aside-link .material-symbols-outlined {
+        font-size: 1.125rem;
+        color: var(--lig-text-muted);
+    }
+
+    .conta-aside-link:hover {
+        background: var(--lig-yellow-light);
+    }
+
+    .conta-aside-link--active {
+        background: var(--lig-yellow-light);
+        color: var(--lig-yellow-text);
+    }
+
+    .conta-aside-link--active .material-symbols-outlined {
+        color: var(--lig-yellow-text);
+    }
+
+    .conta-desktop-main {
+        min-width: 0;
+    }
+
+    .conta-desktop-main--menu .conta-hero-header {
+        border-radius: 0.75rem;
+    }
+
+    .conta-desktop-main .conta-sub-body,
+    .conta-desktop-main--menu .conta-menu-body {
+        max-width: none;
+    }
+
+    .ofertas-list:has(.ofertas-product-row) {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ofertas-product-row {
+        border-right: 1px solid #eee;
+    }
+
+    nav.font-nav-bar .hidden.md\:flex {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.35rem 0.75rem;
+        max-width: 52rem;
+    }
+
+    nav.font-nav-bar .nav-link {
+        font-size: 0.8125rem;
+        padding: 0.35rem 0.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .ofertas-list:has(.ofertas-product-row) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+

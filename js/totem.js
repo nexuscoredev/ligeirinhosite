@@ -298,7 +298,7 @@
             return;
         }
         auth.logout();
-        window.location.href = 'login.html';
+        window.location.href = '/';
     };
 
     const bindEvents = () => {

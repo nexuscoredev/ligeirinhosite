@@ -2,6 +2,14 @@
     const root = document.getElementById('caminhao-app');
     if (!root) return;
 
+    const LG_DESKTOP = '(min-width: 1024px)';
+    if (window.matchMedia(LG_DESKTOP).matches && !new URLSearchParams(window.location.search).has('mobile')) {
+        const target = new URL('pedidos.html', window.location.href);
+        target.searchParams.set('caminhao', 'open');
+        window.location.replace(target.toString());
+        return;
+    }
+
     const cartApi = window.LigeirinhoCart;
     const cartUi = window.LigeirinhoCartUI;
     if (!cartApi) return;
