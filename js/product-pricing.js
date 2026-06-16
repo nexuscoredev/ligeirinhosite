@@ -199,8 +199,8 @@
         return { ...variant, tier, tierLabel: TIER_LABELS[tier] || tier };
     };
 
-    const getDisplayProducts = (catalogData) => {
-        const groups = buildGroups(catalogData);
+    const getDisplayProducts = (catalogData, groupsMap = null) => {
+        const groups = groupsMap || buildGroups(catalogData);
         const items = [];
         const seen = new Set();
 
@@ -275,22 +275,26 @@
         packLineLabel,
         cartItemName,
         parsePack,
-        loadPackConfig: () =>
-            fetch('data/precos-embalagem.json')
+        loadPackConfig: () => {
+            if (window.__ligPackConfig) return Promise.resolve(window.__ligPackConfig);
+            return fetch('data/precos-embalagem.json')
                 .then((r) => (r.ok ? r.json() : {}))
                 .catch(() => ({}))
                 .then((cfg) => {
                     window.__ligPackConfig = cfg;
                     return cfg;
-                }),
-        loadTierImages: () =>
-            fetch('data/imagem-embalagem.json')
+                });
+        },
+        loadTierImages: () => {
+            if (window.__ligTierImages) return Promise.resolve(window.__ligTierImages);
+            return fetch('data/imagem-embalagem.json')
                 .then((r) => (r.ok ? r.json() : {}))
                 .catch(() => ({}))
                 .then((cfg) => {
                     window.__ligTierImages = cfg;
                     return cfg;
-                }),
+                });
+        },
         applyTierImages,
         getTierImage,
         rebuildGroups: (catalogData) => {

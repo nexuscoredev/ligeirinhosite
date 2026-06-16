@@ -30,6 +30,7 @@
     let pollTimer = null;
     let mountedHost = null;
     let uiState = null;
+    let broadcastsCache = null;
 
     const escapeHtml = (str) =>
         String(str || '')
@@ -266,12 +267,13 @@
     }
 
     async function loadBroadcasts() {
+        if (broadcastsCache) return broadcastsCache;
         try {
             const res = await fetch('data/client-notifications.json');
             if (!res.ok) return [];
             const data = await res.json();
             const now = Date.now();
-            return (data.broadcasts || [])
+            broadcastsCache = (data.broadcasts || [])
                 .filter((b) => {
                     if (!b.activeUntil) return true;
                     return new Date(b.activeUntil).getTime() >= now;
@@ -285,6 +287,7 @@
                     createdAt: b.createdAt || new Date().toISOString(),
                     source: 'broadcast',
                 }));
+            return broadcastsCache;
         } catch {
             return [];
         }
@@ -475,8 +478,13 @@ ${renderPanel(state)}
         render(host, uiState);
 
         pollTimer = setInterval(() => {
+            if (document.hidden) return;
             void refreshUi();
         }, POLL_MS);
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) void refreshUi();
+        });
     }
 
     window.LigeirinhoClientNotifications = {

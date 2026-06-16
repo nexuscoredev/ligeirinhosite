@@ -151,9 +151,13 @@
 </section>`;
     };
 
-    const renderHome = (data, displayItems = []) => {
+    const renderHome = (data, displayItems = [], groups = null) => {
         catalogData = data;
-        window.__ligProductGroups = pricing.buildGroups(data);
+        if (groups) {
+            window.__ligProductGroups = groups;
+        } else if (!window.__ligProductGroups) {
+            window.__ligProductGroups = pricing.buildGroups(data);
+        }
 
         const categories = data.categories.filter((c) => c.products.length > 0);
         const suggestedItems = getSuggestedItems(displayItems);
@@ -254,8 +258,9 @@ ${sectionOrder()
     ])
         .then(([catalogJson, , , storiesCfg]) => {
             homeStoriesConfig = storiesCfg?.stories ? storiesCfg : { stories: [] };
-            const displayItems = pricing.getDisplayProducts(catalogJson);
-            renderHome(catalogJson, displayItems);
+            const groups = pricing.buildGroups(catalogJson);
+            const displayItems = pricing.getDisplayProducts(catalogJson, groups);
+            renderHome(catalogJson, displayItems, groups);
         })
         .catch(() => {
             root.innerHTML =
@@ -265,7 +270,8 @@ ${sectionOrder()
     window.addEventListener('ligeirinho-cart-changed', refreshSteppers);
     window.addEventListener('ligeirinho-prefs-changed', () => {
         if (catalogData) {
-            renderHome(catalogData, pricing.getDisplayProducts(catalogData));
+            const groups = window.__ligProductGroups || pricing.buildGroups(catalogData);
+            renderHome(catalogData, pricing.getDisplayProducts(catalogData, groups), groups);
         }
     });
 })();

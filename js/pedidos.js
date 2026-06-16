@@ -38,40 +38,51 @@
 
     let searchQuery = '';
 
+    let searchTimer = null;
+
+    let cachedQueryInfo = null;
+
+    let cachedQueryKey = '';
 
 
-    const addProduct = (ctx) => {
-        const line = catalog.buildCartLineFields(ctx, pricing);
-        if (!line) return;
-        const cart = cartApi.loadCart();
-        if (!cart[line.key]) {
-            cart[line.key] = { ...line, qty: 0 };
-        }
-        cart[line.key].qty += 1;
-        cartApi.saveCart(cart);
-        cartUi?.render?.();
-        cartUi?.showAddedFeedback?.(line.name);
+
+    const attachSearchIndex = (items) => {
+
+        const search = window.LigeirinhoSearch;
+
+        if (!search?.buildHaystack) return items;
+
+        items.forEach((item) => {
+
+            const text = `${item.product.id} ${item.product.name} ${item.product.description || ''} ${item.categoryName}`;
+
+            item._searchHaystack = search.buildHaystack(text);
+
+        });
+
+        return items;
+
     };
 
 
 
-    const removeProduct = (ctx) => {
+    const getQueryInfo = () => {
 
-        const key = ctx.cartKey;
+        const search = window.LigeirinhoSearch;
 
-        if (!key) return;
+        if (!search?.expandSearchQuery) {
 
-        const cart = cartApi.loadCart();
+            return { raw: searchQuery, words: searchQuery ? [searchQuery] : [], volumes: [] };
 
-        if (!cart[key]) return;
+        }
 
-        cart[key].qty -= 1;
+        if (cachedQueryKey === searchQuery && cachedQueryInfo) return cachedQueryInfo;
 
-        if (cart[key].qty <= 0) delete cart[key];
+        cachedQueryKey = searchQuery;
 
-        cartApi.saveCart(cart);
+        cachedQueryInfo = search.expandSearchQuery(searchQuery);
 
-        cartUi?.render?.();
+        return cachedQueryInfo;
 
     };
 
@@ -81,17 +92,25 @@
 
         const search = window.LigeirinhoSearch;
 
-        const queryInfo = search?.expandSearchQuery?.(searchQuery) || { raw: searchQuery, words: searchQuery ? [searchQuery] : [], volumes: [] };
+        const queryInfo = getQueryInfo();
 
         return displayItems.filter((item) => {
 
             if (activeCategory && item.categoryId !== activeCategory) return false;
 
+            if (!searchQuery) return true;
+
+            if (search?.matchesHaystack && item._searchHaystack) {
+
+                return search.matchesHaystack(item._searchHaystack, queryInfo);
+
+            }
+
             const haystack = `${item.product.id} ${item.product.name} ${item.product.description || ''} ${item.categoryName}`;
 
             if (search?.matchesSearch) return search.matchesSearch(haystack, queryInfo);
 
-            return !searchQuery || haystack.toLowerCase().includes(searchQuery);
+            return haystack.toLowerCase().includes(searchQuery);
 
         });
 
@@ -103,11 +122,31 @@
 
         const search = window.LigeirinhoSearch;
 
-        const queryInfo = search?.expandSearchQuery?.(searchQuery);
+        const queryInfo = getQueryInfo();
 
         const mode = sortSelects[0]?.value || 'name';
 
         const sorted = [...items];
+
+        if (searchQuery && queryInfo?.raw && search?.scoreHaystack) {
+
+            sorted.sort((a, b) => {
+
+                const scoreA = a._searchHaystack ? search.scoreHaystack(a._searchHaystack, queryInfo) : 0;
+
+                const scoreB = b._searchHaystack ? search.scoreHaystack(b._searchHaystack, queryInfo) : 0;
+
+                const scoreDiff = scoreB - scoreA;
+
+                if (scoreDiff !== 0) return scoreDiff;
+
+                return a.product.name.localeCompare(b.product.name, 'pt-BR');
+
+            });
+
+            return sorted;
+
+        }
 
         if (searchQuery && queryInfo?.raw && search?.scoreSearch) {
 
@@ -144,6 +183,43 @@
         }
 
         return sorted;
+
+    };
+
+
+
+    const addProduct = (ctx) => {
+        const line = catalog.buildCartLineFields(ctx, pricing);
+        if (!line) return;
+        const cart = cartApi.loadCart();
+        if (!cart[line.key]) {
+            cart[line.key] = { ...line, qty: 0 };
+        }
+        cart[line.key].qty += 1;
+        cartApi.saveCart(cart);
+        cartUi?.render?.();
+        cartUi?.showAddedFeedback?.(line.name);
+    };
+
+
+
+    const removeProduct = (ctx) => {
+
+        const key = ctx.cartKey;
+
+        if (!key) return;
+
+        const cart = cartApi.loadCart();
+
+        if (!cart[key]) return;
+
+        cart[key].qty -= 1;
+
+        if (cart[key].qty <= 0) delete cart[key];
+
+        cartApi.saveCart(cart);
+
+        cartUi?.render?.();
 
     };
 
@@ -301,7 +377,7 @@
 
             addProduct(ctx);
 
-            renderProducts();
+            refreshCards();
 
         },
 
@@ -309,7 +385,7 @@
 
             removeProduct(ctx);
 
-            renderProducts();
+            refreshCards();
 
         },
 
@@ -319,9 +395,17 @@
 
     searchInput()?.addEventListener('input', () => {
 
-        searchQuery = searchInput()?.value?.trim().toLowerCase() || '';
+        const value = searchInput()?.value?.trim().toLowerCase() || '';
 
-        renderProducts();
+        if (searchTimer) clearTimeout(searchTimer);
+
+        searchTimer = window.setTimeout(() => {
+
+            searchQuery = value;
+
+            renderProducts();
+
+        }, 200);
 
     });
 
@@ -353,9 +437,11 @@
 
             catalogData = data;
 
-            window.__ligProductGroups = pricing.buildGroups(data);
+            const groups = pricing.buildGroups(data);
 
-            displayItems = pricing.getDisplayProducts(data);
+            window.__ligProductGroups = groups;
+
+            displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
 
             renderFilters();
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v64';
+const CACHE_NAME = 'ligeirinho-app-v65';
 
 const APP_SHELL = [
     '/',
@@ -46,7 +46,6 @@ const APP_SHELL = [
     '/js/raios-store.js',
     '/js/raios.js',
     '/data/raios-config.json',
-    '/js/auth-store.js',
     '/js/auth-config-loader.js',
     '/js/phone-auth.js',
     '/js/login-phone.js',
@@ -113,6 +112,15 @@ function shellPath(pathname) {
     return pathname;
 }
 
+function isStaticAsset(pathname) {
+    return (
+        pathname.startsWith('/js/') ||
+        pathname.startsWith('/css/') ||
+        pathname.startsWith('/data/') ||
+        pathname.startsWith('/img/')
+    );
+}
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     if (request.method !== 'GET') return;
@@ -131,6 +139,21 @@ self.addEventListener('fetch', (event) => {
                 (await caches.match(request)) ||
                 (canonicalUrl ? await caches.match(canonicalUrl) : null) ||
                 (isNavigate ? await caches.match('/') : null);
+
+            if (isStaticAsset(url.pathname) && cached) {
+                const revalidate = fetch(canonicalUrl || request)
+                    .then((response) => {
+                        if (response.ok) {
+                            return caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(canonicalUrl || request, response.clone());
+                            });
+                        }
+                        return undefined;
+                    })
+                    .catch(() => undefined);
+                event.waitUntil(revalidate);
+                return cached;
+            }
 
             try {
                 const response = await fetch(canonicalUrl || request);

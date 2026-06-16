@@ -419,30 +419,31 @@ ${lineThumbHtml(item)}
     };
 
     const bindCheckoutFields = () => {
+        const saveFromSection = (section) => {
+            const deliveryInput = section?.querySelector('[data-checkout="deliveryType"]:checked');
+            cartApi.saveCheckout({
+                deliveryType: deliveryInput?.value || 'entrega',
+                address: section?.querySelector('[data-checkout="address"]')?.value || '',
+                payment: 'mercado_pago',
+                notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
+            });
+            renderCheckoutFields();
+            setPayButtons(cartApi.loadCart());
+        };
+
+        let inputSaveTimer = null;
+        const scheduleInputSave = (section) => {
+            if (inputSaveTimer) clearTimeout(inputSaveTimer);
+            inputSaveTimer = window.setTimeout(() => saveFromSection(section), 220);
+        };
+
         document.querySelectorAll('[data-checkout]').forEach((field) => {
             field.addEventListener('change', () => {
-                const section = field.closest('.cart-checkout');
-                const deliveryInput = section?.querySelector('[data-checkout="deliveryType"]:checked');
-                cartApi.saveCheckout({
-                    deliveryType: deliveryInput?.value || 'entrega',
-                    address: section?.querySelector('[data-checkout="address"]')?.value || '',
-                    payment: 'mercado_pago',
-                    notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
-                });
-                renderCheckoutFields();
-                setPayButtons(cartApi.loadCart());
+                saveFromSection(field.closest('.cart-checkout'));
             });
             if (field.tagName === 'TEXTAREA' || field.tagName === 'INPUT') {
                 field.addEventListener('input', () => {
-                    const section = field.closest('.cart-checkout');
-                    const deliveryInput = section?.querySelector('[data-checkout="deliveryType"]:checked');
-                    cartApi.saveCheckout({
-                        deliveryType: deliveryInput?.value || 'entrega',
-                        address: section?.querySelector('[data-checkout="address"]')?.value || '',
-                        payment: 'mercado_pago',
-                        notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
-                    });
-                    setPayButtons(cartApi.loadCart());
+                    scheduleInputSave(field.closest('.cart-checkout'));
                 });
             }
         });

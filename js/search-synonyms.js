@@ -150,10 +150,9 @@
         };
     };
 
-    const matchesSearch = (haystackText, queryInfo) => {
+    const matchesHaystack = (haystack, queryInfo) => {
         if (!queryInfo?.raw) return true;
 
-        const haystack = buildHaystack(haystackText);
         const phraseCompact = queryInfo.phrase.replace(/\s+/g, '');
 
         if (phraseCompact.length >= 4) {
@@ -175,10 +174,9 @@
         return queryInfo.words.length > 0 || queryInfo.volumes.length > 0;
     };
 
-    const scoreSearch = (haystackText, queryInfo) => {
+    const scoreHaystack = (haystack, queryInfo) => {
         if (!queryInfo?.raw) return 0;
 
-        const haystack = buildHaystack(haystackText);
         let score = 0;
         const phraseCompact = queryInfo.phrase.replace(/\s+/g, '');
 
@@ -207,10 +205,16 @@
         return score;
     };
 
+    const matchesSearch = (haystackText, queryInfo) => matchesHaystack(buildHaystack(haystackText), queryInfo);
+
+    const scoreSearch = (haystackText, queryInfo) => scoreHaystack(buildHaystack(haystackText), queryInfo);
+
     window.LigeirinhoSearch = {
         expandSearchQuery,
         matchesSearch,
         scoreSearch,
+        matchesHaystack,
+        scoreHaystack,
         buildHaystack,
         SYNONYMS,
     };

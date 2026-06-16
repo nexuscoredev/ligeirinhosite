@@ -77,7 +77,7 @@
         mo?.disconnect();
         mo = new MutationObserver(() => {
             clearTimeout(debounceTimer);
-            debounceTimer = window.setTimeout(() => scan(main), 60);
+            debounceTimer = window.setTimeout(() => scan(main), 120);
         });
         mo.observe(main, { childList: true, subtree: true });
     };
