@@ -1,7 +1,12 @@
 (function () {
     const PACK_SUFFIX_RE = /\s+C\/(\d+)\s*$/i;
+    const CX_SUFFIX_RE = /\s+CX\s*$/i;
+    const CAIXA_PREFIX_RE = /^CAIXA\s+/i;
     const PACKAGING_WORDS_RE = /\b(LATA|LONG\s*NECK|LN|GFA|GARRAFA|RET(?:ORN[AÁ]VEL)?)\b/gi;
     const OPTIONAL_BEER_WORDS_RE = /\b(HELLS)\b/gi;
+
+    /** Parceiros: somente caixa e pallet (sem venda por unidade). */
+    const WHOLESALE_TIERS = ['caixa', 'pallet'];
 
     /** Nomes equivalentes no catálogo (unidade vs caixa com nome abreviado). */
     const GROUP_NAME_ALIASES = {
@@ -28,12 +33,18 @@
     const stripPackSuffix = (name) =>
         String(name || '')
             .replace(PACK_SUFFIX_RE, '')
+            .replace(CX_SUFFIX_RE, '')
+            .replace(CAIXA_PREFIX_RE, '')
             .trim();
 
     const parsePack = (name) => {
-        const match = String(name || '').match(PACK_SUFFIX_RE);
-        if (!match) return { type: 'unidade', packSize: 1 };
-        return { type: 'caixa', packSize: parseInt(match[1], 10) || 1 };
+        const raw = String(name || '').trim();
+        const match = raw.match(PACK_SUFFIX_RE);
+        if (match) return { type: 'caixa', packSize: parseInt(match[1], 10) || 1 };
+        if (CX_SUFFIX_RE.test(raw) || CAIXA_PREFIX_RE.test(raw)) {
+            return { type: 'caixa', packSize: 1 };
+        }
+        return { type: 'unidade', packSize: 1 };
     };
 
     const normalizeKey = (name, categoryId) => {
@@ -85,7 +96,12 @@
                     image: product.image,
                 };
 
-                if (pack.type === 'unidade') {
+                if (pack.type === 'caixa') {
+                    group.primaryId = product.id;
+                    group.baseName = stripPackSuffix(product.name);
+                    group.image = product.image;
+                    group.adultOnly = product.adultOnly;
+                } else if (pack.type === 'unidade' && !group.variants.caixa) {
                     group.primaryId = product.id;
                     group.baseName = stripPackSuffix(product.name);
                     group.image = product.image;
@@ -146,7 +162,8 @@
                 if (override) variant.image = override;
                 else if (tier === 'pallet' && config.defaults?.pallet) variant.image = config.defaults.pallet;
             });
-            if (group.variants.unidade?.image) group.image = group.variants.unidade.image;
+            if (group.variants.caixa?.image) group.image = group.variants.caixa.image;
+            else if (group.variants.unidade?.image) group.image = group.variants.unidade.image;
         });
     };
 
@@ -167,15 +184,13 @@
         return group.image;
     };
 
-    const getAvailableTiers = (group) => {
-        const order = ['unidade', 'caixa', 'pallet'];
-        return order.filter((tier) => group?.variants?.[tier]?.price != null);
-    };
+    const getAvailableTiers = (group) =>
+        WHOLESALE_TIERS.filter((tier) => group?.variants?.[tier]?.price != null);
 
     const getDefaultTier = (group) => {
         const tiers = getAvailableTiers(group);
-        if (tiers.includes('unidade')) return 'unidade';
-        return tiers[0] || 'unidade';
+        if (tiers.includes('caixa')) return 'caixa';
+        return tiers[0] || 'caixa';
     };
 
     const getVariant = (group, tier) => {
@@ -187,22 +202,31 @@
     const getDisplayProducts = (catalogData) => {
         const groups = buildGroups(catalogData);
         const items = [];
+        const seen = new Set();
 
         catalogData.categories.forEach((cat) => {
             cat.products.forEach((product) => {
                 const pack = parsePack(product.name);
+                if (pack.type === 'unidade') return;
+
                 const key = `${cat.id}::${normalizeKey(product.name, cat.id)}`;
+                if (seen.has(key)) return;
+
                 const group = groups.get(key);
                 if (!group) return;
 
-                if (pack.type === 'caixa' && group.variants.unidade) return;
+                const tiers = getAvailableTiers(group);
+                if (!tiers.length) return;
+
+                seen.add(key);
+                const defaultTier = getDefaultTier(group);
 
                 items.push({
                     group,
                     product: {
                         id: group.primaryId,
                         name: group.baseName,
-                        price: getVariant(group, getDefaultTier(group))?.price ?? product.price,
+                        price: getVariant(group, defaultTier)?.price ?? product.price,
                         image: group.image,
                         adultOnly: group.adultOnly,
                         description: group.description,
@@ -241,6 +265,7 @@
     window.LigeirinhoPricing = {
         TIER_LABELS,
         TIER_SHORT,
+        WHOLESALE_TIERS,
         PALLET_CONFIG,
         buildGroups,
         getAvailableTiers,

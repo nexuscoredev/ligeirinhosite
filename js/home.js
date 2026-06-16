@@ -26,7 +26,7 @@
         const { variant, group, cartKey, tier } = ctx;
         if (!variant) return;
         const key = cartKey || catalog.cartKeyFor(variant);
-        const packType = variant.tier || tier || 'unidade';
+        const packType = variant.tier || tier || 'caixa';
         const name = pricing.cartItemName({ ...variant, tier: packType }, group);
         const cart = cartApi.loadCart();
         if (!cart[key]) {
@@ -89,7 +89,7 @@
             if (product.id === lineItem.id) return true;
             const group = item?.group;
             if (group && pricing) {
-                for (const tier of pricing.getAvailableTiers?.(group) || ['unidade']) {
+                for (const tier of pricing.getAvailableTiers?.(group) || ['caixa']) {
                     const variant = pricing.getVariant(group, tier);
                     if (variant && catalog.cartKeyFor(variant) === key) return true;
                 }
@@ -251,13 +251,6 @@
             .join('');
 
         root.innerHTML = `<div class="home-page">
-<div class="home-hero-banner" aria-hidden="true">
-<div class="home-hero-banner__content">
-<p class="home-hero-banner__title">Bebida gelada, em minutos</p>
-<p class="home-hero-banner__sub">Peça pelo app · Pix e cartão via Mercado Pago</p>
-</div>
-<span class="material-symbols-outlined home-hero-banner__icon">ac_unit</span>
-</div>
 ${quickChipsHtml()}
 ${storiesHtml(categories)}
 ${suggestedSectionHtml(suggestedItems)}

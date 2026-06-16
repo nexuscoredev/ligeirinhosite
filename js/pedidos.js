@@ -48,7 +48,7 @@
 
         const key = cartKey || catalog.cartKeyFor(variant);
 
-        const packType = variant.tier || tier || 'unidade';
+        const packType = variant.tier || tier || 'caixa';
 
         const name = pricing.cartItemName({ ...variant, tier: packType }, group);
 

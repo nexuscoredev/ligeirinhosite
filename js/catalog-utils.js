@@ -126,7 +126,7 @@
 
         const groupKey = cardEl?.dataset?.groupKey;
 
-        const tier = cardEl?.dataset?.priceTier || 'unidade';
+        const tier = cardEl?.dataset?.priceTier || (group ? pricing()?.getDefaultTier?.(group) : null) || 'caixa';
 
         const groups = window.__ligProductGroups;
 
@@ -181,7 +181,7 @@
     const simplePriceBlockHtml = (price, priceClass = 'ze-product-card__price') =>
         `<div class="ze-price-block" data-price-display>
 <span class="${priceClass}">${formatPrice(price)}</span>
-<span class="ze-price-block__unit">por unidade</span>
+<span class="ze-price-block__unit">por caixa</span>
 </div>`;
 
 
@@ -252,7 +252,7 @@ Adicionar
 
         const p = pricing();
 
-        const activeTier = group && p ? p.getDefaultTier(group) : 'unidade';
+        const activeTier = group && p ? p.getDefaultTier(group) : 'caixa';
 
         const variant = group && p ? p.getVariant(group, activeTier) : null;
 
@@ -320,7 +320,7 @@ ${qtyStepperHtml(cartKey, qty)}
 
         const p = pricing();
 
-        const activeTier = group && p ? p.getDefaultTier(group) : 'unidade';
+        const activeTier = group && p ? p.getDefaultTier(group) : 'caixa';
 
         const variant = group && p ? p.getVariant(group, activeTier) : null;
 
@@ -404,7 +404,7 @@ ${qtyStepperHtml(cartKey, qty)}
 
         const p = pricing();
 
-        const activeTier = group && p ? p.getDefaultTier(group) : 'unidade';
+        const activeTier = group && p ? p.getDefaultTier(group) : 'caixa';
 
         const variant = group && p ? p.getVariant(group, activeTier) : null;
 

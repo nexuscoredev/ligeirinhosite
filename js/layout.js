@@ -259,7 +259,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="32" height="32" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
-<p class="lig-footer-lead">Sua distribuidora de bebidas com rapidez, variedade e atendimento de confiança.</p>
+<p class="lig-footer-lead">Atacado em caixas e pallets para revendedores parceiros — rapidez e confiança na entrega.</p>
 <div class="lig-footer-social">
 <a class="lig-footer-social-btn" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">${brandIcon(brandIcons.whatsapp, 26)}</a>
 <a class="lig-footer-social-btn" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">${brandIcon(brandIcons.instagram, 26)}</a>
@@ -568,5 +568,11 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         versionScript.src = 'js/app-version.js';
         versionScript.dataset.ligAppVersion = '1';
         document.body.appendChild(versionScript);
+    }
+
+    if (page !== 'login' && page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso') {
+        ensureScript('js/motion.js').then(() => {
+            window.LigeirinhoMotion?.refresh?.();
+        });
     }
 })();

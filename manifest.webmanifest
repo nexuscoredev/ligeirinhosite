@@ -2,7 +2,7 @@
   "name": "Ligeirinho Parceiros",
   "short_name": "Parceiros",
   "version": "2.1.0",
-  "description": "Peça bebidas com rapidez — catálogo, ofertas, caminhão e pagamento via Mercado Pago.",
+  "description": "Pedidos em caixa e pallet para revendedores — catálogo, ofertas, caminhão e Mercado Pago.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

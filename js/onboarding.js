@@ -46,7 +46,7 @@
 <div class="text-center mb-4">
 <img src="img/ligeirinhologo.png" alt="" width="56" height="56" class="mx-auto rounded-xl mb-3" decoding="async">
 <h2 id="lig-onboarding-title" class="text-lg font-bold lig-page-section-title">Bem-vindo ao Ligeirinho</h2>
-<p class="text-sm lig-page-lead mt-2">Bebida gelada na porta — peça em poucos toques.</p>
+<p class="text-sm lig-page-lead mt-2">Caixas e pallets para o seu negócio — peça em poucos toques.</p>
 </div>
 <label class="lig-page-label" for="onboard-address">Onde entregamos?</label>
 <input class="lig-page-input mb-4" id="onboard-address" type="text" placeholder="Rua, número, bairro" autocomplete="street-address">

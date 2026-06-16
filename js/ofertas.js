@@ -42,7 +42,7 @@
         const { variant, group, cartKey, tier } = ctx;
         if (!variant) return;
         const key = cartKey || catalog.cartKeyFor(variant);
-        const packType = variant.tier || tier || 'unidade';
+        const packType = variant.tier || tier || 'caixa';
         const name = pricing.cartItemName({ ...variant, tier: packType }, group);
         const cart = cartApi.loadCart();
         if (!cart[key]) {
@@ -77,15 +77,14 @@
         const group = item?.group || null;
         const product = item?.product || item;
         const p = pricing;
-        const activeTier = group && p ? p.getDefaultTier(group) : 'unidade';
+        const activeTier = group && p ? p.getDefaultTier(group) : 'caixa';
         const variant = group && p ? p.getVariant(group, activeTier) : null;
         const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
         const qty = catalog.getCartQty(cartKey);
         const price = variant?.price ?? product.price ?? 0;
         const disc = discountPrice(price, product.id);
         const imgSrc = catalog.productImageUrl(group && p ? p.getTierImage(group, activeTier) : product.image);
-        const packLabel =
-            activeTier === 'caixa' ? 'CAIXA' : activeTier === 'pallet' ? 'PALLET' : 'UNIDADE';
+        const packLabel = activeTier === 'pallet' ? 'PALLET' : 'CAIXA';
         const groupAttr = group ? ` data-group-key="${esc(group.key)}" data-price-tier="${esc(activeTier)}"` : '';
         const sub = variant && p ? p.packLineLabel({ ...variant, tier: activeTier }) : '';
 
