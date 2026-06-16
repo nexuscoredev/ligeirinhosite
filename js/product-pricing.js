@@ -26,7 +26,7 @@
 
     const TIER_SHORT = {
         unidade: 'Un.',
-        caixa: 'Cx.',
+        caixa: 'Caixa',
         pallet: 'Pal.',
     };
 

@@ -22,7 +22,7 @@
     ensureMeta('mobile-web-app-capable', 'yes');
     ensureMeta('apple-mobile-web-app-capable', 'yes');
     ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
-    ensureMeta('apple-mobile-web-app-title', 'Parceiros');
+    ensureMeta('apple-mobile-web-app-title', 'Ligeirinho Parceiros');
     ensureLink('manifest', 'manifest.webmanifest');
 
     if ('serviceWorker' in navigator) {
