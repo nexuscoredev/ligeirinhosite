@@ -1337,8 +1337,7 @@ html.lig-app-standalone .ze-app-header {
     font-size: 0.5625rem;
     font-weight: 500;
     color: var(--lig-text-subtle);
-    line-height: 1.2;
-    text-transform: lowercase;
+    line-height: 1.25;
 }
 
 .ze-product-h .ze-price-tiers {

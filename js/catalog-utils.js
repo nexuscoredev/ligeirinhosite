@@ -347,23 +347,34 @@
 
 
 
+    const priceSubtitleHtml = (variant, p) => {
+        if (!variant || !p) return '';
+        const meta = p.pricePackMeta(variant);
+        const parts = [meta.unitSuffix];
+        if (meta.detail) parts.push(meta.detail);
+        if (meta.packagePrice != null) parts.push(`total ${formatPrice(meta.packagePrice)}`);
+        return parts.join(' · ');
+    };
+
+
+
     const priceBlockHtml = (group, activeTier) => {
 
         const p = pricing();
 
         const variant = group && p ? p.getVariant(group, activeTier) : null;
 
-        const price = variant?.price;
+        const meta = variant && p ? p.pricePackMeta(variant) : null;
 
-        const sub = variant && p ? p.packLineLabel({ ...variant, tier: activeTier }) : '';
+        const displayPrice = meta?.unitPrice ?? variant?.price;
 
 
 
         return `<div class="ze-price-block" data-price-display>
 
-<span class="ze-product-card__price">${formatPrice(price)}</span>
+<span class="ze-product-card__price">${formatPrice(displayPrice)}</span>
 
-${sub ? `<span class="ze-price-block__unit">${escapeHtml(sub)}</span>` : ''}
+${variant ? `<span class="ze-price-block__unit">${escapeHtml(priceSubtitleHtml(variant, p))}</span>` : ''}
 
 </div>`;
 

@@ -82,10 +82,25 @@
         const qty = catalog.getCartQty(cartKey);
         const price = variant?.price ?? product.price ?? 0;
         const disc = discountPrice(price, product.id);
+        const unitPrice =
+            variant && p?.getUnitPrice
+                ? p.getUnitPrice({ ...variant, price: disc.sale, tier: activeTier })
+                : disc.sale;
         const imgSrc = catalog.productImageUrl(group && p ? p.getTierImage(group, activeTier) : product.image);
         const packLabel = activeTier === 'pallet' ? 'PALLET' : 'CAIXA';
         const groupAttr = group ? ` data-group-key="${esc(group.key)}" data-price-tier="${esc(activeTier)}"` : '';
-        const sub = variant && p ? p.packLineLabel({ ...variant, tier: activeTier }) : '';
+        const sub =
+            variant && p
+                ? [
+                      'por unidade',
+                      activeTier === 'pallet'
+                          ? variant.boxCount
+                              ? `Pallet · ${variant.boxCount} cx`
+                              : 'Pallet'
+                          : `Caixa c/ ${variant.packSize || '?'} un`,
+                      `total ${catalog.formatPrice(disc.sale)}`,
+                  ].join(' · ')
+                : '';
 
         return `<article class="ofertas-product-row" data-product-id="${esc(product.id)}"${groupAttr}>
 <div class="ofertas-product-row__media">
@@ -96,8 +111,8 @@ ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" class="ofertas-product-row__img" lo
 <h3 class="ofertas-product-row__name">${esc(catalog.shortName(product.name, 56))}</h3>
 ${sub ? `<p class="ofertas-product-row__sub">${esc(sub)}</p>` : ''}
 <p class="ofertas-product-row__prices">
-<span class="ofertas-product-row__old">${catalog.formatPrice(disc.original)}</span>
-<span class="ofertas-product-row__price">${catalog.formatPrice(disc.sale)}</span>
+<span class="ofertas-product-row__old">${catalog.formatPrice(p?.getUnitPrice?.({ ...variant, price: disc.original, tier: activeTier }) ?? disc.original)}</span>
+<span class="ofertas-product-row__price">${catalog.formatPrice(unitPrice)}</span>
 </p>
 <p class="ofertas-product-row__seller"><span class="material-symbols-outlined">store</span> Vendido por Ligeirinho</p>
 <p class="ofertas-product-row__promo">Até ${disc.pct}% de desconto</p>

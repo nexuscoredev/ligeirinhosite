@@ -27,7 +27,7 @@
     const TIER_SHORT = {
         unidade: 'Un.',
         caixa: 'Caixa',
-        pallet: 'Pal.',
+        pallet: 'Pallet',
     };
 
     const stripPackSuffix = (name) =>
@@ -240,15 +240,56 @@
         return items;
     };
 
-    const packLineLabel = (variant) => {
-        if (!variant) return '';
-        if (variant.tier === 'unidade') return 'por unidade';
-        if (variant.tier === 'caixa') return `caixa c/ ${variant.packSize || '?'}`;
-        if (variant.tier === 'pallet') {
-            if (variant.boxCount) return `pallet • ${variant.boxCount} cx`;
-            return 'pallet';
+    const getUnitPrice = (variant) => {
+        if (!variant || variant.price == null) return null;
+        const units = Number(variant.packSize) || 0;
+        if (units > 1) return Math.round((variant.price / units) * 100) / 100;
+        return variant.price;
+    };
+
+    const pricePackMeta = (variant) => {
+        if (!variant) {
+            return { unitPrice: null, packagePrice: null, tierLabel: '', detail: '', unitSuffix: 'por unidade' };
         }
-        return '';
+
+        const tierLabel = TIER_LABELS[variant.tier] || variant.tier || '';
+        const unitPrice = getUnitPrice(variant);
+        const packagePrice = variant.price;
+
+        if (variant.tier === 'caixa') {
+            return {
+                unitPrice,
+                packagePrice,
+                tierLabel,
+                detail: `Caixa c/ ${variant.packSize || '?'} un`,
+                unitSuffix: 'por unidade',
+            };
+        }
+
+        if (variant.tier === 'pallet') {
+            const boxes = variant.boxCount ? `${variant.boxCount} cx` : '';
+            return {
+                unitPrice,
+                packagePrice,
+                tierLabel,
+                detail: boxes ? `Pallet · ${boxes}` : 'Pallet',
+                unitSuffix: 'por unidade',
+            };
+        }
+
+        return {
+            unitPrice,
+            packagePrice,
+            tierLabel,
+            detail: tierLabel,
+            unitSuffix: 'por unidade',
+        };
+    };
+
+    const packLineLabel = (variant) => {
+        const meta = pricePackMeta(variant);
+        if (!meta.detail) return meta.unitSuffix;
+        return `${meta.unitSuffix} · ${meta.detail}`;
     };
 
     const cartItemName = (variant, group) => {
@@ -273,6 +314,8 @@
         getVariant,
         getDisplayProducts,
         packLineLabel,
+        getUnitPrice,
+        pricePackMeta,
         cartItemName,
         parsePack,
         loadPackConfig: () => {
