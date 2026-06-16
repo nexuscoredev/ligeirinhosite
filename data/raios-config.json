@@ -54,7 +54,6 @@
     { "id": "destilados", "label": "Destilados e vinhos", "icon": "liquor", "bg": "#fce4ec" },
     { "id": "refrigerantes-sucos", "label": "Não alcoólicos", "icon": "local_cafe", "bg": "#e8f5e9" },
     { "id": "energeticos", "label": "Energéticos", "icon": "bolt", "bg": "#e3f2fd" },
-    { "id": "combos", "label": "Combos", "icon": "local_fire_department", "bg": "#fff3e0" },
     { "id": "gelos", "label": "Gelos e acessórios", "icon": "ac_unit", "bg": "#e0f7fa" },
     { "id": "whiskys", "label": "Whiskys", "icon": "wine_bar", "bg": "#f3e5f5" },
     { "id": "vinhos", "label": "Vinhos", "icon": "wine_bar", "bg": "#fde8ef" },

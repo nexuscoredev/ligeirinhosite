@@ -44,6 +44,32 @@
     const cartTotalValue = (cart) =>
         cartEntries(cart).reduce((sum, item) => sum + (item.price ?? 0) * item.qty, 0);
 
+    const formatMoney = (value) => {
+        if (value == null || Number.isNaN(value)) return '—';
+        return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    };
+
+    const packTypeLabel = (packType) => {
+        const t = String(packType || 'caixa').toLowerCase();
+        return t === 'pallet' ? 'Pallet' : 'Caixa';
+    };
+
+    const lineSubtotal = (item) => (item.price ?? 0) * (item.qty || 0);
+
+    const itemMetaText = (item) => {
+        const unit = formatMoney(item.price ?? 0);
+        const pack = packTypeLabel(item.packType);
+        const sub = formatMoney(lineSubtotal(item));
+        return `${item.qty}x ${unit}/${pack} · ${sub}`;
+    };
+
+    const cartSummary = (cart) => {
+        const items = cartEntries(cart);
+        const units = cartItemCount(cart);
+        const subtotal = cartTotalValue(cart);
+        return { items, units, subtotal, total: subtotal };
+    };
+
     const saveLastOrder = (cart, checkout) => {
         const items = cartEntries(cart);
         if (!items.length) return;
@@ -58,6 +84,7 @@
                         price: item.price,
                         qty: item.qty,
                         packType: item.packType,
+                        image: item.image || '',
                     })),
                     checkout: checkout || loadCheckout(),
                     savedAt: Date.now(),
@@ -147,6 +174,11 @@
         cartEntries,
         cartItemCount,
         cartTotalValue,
+        cartSummary,
+        formatMoney,
+        packTypeLabel,
+        lineSubtotal,
+        itemMetaText,
         updateNavCartBadge,
     };
 

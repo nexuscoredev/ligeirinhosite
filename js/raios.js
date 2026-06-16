@@ -26,11 +26,6 @@
 <div class="raios-hero__top">
 <h1 class="raios-hero__title">Club Raios</h1>
 </div>
-<button type="button" class="raios-store-bar" data-raios-open-cart>
-<img src="img/ligeirinhologo.png" alt="" class="raios-store-bar__logo" width="20" height="20">
-<span class="raios-store-bar__name">Ligeirinho Parceiros</span>
-<span class="material-symbols-outlined raios-store-bar__chev">expand_more</span>
-</button>
 <div class="raios-points-pill">
 <span class="raios-points-pill__icon" aria-hidden="true">⚡</span>
 <span class="raios-points-pill__value">${raios.formatPoints(state.points)} pontos</span>
@@ -231,10 +226,6 @@ ${subHeader('Transações')}
                 if (!target && window.location.hash) window.location.hash = '';
                 else render();
             });
-        });
-
-        root.querySelectorAll('[data-raios-open-cart]').forEach((el) => {
-            el.addEventListener('click', () => window.LigeirinhoCartUI?.open?.());
         });
 
         root.querySelector('#raios-join-btn')?.addEventListener('click', () => {

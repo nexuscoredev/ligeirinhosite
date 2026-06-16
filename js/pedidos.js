@@ -41,47 +41,16 @@
 
 
     const addProduct = (ctx) => {
-
-        const { variant, group, cartKey, tier } = ctx;
-
-        if (!variant) return;
-
-        const key = cartKey || catalog.cartKeyFor(variant);
-
-        const packType = variant.tier || tier || 'caixa';
-
-        const name = pricing.cartItemName({ ...variant, tier: packType }, group);
-
+        const line = catalog.buildCartLineFields(ctx, pricing);
+        if (!line) return;
         const cart = cartApi.loadCart();
-
-        if (!cart[key]) {
-
-            cart[key] = {
-
-                id: variant.id,
-
-                cartKey: key,
-
-                name,
-
-                price: variant.price,
-
-                qty: 0,
-
-                packType,
-
-            };
-
+        if (!cart[line.key]) {
+            cart[line.key] = { ...line, qty: 0 };
         }
-
-        cart[key].qty += 1;
-
+        cart[line.key].qty += 1;
         cartApi.saveCart(cart);
-
         cartUi?.render?.();
-
-        cartUi?.showAddedFeedback?.(name);
-
+        cartUi?.showAddedFeedback?.(line.name);
     };
 
 

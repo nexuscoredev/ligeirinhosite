@@ -22,7 +22,6 @@
         { id: 'destilados', label: 'Destilados' },
         { id: 'refrigerantes-sucos', label: 'Refrigerantes' },
         { id: 'energeticos', label: 'Energéticos' },
-        { id: 'combos', label: 'Combos' },
         { id: 'gelos', label: 'Gelos' },
     ];
 

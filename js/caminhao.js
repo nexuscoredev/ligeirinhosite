@@ -14,7 +14,6 @@
     const cartUi = window.LigeirinhoCartUI;
     if (!cartApi) return;
 
-    const STORE_LABEL = 'LIGEIRINHO · BEBIDAS';
     const PAY_LABEL = 'Pagar com Mercado Pago';
     let checkoutBound = false;
 
@@ -24,9 +23,16 @@
             .replace(/</g, '&lt;')
             .replace(/"/g, '&quot;');
 
-    const formatPrice = (value) => {
-        if (value == null || Number.isNaN(value)) return '—';
-        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const formatPrice = (value) => cartApi.formatMoney(value);
+
+    const PREF_CATEGORY_LABELS = {
+        cervejas: 'Cervejas',
+        destilados: 'Destilados',
+        'refrigerantes-sucos': 'Refrigerantes',
+        energeticos: 'Energéticos',
+        gelos: 'Gelos',
+        whiskys: 'Whiskys',
+        vinhos: 'Vinhos',
     };
 
     const truckIllustration = () => `<div class="caminhao-empty__art" aria-hidden="true">
@@ -47,24 +53,44 @@
 </svg>
 </div>`;
 
+    const emptySuggestionsHtml = () => {
+        const cats = (cartApi.loadPrefs?.().categories || []).slice(0, 3);
+        if (!cats.length) return '';
+        const chips = cats
+            .map(
+                (id) =>
+                    `<a href="pedidos.html?categoria=${encodeURIComponent(id)}" class="caminhao-empty__chip">${esc(PREF_CATEGORY_LABELS[id] || id)}</a>`
+            )
+            .join('');
+        return `<div class="caminhao-empty__suggest">
+<p class="caminhao-empty__suggest-label">Sugestões para você</p>
+<div class="caminhao-empty__chips">${chips}</div>
+</div>`;
+    };
+
     const emptyStateHtml = () => {
         const hasLast = Boolean(cartApi.lastOrderSummary());
         return `<div class="caminhao-empty">
 ${truckIllustration()}
 <h2 class="caminhao-empty__title">Caminhão vazio</h2>
-<p class="caminhao-empty__text">Produtos adicionados serão exibidos aqui.</p>
+<p class="caminhao-empty__text">Adicione produtos pelo catálogo — eles aparecem aqui, como na sacola do delivery.</p>
 <a href="pedidos.html" class="caminhao-empty__cta">Adicionar produtos</a>
+${emptySuggestionsHtml()}
 ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-reorder-btn">Repetir último pedido</button>` : ''}
 </div>`;
     };
 
     const itemRowHtml = (item) => {
         const lineKey = item.cartKey || item.id;
-        const subtotal = formatPrice((item.price ?? 0) * item.qty);
+        const meta = cartApi.itemMetaText(item);
+        const thumb =
+            cartUi?.lineThumbHtml?.(item, 'caminhao-item__thumb') ||
+            '<span class="caminhao-item__thumb caminhao-item__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
         return `<article class="caminhao-item" data-cart-line="${esc(lineKey)}">
+${thumb}
 <div class="caminhao-item__main">
 <p class="caminhao-item__name">${esc(item.name)}</p>
-<p class="caminhao-item__meta">${item.qty}x · ${subtotal}</p>
+<p class="caminhao-item__meta">${esc(meta)}</p>
 </div>
 <div class="caminhao-item__actions">
 <button type="button" class="caminhao-item__qty caminhao-item__qty--minus cart-qty-minus" data-id="${esc(lineKey)}" aria-label="Diminuir">−</button>
@@ -81,7 +107,17 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
         cartUi?.payButtonHtml?.() ||
         '<img src="img/mercado-pago-logo-white-horizontal.svg" alt="" class="lig-mp-pay-logo" width="108" height="27" decoding="async">';
 
-    const checkoutHtml = () => `<section class="caminhao-checkout cart-checkout" aria-label="Detalhes do pedido">
+    const summaryBlockHtml = (cart) => {
+        const { units, subtotal } = cartApi.cartSummary(cart);
+        const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
+        return `<div class="caminhao-summary">
+<div class="caminhao-summary__row"><span>Subtotal (${unitsLabel})</span><span>${formatPrice(subtotal)}</span></div>
+<div class="caminhao-summary__row caminhao-summary__row--total"><span>Total</span><strong>${formatPrice(subtotal)}</strong></div>
+</div>`;
+    };
+
+    const checkoutHtml = () => `<a href="pedidos.html" class="caminhao-continue">Continuar comprando</a>
+<section class="caminhao-checkout cart-checkout" id="caminhao-checkout" aria-label="Detalhes do pedido">
 <p class="caminhao-checkout__label">Detalhes do pedido</p>
 <div class="caminhao-checkout__delivery">
 <label class="caminhao-delivery-opt">
@@ -91,29 +127,22 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
 <input type="radio" name="caminhao-delivery" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
-<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="caminhao-input" autocomplete="street-address">
-<textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="caminhao-input caminhao-input--area"></textarea>
+<input type="text" data-checkout="address" id="caminhao-address" placeholder="Endereço completo (rua, nº, bairro)" class="caminhao-input" autocomplete="street-address">
+<p class="caminhao-checkout__error hidden" data-checkout-error="address" role="alert"></p>
+<textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="caminhao-input caminhao-input--area"></textarea>
 <p class="caminhao-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </section>
 <div class="caminhao-footer">
-<div class="caminhao-footer__total">
-<span>Total</span>
-<strong id="caminhao-total">R$ 0,00</strong>
-</div>
+<div id="caminhao-summary"></div>
 <button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn lig-cart-mp-btn" disabled aria-label="${PAY_LABEL}">${payBtnLogoHtml()}</button>
 </div>`;
 
     const setPayButton = (cart) => {
         const btn = document.getElementById('caminhao-pay-btn');
         if (!btn) return;
-        const hasItems = cartApi.cartItemCount(cart) > 0;
-        const checkout = cartApi.loadCheckout();
-        const needsAddress = checkout.deliveryType === 'entrega';
-        const addressOk = !needsAddress || Boolean(checkout.address?.trim());
-        const canCheckout = hasItems && addressOk;
+        const { canCheckout } = cartUi?.updateCheckoutErrors?.(cart) || { canCheckout: false };
         btn.disabled = !canCheckout;
         btn.classList.toggle('caminhao-pay-btn--disabled', !canCheckout);
-        btn.title = needsAddress && !addressOk ? 'Informe o endereço para entrega' : '';
     };
 
     const renderCheckoutFields = () => {
@@ -168,26 +197,34 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
     };
 
     const removeFromCart = (id) => {
+        if (cartUi?.removeFromCart) {
+            cartUi.removeFromCart(id);
+            return;
+        }
         const cart = cartApi.loadCart();
         delete cart[id];
         cartApi.saveCart(cart);
         render();
     };
 
+    const focusAddressIfNeeded = () => {
+        if (window.location.hash !== '#endereco') return;
+        window.requestAnimationFrame(() => {
+            const el = document.getElementById('caminhao-address');
+            el?.focus?.();
+            el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+        });
+    };
+
     const render = () => {
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
         const count = cartApi.cartItemCount(cart);
-        const total = formatPrice(cartApi.cartTotalValue(cart));
 
         root.innerHTML = `<div class="caminhao-shell">
 <header class="caminhao-header">
 <h1 class="caminhao-header__title">Caminhão</h1>
-<button type="button" class="caminhao-header__store" aria-label="Distribuidora">
-<span class="caminhao-header__store-name">${esc(STORE_LABEL)}</span>
-<span class="material-symbols-outlined">expand_more</span>
-</button>
-${count > 0 ? `<p class="caminhao-header__count">${count === 1 ? '1 item' : `${count} itens`}</p>` : ''}
+${count > 0 ? `<p class="caminhao-header__count">${count === 1 ? '1 item no caminhão' : `${count} itens no caminhão`}</p>` : '<p class="caminhao-header__count caminhao-header__count--empty">Seu pedido em um só lugar</p>'}
 </header>
 <div class="caminhao-content">
 ${items.length ? `<div class="caminhao-items">${items.map(itemRowHtml).join('')}</div>` : emptyStateHtml()}
@@ -195,14 +232,15 @@ ${items.length ? `<div class="caminhao-items">${items.map(itemRowHtml).join('')}
 ${items.length ? checkoutHtml() : ''}
 </div>`;
 
-        const totalEl = document.getElementById('caminhao-total');
-        if (totalEl) totalEl.textContent = total;
+        const summaryEl = document.getElementById('caminhao-summary');
+        if (summaryEl) summaryEl.innerHTML = summaryBlockHtml(cart);
 
         setPayButton(cart);
         renderCheckoutFields();
         bindCheckoutFields();
         bindActions();
         cartApi.updateNavCartBadge();
+        focusAddressIfNeeded();
     };
 
     const bindActions = () => {

@@ -11,7 +11,6 @@
     let config = {};
     let catalogData = null;
     let displayItems = [];
-    let combos = [];
     let activeTab = 'descontos';
     let sortMode = 'name';
     let filterCategory = '';
@@ -39,19 +38,16 @@
     };
 
     const addProduct = (ctx) => {
-        const { variant, group, cartKey, tier } = ctx;
-        if (!variant) return;
-        const key = cartKey || catalog.cartKeyFor(variant);
-        const packType = variant.tier || tier || 'caixa';
-        const name = pricing.cartItemName({ ...variant, tier: packType }, group);
+        const line = catalog.buildCartLineFields(ctx, pricing);
+        if (!line) return;
         const cart = cartApi.loadCart();
-        if (!cart[key]) {
-            cart[key] = { id: variant.id, cartKey: key, name, price: variant.price, qty: 0, packType };
+        if (!cart[line.key]) {
+            cart[line.key] = { ...line, qty: 0 };
         }
-        cart[key].qty += 1;
+        cart[line.key].qty += 1;
         cartApi.saveCart(cart);
         cartUi?.render?.();
-        cartUi?.showAddedFeedback?.(name);
+        cartUi?.showAddedFeedback?.(line.name);
         renderList();
     };
 
@@ -124,39 +120,6 @@ ${offer.daysLeft ? `<p class="ofertas-points-row__timer"><span class="ofertas-po
 </article>`;
     };
 
-    const comboOfferRow = (combo) => {
-        let total = 0;
-        let original = 0;
-        combo.items.forEach(({ id, qty }) => {
-            for (const cat of catalogData?.categories || []) {
-                const product = cat.products.find((p) => p.id === id);
-                if (product) {
-                    total += (product.price ?? 0) * qty;
-                    original += (product.price ?? 0) * qty * 1.12;
-                    break;
-                }
-            }
-        });
-        const sale = Math.round(total * 0.88 * 100) / 100;
-        original = Math.round(original * 100) / 100;
-
-        return `<article class="ofertas-combo-row" data-combo-id="${esc(combo.id)}">
-<div class="ofertas-combo-row__media">
-<span class="material-symbols-outlined ofertas-combo-row__icon">${esc(combo.icon || 'local_mall')}</span>
-</div>
-<div class="ofertas-combo-row__body">
-<h3 class="ofertas-combo-row__name">${esc(combo.title)}</h3>
-<p class="ofertas-combo-row__sub">${esc(combo.subtitle)}</p>
-<p class="ofertas-combo-row__prices">
-<span class="ofertas-combo-row__old">${catalog.formatPrice(original)}</span>
-<span class="ofertas-combo-row__price">${catalog.formatPrice(sale)}</span>
-</p>
-<p class="ofertas-combo-row__seller"><span class="material-symbols-outlined">store</span> Vendido por Ligeirinho</p>
-<button type="button" class="ofertas-combo-row__add" data-combo-add="${esc(combo.id)}">Adicionar combo</button>
-</div>
-</article>`;
-    };
-
     const getDiscountItems = () => {
         const cats = new Set(config.discountCategories || []);
         let items = displayItems.filter((item) => cats.has(item.categoryId));
@@ -172,7 +135,6 @@ ${offer.daysLeft ? `<p class="ofertas-points-row__timer"><span class="ofertas-po
         const tabs = [
             { id: 'descontos', label: 'Descontos', icon: 'sell' },
             { id: 'pontos', label: 'Pontos', icon: 'redeem' },
-            { id: 'combos', label: 'Combos', icon: 'local_mall' },
         ];
 
         const showToolbar = activeTab !== 'pontos';
@@ -188,7 +150,7 @@ ${showToolbar ? `<div class="ofertas-toolbar">
 <span class="material-symbols-outlined ofertas-toolbar__chev">expand_more</span>
 </button>
 <div class="ofertas-toolbar__sort">
-<select id="ofertas-sort" class="ofertas-toolbar__select" aria-label="Ordenar por"${activeTab === 'combos' ? ' disabled' : ''}>
+<select id="ofertas-sort" class="ofertas-toolbar__select" aria-label="Ordenar por">
 <option value="name">Ordenar por nome</option>
 <option value="price-asc">Menor preço</option>
 <option value="price-desc">Maior preço</option>
@@ -205,7 +167,7 @@ ${(catalogData?.categories || [])
     .join('')}
 </select>
 </div>` : ''}
-<nav class="ofertas-tabs" aria-label="Tipo de oferta">
+<nav class="ofertas-tabs ofertas-tabs--duo" aria-label="Tipo de oferta">
 ${tabs
     .map(
         (t) => `<button type="button" class="ofertas-tab${activeTab === t.id ? ' ofertas-tab--active' : ''}" data-ofertas-tab="${t.id}">
@@ -228,15 +190,11 @@ ${tabs
             list.innerHTML = items.length
                 ? items.map(offerProductRow).join('')
                 : '<p class="ofertas-empty">Nenhuma oferta de desconto nesta categoria.</p>';
-        } else if (activeTab === 'pontos') {
+        } else {
             const offers = config.pointsOffers || [];
             list.innerHTML = offers.length
                 ? offers.map(pointsOfferRow).join('')
                 : '<p class="ofertas-empty">Nenhuma oferta de pontos no momento.</p>';
-        } else {
-            list.innerHTML = combos.length
-                ? combos.map(comboOfferRow).join('')
-                : '<p class="ofertas-empty">Nenhum combo disponível.</p>';
         }
 
         bindListActions();
@@ -246,34 +204,6 @@ ${tabs
         catalog.bindQtySteppers(root, {
             onAdd: (ctx) => addProduct(ctx),
             onRemove: (ctx) => removeProduct(ctx),
-        });
-
-        root.querySelectorAll('[data-combo-add]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const comboId = btn.dataset.comboAdd;
-                const combo = combos.find((c) => c.id === comboId);
-                if (!combo) return;
-                const cart = cartApi.loadCart();
-                combo.items.forEach(({ id, qty }) => {
-                    for (const cat of catalogData?.categories || []) {
-                        const product = cat.products.find((p) => p.id === id);
-                        if (!product) continue;
-                        if (!cart[product.id]) {
-                            cart[product.id] = {
-                                id: product.id,
-                                name: product.name,
-                                price: product.price,
-                                qty: 0,
-                            };
-                        }
-                        cart[product.id].qty += qty;
-                        break;
-                    }
-                });
-                cartApi.saveCart(cart);
-                cartUi?.render?.();
-                cartUi?.showAddedFeedback?.('Combo adicionado');
-            });
         });
     };
 
@@ -331,19 +261,17 @@ ${tabs
 
     const init = () => {
         const tabParam = new URLSearchParams(window.location.search).get('tab');
-        if (tabParam && ['descontos', 'pontos', 'combos'].includes(tabParam)) activeTab = tabParam;
+        if (tabParam && ['descontos', 'pontos'].includes(tabParam)) activeTab = tabParam;
 
         Promise.all([
             window.LigeirinhoCatalogLoader.load(),
             fetch('data/ofertas-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
             fetch('data/raios-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
-            fetch('data/combos-ocasiao.json').then((r) => (r.ok ? r.json() : { combos: [] })).catch(() => ({ combos: [] })),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
-        ]).then(([catalogJson, cfg, raiosCfg, combosJson]) => {
+        ]).then(([catalogJson, cfg, raiosCfg]) => {
             config = { ...cfg, pointsOffers: pointsFromRaios(raiosCfg) };
             catalogData = catalogJson;
-            combos = combosJson.combos || [];
             displayItems = pricing.getDisplayProducts(catalogJson);
             window.__ligProductGroups = pricing.buildGroups(catalogJson);
             render();

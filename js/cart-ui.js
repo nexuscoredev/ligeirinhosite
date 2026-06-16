@@ -27,6 +27,7 @@
 <span id="cart-count-badge" class="lig-cart-header__count">0 itens</span>
 </div>
 <div id="cart-items" class="lig-cart-items"></div>
+<a href="pedidos.html" class="lig-cart-continue" id="cart-continue-link">Continuar comprando</a>
 <div class="cart-checkout lig-cart-checkout shrink-0">
 <p class="lig-cart-checkout__label">Detalhes do pedido</p>
 <div class="lig-cart-checkout__delivery">
@@ -38,9 +39,11 @@
 </label>
 </div>
 <input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
-<textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
+<p class="lig-cart-checkout__error hidden" data-checkout-error="address" role="alert"></p>
+<textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
 <p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
 </div>
+<div id="cart-summary" class="lig-cart-summary-wrap shrink-0"></div>
 <div class="lig-cart-footer shrink-0">
 <div class="lig-cart-footer__total">
 <span class="lig-cart-footer__label">Total</span>
@@ -94,6 +97,9 @@ ${payBtnInnerHtml()}
     let cartApi;
     let scrollLockY = 0;
     let toastHideTimer = null;
+    let undoRemoveSnapshot = null;
+    let undoRemoveTimer = null;
+    let undoHideTimer = null;
 
     const toastStyles = `
         @keyframes cart-nav-bump {
@@ -151,6 +157,19 @@ ${payBtnInnerHtml()}
                 if (window.matchMedia(LG_QUERY).matches) open();
                 else window.location.href = 'caminhao.html';
             });
+        }
+
+        if (!document.getElementById('cart-undo-toast')) {
+            const undo = document.createElement('div');
+            undo.id = 'cart-undo-toast';
+            undo.className =
+                'fixed z-[80] bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 md:bottom-8 md:left-auto md:right-8 md:max-w-sm hidden';
+            undo.setAttribute('role', 'status');
+            undo.innerHTML = `<div class="lig-toast-inner flex items-center gap-3 rounded-xl px-4 py-3">
+<p class="text-sm font-semibold lig-cart-text min-w-0 flex-1 truncate" id="cart-undo-toast-text">Item removido</p>
+<button type="button" id="cart-undo-toast-btn" class="shrink-0 text-xs font-bold text-vibrant-yellow hover:text-[#D9BB35] px-2 py-1 rounded-md min-h-[36px]">Desfazer</button>
+</div>`;
+            document.body.appendChild(undo);
         }
 
         if (!document.getElementById('cart-live-region')) {
@@ -253,10 +272,7 @@ ${payBtnInnerHtml()}
         window.scrollTo(0, scrollLockY);
     };
 
-    const formatPrice = (value) => {
-        if (value == null || Number.isNaN(value)) return '—';
-        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    };
+    const formatPrice = (value) => cartApi?.formatMoney?.(value) ?? '—';
 
     const escapeHtml = (str) =>
         String(str)
@@ -265,13 +281,22 @@ ${payBtnInnerHtml()}
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
 
+    const lineThumbHtml = (item, className = 'lig-cart-line__thumb') => {
+        const src = item.image ? escapeHtml(item.image) : '';
+        if (src) {
+            return `<img src="${src}" alt="" class="${className}" loading="lazy" width="52" height="52">`;
+        }
+        return `<span class="${className} ${className}--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
+    };
+
     const cartLineHtml = (item) => {
         const lineKey = item.cartKey || item.id;
-        const subtotal = formatPrice((item.price ?? 0) * item.qty);
+        const meta = cartApi?.itemMetaText?.(item) || `${item.qty}x · ${formatPrice((item.price ?? 0) * item.qty)}`;
         return `<article class="lig-cart-line" data-cart-line="${escapeHtml(lineKey)}">
+${lineThumbHtml(item)}
 <div class="lig-cart-line__info">
 <p class="lig-cart-line__name">${escapeHtml(item.name)}</p>
-<p class="lig-cart-line__meta">${item.qty}x · ${subtotal}</p>
+<p class="lig-cart-line__meta">${escapeHtml(meta)}</p>
 </div>
 <div class="lig-cart-line__stepper" aria-label="Quantidade">
 <button type="button" class="lig-cart-line__btn lig-cart-line__btn--minus cart-qty-minus" data-id="${escapeHtml(lineKey)}" aria-label="Diminuir">−</button>
@@ -282,6 +307,32 @@ ${payBtnInnerHtml()}
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
 </article>`;
+    };
+
+    const summaryHtml = (cart) => {
+        const { units, subtotal } = cartApi.cartSummary(cart);
+        const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
+        return `<div class="lig-cart-summary">
+<div class="lig-cart-summary__row"><span>Subtotal (${unitsLabel})</span><span>${formatPrice(subtotal)}</span></div>
+<div class="lig-cart-summary__row lig-cart-summary__row--total"><span>Total</span><strong>${formatPrice(subtotal)}</strong></div>
+</div>`;
+    };
+
+    const updateCheckoutErrors = (cart) => {
+        const checkout = cartApi.loadCheckout();
+        const needsAddress = checkout.deliveryType === 'entrega';
+        const addressOk = !needsAddress || Boolean(checkout.address?.trim());
+        const message = needsAddress && !addressOk ? 'Informe o endereço completo para entrega.' : '';
+        document.querySelectorAll('[data-checkout-error="address"]').forEach((el) => {
+            el.textContent = message;
+            el.classList.toggle('hidden', !message);
+        });
+        document.querySelectorAll('[data-checkout="address"]').forEach((el) => {
+            el.classList.toggle('lig-cart-input--error', Boolean(message));
+            el.classList.toggle('caminhao-input--error', Boolean(message));
+            el.setAttribute('aria-invalid', message ? 'true' : 'false');
+        });
+        return { needsAddress, addressOk, canCheckout: cartApi.cartItemCount(cart) > 0 && addressOk };
     };
 
     const updateFloatCart = (cart) => {
@@ -310,17 +361,13 @@ ${payBtnInnerHtml()}
         if (totalEl) totalEl.textContent = total;
         if (labelEl) labelEl.textContent = count === 1 ? 'Ver caminhão · 1 item' : `Ver caminhão · ${count} itens`;
 
-        const visible = count > 0 && !isCartOpen();
+        const visible = count > 0 && !isCartOpen() && document.body.dataset.page !== 'caminhao';
         floatEl.classList.toggle('ze-float-cart--visible', visible);
         document.documentElement.classList.toggle('lig-has-float-cart', count > 0);
     };
 
     const setPayButtons = (cart) => {
-        const hasItems = cartApi.cartItemCount(cart) > 0;
-        const checkout = cartApi.loadCheckout();
-        const needsAddress = checkout.deliveryType === 'entrega';
-        const addressOk = !needsAddress || Boolean(checkout.address?.trim());
-        const canCheckout = hasItems && addressOk;
+        const { canCheckout } = updateCheckoutErrors(cart);
 
         ['cart-pay-btn', 'cart-pay-btn-mobile'].forEach((id) => {
             const btn = document.getElementById(id);
@@ -329,7 +376,6 @@ ${payBtnInnerHtml()}
             btn.classList.toggle('pointer-events-none', !canCheckout);
             btn.classList.toggle('opacity-50', !canCheckout);
             btn.setAttribute('aria-disabled', canCheckout ? 'false' : 'true');
-            btn.title = needsAddress && !addressOk ? 'Informe o endereço para entrega' : '';
         });
     };
 
@@ -398,11 +444,15 @@ ${payBtnInnerHtml()}
         const cartTotalEl = document.getElementById('cart-total');
         const cartTotalMobileEl = document.getElementById('cart-total-mobile');
         const cartCountBadge = document.getElementById('cart-count-badge');
+        const cartSummaryEl = document.getElementById('cart-summary');
+        const continueLink = document.getElementById('cart-continue-link');
 
         if (cartItemsEl) cartItemsEl.innerHTML = listHtml;
         if (cartItemsMobileEl) cartItemsMobileEl.innerHTML = listHtml;
         if (cartTotalEl) cartTotalEl.textContent = total;
         if (cartTotalMobileEl) cartTotalMobileEl.textContent = total;
+        if (cartSummaryEl) cartSummaryEl.innerHTML = items.length ? summaryHtml(cart) : '';
+        if (continueLink) continueLink.classList.toggle('hidden', !items.length);
         if (cartCountBadge) {
             cartCountBadge.textContent = count === 1 ? '1 item' : `${count} itens`;
         }
@@ -421,11 +471,55 @@ ${payBtnInnerHtml()}
         render();
     };
 
+    const hideUndoToast = () => {
+        const undo = document.getElementById('cart-undo-toast');
+        if (!undo) return;
+        undo.classList.add('hidden');
+    };
+
+    const showUndoRemove = (productName, onUndo) => {
+        ensureFeedbackUi();
+        hideAddToast();
+        const undo = document.getElementById('cart-undo-toast');
+        const text = document.getElementById('cart-undo-toast-text');
+        const btn = document.getElementById('cart-undo-toast-btn');
+        if (!undo || !text || !btn) return;
+        text.textContent = `${shortProductName(productName)} removido`;
+        undo.classList.remove('hidden');
+        const handler = () => {
+            btn.removeEventListener('click', handler);
+            onUndo?.();
+        };
+        btn.addEventListener('click', handler);
+        window.clearTimeout(undoHideTimer);
+        undoHideTimer = window.setTimeout(() => {
+            undoRemoveSnapshot = null;
+            hideUndoToast();
+        }, 5000);
+    };
+
     const removeFromCart = (id) => {
         const cart = cartApi.loadCart();
+        const item = cart[id];
+        if (!item) return;
+        undoRemoveSnapshot = { id, item: { ...item } };
+        window.clearTimeout(undoRemoveTimer);
         delete cart[id];
         cartApi.saveCart(cart);
         render();
+        showUndoRemove(item.name, () => {
+            if (!undoRemoveSnapshot) return;
+            const next = cartApi.loadCart();
+            next[undoRemoveSnapshot.id] = { ...undoRemoveSnapshot.item };
+            cartApi.saveCart(next);
+            undoRemoveSnapshot = null;
+            window.clearTimeout(undoHideTimer);
+            hideUndoToast();
+            render();
+        });
+        undoRemoveTimer = window.setTimeout(() => {
+            undoRemoveSnapshot = null;
+        }, 5000);
     };
 
     const isCartOpen = () => {
@@ -453,7 +547,7 @@ ${payBtnInnerHtml()}
         updateFloatCart(cartApi.loadCart());
     };
 
-    const open = () => {
+    const open = (options = {}) => {
         if (!panel || !sheet) return;
         window.LigeirinhoNav?.closeMobileMenu?.();
         render();
@@ -462,8 +556,17 @@ ${payBtnInnerHtml()}
             sheet.setAttribute('aria-hidden', 'true');
             panel.classList.remove('hidden');
             panel.classList.add('flex');
+            if (options.focusAddress) {
+                window.requestAnimationFrame(() => {
+                    const addressEl = panel.querySelector('[data-checkout="address"]');
+                    addressEl?.focus?.();
+                    addressEl?.scrollIntoView?.({ block: 'nearest' });
+                });
+            }
         } else {
-            window.location.href = 'caminhao.html';
+            const url = new URL('caminhao.html', window.location.href);
+            if (options.focusAddress) url.hash = 'endereco';
+            window.location.href = url.toString();
         }
         updateFloatCart(cartApi.loadCart());
     };
@@ -639,5 +742,10 @@ ${payBtnInnerHtml()}
         payButtonHtml: payBtnInnerHtml,
         payButtonLabel: PAY_BTN_LABEL,
         setPayButtonContent,
+        cartLineHtml,
+        lineThumbHtml,
+        summaryHtml,
+        updateCheckoutErrors,
+        removeFromCart,
     };
 })();

@@ -47,7 +47,6 @@
         { id: 'destilados', label: 'Destilados', icon: 'liquor' },
         { id: 'refrigerantes-sucos', label: 'Refrigerantes', icon: 'local_cafe' },
         { id: 'energeticos', label: 'Energéticos', icon: 'bolt' },
-        { id: 'combos', label: 'Combos', icon: 'local_fire_department' },
         { id: 'gelos', label: 'Gelos', icon: 'ac_unit' },
         { id: 'whiskys', label: 'Whiskys', icon: 'wine_bar' },
         { id: 'vinhos', label: 'Vinhos', icon: 'wine_bar' },
@@ -220,11 +219,6 @@ ${desktopAsideHtml('')}
 <span class="material-symbols-outlined">settings</span>
 </button>
 </div>
-<button type="button" class="conta-store-bar" data-conta-open-cart aria-label="Abrir caminhão">
-<img src="img/ligeirinhologo.png" alt="" class="conta-store-bar__logo" width="20" height="20">
-<span class="conta-store-bar__name">Ligeirinho Parceiros</span>
-<span class="conta-store-bar__action"><span class="material-symbols-outlined">local_shipping</span><span>Caminhão</span></span>
-</button>
 </header>
 <div class="conta-menu-body">
 ${authBlock}
@@ -243,11 +237,6 @@ ${menuItems.map(menuRow).join('')}
 <span class="material-symbols-outlined">settings</span>
 </button>
 </div>
-<button type="button" class="conta-store-bar" data-conta-open-cart aria-label="Abrir caminhão">
-<img src="img/ligeirinhologo.png" alt="" class="conta-store-bar__logo" width="20" height="20">
-<span class="conta-store-bar__name">Ligeirinho Parceiros</span>
-<span class="conta-store-bar__action"><span class="material-symbols-outlined">local_shipping</span><span>Caminhão</span></span>
-</button>
 </header>
 <div class="conta-menu-body">
 ${authBlock}

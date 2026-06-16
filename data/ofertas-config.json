@@ -1,5 +1,5 @@
 {
   "discountPercentMin": 5,
   "discountPercentMax": 18,
-  "discountCategories": ["cervejas", "refrigerantes-sucos", "destilados", "energeticos", "combos"]
+  "discountCategories": ["cervejas", "refrigerantes-sucos", "destilados", "energeticos"]
 }

@@ -438,6 +438,145 @@ html.lig-app-standalone .ze-app-header {
     background: var(--lig-surface) !important;
 }
 
+.lig-header-main {
+    align-items: center;
+}
+
+.lig-desktop-nav {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+    padding: 0 0.5rem;
+}
+
+.lig-desktop-nav__track {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    max-width: 100%;
+    padding: 0.25rem;
+    border-radius: 999px;
+    background: var(--lig-surface-alt);
+    border: 1px solid var(--lig-border);
+}
+
+.lig-desktop-nav__group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.lig-desktop-nav__sep {
+    width: 1px;
+    height: 1.25rem;
+    background: var(--lig-border);
+    flex-shrink: 0;
+    margin: 0 0.125rem;
+}
+
+.lig-desktop-nav__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4375rem 0.75rem;
+    border-radius: 999px;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--lig-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+        color var(--lig-motion-duration-fast) ease,
+        background var(--lig-motion-duration-fast) ease,
+        box-shadow var(--lig-motion-duration-fast) ease;
+}
+
+.lig-desktop-nav__link:hover {
+    color: var(--lig-text);
+    background: var(--lig-surface);
+}
+
+.lig-desktop-nav__link--active {
+    color: var(--lig-on-yellow);
+    background: var(--lig-yellow);
+    box-shadow: 0 1px 4px rgba(247, 213, 60, 0.35);
+    font-weight: 700;
+}
+
+.lig-desktop-nav__link--active:hover {
+    color: var(--lig-on-yellow);
+    background: var(--lig-yellow-hover);
+}
+
+.lig-header-actions {
+    padding-left: 0.5rem;
+    border-left: 1px solid var(--lig-border);
+}
+
+.lig-header-cart {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--lig-yellow-text);
+    cursor: pointer;
+    transition: background var(--lig-motion-duration-fast) ease, transform var(--lig-motion-duration-fast) ease;
+}
+
+.lig-header-cart:hover {
+    background: var(--lig-yellow-light);
+}
+
+.lig-header-cart:active {
+    transform: scale(0.96);
+}
+
+.lig-header-cart .material-symbols-outlined {
+    font-size: 1.375rem;
+}
+
+.lig-header-cart__badge {
+    position: absolute;
+    top: 0.125rem;
+    right: 0.125rem;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
+    font-size: 0.5625rem;
+    font-weight: 800;
+    line-height: 1rem;
+    text-align: center;
+}
+
+.lig-nav-account__label {
+    max-width: 6.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .lig-nav-account__label {
+        display: none;
+    }
+
+    .lig-desktop-nav__link {
+        padding: 0.4rem 0.625rem;
+        font-size: 0.75rem;
+    }
+}
+
 .ze-location-bar {
     display: flex;
     align-items: center;
@@ -1221,11 +1360,31 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-cart-line {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
     align-items: center;
     gap: 0.5rem 0.625rem;
     padding: 0.75rem 0;
     border-bottom: 1px solid var(--lig-border);
+}
+
+.lig-cart-line__thumb {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 0.5rem;
+    object-fit: contain;
+    background: var(--lig-surface-alt);
+    flex-shrink: 0;
+}
+
+.lig-cart-line__thumb--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lig-text-subtle);
+}
+
+.lig-cart-line__thumb--placeholder .material-symbols-outlined {
+    font-size: 1.375rem;
 }
 
 .lig-cart-line:last-child {
@@ -1310,6 +1469,67 @@ html.lig-app-standalone .ze-app-header {
 
 .lig-cart-line__remove .material-symbols-outlined {
     font-size: 1.125rem;
+}
+
+.lig-cart-continue {
+    display: block;
+    margin: 0 0 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--lig-yellow-text, #c9a800);
+    text-align: center;
+    text-decoration: none;
+}
+
+.lig-cart-continue:hover {
+    text-decoration: underline;
+}
+
+.lig-cart-summary-wrap {
+    padding-top: 0.25rem;
+}
+
+.lig-cart-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.75rem 0 0.25rem;
+    border-top: 1px solid var(--lig-border);
+}
+
+.lig-cart-summary__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+}
+
+.lig-cart-summary__row--total {
+    font-size: 1rem;
+    color: var(--lig-text);
+}
+
+.lig-cart-summary__row--total strong {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--lig-yellow-text, #c9a800);
+}
+
+.lig-cart-checkout__error,
+.caminhao-checkout__error {
+    margin: 0.375rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #d32f2f;
+}
+
+.lig-cart-input--error,
+.caminhao-input--error {
+    border-color: #d32f2f !important;
+    box-shadow: 0 0 0 1px rgba(211, 47, 47, 0.2);
 }
 
 .lig-cart-empty {
@@ -2196,6 +2416,7 @@ html.lig-app-standalone .ze-app-header {
         display: none;
     }
 
+    .ze-app-header--home-mobile .ze-address-bar,
     .ze-app-header--home-mobile .ze-store-bar {
         background: transparent;
         color: var(--lig-on-yellow);
@@ -2204,6 +2425,7 @@ html.lig-app-standalone .ze-app-header {
         padding-top: 0;
     }
 
+    .ze-app-header--home-mobile .ze-address-bar__pin,
     .ze-app-header--home-mobile .ze-store-bar__pin {
         color: var(--lig-on-yellow);
     }
@@ -3673,6 +3895,10 @@ html.lig-app-standalone .ze-app-header {
     background: var(--lig-surface);
 }
 
+.ofertas-tabs--duo {
+    grid-template-columns: repeat(2, 1fr);
+}
+
 .ofertas-tab {
     display: flex;
     flex-direction: column;
@@ -4085,31 +4311,19 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .caminhao-header__store {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.15rem;
-    border: none;
-    background: transparent;
-    padding: 0;
-    cursor: default;
-    color: var(--lig-on-yellow);
-}
-
-.caminhao-header__store-name {
-    font-size: 0.6875rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-}
-
-.caminhao-header__store .material-symbols-outlined {
-    font-size: 1.125rem;
+    display: none;
 }
 
 .caminhao-header__count {
-    margin: 0.35rem 0 0;
-    font-size: 0.75rem;
+    margin: 0;
+    font-size: 0.8125rem;
     font-weight: 600;
     color: var(--lig-on-yellow-muted);
+}
+
+.caminhao-header__count--empty {
+    font-weight: 500;
+    opacity: 0.85;
 }
 
 .caminhao-content {
@@ -4184,18 +4398,70 @@ html.lig-app-standalone .ze-app-header {
     text-decoration: underline;
 }
 
+.caminhao-empty__suggest {
+    margin-top: 1.25rem;
+    width: 100%;
+    max-width: 18rem;
+}
+
+.caminhao-empty__suggest-label {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--lig-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.caminhao-empty__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.caminhao-empty__chip {
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    background: var(--lig-surface-alt);
+    border: 1px solid var(--lig-border);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lig-text);
+    text-decoration: none;
+}
+
 .caminhao-items {
     flex: 1;
     overflow-y: auto;
 }
 
 .caminhao-item {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
+    gap: 0.625rem;
     padding: 0.875rem 1rem;
     border-bottom: 1px solid var(--lig-border);
+}
+
+.caminhao-item__thumb {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 0.5rem;
+    object-fit: contain;
+    background: var(--lig-surface-alt);
+}
+
+.caminhao-item__thumb--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lig-text-subtle);
+}
+
+.caminhao-item__thumb--placeholder .material-symbols-outlined {
+    font-size: 1.375rem;
 }
 
 .caminhao-item__main {
@@ -4274,6 +4540,44 @@ html.lig-app-standalone .ze-app-header {
     background: var(--lig-surface-alt);
 }
 
+.caminhao-continue {
+    display: block;
+    margin: 0.75rem 1rem 0;
+    padding: 0.5rem 0;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--lig-yellow-text, #c9a800);
+    text-decoration: none;
+}
+
+.caminhao-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+}
+
+.caminhao-summary__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+}
+
+.caminhao-summary__row--total {
+    font-size: 1rem;
+    color: var(--lig-text);
+}
+
+.caminhao-summary__row--total strong {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--lig-yellow-text, #c9a800);
+}
+
 .caminhao-checkout__label {
     margin: 0 0 0.5rem;
     font-size: 0.6875rem;
@@ -4347,18 +4651,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .caminhao-footer__total {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-    color: var(--lig-text);
-}
-
-.caminhao-footer__total strong {
-    font-size: 1.125rem;
-    font-weight: 800;
-    color: var(--lig-yellow-text, #c9a800);
+    display: none;
 }
 
 .caminhao-pay-btn {
@@ -6788,19 +7081,7 @@ body.lig-install-open {
     }
 
     .ofertas-product-row {
-        border-right: 1px solid #eee;
-    }
-
-    nav.font-nav-bar .hidden.md\:flex {
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 0.35rem 0.75rem;
-        max-width: 52rem;
-    }
-
-    nav.font-nav-bar .nav-link {
-        font-size: 0.8125rem;
-        padding: 0.35rem 0.5rem;
+        border-right: 1px solid var(--lig-border);
     }
 }
 

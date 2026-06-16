@@ -680,6 +680,28 @@ ${imageBlock}
 
 
 
+    const buildCartLineFields = (ctx, pricing) => {
+        const { variant, group, cartKey, tier } = ctx || {};
+        if (!variant) return null;
+        const packType = variant.tier || tier || 'caixa';
+        const key = cartKey || cartKeyFor(variant);
+        const name = pricing.cartItemName({ ...variant, tier: packType }, group);
+        const image = productImageUrl(
+            group && pricing ? pricing.getTierImage(group, packType) : variant.image
+        );
+        return {
+            key,
+            id: variant.id,
+            cartKey: key,
+            name,
+            price: variant.price,
+            packType,
+            image: image || '',
+        };
+    };
+
+
+
     window.LigeirinhoCatalog = {
 
         formatPrice,
@@ -715,6 +737,8 @@ ${imageBlock}
         updateCardPriceUi,
 
         resolveCardContext,
+
+        buildCartLineFields,
 
     };
 

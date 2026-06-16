@@ -91,11 +91,6 @@
     const mapsUrl =
         'https://www.google.com/maps/search/?api=1&query=Estr.+do+Campo+Limpo,+2083+-+Vila+Prel,+S%C3%A3o+Paulo+-+SP,+05777-001';
 
-    const navActive =
-        'font-nav nav-link nav-link-active text-vibrant-yellow border-b-2 border-vibrant-yellow pb-1 transition-colors duration-200';
-    const navLink =
-        'font-nav nav-link text-[var(--lig-text-muted)] hover:text-vibrant-yellow transition-colors duration-200 hover:bg-[var(--lig-yellow-light)] px-3 py-1.5 rounded-md';
-
     const accountHref = 'conta.html';
     const accountActive = page === 'conta';
     const accountLinkClass = accountActive
@@ -107,18 +102,31 @@
         return `/${q}`;
     };
 
+    const navMobileLink =
+        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-semibold text-on-surface-variant hover:text-vibrant-yellow hover:bg-surface-variant/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
+    const navMobileActive =
+        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-bold text-vibrant-yellow bg-vibrant-yellow/10 border border-vibrant-yellow/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
+
+    const renderDesktopNavLink = (item) => {
+        const active = page === item.id;
+        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${item.label}</a>`;
+    };
+
     const appNavItems = [
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
         { id: 'raios', href: 'raios.html', label: 'Club Raios', icon: 'redeem' },
-        { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
+    ];
+
+    const institutionalNavItems = [
+        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
+        { id: 'contato', href: 'contato.html', label: 'Fale conosco', icon: 'chat' },
     ];
 
     const navItems = [
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         ...appNavItems,
-        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
-        { id: 'contato', href: 'contato.html', label: 'Fale conosco', icon: 'chat' },
+        ...institutionalNavItems,
     ];
 
     const session = window.LigeirinhoAuth?.loadSession?.();
@@ -127,17 +135,28 @@
         navItems.push({ id: 'financeiro', href: 'financeiro.html', label: 'Financeiro', icon: 'payments' });
     }
 
-    const navLinksHtml = navItems
-        .map(
-            (item) =>
-                `<a class="${page === item.id ? navActive : navLink}" href="${item.href}">${item.label}</a>`
-        )
-        .join('\n');
+    const desktopAppNavItems = [
+        { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
+        ...appNavItems,
+    ];
+    const desktopInstitutionalItems = [...institutionalNavItems];
+    const desktopFinanceItems =
+        financeRole === 'ADMIN' || financeRole === 'OPERADOR'
+            ? [{ id: 'financeiro', href: 'financeiro.html', label: 'Financeiro', icon: 'payments' }]
+            : [];
 
-    const navMobileLink =
-        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-semibold text-on-surface-variant hover:text-vibrant-yellow hover:bg-surface-variant/40 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
-    const navMobileActive =
-        'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-bold text-vibrant-yellow bg-vibrant-yellow/10 border border-vibrant-yellow/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
+    const desktopNavHtml = `<nav class="lig-desktop-nav hidden md:flex" aria-label="Navegação principal">
+<div class="lig-desktop-nav__track">
+<div class="lig-desktop-nav__group">
+${desktopAppNavItems.map(renderDesktopNavLink).join('\n')}
+</div>
+<span class="lig-desktop-nav__sep" aria-hidden="true"></span>
+<div class="lig-desktop-nav__group lig-desktop-nav__group--site">
+${desktopInstitutionalItems.map(renderDesktopNavLink).join('\n')}
+${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
+</div>
+</div>
+</nav>`;
 
     const navMobileLinksHtml = navItems
         .map(
@@ -153,34 +172,31 @@
 
     const navHtml = `<header class="ze-app-header${homeMobileHeader} sticky top-0 z-50">
 <nav class="font-nav-bar">
-<div class="flex justify-between items-center w-full px-4 md:px-margin-desktop py-3 max-w-container-max mx-auto min-h-[52px]">
-<a class="lig-brand nav-brand" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
+<div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px] gap-4">
+<a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
-<div class="hidden md:flex items-center gap-6">
-${navLinksHtml}
-</div>
-<div class="flex items-center gap-1 shrink-0">
+${desktopNavHtml}
+<div class="lig-header-actions flex items-center gap-0.5 shrink-0">
 <a href="${accountHref}" class="${accountLinkClass} hidden md:inline-flex" aria-current="${accountActive ? 'page' : 'false'}">
 <span class="material-symbols-outlined lig-nav-account__icon" aria-hidden="true">person</span>
-<span>Minha conta</span>
+<span class="lig-nav-account__label">Minha conta</span>
 </a>
 <div id="lig-notifications-mount" class="shrink-0"></div>
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-[var(--lig-yellow-light)] rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir caminhão" aria-expanded="false">
-<span class="material-symbols-outlined">local_shipping</span>
-<span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-yellow text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
+<button type="button" id="nav-cart-toggle" class="lig-header-cart hidden md:flex" aria-label="Abrir caminhão" aria-expanded="false">
+<span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+<span id="nav-cart-badge" class="lig-header-cart__badge hidden">0</span>
 </button>
 </div>
 </div>
-${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-location-bar ze-store-bar w-full max-w-container-max mx-auto text-left">
-<span class="material-symbols-outlined text-[18px] shrink-0 ze-store-bar__pin">storefront</span>
-<span class="truncate ze-store-bar__text"><span id="ze-location-text">Ligeirinho Parceiros</span></span>
-<span class="material-symbols-outlined text-[18px] shrink-0 ml-auto text-[var(--lig-text-muted)]">expand_more</span>
+${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-location-bar ze-address-bar w-full max-w-container-max mx-auto text-left" aria-label="Endereço de entrega">
+<span class="material-symbols-outlined text-[18px] shrink-0 ze-address-bar__pin">location_on</span>
+<span class="truncate ze-address-bar__text"><span id="ze-location-text">Informe seu endereço de entrega</span></span>
 </button>
 <form id="ze-search-form" class="ze-search-bar max-w-container-max mx-auto" role="search" action="pedidos.html" method="get">
 <span class="material-symbols-outlined text-[20px] text-[var(--lig-text-subtle)] shrink-0">search</span>
@@ -430,24 +446,20 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         const syncLocation = () => {
             if (!locationText) return;
             const checkout = window.LigeirinhoCart?.loadCheckout?.();
-            if (!checkout) return;
-            if (page === 'inicio') {
-                if (checkout.deliveryType === 'retirada') {
-                    locationText.textContent = 'Retirada na loja';
-                    return;
-                }
-                locationText.textContent = checkout.address?.trim() || 'Ligeirinho Parceiros';
+            const emptyLabel = 'Informe seu endereço de entrega';
+            if (!checkout) {
+                locationText.textContent = emptyLabel;
                 return;
             }
             if (checkout.deliveryType === 'retirada') {
                 locationText.textContent = 'Retirada na loja';
                 return;
             }
-            locationText.textContent = checkout.address?.trim() || 'Informe seu endereço no caminhão';
+            locationText.textContent = checkout.address?.trim() || emptyLabel;
         };
 
         locationBar?.addEventListener('click', () => {
-            window.LigeirinhoCartUI?.open?.();
+            window.LigeirinhoCartUI?.open?.({ focusAddress: true });
         });
 
         window.addEventListener('ligeirinho-checkout-changed', syncLocation);

@@ -12,7 +12,6 @@
         'destilados',
         'refrigerantes-sucos',
         'energeticos',
-        'combos',
         'whiskys',
         'vinhos',
         'gelos',
@@ -23,44 +22,16 @@
     let catalogData = null;
 
     const addProduct = (ctx, qty = 1) => {
-        const { variant, group, cartKey, tier } = ctx;
-        if (!variant) return;
-        const key = cartKey || catalog.cartKeyFor(variant);
-        const packType = variant.tier || tier || 'caixa';
-        const name = pricing.cartItemName({ ...variant, tier: packType }, group);
+        const line = catalog.buildCartLineFields(ctx, pricing);
+        if (!line) return;
         const cart = cartApi.loadCart();
-        if (!cart[key]) {
-            cart[key] = {
-                id: variant.id,
-                cartKey: key,
-                name,
-                price: variant.price,
-                qty: 0,
-                packType,
-            };
+        if (!cart[line.key]) {
+            cart[line.key] = { ...line, qty: 0 };
         }
-        cart[key].qty += qty;
+        cart[line.key].qty += qty;
         cartApi.saveCart(cart);
         window.LigeirinhoCartUI?.render?.();
-        window.LigeirinhoCartUI?.showAddedFeedback?.(name);
-    };
-
-    const addProducts = (products) => {
-        const cart = cartApi.loadCart();
-        products.forEach(({ product, qty, ctx }) => {
-            if (ctx?.variant) {
-                addProduct(ctx, qty);
-                return;
-            }
-            if (!cart[product.id]) {
-                cart[product.id] = { id: product.id, name: product.name, price: product.price, qty: 0 };
-            }
-            cart[product.id].qty += qty;
-        });
-        cartApi.saveCart(cart);
-        window.LigeirinhoCartUI?.render?.();
-        window.LigeirinhoCartUI?.showAddedFeedback?.('Itens adicionados');
-        window.LigeirinhoCartUI?.burstConfetti?.();
+        window.LigeirinhoCartUI?.showAddedFeedback?.(line.name);
     };
 
     const removeProduct = (ctx) => {
@@ -72,14 +43,6 @@
         if (cart[key].qty <= 0) delete cart[key];
         cartApi.saveCart(cart);
         window.LigeirinhoCartUI?.render?.();
-    };
-
-    const productById = (data, id) => {
-        for (const cat of data.categories) {
-            const found = cat.products.find((p) => p.id === id);
-            if (found) return found;
-        }
-        return null;
     };
 
     const findDisplayItem = (displayItems, lineItem) => {
@@ -190,36 +153,7 @@
 </section>`;
     };
 
-    const comboCardHtml = (combo, total) =>
-        `<article class="ze-combo-card" data-combo-id="${catalog.escapeHtml(combo.id)}">
-<div class="ze-combo-card__icon"><span class="material-symbols-outlined">${catalog.escapeHtml(combo.icon || 'local_mall')}</span></div>
-<p class="ze-combo-card__title">${catalog.escapeHtml(combo.title)}</p>
-<p class="ze-combo-card__sub">${catalog.escapeHtml(combo.subtitle)}</p>
-<p class="ze-combo-card__price">${catalog.formatPrice(total)}</p>
-<button type="button" class="ze-combo-card__btn" data-combo-add="${catalog.escapeHtml(combo.id)}">Adicionar combo</button>
-</article>`;
-
-    const combosSectionHtml = (combos, data) => {
-        if (!combos.length) return '';
-        const cards = combos
-            .map((combo) => {
-                let total = 0;
-                combo.items.forEach(({ id, qty }) => {
-                    const product = productById(data, id);
-                    if (product) total += (product.price ?? 0) * qty;
-                });
-                return comboCardHtml(combo, total);
-            })
-            .join('');
-        return `<section class="ze-combos-section ze-section home-desktop-only" aria-labelledby="home-combos-title">
-<div class="ze-section__head">
-<h2 id="home-combos-title" class="ze-section__title">Combos para ocasião</h2>
-</div>
-<div class="ze-combo-scroll">${cards}</div>
-</section>`;
-    };
-
-    const renderHome = (data, combos = [], displayItems = []) => {
+    const renderHome = (data, displayItems = []) => {
         catalogData = data;
         window.__ligProductGroups = pricing.buildGroups(data);
 
@@ -254,7 +188,6 @@
 ${quickChipsHtml()}
 ${storiesHtml(categories)}
 ${suggestedSectionHtml(suggestedItems)}
-${combosSectionHtml(combos, data)}
 ${categoryGridHtml(categories)}
 <section class="home-mobile-sections" aria-label="Mais produtos">
 ${sectionOrder()
@@ -295,20 +228,6 @@ ${sectionOrder()
             });
         });
 
-        root.querySelectorAll('[data-combo-add]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const comboId = btn.dataset.comboAdd;
-                const combo = combos.find((c) => c.id === comboId);
-                if (!combo) return;
-                const toAdd = [];
-                combo.items.forEach(({ id, qty }) => {
-                    const product = productById(data, id);
-                    if (product) toAdd.push({ product, qty });
-                });
-                if (toAdd.length) addProducts(toAdd);
-            });
-        });
-
         catalog.bindQtySteppers(root, {
             onAdd: (ctx) => {
                 addProduct(ctx);
@@ -323,15 +242,12 @@ ${sectionOrder()
 
     Promise.all([
         window.LigeirinhoCatalogLoader.load(),
-        fetch('data/combos-ocasiao.json')
-            .then((r) => (r.ok ? r.json() : { combos: [] }))
-            .catch(() => ({ combos: [] })),
         pricing.loadPackConfig(),
         pricing.loadTierImages(),
     ])
-        .then(([catalogJson, combosJson]) => {
+        .then(([catalogJson]) => {
             const displayItems = pricing.getDisplayProducts(catalogJson);
-            renderHome(catalogJson, combosJson.combos || [], displayItems);
+            renderHome(catalogJson, displayItems);
         })
         .catch(() => {
             root.innerHTML =
@@ -341,16 +257,7 @@ ${sectionOrder()
     window.addEventListener('ligeirinho-cart-changed', refreshSteppers);
     window.addEventListener('ligeirinho-prefs-changed', () => {
         if (catalogData) {
-            fetch('data/combos-ocasiao.json')
-                .then((r) => (r.ok ? r.json() : { combos: [] }))
-                .then((combosJson) =>
-                    renderHome(
-                        catalogData,
-                        combosJson.combos || [],
-                        pricing.getDisplayProducts(catalogData)
-                    )
-                )
-                .catch(() => renderHome(catalogData, [], pricing.getDisplayProducts(catalogData)));
+            renderHome(catalogData, pricing.getDisplayProducts(catalogData));
         }
     });
 })();
