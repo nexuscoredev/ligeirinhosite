@@ -120,7 +120,7 @@
 
 <div class="lig-profile-auth__actions">
 
-<a href="login.html?next=contato.html%23minha-conta" class="lig-profile-auth__btn lig-profile-auth__btn--primary">
+<a href="login.html?next=conta.html" class="lig-profile-auth__btn lig-profile-auth__btn--primary">
 
 <span class="material-symbols-outlined text-[18px]">login</span>
 

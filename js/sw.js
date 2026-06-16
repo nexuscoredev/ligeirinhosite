@@ -1,9 +1,13 @@
-const CACHE_NAME = 'ligeirinho-app-v37';
+const CACHE_NAME = 'ligeirinho-app-v41';
 
 const APP_SHELL = [
     '/',
     '/inicio',
     '/pedidos',
+    '/ofertas',
+    '/caminhao',
+    '/conta',
+    '/raios',
     '/quemsomos',
     '/contato',
     '/login',
@@ -30,8 +34,14 @@ const APP_SHELL = [
     '/js/search-synonyms.js',
     '/js/home.js',
     '/js/pedidos.js',
+    '/js/ofertas.js',
+    '/js/caminhao.js',
+    '/data/ofertas-config.json',
     '/js/onboarding.js',
-    '/js/profile.js',
+    '/js/conta.js',
+    '/js/raios-store.js',
+    '/js/raios.js',
+    '/data/raios-config.json',
     '/js/auth-store.js',
     '/js/auth-config-loader.js',
     '/js/phone-auth.js',

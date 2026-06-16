@@ -25,6 +25,11 @@
               ? 'Assim que o Pix for compensado, confirmaremos automaticamente.'
               : 'Acompanhe o status abaixo.';
 
+        const raiosEarned =
+            paid && window.LigeirinhoRaios?.isMember?.()
+                ? `<p class="raios-order-earned">⚡ Você ganhou Raios com este pedido! <a href="raios.html">Ver saldo</a></p>`
+                : '';
+
         const itemsHtml = (order.items || [])
             .map((item) => `<li>${item.qty}x ${esc(item.name)}</li>`)
             .join('');
@@ -33,6 +38,7 @@
 <span class="material-symbols-outlined lig-payment-icon ${paid ? 'lig-payment-icon--ok' : ''}">${icon}</span>
 <h1 class="lig-payment-title">${title}</h1>
 <p class="lig-payment-lead">${lead}</p>
+${raiosEarned}
 <div class="lig-payment-summary">
 <p class="lig-payment-summary__meta">Pedido <code>${esc(String(order.id).slice(0, 8))}</code> · ${formatPrice(order.total)}</p>
 <ul class="lig-payment-summary__list lig-payment-summary__list--compact">${itemsHtml}</ul>
@@ -54,11 +60,17 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             render(data.order);
+            if (data.order.status === 'paid') {
+                window.LigeirinhoRaios?.creditOrder?.(data.order.id, data.order.total);
+            }
             if (data.order.status === 'pending_payment') {
                 window.setInterval(async () => {
                     const r = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`);
                     const d = await r.json();
-                    if (d.order?.status === 'paid') render(d.order);
+            if (d.order?.status === 'paid') {
+                        render(d.order);
+                        window.LigeirinhoRaios?.creditOrder?.(d.order.id, d.order.total);
+                    }
                 }, 5000);
             }
         } catch (err) {

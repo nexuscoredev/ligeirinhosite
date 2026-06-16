@@ -84,8 +84,8 @@
     const navLink =
         'font-nav nav-link text-[#666] hover:text-vibrant-yellow transition-colors duration-200 hover:bg-yellow-50 px-3 py-1.5 rounded-md';
 
-    const accountHref = 'contato.html#minha-conta';
-    const accountActive = page === 'contato';
+    const accountHref = 'conta.html';
+    const accountActive = page === 'conta';
     const accountLinkClass = accountActive
         ? 'font-nav lig-nav-account lig-nav-account--active'
         : 'font-nav lig-nav-account';
@@ -123,9 +123,13 @@
         .join('\n');
 
     const showAppChrome = page === 'inicio' || page === 'pedidos';
-    const searchPlaceholder = page === 'pedidos' ? 'Buscar no catálogo...' : 'O que você quer pedir?';
+    const searchPlaceholder =
+        page === 'pedidos' ? 'Buscar no catálogo...' : page === 'inicio' ? 'Pesquisar no Ligeirinho' : 'O que você quer pedir?';
+    const homeMobileHeader = page === 'inicio' ? ' ze-app-header--home-mobile' : '';
+    const contaMobileHeader = page === 'conta' ? ' ze-app-header--conta-mobile' : '';
+    const raiosMobileHeader = page === 'raios' ? ' ze-app-header--raios-mobile' : '';
 
-    const navHtml = `<header class="ze-app-header sticky top-0 z-50">
+    const navHtml = `<header class="ze-app-header${homeMobileHeader}${contaMobileHeader}${raiosMobileHeader} sticky top-0 z-50">
 <nav class="font-nav-bar">
 <div class="flex justify-between items-center w-full px-4 md:px-margin-desktop py-3 max-w-container-max mx-auto min-h-[52px]">
 <a class="lig-brand nav-brand" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
@@ -145,16 +149,16 @@ ${navLinksHtml}
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir carrinho" aria-expanded="false">
-<span class="material-symbols-outlined">shopping_cart</span>
+<button type="button" id="nav-cart-toggle" class="hidden md:flex p-2 hover:bg-yellow-50 rounded-full transition-all relative text-vibrant-yellow" aria-label="Abrir caminhão" aria-expanded="false">
+<span class="material-symbols-outlined">local_shipping</span>
 <span id="nav-cart-badge" class="absolute top-0 right-0 bg-vibrant-yellow text-deep-black text-[10px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
 </button>
 </div>
 </div>
-${showAppChrome ? `<button type="button" id="ze-location-bar" class="ze-location-bar w-full max-w-container-max mx-auto text-left">
-<span class="material-symbols-outlined text-vibrant-yellow text-[18px] shrink-0">location_on</span>
-<span class="truncate"><strong>Entregar em</strong> · <span id="ze-location-text">Informe seu endereço no carrinho</span></span>
-<span class="material-symbols-outlined text-[18px] shrink-0 ml-auto text-[#999]">expand_more</span>
+${showAppChrome && page !== 'conta' && page !== 'raios' ? `<button type="button" id="ze-location-bar" class="ze-location-bar ze-store-bar w-full max-w-container-max mx-auto text-left">
+<span class="material-symbols-outlined text-[18px] shrink-0 ze-store-bar__pin">storefront</span>
+<span class="truncate ze-store-bar__text"><span id="ze-location-text">Ligeirinho Parceiros</span></span>
+<span class="material-symbols-outlined text-[18px] shrink-0 ml-auto text-[#666]">expand_more</span>
 </button>
 <form id="ze-search-form" class="ze-search-bar max-w-container-max mx-auto" role="search" action="pedidos.html" method="get">
 <span class="material-symbols-outlined text-[20px] text-[#999] shrink-0">search</span>
@@ -198,26 +202,22 @@ ${navMobileLinksHtml}
 
     const bottomTabItems = [
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
-        { id: 'pedidos', href: 'pedidos.html', label: 'Categorias', icon: 'grid_view' },
-        { id: 'cart', action: 'cart', label: 'Carrinho', icon: 'shopping_cart' },
-        { id: 'contato', href: accountHref, label: 'Conta', icon: 'person' },
+        { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
+        { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
+        { id: 'raios', href: 'raios.html', label: 'Raios', icon: 'redeem' },
+        { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
+        { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];
 
     const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Navegação do app">
-<div class="grid grid-cols-4 max-w-container-max mx-auto lig-bottom-nav-grid">
+<div class="grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6">
 ${bottomTabItems
     .map((item) => {
         const isActive = page === item.id;
         const activeClass = isActive ? 'app-tab-active text-vibrant-yellow' : 'text-[#999]';
-        if (item.action === 'cart') {
-            return `<button type="button" id="app-tab-cart" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors" aria-label="Abrir carrinho">
+        return `<a href="${item.href}" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow"${item.id === 'caminhao' ? ' id="app-tab-cart"' : ''} ${isActive ? 'aria-current="page"' : ''}${item.id === 'conta' ? ' aria-label="Minha conta"' : ''}${item.id === 'caminhao' ? ' aria-label="Caminhão"' : ''}>
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
-<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-yellow text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>
-<span class="text-[10px] font-semibold">${item.label}</span>
-</button>`;
-        }
-        return `<a href="${item.href}" class="flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow" ${isActive ? 'aria-current="page"' : ''}${item.id === 'contato' ? ' aria-label="Minha conta"' : ''}>
-<span class="material-symbols-outlined text-[24px]">${item.icon}</span>
+${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-yellow text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>' : ''}
 <span class="text-[10px] font-semibold">${item.label}</span>
 </a>`;
     })
@@ -405,11 +405,19 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             if (!locationText) return;
             const checkout = window.LigeirinhoCart?.loadCheckout?.();
             if (!checkout) return;
+            if (page === 'inicio') {
+                if (checkout.deliveryType === 'retirada') {
+                    locationText.textContent = 'Retirada na loja';
+                    return;
+                }
+                locationText.textContent = checkout.address?.trim() || 'Ligeirinho Parceiros';
+                return;
+            }
             if (checkout.deliveryType === 'retirada') {
                 locationText.textContent = 'Retirada na loja';
                 return;
             }
-            locationText.textContent = checkout.address?.trim() || 'Informe seu endereço no carrinho';
+            locationText.textContent = checkout.address?.trim() || 'Informe seu endereço no caminhão';
         };
 
         locationBar?.addEventListener('click', () => {
@@ -444,12 +452,6 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
     const bindBottomNav = () => {
         document.documentElement.classList.add('lig-app-mode');
-
-        const tabCart = document.getElementById('app-tab-cart');
-        tabCart?.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.LigeirinhoCartUI?.open?.();
-        });
 
         const syncTabBadge = () => {
             const badge = document.getElementById('app-tab-cart-badge');

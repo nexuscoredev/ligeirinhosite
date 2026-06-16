@@ -210,21 +210,25 @@ ${sub ? `<span class="ze-price-block__unit">${escapeHtml(sub)}</span>` : ''}
 
 
 
-    const qtyStepperHtml = (cartKey, qty) => {
+    const qtyStepperHtml = (cartKey, qty, opts = {}) => {
+
+        const dark = opts.dark;
+
+        const addClass = dark ? 'ze-add-btn ze-add-btn--dark' : 'ze-add-btn';
+
+        const stepperClass = dark ? 'ze-qty-stepper ze-qty-stepper--dark' : 'ze-qty-stepper';
 
         if (qty <= 0) {
 
-            return `<button type="button" class="ze-add-btn" data-cart-key="${escapeHtml(cartKey)}" aria-label="Adicionar ao carrinho">
+            return `<button type="button" class="${addClass}" data-cart-key="${escapeHtml(cartKey)}" aria-label="Adicionar ao caminhão">
 
-<span class="material-symbols-outlined text-[18px]">add</span>
-
-<span>Adicionar</span>
+Adicionar
 
 </button>`;
 
         }
 
-        return `<div class="ze-qty-stepper" data-cart-key="${escapeHtml(cartKey)}">
+        return `<div class="${stepperClass}" data-cart-key="${escapeHtml(cartKey)}">
 
 <button type="button" class="ze-qty-btn ze-qty-minus" data-cart-key="${escapeHtml(cartKey)}" aria-label="Diminuir">−</button>
 
@@ -368,6 +372,148 @@ ${qtyStepperHtml(cartKey, qty)}
 
 
 
+    const tierPackBadge = (tier, group) => {
+
+        const p = pricing();
+
+        if (tier === 'caixa') return 'CAIXA';
+
+        if (tier === 'pallet') return 'PALLET';
+
+        if (group && p) {
+
+            const variant = p.getVariant(group, tier);
+
+            const sub = variant && p.packLineLabel({ ...variant, tier });
+
+            if (sub) return sub.split('•')[0]?.trim().slice(0, 12).toUpperCase() || '';
+
+        }
+
+        return '';
+
+    };
+
+
+
+    const productCardSuggested = (item) => {
+
+        const group = item?.group || null;
+
+        const product = item?.product || item;
+
+        const p = pricing();
+
+        const activeTier = group && p ? p.getDefaultTier(group) : 'unidade';
+
+        const variant = group && p ? p.getVariant(group, activeTier) : null;
+
+        const cartKey = variant ? cartKeyFor(variant) : product.id;
+
+        const qty = getCartQty(cartKey);
+
+        const imgSrc = productImageUrl(group && p ? p.getTierImage(group, activeTier) : product.image);
+
+        const packBadge = tierPackBadge(activeTier, group);
+
+        const imageBlock = imgSrc
+
+            ? `<img alt="" class="home-suggested-card__img ze-product-h__img ze-product-card__img--${escapeHtml(activeTier)}" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
+
+            : `<span class="material-symbols-outlined text-3xl text-on-surface-variant/40">liquor</span>`;
+
+        const groupAttr = group ? ` data-group-key="${escapeHtml(group.key)}" data-price-tier="${escapeHtml(activeTier)}"` : '';
+
+        const price = variant?.price ?? product.price;
+
+        const priceHtml = group
+
+            ? priceBlockHtml(group, activeTier)
+
+            : simplePriceBlockHtml(price, 'home-suggested-card__price');
+
+
+
+        return `<article class="home-suggested-card ze-product-h" data-product-id="${escapeHtml(product.id)}"${groupAttr}>
+
+<div class="home-suggested-card__media">
+
+${packBadge ? `<span class="home-suggested-card__badge">${escapeHtml(packBadge)}</span>` : ''}
+
+${imageBlock}
+
+</div>
+
+<p class="home-suggested-card__name">${escapeHtml(shortName(product.name, 42))}</p>
+
+<div class="home-suggested-card__pricing">${priceTiersHtml(group, activeTier)}${priceHtml}</div>
+
+<div class="home-suggested-card__actions">${qtyStepperHtml(cartKey, qty, { dark: true })}</div>
+
+</article>`;
+
+    };
+
+
+
+    const categoryStoryHtml = (category, ringColor = '#009ee3') => {
+
+        const imgSrc = productImageUrl(category.products?.[0]?.image);
+
+        const icon = categoryIcons[category.id] || 'category';
+
+        const label = formatCategoryLabel(category.name).split(' ')[0].slice(0, 8).toUpperCase();
+
+        const media = imgSrc
+
+            ? `<img alt="" class="home-story__img" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
+
+            : `<span class="material-symbols-outlined home-story__icon">${icon}</span>`;
+
+        return `<a href="pedidos.html?categoria=${encodeURIComponent(category.id)}" class="home-story" style="--home-story-ring:${escapeHtml(ringColor)}" aria-label="${escapeHtml(formatCategoryLabel(category.name))}">
+
+<div class="home-story__ring">${media}</div>
+
+<span class="home-story__label">${escapeHtml(label)}</span>
+
+</a>`;
+
+    };
+
+
+
+    const GRID_PASTELS = ['#fde8ef', '#e8f4fd', '#fef9e7', '#e8f5e9', '#f3e8fd', '#fff3e0', '#e0f7fa', '#fce4ec'];
+
+
+
+    const categoryGridTileHtml = (category, index = 0) => {
+
+        const imgSrc = productImageUrl(category.products?.[0]?.image);
+
+        const icon = categoryIcons[category.id] || 'category';
+
+        const label = formatCategoryLabel(category.name);
+
+        const bg = GRID_PASTELS[index % GRID_PASTELS.length];
+
+        const media = imgSrc
+
+            ? `<img alt="" class="home-cat-grid__img" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
+
+            : `<span class="material-symbols-outlined home-cat-grid__icon">${icon}</span>`;
+
+        return `<a href="pedidos.html?categoria=${encodeURIComponent(category.id)}" class="home-cat-grid__tile" style="--home-cat-bg:${bg}" aria-label="${escapeHtml(label)}">
+
+<div class="home-cat-grid__media">${media}</div>
+
+<span class="home-cat-grid__label">${escapeHtml(label)}</span>
+
+</a>`;
+
+    };
+
+
+
     const updateCardPriceUi = (card) => {
 
         const p = pricing();
@@ -398,7 +544,9 @@ ${qtyStepperHtml(cartKey, qty)}
 
         const stepper = card.querySelector('.ze-add-btn, .ze-qty-stepper');
 
-        if (stepper) stepper.outerHTML = qtyStepperHtml(cartKey, qty);
+        const dark = card.classList.contains('home-suggested-card');
+
+        if (stepper) stepper.outerHTML = qtyStepperHtml(cartKey, qty, { dark });
 
 
 
@@ -468,7 +616,7 @@ ${qtyStepperHtml(cartKey, qty)}
 
             if (!tierBtn) return;
 
-            const card = tierBtn.closest('.ze-product-card, .ze-product-h');
+            const card = tierBtn.closest('.ze-product-card, .ze-product-h, .home-suggested-card, .ofertas-product-row');
 
             if (!card?.dataset?.groupKey) return;
 
@@ -502,7 +650,7 @@ ${qtyStepperHtml(cartKey, qty)}
 
 
 
-            const card = e.target.closest('.ze-product-card, .ze-product-h');
+            const card = e.target.closest('.ze-product-card, .ze-product-h, .home-suggested-card, .ofertas-product-row');
 
             const ctx = card ? resolveCardContext(card) : { cartKey, variant: null, group: null };
 
@@ -553,6 +701,12 @@ ${qtyStepperHtml(cartKey, qty)}
         productCardZe,
 
         productCardHorizontal,
+
+        productCardSuggested,
+
+        categoryStoryHtml,
+
+        categoryGridTileHtml,
 
         categoryTileHtml,
 

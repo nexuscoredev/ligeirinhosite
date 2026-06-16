@@ -7,8 +7,8 @@
 <div class="lig-cart-panel rounded-xl p-5 flex flex-col max-h-[calc(100vh-6rem)]">
 <div class="flex justify-between items-center mb-4 lig-cart-divider border-b pb-3 shrink-0">
 <h3 id="cart-panel-title" class="font-headline-md text-lg flex items-center gap-2 lig-cart-text">
-<span class="material-symbols-outlined text-vibrant-yellow">shopping_bag</span>
-                    Seu pedido
+<span class="material-symbols-outlined text-vibrant-yellow">local_shipping</span>
+                    Seu caminhão
                 </h3>
 <span id="cart-count-badge" class="bg-vibrant-yellow text-deep-black font-bold px-2 py-1 rounded-md text-xs">0 itens</span>
 </div>
@@ -42,8 +42,8 @@
 <div class="absolute inset-0 lig-cart-overlay" data-cart-close></div>
 <div class="absolute bottom-0 left-0 right-0 lig-cart-sheet rounded-t-2xl p-5 max-h-[85vh] flex flex-col">
 <div class="flex justify-between items-center mb-4 shrink-0">
-<h3 id="cart-sheet-title" class="font-headline-md lig-cart-text">Seu pedido</h3>
-<button type="button" class="p-2 lig-cart-text-muted hover:lig-cart-text" data-cart-close aria-label="Fechar carrinho">
+<h3 id="cart-sheet-title" class="font-headline-md lig-cart-text">Seu caminhão</h3>
+<button type="button" class="p-2 lig-cart-text-muted hover:lig-cart-text" data-cart-close aria-label="Fechar caminhão">
 <span class="material-symbols-outlined">close</span>
 </button>
 </div>
@@ -122,7 +122,7 @@
             toast.innerHTML = `<div class="lig-toast-inner flex items-center gap-3 rounded-xl px-4 py-3">
 <span class="material-symbols-outlined text-vibrant-yellow text-[26px] shrink-0" aria-hidden="true">check_circle</span>
 <div class="min-w-0 flex-1">
-<p class="text-sm font-semibold lig-cart-text leading-tight">Adicionado ao carrinho</p>
+<p class="text-sm font-semibold lig-cart-text leading-tight">Adicionado ao caminhão</p>
 <p id="cart-add-toast-name" class="text-xs lig-cart-text-muted truncate mt-0.5"></p>
 </div>
 <button type="button" id="cart-add-toast-open" class="shrink-0 text-xs font-bold text-vibrant-yellow hover:text-[#D9BB35] px-2 py-1 rounded-md min-h-[36px]">Ver</button>
@@ -131,7 +131,8 @@
 
             toast.querySelector('#cart-add-toast-open')?.addEventListener('click', () => {
                 hideAddToast();
-                open();
+                if (window.matchMedia(LG_QUERY).matches) open();
+                else window.location.href = 'caminhao.html';
             });
         }
 
@@ -191,7 +192,7 @@
         const label = shortProductName(productName);
 
         if (nameEl) nameEl.textContent = label;
-        if (live) live.textContent = `${label} adicionado ao carrinho.`;
+        if (live) live.textContent = `${label} adicionado ao caminhão.`;
 
         if (toast) {
             toast.classList.remove('hidden');
@@ -274,7 +275,7 @@
             floatEl.innerHTML = `<button type="button" class="ze-float-cart__btn" id="ze-float-cart-btn">
 <span class="ze-float-cart__left">
 <span class="ze-float-cart__badge" id="ze-float-count">0</span>
-<span id="ze-float-label">Ver carrinho</span>
+<span id="ze-float-label">Ver caminhão</span>
 </span>
 <span id="ze-float-total">R$ 0,00</span>
 </button>`;
@@ -290,7 +291,7 @@
 
         if (countEl) countEl.textContent = count > 99 ? '99+' : String(count);
         if (totalEl) totalEl.textContent = total;
-        if (labelEl) labelEl.textContent = count === 1 ? 'Ver carrinho · 1 item' : `Ver carrinho · ${count} itens`;
+        if (labelEl) labelEl.textContent = count === 1 ? 'Ver caminhão · 1 item' : `Ver caminhão · ${count} itens`;
 
         const visible = count > 0 && !isCartOpen();
         floatEl.classList.toggle('ze-float-cart--visible', visible);
@@ -369,10 +370,10 @@
         const count = cartApi.cartItemCount(cart);
         const total = formatPrice(cartApi.cartTotalValue(cart));
         const emptyHtml = cartApi.lastOrderSummary()
-            ? `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio.</p>
+            ? `<p class="text-sm lig-cart-text-muted">Seu caminhão está vazio.</p>
 <button type="button" id="cart-reorder-btn" class="mt-3 w-full rounded-full border border-vibrant-yellow/40 bg-yellow-50 text-vibrant-yellow text-sm font-bold py-2.5 min-h-[44px] hover:bg-vibrant-yellow hover:text-deep-black transition-colors">Repetir último pedido</button>
-<p class="text-xs lig-cart-text-muted mt-3"><a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`
-            : `<p class="text-sm lig-cart-text-muted">Seu carrinho está vazio. <a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Ver catálogo</a></p>`;
+<p class="text-xs lig-cart-text-muted mt-3"><a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Adicionar produtos</a></p>`
+            : `<p class="text-sm lig-cart-text-muted">Seu caminhão está vazio. <a class="text-vibrant-yellow hover:underline font-semibold" href="pedidos.html">Adicionar produtos</a></p>`;
         const listHtml = items.length ? items.map(cartLineHtml).join('') : emptyHtml;
 
         const cartItemsEl = document.getElementById('cart-items');
@@ -445,16 +446,12 @@
             panel.classList.remove('hidden');
             panel.classList.add('flex');
         } else {
-            panel.classList.add('hidden');
-            panel.classList.remove('flex');
-            sheet.classList.remove('hidden');
-            sheet.setAttribute('aria-hidden', 'false');
-            lockBodyScroll();
+            window.location.href = 'caminhao.html';
         }
         updateFloatCart(cartApi.loadCart());
     };
 
-    const startAppPayment = async () => {
+    const startAppPayment = async (buttonIds = ['cart-pay-btn', 'cart-pay-btn-mobile']) => {
         const cart = cartApi.loadCart();
         const checkout = cartApi.loadCheckout();
         if (!cartApi.cartItemCount(cart)) return;
@@ -472,7 +469,7 @@
             packType: item.packType,
         }));
 
-        const payButtons = ['cart-pay-btn', 'cart-pay-btn-mobile'];
+        const payButtons = Array.isArray(buttonIds) ? buttonIds : ['cart-pay-btn', 'cart-pay-btn-mobile'];
         payButtons.forEach((id) => {
             const btn = document.getElementById(id);
             if (btn) {
@@ -584,10 +581,13 @@
         navBound = true;
         toggle.addEventListener('click', (e) => {
             e.preventDefault();
-            const panelOpen = panel && !panel.classList.contains('hidden');
-            const sheetOpen = sheet && !sheet.classList.contains('hidden');
-            if (panelOpen || sheetOpen) close();
-            else open();
+            if (window.matchMedia(LG_QUERY).matches) {
+                const panelOpen = panel && !panel.classList.contains('hidden');
+                if (panelOpen) close();
+                else open();
+            } else {
+                window.location.href = 'caminhao.html';
+            }
         });
     };
 
@@ -618,5 +618,6 @@
         isOpen: isCartOpen,
         showAddedFeedback,
         burstConfetti,
+        startPayment: startAppPayment,
     };
 })();

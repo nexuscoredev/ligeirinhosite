@@ -61,12 +61,12 @@
 <div class="lig-onboarding__step" data-step="2">
 <div class="lig-clube-teaser mb-5">
 <div class="lig-clube-teaser__icon mb-2">⚡</div>
-<h2 class="text-lg font-bold lig-page-section-title">Clube Raios</h2>
-<p class="text-sm lig-page-lead mt-2">Em breve: ganhe pontos a cada pedido e desbloqueie benefícios exclusivos.</p>
+<h2 class="text-lg font-bold lig-page-section-title">Club Raios</h2>
+<p class="text-sm lig-page-lead mt-2">Ganhe Raios a cada pedido pago pelo app e troque por benefícios.</p>
 </div>
 <label class="flex items-center gap-2 text-sm lig-page-lead cursor-pointer mb-5">
-<input type="checkbox" id="onboard-club" class="rounded border-[var(--lig-border)] text-vibrant-yellow focus:ring-vibrant-yellow">
-Quero ser avisado quando lançar
+<input type="checkbox" id="onboard-club" class="rounded border-[var(--lig-border)] text-vibrant-yellow focus:ring-vibrant-yellow" checked>
+Quero participar do Club Raios
 </label>
 <button type="button" class="lig-btn-primary w-full" data-onboard-finish>Começar a pedir</button>
 </div>
@@ -100,6 +100,13 @@ Quero ser avisado quando lançar
         const selected = [...root.querySelectorAll('input[name="onboard-cat"]:checked')].map((el) => el.value);
         const clubOptIn = Boolean(root.querySelector('#onboard-club')?.checked);
         window.LigeirinhoCart?.savePrefs?.({ categories: selected, clubOptIn });
+        if (clubOptIn && window.LigeirinhoRaios) {
+            window.LigeirinhoRaios.join();
+            fetch('data/raios-config.json')
+                .then((r) => (r.ok ? r.json() : {}))
+                .then((cfg) => window.LigeirinhoRaios.creditWelcomeBonus(cfg.welcomeBonus))
+                .catch(() => window.LigeirinhoRaios.creditWelcomeBonus());
+        }
         markDone();
         root.setAttribute('hidden', '');
         document.body.style.overflow = '';

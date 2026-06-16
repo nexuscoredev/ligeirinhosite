@@ -1,0 +1,63 @@
+{
+  "tierGoal": 5000,
+  "welcomeBonus": 500,
+  "pointsPerReal": 10,
+  "missions": [
+    {
+      "id": "cerveja-caixa",
+      "title": "Compra de 1 caixa de cerveja",
+      "subtitle": "Na compra de CERVEJAS",
+      "badge": "VALENDO + PONTOS",
+      "points": 500,
+      "icon": "sports_bar",
+      "categoryId": "cervejas"
+    },
+    {
+      "id": "destilados-mix",
+      "title": "Compra de 3 produtos diferentes",
+      "subtitle": "Na compra de DESTILADOS",
+      "badge": "VALENDO + PONTOS",
+      "points": 600,
+      "icon": "liquor",
+      "categoryId": "destilados"
+    },
+    {
+      "id": "refrigerantes",
+      "title": "Compra de 2 caixas",
+      "subtitle": "Na compra de REFRIGERANTES",
+      "badge": "VALENDO + PONTOS",
+      "points": 400,
+      "icon": "local_cafe",
+      "categoryId": "refrigerantes-sucos"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "combo-semana",
+      "title": "Complete suas ofertas da semana",
+      "subtitle": "Pedido sugerido com 3+ itens",
+      "points": 2200,
+      "multiplier": "2x",
+      "icon": "local_mall"
+    },
+    {
+      "id": "primeiro-pedido",
+      "title": "Complete o desafio e ganhe + pontos",
+      "subtitle": "Faça seu primeiro pedido pelo app",
+      "points": 300,
+      "multiplier": "2x",
+      "icon": "emoji_events"
+    }
+  ],
+  "redeemCategories": [
+    { "id": "cervejas", "label": "Cerveja", "icon": "sports_bar", "bg": "#fff8e1" },
+    { "id": "destilados", "label": "Destilados e vinhos", "icon": "liquor", "bg": "#fce4ec" },
+    { "id": "refrigerantes-sucos", "label": "Não alcoólicos", "icon": "local_cafe", "bg": "#e8f5e9" },
+    { "id": "energeticos", "label": "Energéticos", "icon": "bolt", "bg": "#e3f2fd" },
+    { "id": "combos", "label": "Combos", "icon": "local_fire_department", "bg": "#fff3e0" },
+    { "id": "gelos", "label": "Gelos e acessórios", "icon": "ac_unit", "bg": "#e0f7fa" },
+    { "id": "whiskys", "label": "Whiskys", "icon": "wine_bar", "bg": "#f3e5f5" },
+    { "id": "vinhos", "label": "Vinhos", "icon": "wine_bar", "bg": "#fde8ef" },
+    { "id": "salgadinho", "label": "Petiscos", "icon": "fastfood", "bg": "#fff9c4" }
+  ]
+}
