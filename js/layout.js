@@ -168,9 +168,8 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
     const showAppChrome = page === 'inicio' || page === 'pedidos';
     const searchPlaceholder =
         page === 'pedidos' ? 'Buscar no catálogo...' : page === 'inicio' ? 'Pesquisar no Ligeirinho' : 'O que você quer pedir?';
-    const homeMobileHeader = page === 'inicio' ? ' ze-app-header--home-mobile' : '';
 
-    const navHtml = `<header class="ze-app-header${homeMobileHeader} sticky top-0 z-50">
+    const navHtml = `<header class="ze-app-header sticky top-0 z-50">
 <nav class="font-nav-bar">
 <div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px] gap-4">
 <a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
