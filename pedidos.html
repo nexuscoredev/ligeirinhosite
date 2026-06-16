@@ -164,7 +164,7 @@
 <body data-page="pedidos" class="font-body-md antialiased min-h-screen flex flex-col">
 <div id="site-nav"></div>
 <main id="lig-page-main" class="flex-grow w-full max-w-container-max mx-auto pb-4">
-<div class="sticky top-[var(--ze-header-offset,7.5rem)] z-20 ze-catalog-sticky">
+<div class="ze-catalog-sticky">
 <div class="flex items-center justify-between gap-3 px-4 py-2.5">
 <h1 class="font-headline-md text-base font-bold text-[var(--lig-text)]">Categorias</h1>
 <p id="catalog-stats" class="text-xs text-[var(--lig-text-subtle)] shrink-0">Carregando…</p>
@@ -183,7 +183,7 @@
 </div>
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 md:px-margin-desktop pt-3">
 <aside class="hidden lg:block lg:col-span-3">
-<nav id="catalog-filters" class="ze-filter-pills flex-col !overflow-visible flex-wrap gap-1.5 !px-0 sticky top-32" aria-label="Categorias">
+<nav id="catalog-filters" class="ze-filter-pills ze-filter-pills--sidebar flex-col !overflow-visible flex-wrap gap-1.5 !px-0" aria-label="Categorias">
 <p class="text-xs text-on-surface-variant py-2" role="status">Carregando…</p>
 </nav>
 </aside>

@@ -443,6 +443,34 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         });
     };
 
+    let headerOffsetObserver = null;
+
+    const syncHeaderOffset = () => {
+        const header = document.querySelector('.ze-app-header');
+        if (!header) return;
+        const height = Math.ceil(header.getBoundingClientRect().height);
+        if (height > 0) {
+            document.documentElement.style.setProperty('--ze-header-offset', `${height}px`);
+            document.body?.style.setProperty('--ze-header-offset', `${height}px`);
+        }
+    };
+
+    const bindHeaderOffset = () => {
+        const header = document.querySelector('.ze-app-header');
+        if (!header) return;
+        syncHeaderOffset();
+        if (headerOffsetObserver) {
+            headerOffsetObserver.disconnect();
+            headerOffsetObserver = null;
+        }
+        if (typeof ResizeObserver !== 'undefined') {
+            headerOffsetObserver = new ResizeObserver(syncHeaderOffset);
+            headerOffsetObserver.observe(header);
+        } else {
+            window.addEventListener('resize', syncHeaderOffset);
+        }
+    };
+
     const bindAppChrome = () => {
         const locationBar = document.getElementById('ze-location-bar');
         const searchForm = document.getElementById('ze-search-form');
@@ -492,6 +520,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
         window.addEventListener('ligeirinho-checkout-changed', syncLocation);
         syncLocation();
+        syncHeaderOffset();
 
         if (searchForm && page === 'pedidos') {
             searchForm.addEventListener('submit', (e) => {
@@ -565,6 +594,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         }
         bindMobileMenu();
         bindBottomNav();
+        bindHeaderOffset();
         bindAppChrome();
         initHeaderExtras();
     }

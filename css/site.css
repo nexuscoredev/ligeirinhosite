@@ -1273,8 +1273,16 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-catalog-sticky {
+    position: sticky;
+    top: var(--ze-header-offset, 10.5rem);
+    z-index: 20;
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
+}
+
+body[data-page='pedidos'] .ze-filter-pills--sidebar {
+    position: sticky;
+    top: var(--ze-header-offset, 10.5rem);
 }
 
 /* ── Floating cart bar (estilo sacola) ── */
