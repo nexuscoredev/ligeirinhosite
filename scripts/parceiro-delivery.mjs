@@ -1,11 +1,40 @@
 /** Dias da semana no Hub: 0=dom … 6=sáb (igual a Date#getDay). */
 export const DIAS_ENTREGA_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+export const DEFAULT_DELIVERY_START_DAYS = 2;
+
 export function formatLocalDateKey(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+}
+
+export function optionFromDate(d) {
+    const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
+    return {
+        value: formatLocalDateKey(d),
+        label,
+        weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
+        dayOfWeek: d.getDay(),
+        type: 'Regular',
+        priceLabel: 'Grátis',
+    };
+}
+
+export function defaultDeliveryDateOptions({ count = 12, startDays = DEFAULT_DELIVERY_START_DAYS } = {}) {
+    const options = [];
+    const anchor = new Date();
+    anchor.setHours(12, 0, 0, 0);
+
+    for (let i = startDays; options.length < count; i += 1) {
+        const d = new Date(anchor);
+        d.setDate(d.getDate() + i);
+        options.push(optionFromDate(d));
+    }
+
+    return options;
 }
 
 export function clienteParceirosFromPessoa(pessoa) {
@@ -56,11 +85,16 @@ export function rotuloDiasEntrega(dias = []) {
         .join(', ');
 }
 
-export function deliveryDateOptions(datasEntrega = [], { count = 12, horizonDays = 56 } = {}) {
+export function deliveryDateOptions(
+    datasEntrega = [],
+    { count = 12, horizonDays = 56, startDays = DEFAULT_DELIVERY_START_DAYS } = {}
+) {
     const allowed = new Set(
         (datasEntrega || []).map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
     );
-    if (!allowed.size) return [];
+    if (!allowed.size) {
+        return defaultDeliveryDateOptions({ count, startDays });
+    }
 
     const options = [];
     const anchor = new Date();
@@ -71,17 +105,11 @@ export function deliveryDateOptions(datasEntrega = [], { count = 12, horizonDays
         d.setDate(d.getDate() + i);
         const dow = d.getDay();
         if (!allowed.has(dow)) continue;
+        options.push(optionFromDate(d));
+    }
 
-        const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-        options.push({
-            value: formatLocalDateKey(d),
-            label,
-            weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
-            dayOfWeek: dow,
-            type: 'Regular',
-            priceLabel: 'Grátis',
-        });
+    if (!options.length) {
+        return defaultDeliveryDateOptions({ count, startDays });
     }
 
     return options;

@@ -1,5 +1,6 @@
 (function () {
     const DIAS_ENTREGA_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const DEFAULT_DELIVERY_START_DAYS = 2;
 
     const formatLocalDateKey = (date) => {
         const y = date.getFullYear();
@@ -8,15 +9,45 @@
         return `${y}-${m}-${d}`;
     };
 
+    const optionFromDate = (d) => {
+        const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
+        return {
+            value: formatLocalDateKey(d),
+            label,
+            weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
+            dayOfWeek: d.getDay(),
+            type: 'Regular',
+            priceLabel: 'Grátis',
+        };
+    };
+
+    const defaultDeliveryDateOptions = ({ count = 12, startDays = DEFAULT_DELIVERY_START_DAYS } = {}) => {
+        const options = [];
+        const anchor = new Date();
+        anchor.setHours(12, 0, 0, 0);
+
+        for (let i = startDays; options.length < count; i += 1) {
+            const d = new Date(anchor);
+            d.setDate(d.getDate() + i);
+            options.push(optionFromDate(d));
+        }
+
+        return options;
+    };
+
     const deliveryDateOptions = (datasEntrega, opts = {}) => {
         const count = opts.count ?? 12;
         const horizonDays = opts.horizonDays ?? 56;
+        const startDays = opts.startDays ?? DEFAULT_DELIVERY_START_DAYS;
         const allowed = new Set(
             (datasEntrega || [])
                 .map(Number)
                 .filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
         );
-        if (!allowed.size) return [];
+        if (!allowed.size) {
+            return defaultDeliveryDateOptions({ count, startDays });
+        }
 
         const options = [];
         const anchor = new Date();
@@ -27,17 +58,11 @@
             d.setDate(d.getDate() + i);
             const dow = d.getDay();
             if (!allowed.has(dow)) continue;
+            options.push(optionFromDate(d));
+        }
 
-            const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-            const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-            options.push({
-                value: formatLocalDateKey(d),
-                label,
-                weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
-                dayOfWeek: dow,
-                type: 'Regular',
-                priceLabel: 'Grátis',
-            });
+        if (!options.length) {
+            return defaultDeliveryDateOptions({ count, startDays });
         }
 
         return options;

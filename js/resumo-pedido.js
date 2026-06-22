@@ -29,23 +29,17 @@
     const deliveryApi = window.LigeirinhoParceiroDelivery;
 
     const deliveryOptions = () => {
-        const s = session();
-        const dias = s?.datasEntrega || [];
-        if (dias.length && deliveryApi?.deliveryDateOptions) {
+        const dias = session()?.datasEntrega || [];
+        if (deliveryApi?.deliveryDateOptions) {
             return deliveryApi.deliveryDateOptions(dias);
         }
-        if (s?.deliveryDateOptions?.length) return s.deliveryDateOptions;
         return [];
     };
 
     const syncDeliveryDateWithHub = () => {
         const checkout = cartApi.loadCheckout();
-        const dias = session()?.datasEntrega || [];
         if (!checkout.deliveryDate) return;
-        if (!dias.length) {
-            cartApi.saveCheckout({ deliveryDate: '' });
-            return;
-        }
+        const dias = session()?.datasEntrega || [];
         if (deliveryApi?.isDeliveryDateAllowed && !deliveryApi.isDeliveryDateAllowed(checkout.deliveryDate, dias)) {
             cartApi.saveCheckout({ deliveryDate: '' });
         }
@@ -81,12 +75,10 @@
             errors.address = 'Informe o endereço para entrega.';
         }
         const opts = deliveryOptions();
-        if (!opts.length) {
-            errors.deliveryDate = 'Nenhum dia de entrega configurado no Hub para sua conta.';
-        } else if (!checkout.deliveryDate) {
+        if (!checkout.deliveryDate) {
             errors.deliveryDate = 'Selecione a data de entrega.';
         } else if (!opts.some((d) => d.value === checkout.deliveryDate)) {
-            errors.deliveryDate = 'Data de entrega inválida para seu cadastro.';
+            errors.deliveryDate = 'Selecione uma data de entrega válida.';
         }
         if (!checkout.paymentMethod) errors.paymentMethod = 'Selecione o método de pagamento.';
         return errors;
@@ -128,7 +120,9 @@ ${body}
         const condicao = checkout.condicaoPagamento || s?.condicaoPagamento || '—';
         const dateLabel =
             deliveryOptions().find((d) => d.value === checkout.deliveryDate)?.label || 'Selecionar data';
-        const diasLabel = s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || '';
+        const diasLabel = s?.datasEntrega?.length
+            ? s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || ''
+            : '';
         const payLabel =
             paymentMethods().find((m) => m.id === checkout.paymentMethod)?.label || 'Selecionar método';
 
@@ -151,10 +145,9 @@ ${headerHtml('Resumo do pedido')}
 ${cardHtml('Condição de pagamento', `<p class="resumo-field-value">${esc(condicao)}</p>${s?.parcelasVencimento ? `<p class="resumo-field-hint">${esc(s.parcelasVencimento)}</p>` : ''}`)}
 ${cardHtml(
     'Data de entrega',
-    `${diasLabel ? `<p class="resumo-field-hint">Dias liberados no seu cadastro: ${esc(diasLabel)}</p>` : '<p class="resumo-field-hint">Campo obrigatório</p>'}
-<button type="button" class="resumo-select-btn${errors.deliveryDate ? ' resumo-select-btn--error' : ''}" data-open-picker="date"${deliveryOptions().length ? '' : ' disabled'}>${esc(dateLabel)}</button>
-${errors.deliveryDate ? `<p class="resumo-error">${esc(errors.deliveryDate)}</p>` : ''}
-${!deliveryOptions().length ? '<p class="resumo-error">Nenhum dia de entrega configurado no Hub para sua conta. Fale com seu representante.</p>' : ''}`
+    `${diasLabel ? `<p class="resumo-field-hint">Dias de entrega: ${esc(diasLabel)}</p>` : '<p class="resumo-field-hint">Campo obrigatório</p>'}
+<button type="button" class="resumo-select-btn${errors.deliveryDate ? ' resumo-select-btn--error' : ''}" data-open-picker="date">${esc(dateLabel)}</button>
+${errors.deliveryDate ? `<p class="resumo-error">${esc(errors.deliveryDate)}</p>` : ''}`
 )}
 ${cardHtml(
     'Método de pagamento',
@@ -197,25 +190,15 @@ ${cardHtml(
         let body = '';
         const options = deliveryOptions();
         if (pickerMode === 'date') {
-            if (!options.length) {
-                const diasLabel =
-                    session()?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(session()?.datasEntrega) || '';
-                body = `<p class="resumo-empty-picker">${esc(
-                    diasLabel
-                        ? `Seu cadastro prevê entrega em ${diasLabel}, mas não há datas disponíveis nos próximos dias. Entre em contato com seu representante.`
-                        : 'Nenhum dia de entrega foi configurado no Ligeirinho Hub para sua conta. Entre em contato com seu representante.'
-                )}</p>`;
-            } else {
-                body = options
-                    .map(
-                        (opt) => `<button type="button" class="resumo-option${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
+            body = options
+                .map(
+                    (opt) => `<button type="button" class="resumo-option${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
 <span class="resumo-option__date">${esc(opt.label)}</span>
 <span class="resumo-option__meta">${esc(opt.type)} · ${esc(opt.weekday)}</span>
 <span class="resumo-option__price">${esc(opt.priceLabel)}</span>
 </button>`
-                    )
-                    .join('');
-            }
+                )
+                .join('');
         } else {
             body = paymentMethods()
                 .map(
@@ -233,9 +216,12 @@ ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
         const pickerLead =
             pickerMode === 'date'
                 ? (() => {
-                      const diasLabel = session()?.diasEntregaLabel || '';
+                      const diasLabel =
+                          session()?.datasEntrega?.length
+                              ? session()?.diasEntregaLabel || ''
+                              : '';
                       return diasLabel
-                          ? `Escolha uma data entre os dias liberados no seu cadastro (${diasLabel}).`
+                          ? `Escolha uma data de entrega (${diasLabel}).`
                           : 'Escolha a melhor data para receber seu pedido.';
                   })()
                 : 'Escolha a forma de pagamento para este pedido.';
@@ -376,10 +362,6 @@ ${headerHtml(title)}
     const boot = async () => {
         await refreshParceiroProfile();
         syncDeliveryDateWithHub();
-        if (params.get('picker') === 'date' && !deliveryOptions().length) {
-            step = 'resumo';
-            pickerMode = null;
-        }
         render();
     };
 
