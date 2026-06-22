@@ -641,6 +641,8 @@ body.totem-kiosk {
     flex: 1;
     min-height: 0;
     touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     padding: 0.65rem;
     border-radius: 1.25rem 0 0 1.25rem;
     border: 1px solid var(--lig-border);
@@ -1923,15 +1925,29 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 .totem-categories::-webkit-scrollbar,
 .totem-products__body::-webkit-scrollbar,
 .totem-cart-list::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
+}
+
+.totem-categories::-webkit-scrollbar-track,
+.totem-products__body::-webkit-scrollbar-track,
+.totem-cart-list::-webkit-scrollbar-track {
+    background: rgba(20, 18, 15, 0.04);
+    border-radius: 999px;
 }
 
 .totem-categories::-webkit-scrollbar-thumb,
 .totem-products__body::-webkit-scrollbar-thumb,
 .totem-cart-list::-webkit-scrollbar-thumb {
-    background: rgba(20, 18, 15, 0.15);
+    background: rgba(20, 18, 15, 0.22);
     border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.totem-categories {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(20, 18, 15, 0.28) rgba(20, 18, 15, 0.06);
 }
 
 .totem-products__body {
@@ -1969,11 +1985,14 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         border-radius: 1rem;
         padding: 0.55rem;
         mask-image: none;
-        scroll-snap-type: x mandatory;
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
         -webkit-overflow-scrolling: touch;
     }
 
     .totem-cat-btn {
+        touch-action: pan-x pinch-zoom;
         flex: 0 0 auto;
         width: auto;
         margin-bottom: 0;
@@ -2181,6 +2200,9 @@ html.totem--phone.totem--landscape .totem-categories {
     overflow-y: auto;
     flex: 1;
     min-height: 0;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
     gap: 0.25rem;
     padding: 0.4rem;
     border-radius: 0.85rem 0 0 0.85rem;
@@ -2295,12 +2317,15 @@ html.totem--kiosk.totem--portrait .totem-categories {
     border-radius: 1rem;
     padding: 0.55rem;
     mask-image: none;
-    scroll-snap-type: x mandatory;
+    touch-action: pan-x;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
 }
 
 html.totem--tablet.totem--portrait .totem-cat-btn,
 html.totem--kiosk.totem--portrait .totem-cat-btn {
+    touch-action: pan-x pinch-zoom;
     flex: 0 0 auto;
     width: auto;
     margin-bottom: 0;
@@ -2365,7 +2390,21 @@ html.totem--tablet.totem--landscape .totem-categories {
     overflow-x: hidden;
     flex: 1;
     min-height: 0;
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
     scroll-snap-type: none;
+}
+
+html.totem--kiosk.totem--landscape .totem-categories {
+    touch-action: pan-y;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+html.totem--kiosk.totem--landscape .totem-cat-btn,
+html.totem--tablet.totem--landscape .totem-cat-btn {
+    touch-action: pan-y pinch-zoom;
 }
 
 html.totem--tablet.totem--landscape .totem-cat-btn {
