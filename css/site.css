@@ -5345,10 +5345,6 @@ html.lig-story-open {
     width: 100%;
 }
 
-.caminhao-pay-btn:not(:disabled):hover {
-    background: #0086c3;
-}
-
 .caminhao-pay-btn--disabled,
 .caminhao-pay-btn:disabled {
     opacity: 0.45;
