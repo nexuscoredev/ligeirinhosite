@@ -476,7 +476,7 @@ body.totem-kiosk {
 
 .totem-welcome__panel {
     width: 100%;
-    padding: clamp(0.65rem, 1.5dvh, 0.85rem);
+    padding: clamp(0.5rem, 1.25dvh, 0.75rem);
     border-radius: 1.25rem;
     background: rgba(255, 255, 255, 0.58);
     backdrop-filter: blur(18px) saturate(1.2);
@@ -530,7 +530,7 @@ body.totem-kiosk {
 .totem-welcome__cta {
     width: 100%;
     min-height: clamp(48px, 6dvh, 56px);
-    margin-top: 0.3rem;
+    margin-top: 0;
     padding-inline: 1.15rem;
     font-size: clamp(0.875rem, 1.9dvh, 1rem);
     border-radius: 1rem;
