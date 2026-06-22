@@ -1,4 +1,5 @@
 import { paymentEnv, assertOrderBackend } from '../../../scripts/payment-env.mjs';
+import { applyHubPdvCors, handleHubPdvCorsPreflight } from '../../../scripts/api-cors.mjs';
 import { requireCaixaAuth } from '../../../scripts/pdv-caixa-auth.mjs';
 import { lookupTotemOrderByCode, enrichTotemLookup } from '../../../scripts/hub-totem-pedido.mjs';
 import { dbFromPaymentConfig } from '../../../scripts/supabase-orders.mjs';
@@ -6,6 +7,8 @@ import { dbFromPaymentConfig } from '../../../scripts/supabase-orders.mjs';
 export const config = { maxDuration: 20 };
 
 export default async function handler(req, res) {
+    if (handleHubPdvCorsPreflight(req, res)) return;
+    applyHubPdvCors(req, res);
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
     const auth = await requireCaixaAuth(req, process.env);
