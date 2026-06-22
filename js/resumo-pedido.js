@@ -38,13 +38,21 @@
         prazo: { icon: 'calendar_month' },
     };
 
+    const CARTAO_LOGO_HTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 24" width="44" height="24" class="resumo-option__logo resumo-option__logo--cartao" aria-hidden="true">' +
+        '<rect x="0" y="2" width="36" height="20" rx="3" fill="#1A1F71"/>' +
+        '<text x="18" y="15.5" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="8" font-weight="700" text-anchor="middle">VISA</text>' +
+        '<circle cx="55" cy="12" r="8" fill="#EB001B"/>' +
+        '<circle cx="65" cy="12" r="8" fill="#F79E1B" opacity="0.95"/>' +
+        '</svg>';
+
     const enrichPaymentMethod = (method) => {
         const mark = PAYMENT_MARKS[method.id] || {};
-        const logo = method.logo || mark.logo || '';
+        const rawLogo = mark.logo || method.logo || '';
         return {
-            ...mark,
             ...method,
-            logo: logo ? assetUrl(logo) : '',
+            icon: method.icon || mark.icon,
+            logo: rawLogo ? assetUrl(rawLogo) : '',
         };
     };
 
@@ -76,6 +84,7 @@
 
     const paymentMethodIconHtml = (opt) => {
         const enriched = enrichPaymentMethod(opt);
+        if (enriched.id === 'cartao') return CARTAO_LOGO_HTML;
         const logo = enriched.logo;
         if (logo) {
             const logoMod = enriched.id === 'pix' ? ' resumo-option__logo--pix' : ' resumo-option__logo--cartao';
