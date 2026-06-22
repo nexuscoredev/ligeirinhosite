@@ -6,6 +6,7 @@ import {
     mapMpStatusToOrder,
     extractPixFromPayment,
 } from '../../scripts/mercadopago-api.mjs';
+import { maybeInitSeparation } from '../../scripts/separation-init.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -68,7 +69,12 @@ export default async function handler(req, res) {
             mp_status_detail: payment.status_detail || null,
             pix_qr_code: pix?.qr_code || null,
             pix_qr_base64: pix?.qr_code_base64 || null,
+            ...(orderStatus === 'paid' ? { paid_at: new Date().toISOString() } : {}),
         });
+
+        if (orderStatus === 'paid') {
+            await maybeInitSeparation(config.supabaseUrl, config.supabaseServiceKey, updated, process.env);
+        }
 
         return res.status(200).json({
             status: payment.status,

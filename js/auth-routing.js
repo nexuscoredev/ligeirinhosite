@@ -8,7 +8,7 @@
     const LOGIN_PAGE = 'index.html';
 
     const TOTEM_PAGES = new Set(['totem', 'totem-pagamento', 'totem-sucesso']);
-    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro', 'resumo-pedido']);
+    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro', 'separacao', 'resumo-pedido']);
 
     const PASSWORD_HOME = 'conta.html#senha';
 
@@ -65,6 +65,14 @@
         if (session && auth.isTotemSession(session) && RESTRICTED_FOR_TOTEM.has(page)) {
             window.location.replace(TOTEM_HOME);
             return false;
+        }
+
+        if (page === 'separacao' && session) {
+            const role = String(session.role || '').toUpperCase();
+            if (role !== 'ADMIN' && role !== 'OPERADOR') {
+                window.location.replace(PARCEIRO_HOME);
+                return false;
+            }
         }
 
         return true;

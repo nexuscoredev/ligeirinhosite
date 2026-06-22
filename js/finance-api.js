@@ -68,6 +68,37 @@
             body: JSON.stringify({ action: 'wallet-adjust', amount, description }),
         });
 
+    const separationQueue = () => request('/api/totem/separation/queue');
+    const separationOrder = (id) => request(`/api/totem/separation/order?id=${encodeURIComponent(id)}`);
+    const separationPick = (orderId, itemId, delta = 1) =>
+        request(`/api/totem/separation/order?id=${encodeURIComponent(orderId)}`, {
+            method: 'POST',
+            body: JSON.stringify({ itemId, delta }),
+        });
+    const separationExport = async (orderId) => {
+        const res = await fetch(`/api/totem/separation/export?id=${encodeURIComponent(orderId)}`, {
+            headers: headers(),
+        });
+        if (res.status === 401) {
+            setToken('');
+            throw new Error('Sessão expirada. Faça login novamente.');
+        }
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Erro ao exportar');
+        }
+        const blob = await res.blob();
+        const code = String(orderId).slice(0, 8).toUpperCase();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `separacao-${code}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    };
+
     const formatMoney = (v) =>
         Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -115,6 +146,10 @@
         settings,
         updateSettings,
         walletAdjust,
+        separationQueue,
+        separationOrder,
+        separationPick,
+        separationExport,
         formatMoney,
         formatDate,
         statusLabel,

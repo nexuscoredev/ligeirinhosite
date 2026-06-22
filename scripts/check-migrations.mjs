@@ -24,14 +24,26 @@ async function checkParceiros() {
         const colSet = new Set(orderCols.rows.map((r) => r.column_name));
         const needFinance = ['customer_id', 'financial_status', 'payment_method'];
         const needTotem = ['channel', 'totem_id', 'totem_label', 'unit_id'];
+        const needSeparation = ['separation_status', 'separation_started_at'];
+
+        const pickTable = await client.query(
+            `select 1 from information_schema.tables
+             where table_schema = 'public' and table_name = 'order_pick_items'`
+        );
 
         return {
             ok: true,
             tables: tables.rows.map((r) => r.table_name),
             financeOk: needFinance.every((c) => colSet.has(c)),
             totemOk: needTotem.every((c) => colSet.has(c)),
+            separationOk:
+                needSeparation.every((c) => colSet.has(c)) && pickTable.rows.length > 0,
             missingFinance: needFinance.filter((c) => !colSet.has(c)),
             missingTotem: needTotem.filter((c) => !colSet.has(c)),
+            missingSeparation: [
+                ...needSeparation.filter((c) => !colSet.has(c)),
+                ...(pickTable.rows.length ? [] : ['order_pick_items']),
+            ],
         };
     } finally {
         await client.end();
@@ -77,6 +89,7 @@ async function main() {
     else {
         console.log('Finance:', p.financeOk ? 'OK' : `PENDENTE (${p.missingFinance.join(', ')})`);
         console.log('Totem:', p.totemOk ? 'OK' : `PENDENTE (${p.missingTotem.join(', ')})`);
+        console.log('Separação:', p.separationOk ? 'OK' : `PENDENTE (${p.missingSeparation.join(', ')})`);
         console.log('Tabelas:', p.tables.join(', ') || '(nenhuma finance)');
     }
 

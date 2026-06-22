@@ -19,6 +19,7 @@ import {
     walletTransaction,
     insertPaymentEvent,
 } from '../../scripts/supabase-finance.mjs';
+import { maybeInitSeparation } from '../../scripts/separation-init.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -80,6 +81,14 @@ async function syncPayment(config, paymentId, reqBody) {
     if (paidAt) patch.paid_at = paidAt;
 
     await patchOrder(config.supabaseUrl, config.supabaseServiceKey, order.id, patch);
+
+    if (payment.status === 'approved') {
+        await maybeInitSeparation(config.supabaseUrl, config.supabaseServiceKey, {
+            ...order,
+            status: orderStatus,
+            paid_at: paidAt,
+        }, process.env);
+    }
 
     let charge = await fetchChargeByMpPaymentId(config.supabaseUrl, config.supabaseServiceKey, paymentId);
     if (charge) {

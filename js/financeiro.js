@@ -94,6 +94,7 @@ ${o.customerPhone ? `<button type="button" class="fin-btn fin-btn--wa fin-btn--s
 <div><h1>Painel Financeiro</h1><p class="text-sm text-on-surface-variant">Mercado Pago · Crédito · Cashback</p></div>
 <div class="fin-actions">
 <button type="button" class="fin-btn fin-btn--ghost" id="fin-logout-btn">Sair</button>
+<a href="separacao.html" class="fin-btn fin-btn--ghost">Separação</a>
 </div>
 </div>
 <div class="fin-stats">
