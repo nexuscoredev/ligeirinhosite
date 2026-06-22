@@ -31,12 +31,9 @@
         return `<strong>${esc(methodLabel(m))}</strong>`;
     };
 
-    const formatDisplayCode = (id) =>
-        `PED ${String(id || '')
-            .slice(0, 8)
-            .toUpperCase()
-            .split('')
-            .join(' ')}`;
+    const receipt = window.LigeirinhoTotemReceipt;
+    const formatDisplayCode = (id) => receipt?.formatCode?.(id) ?? String(id || '').slice(0, 8).toUpperCase();
+    const compactDisplayCode = (id) => receipt?.compactCode?.(id) ?? formatDisplayCode(id);
 
     let pollTimer = null;
     let screenTimeout = null;
@@ -58,7 +55,7 @@
 
     const goNovoPedido = () => {
         clearTimers();
-        window.LigeirinhoCart?.saveCart?.({});
+        window.LigeirinhoCart?.clearTotemSession?.();
         window.location.replace('totem.html');
     };
 
@@ -84,17 +81,18 @@
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error totem-pay-card">
 <h1 class="lig-payment-title">Não foi possível continuar</h1>
 <p class="lig-payment-lead">${esc(msg)}</p>
-<a href="totem.html" class="totem-btn totem-btn--primary totem-pay-back">Voltar ao totem</a>
+<a href="totem.html" class="totem-btn totem-btn--primary totem-pay-back" data-totem-cancel>Voltar ao totem</a>
 </div>`;
     };
 
     const renderWaiting = (order) => {
         const code = formatDisplayCode(order.id);
+        const copyCode = compactDisplayCode(order.id);
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-caixa-card">
 <span class="material-symbols-outlined totem-pay-icon totem-caixa-card__icon" aria-hidden="true">storefront</span>
 <h1 class="lig-payment-title">Dirija-se ao caixa</h1>
 <p class="lig-payment-lead">Seu pedido entrou na fila do <strong>Ligeirinho Parceiros</strong>. Informe o código abaixo para o operador finalizar o pagamento.</p>
-<p class="totem-success-code totem-caixa-card__code">${esc(code)}</p>
+<button type="button" class="totem-success-code totem-caixa-card__code" data-totem-copy-code data-copy-text="${esc(copyCode)}" aria-label="Copiar código do pedido">${esc(code)}</button>
 <div class="totem-caixa-card__meta">
 <p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order.paymentMethod)}</span></p>
 <p class="totem-caixa-card__row"><span>Total</span><strong class="totem-caixa-card__value">${formatPrice(order.total)}</strong></p>
@@ -125,7 +123,7 @@ Nova tela em <strong id="totem-caixa-countdown">30</strong>s para o próximo cli
                 const { order } = await res.json();
                 if (order.status === 'paid') {
                     clearTimers();
-                    window.LigeirinhoCart?.saveCart?.({});
+                    window.LigeirinhoCart?.clearTotemSession?.();
                     window.location.replace(successUrl(id));
                 }
             } catch {

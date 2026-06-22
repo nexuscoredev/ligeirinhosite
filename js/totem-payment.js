@@ -19,7 +19,7 @@
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error totem-pay-card">
 <h1 class="lig-payment-title">Não foi possível continuar</h1>
 <p class="lig-payment-lead">${esc(msg)}</p>
-<a href="totem.html" class="totem-btn totem-btn--primary totem-pay-back">Voltar ao totem</a>
+<a href="totem.html" class="totem-btn totem-btn--primary totem-pay-back" data-totem-cancel>Voltar ao totem</a>
 </div>`;
     };
 
@@ -60,7 +60,7 @@ ${renderSummary(order)}
 <span class="totem-pay-method__hint">Pagamento no balcão</span>
 </button>
 </div>
-<a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back">Cancelar</a>
+<a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-cancel>Cancelar</a>
 </div>`;
 
         root.querySelectorAll('[data-method]').forEach((btn) => {

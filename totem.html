@@ -66,6 +66,13 @@
 </aside>
 <div class="totem-catalog__divider" aria-hidden="true"></div>
 <div class="totem-products">
+<form class="totem-search" id="totem-search-form" role="search">
+<span class="material-symbols-outlined totem-search__icon" aria-hidden="true">search</span>
+<input type="search" id="totem-search-input" class="totem-search__input" placeholder="Buscar produtos…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Buscar produtos">
+<button type="button" class="totem-search__clear" id="totem-search-clear" hidden aria-label="Limpar busca">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</form>
 <header class="totem-products__head" id="totem-products-head" hidden>
 <div class="totem-products__head-text">
 <p class="totem-products__eyebrow">Escolha seus produtos</p>
@@ -77,8 +84,8 @@
 <div class="totem-grid" id="totem-products-grid" role="list"></div>
 <div class="totem-empty" id="totem-products-empty" hidden>
 <span class="material-symbols-outlined totem-empty__icon" aria-hidden="true">inventory_2</span>
-<p class="totem-empty__title">Nenhum produto nesta categoria</p>
-<p class="totem-empty__lead">Selecione outra categoria para continuar.</p>
+<p class="totem-empty__title" id="totem-products-empty-title">Nenhum produto nesta categoria</p>
+<p class="totem-empty__lead" id="totem-products-empty-lead">Selecione outra categoria para continuar.</p>
 </div>
 </div>
 </div>
@@ -140,6 +147,7 @@
 <script src="js/product-pricing.js"></script>
 <script src="js/catalog-utils.js"></script>
 <script src="js/catalog-loader.js"></script>
+<script src="js/search-synonyms.js"></script>
 <script src="js/payment-providers.js"></script>
 <script src="js/totem-viewport.js"></script>
 <script src="js/totem.js"></script>

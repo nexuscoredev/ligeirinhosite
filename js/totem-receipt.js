@@ -18,6 +18,62 @@
         return `PED ${raw.split('').join(' ')}`;
     };
 
+    const compactCode = (id) => {
+        const raw = String(id || '')
+            .replace(/[^a-fA-F0-9]/gi, '')
+            .slice(0, 8)
+            .toUpperCase();
+        return raw ? `PED ${raw}` : '';
+    };
+
+    const copyToClipboard = async (text) => {
+        if (navigator.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                /* fallback */
+            }
+        }
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+        } catch {
+            return false;
+        }
+    };
+
+    const flashCopied = (el) => {
+        if (!el) return;
+        el.classList.add('totem-success-code--copied');
+        window.setTimeout(() => el.classList.remove('totem-success-code--copied'), 1500);
+    };
+
+    const bindCopyCodeHandlers = () => {
+        document.addEventListener('click', async (e) => {
+            const el = e.target.closest('[data-totem-copy-code]');
+            if (!el) return;
+            e.preventDefault();
+            const text = el.dataset.copyText || el.textContent?.trim() || '';
+            if (!text) return;
+            if (await copyToClipboard(text)) flashCopied(el);
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindCopyCodeHandlers, { once: true });
+    } else {
+        bindCopyCodeHandlers();
+    }
+
     const methodLabel = (m) => {
         const key = String(m || '').toLowerCase();
         if (key === 'pix') return 'Pix';
@@ -105,6 +161,8 @@
     window.LigeirinhoTotemReceipt = {
         buildReceiptHtml,
         formatCode,
+        compactCode,
+        copyToClipboard,
         printOrderReceipt,
     };
 })();

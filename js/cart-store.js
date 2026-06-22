@@ -147,6 +147,18 @@
         window.dispatchEvent(new CustomEvent('ligeirinho-prefs-changed'));
     };
 
+    const TOTEM_CHECKOUT_DEFAULTS = {
+        deliveryType: 'retirada',
+        address: '',
+        payment: 'pix',
+        notes: '',
+    };
+
+    const clearTotemSession = () => {
+        saveCart({});
+        saveCheckout(TOTEM_CHECKOUT_DEFAULTS);
+    };
+
     const updateNavCartBadge = () => {
         const badge = document.getElementById('nav-cart-badge');
         const tabBadge = document.getElementById('app-tab-cart-badge');
@@ -183,7 +195,17 @@
         lineSubtotal,
         itemMetaText,
         updateNavCartBadge,
+        clearTotemSession,
+        TOTEM_CHECKOUT_DEFAULTS,
     };
+
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('[data-totem-cancel]');
+        if (!el) return;
+        e.preventDefault();
+        clearTotemSession();
+        window.location.replace(el.getAttribute('href') || 'totem.html');
+    });
 
     window.addEventListener('ligeirinho-cart-changed', updateNavCartBadge);
     window.addEventListener('storage', (e) => {

@@ -773,6 +773,78 @@ body.totem-kiosk {
         radial-gradient(circle at 8% 88%, rgba(20, 18, 15, 0.03), transparent 30%);
 }
 
+.totem-search {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-shrink: 0;
+    margin: 0 0.25rem 0.55rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--lig-border);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: var(--lig-shadow-sm);
+    touch-action: auto;
+}
+
+.totem-search:focus-within {
+    border-color: var(--lig-yellow-text);
+    box-shadow: 0 0 0 2px rgba(240, 201, 41, 0.28);
+}
+
+.totem-search__icon {
+    flex: 0 0 auto;
+    font-size: 1.35rem;
+    color: var(--lig-text-subtle);
+}
+
+.totem-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--lig-text);
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    outline: none;
+    touch-action: auto;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.totem-search__input::placeholder {
+    color: var(--lig-text-subtle);
+    font-weight: 500;
+}
+
+.totem-search__input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.totem-search__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(20, 18, 15, 0.06);
+    color: var(--lig-text-muted);
+    cursor: pointer;
+}
+
+.totem-search__clear .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+.totem-search__clear:active {
+    transform: scale(0.96);
+}
+
 .totem-products__body {
     flex: 1 1 auto;
     min-height: 0;
@@ -1651,6 +1723,23 @@ body.totem-kiosk .totem-success-code {
     word-break: break-all;
 }
 
+body.totem-kiosk button.totem-success-code,
+body.totem-kiosk [data-totem-copy-code].totem-success-code {
+    cursor: pointer;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+body.totem-kiosk button.totem-success-code:active {
+    transform: scale(0.98);
+}
+
+body.totem-kiosk .totem-success-code--copied {
+    background: rgba(34, 197, 94, 0.16);
+    border-color: rgba(34, 197, 94, 0.45);
+}
+
 body.totem-kiosk .totem-success-icon {
     display: inline-flex;
     align-items: center;
@@ -2039,6 +2128,15 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     .totem-cat-btn {
         min-height: 48px;
     }
+
+    .totem-search {
+        min-height: 3rem;
+        padding: 0.65rem 0.75rem;
+    }
+
+    .totem-search__input {
+        font-size: 1rem;
+    }
 }
 
 /* Monitores totem grandes — leve redução para caber mais conteúdo */
@@ -2372,6 +2470,30 @@ html.totem--tablet.totem--portrait .totem-welcome__content {
 
 html.totem--tablet.totem--portrait .totem-product {
     min-height: 0;
+}
+
+/* Tablet: imagem em modo cheio (sem laterais) */
+html.totem--tablet .totem-product__media,
+html.totem--kiosk.totem--portrait .totem-product__media {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    min-height: clamp(5.5rem, 22vw, 11rem);
+}
+
+html.totem--tablet .totem-product__media img,
+html.totem--kiosk.totem--portrait .totem-product__media img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    object-fit: cover;
+    object-position: center;
+}
+
+html.totem--tablet .totem-product--selected .totem-product__media img,
+html.totem--kiosk.totem--portrait .totem-product--selected .totem-product__media img {
+    transform: none;
 }
 
 /* —— Tablet landscape —— */

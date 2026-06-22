@@ -26,6 +26,11 @@
     const categoryTitle = document.getElementById('totem-category-title');
     const productsCount = document.getElementById('totem-products-count');
     const productsEmpty = document.getElementById('totem-products-empty');
+    const productsEmptyTitle = document.getElementById('totem-products-empty-title');
+    const productsEmptyLead = document.getElementById('totem-products-empty-lead');
+    const searchForm = document.getElementById('totem-search-form');
+    const searchInput = document.getElementById('totem-search-input');
+    const searchClearBtn = document.getElementById('totem-search-clear');
     const unitLabel = document.getElementById('totem-unit-label');
     const deviceLabel = document.getElementById('totem-device-label');
     const idleHint = document.getElementById('totem-idle-hint');
@@ -51,6 +56,10 @@
     let lastAnimatedCategory = '';
     const tierByGroup = new Map();
     let cartToastTimer = null;
+    let searchQuery = '';
+    let searchTimer = null;
+    let cachedQueryKey = '';
+    let cachedQueryInfo = null;
 
     const shortProductName = (name) => {
         const text = String(name || '').trim();
@@ -340,9 +349,92 @@ ${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
     const activeCategoryMeta = () =>
         totemCategories.find((cat) => cat.id === activeCategory) || null;
 
-    const itemsForActiveCategory = () => {
-        if (!activeCategory) return displayItems;
-        return displayItems.filter((item) => item.categoryId === activeCategory);
+    const attachSearchIndex = (items) => {
+        const search = window.LigeirinhoSearch;
+        if (!search?.buildHaystack) return items;
+        items.forEach((item) => {
+            const text = `${item.product.id} ${item.product.name} ${item.product.description || ''} ${item.categoryName}`;
+            item._searchHaystack = search.buildHaystack(text);
+        });
+        return items;
+    };
+
+    const getQueryInfo = () => {
+        const search = window.LigeirinhoSearch;
+        if (!search?.expandSearchQuery) {
+            return { raw: searchQuery, words: searchQuery ? [searchQuery] : [], volumes: [] };
+        }
+        if (cachedQueryKey === searchQuery && cachedQueryInfo) return cachedQueryInfo;
+        cachedQueryKey = searchQuery;
+        cachedQueryInfo = search.expandSearchQuery(searchQuery);
+        return cachedQueryInfo;
+    };
+
+    const itemMatchesSearch = (item) => {
+        if (!searchQuery) return true;
+        const search = window.LigeirinhoSearch;
+        const queryInfo = getQueryInfo();
+        if (search?.matchesHaystack && item._searchHaystack) {
+            return search.matchesHaystack(item._searchHaystack, queryInfo);
+        }
+        const haystack = `${item.product.id} ${item.product.name} ${item.product.description || ''} ${item.categoryName}`;
+        if (search?.matchesSearch) return search.matchesSearch(haystack, queryInfo);
+        return haystack.toLowerCase().includes(searchQuery);
+    };
+
+    const sortVisibleItems = (items) => {
+        const search = window.LigeirinhoSearch;
+        const queryInfo = getQueryInfo();
+        const sorted = [...items];
+        if (searchQuery && queryInfo?.raw && search?.scoreHaystack) {
+            sorted.sort((a, b) => {
+                const scoreA = a._searchHaystack ? search.scoreHaystack(a._searchHaystack, queryInfo) : 0;
+                const scoreB = b._searchHaystack ? search.scoreHaystack(b._searchHaystack, queryInfo) : 0;
+                const scoreDiff = scoreB - scoreA;
+                if (scoreDiff !== 0) return scoreDiff;
+                return (a.group?.baseName || a.product.name).localeCompare(
+                    b.group?.baseName || b.product.name,
+                    'pt-BR'
+                );
+            });
+            return sorted;
+        }
+        sorted.sort((a, b) =>
+            (a.group?.baseName || a.product.name).localeCompare(b.group?.baseName || b.product.name, 'pt-BR')
+        );
+        return sorted;
+    };
+
+    const getVisibleItems = () => {
+        let items = displayItems;
+        if (searchQuery) {
+            items = items.filter((item) => itemMatchesSearch(item));
+        } else if (activeCategory) {
+            items = items.filter((item) => item.categoryId === activeCategory);
+        }
+        return sortVisibleItems(items);
+    };
+
+    const updateSearchClear = () => {
+        if (!searchClearBtn) return;
+        searchClearBtn.hidden = !searchQuery;
+    };
+
+    const clearSearch = () => {
+        searchQuery = '';
+        cachedQueryKey = '';
+        cachedQueryInfo = null;
+        if (searchInput) searchInput.value = '';
+        updateSearchClear();
+    };
+
+    const setSearchQuery = (value) => {
+        searchQuery = String(value || '').trim().toLowerCase();
+        cachedQueryKey = '';
+        cachedQueryInfo = null;
+        updateSearchClear();
+        renderProducts();
+        bumpIdle();
     };
 
     const categoryIcon = (cat) => {
@@ -375,14 +467,14 @@ ${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
     };
 
     const resetCart = () => {
-        cartApi.saveCart({});
-        cartApi.saveCheckout({ deliveryType: 'retirada', address: '', payment: 'pix', notes: '' });
+        cartApi.clearTotemSession?.();
         renderCart();
     };
 
     const resetSession = () => {
         closeCart();
         resetCart();
+        clearSearch();
         idleHint?.classList.remove('totem-idle-hint--visible');
         setView('welcome');
         resetIdleTimer();
@@ -436,9 +528,14 @@ ${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
         if (activeCategory && !totemCategories.some((c) => c.id === activeCategory)) {
             activeCategory = totemCategories[0]?.id || '';
         }
-        const items = itemsForActiveCategory();
+        const searching = Boolean(searchQuery);
+        const items = getVisibleItems();
         const catMeta = activeCategoryMeta();
-        const catLabel = catMeta ? catalog.formatCategoryLabel(catMeta.name) : '';
+        const catLabel = searching
+            ? `Busca: ${searchInput?.value?.trim() || searchQuery}`
+            : catMeta
+              ? catalog.formatCategoryLabel(catMeta.name)
+              : '';
 
         if (productsHead) productsHead.hidden = !catLabel;
         if (categoryTitle) categoryTitle.textContent = catLabel;
@@ -446,17 +543,31 @@ ${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
             productsCount.textContent =
                 items.length === 1 ? '1 produto' : `${items.length} produtos`;
         }
-        if (catLabel && activeCategory !== lastAnimatedCategory) {
+        if (!searching && catLabel && activeCategory !== lastAnimatedCategory) {
             refreshMotion(categoryTitle, 'totem-products__title--refresh');
             refreshMotion(productsCount, 'totem-products__count--refresh');
             refreshProductGrid();
             lastAnimatedCategory = activeCategory;
+        } else if (searching) {
+            refreshMotion(categoryTitle, 'totem-products__title--refresh');
+            refreshMotion(productsCount, 'totem-products__count--refresh');
+            refreshProductGrid();
         }
 
         const isEmpty = items.length === 0;
         if (productsEmpty) {
             productsEmpty.hidden = !isEmpty;
             productsEmpty.style.display = isEmpty ? '' : 'none';
+        }
+        if (productsEmptyTitle) {
+            productsEmptyTitle.textContent = searching
+                ? 'Nenhum produto encontrado'
+                : 'Nenhum produto nesta categoria';
+        }
+        if (productsEmptyLead) {
+            productsEmptyLead.textContent = searching
+                ? 'Tente outro termo ou limpe a busca.'
+                : 'Selecione outra categoria para continuar.';
         }
         if (productsGrid) {
             productsGrid.hidden = isEmpty;
@@ -697,6 +808,7 @@ ${tiersHtml}
     const bindEvents = () => {
         startBtn?.addEventListener('click', () => {
             resetCart();
+            clearSearch();
             if (!activeCategory && totemCategories[0]) {
                 activeCategory = totemCategories[0].id;
             }
@@ -718,6 +830,7 @@ ${tiersHtml}
         categoriesEl?.addEventListener('click', (e) => {
             const btn = e.target.closest('.totem-cat-btn');
             if (!btn) return;
+            clearSearch();
             activeCategory = canonCategoryId(btn.dataset.cat || '');
             renderCategories();
             renderProducts();
@@ -765,6 +878,24 @@ ${tiersHtml}
             }
         });
 
+        searchForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            setSearchQuery(searchInput?.value || '');
+        });
+
+        searchInput?.addEventListener('input', () => {
+            const value = searchInput.value.trim().toLowerCase();
+            if (searchTimer) clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+        });
+
+        searchClearBtn?.addEventListener('click', () => {
+            clearSearch();
+            renderProducts();
+            searchInput?.focus();
+            bumpIdle();
+        });
+
         document.getElementById('totem-footer-tap')?.addEventListener('click', openAdminModal);
         document.getElementById('totem-admin-cancel')?.addEventListener('click', closeAdminModal);
         document.getElementById('totem-admin-confirm')?.addEventListener('click', confirmAdminLogout);
@@ -807,6 +938,7 @@ ${tiersHtml}
         pricing.rebuildGroups?.(catalogData);
         displayItems = buildDisplayItems();
         normalizeDisplayItems();
+        attachSearchIndex(displayItems);
         totemCategories = buildTotemCategories();
         if (totemCategories[0]) {
             activeCategory = totemCategories[0].id;
