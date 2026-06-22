@@ -1,4 +1,12 @@
-const CACHE_NAME = 'ligeirinho-app-v67';
+const CACHE_NAME = 'ligeirinho-app-v68';
+
+const NETWORK_FIRST_JS = new Set([
+    '/js/totem.js',
+    '/js/totem-payment.js',
+    '/js/totem-caixa.js',
+    '/js/totem-success.js',
+    '/js/totem-viewport.js',
+]);
 
 const APP_SHELL = [
     '/',
@@ -13,6 +21,7 @@ const APP_SHELL = [
     '/login',
     '/totem',
     '/totem-pagamento',
+    '/totem-caixa',
     '/totem-sucesso',
     '/pagamento',
     '/pedido-confirmado',
@@ -55,7 +64,10 @@ const APP_SHELL = [
     '/js/payment-providers.js',
     '/js/payment.js',
     '/js/totem.js',
+    '/js/totem-payment.js',
+    '/js/totem-caixa.js',
     '/js/totem-success.js',
+    '/js/totem-viewport.js',
     '/js/order-status.js',
     '/css/totem.css',
     '/data/totem-units.json',
@@ -140,19 +152,35 @@ self.addEventListener('fetch', (event) => {
                 (canonicalUrl ? await caches.match(canonicalUrl) : null) ||
                 (isNavigate ? await caches.match('/') : null);
 
-            if (isStaticAsset(url.pathname) && cached) {
-                const revalidate = fetch(canonicalUrl || request)
-                    .then((response) => {
+            if (isStaticAsset(url.pathname)) {
+                if (NETWORK_FIRST_JS.has(url.pathname)) {
+                    try {
+                        const response = await fetch(canonicalUrl || request);
                         if (response.ok) {
-                            return caches.open(CACHE_NAME).then((cache) => {
-                                cache.put(canonicalUrl || request, response.clone());
-                            });
+                            const cache = await caches.open(CACHE_NAME);
+                            cache.put(canonicalUrl || request, response.clone());
                         }
-                        return undefined;
-                    })
-                    .catch(() => undefined);
-                event.waitUntil(revalidate);
-                return cached;
+                        return response;
+                    } catch {
+                        if (cached) return cached;
+                        throw new Error('offline');
+                    }
+                }
+
+                if (cached) {
+                    const revalidate = fetch(canonicalUrl || request)
+                        .then((response) => {
+                            if (response.ok) {
+                                return caches.open(CACHE_NAME).then((cache) => {
+                                    cache.put(canonicalUrl || request, response.clone());
+                                });
+                            }
+                            return undefined;
+                        })
+                        .catch(() => undefined);
+                    event.waitUntil(revalidate);
+                    return cached;
+                }
             }
 
             try {
