@@ -25,27 +25,36 @@
         return checkout;
     };
 
+    const assetUrl = (path) => {
+        const value = String(path || '').trim();
+        if (!value || /^https?:/i.test(value)) return value;
+        return value.startsWith('/') ? value : `/${value.replace(/^\.\//, '')}`;
+    };
+
     const paymentMethods = () => {
         const fallback = [
-            { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: 'img/icon-pix.svg' },
+            { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: '/img/icon-pix.svg' },
             {
                 id: 'cartao',
                 label: 'Cartão débito e crédito',
                 hint: 'Visa, Mastercard e Elo',
-                logo: 'img/icon-cartoes.svg',
+                logo: '/img/icon-cartoes.svg',
             },
             { id: 'dinheiro', label: 'Dinheiro', hint: 'Na entrega ou retirada', icon: 'payments' },
         ];
         const s = session();
         if (!s?.paymentMethods?.length) return fallback;
-        const cleaned = s.paymentMethods.filter((m) => m.id !== 'boleto' && m.id !== 'mercado_pago');
+        const cleaned = s.paymentMethods
+            .filter((m) => m.id !== 'boleto' && m.id !== 'mercado_pago')
+            .map((m) => ({ ...m, logo: m.logo ? assetUrl(m.logo) : m.logo }));
         return cleaned.length ? cleaned : fallback;
     };
 
     const paymentMethodIconHtml = (opt) => {
-        if (opt.logo) {
+        const logo = opt.logo ? assetUrl(opt.logo) : '';
+        if (logo) {
             const logoMod = opt.id === 'pix' ? ' resumo-option__logo--pix' : ' resumo-option__logo--cartao';
-            return `<img src="${esc(opt.logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
+            return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
         }
         const icon =
             opt.icon ||

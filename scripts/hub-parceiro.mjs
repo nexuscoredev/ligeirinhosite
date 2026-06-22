@@ -181,12 +181,12 @@ export async function fetchFormasPagamento(config, ids = []) {
 }
 
 export const DEFAULT_PAYMENT_METHODS = [
-    { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: 'img/icon-pix.svg' },
+    { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: '/img/icon-pix.svg' },
     {
         id: 'cartao',
         label: 'Cartão débito e crédito',
         hint: 'Visa, Mastercard e Elo',
-        logo: 'img/icon-cartoes.svg',
+        logo: '/img/icon-cartoes.svg',
     },
     { id: 'dinheiro', label: 'Dinheiro', hint: 'Pagamento na entrega ou retirada', icon: 'payments' },
     { id: 'prazo', label: 'Prazo / Crediário', hint: 'Conforme condição comercial', icon: 'calendar_month' },
