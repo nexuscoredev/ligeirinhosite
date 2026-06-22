@@ -1056,6 +1056,124 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: #16a34a;
 }
 
+/* ——— Totem payment (Pix / Cartão) ——— */
+.totem-pay-card {
+    border-radius: var(--lig-radius-xl);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--lig-border);
+    box-shadow: var(--lig-shadow-md);
+    padding: 1.35rem 1.25rem 1.5rem;
+}
+
+.totem-pay-summary {
+    margin-bottom: 1rem;
+}
+
+.totem-pay-methods {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 1rem 0 0.75rem;
+}
+
+.totem-pay-method {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 7.5rem;
+    padding: 1rem 0.75rem;
+    border-radius: 1.125rem;
+    border: 1px solid var(--lig-border-strong);
+    background: linear-gradient(180deg, #fff 0%, var(--lig-surface-alt) 100%);
+    color: var(--lig-text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    cursor: pointer;
+    transition:
+        transform 0.18s var(--lig-ease),
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-pay-method .material-symbols-outlined {
+    font-size: 2rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-pay-method__label {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.totem-pay-method__hint {
+    font-size: 0.75rem;
+    color: var(--lig-text-muted);
+    font-weight: 600;
+}
+
+.totem-pay-method:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.totem-pay-method--disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.totem-pay-icon {
+    display: block;
+    margin: 0 auto 0.35rem;
+    font-size: 2.5rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-pay-icon--pix {
+    color: #0d9488;
+}
+
+.totem-pay-pix {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.totem-pay-pix__qr {
+    border-radius: 0.75rem;
+    background: #fff;
+    padding: 0.35rem;
+}
+
+.totem-pay-card-head {
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.totem-pay-card-head .lig-payment-title {
+    margin: 0;
+}
+
+.totem-pay-back {
+    width: 100%;
+    margin-top: 0.75rem;
+}
+
+.totem-pay-unavail {
+    margin: 0.5rem 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+}
+
+@media (max-width: 520px) {
+    .totem-pay-methods {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ——— Scrollbars ——— */
 .totem-categories::-webkit-scrollbar,
 .totem-products .totem-grid::-webkit-scrollbar,

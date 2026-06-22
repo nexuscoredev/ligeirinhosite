@@ -1,4 +1,4 @@
-import { paymentEnv, assertPaymentBackend } from '../../scripts/payment-env.mjs';
+import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import { insertOrder, publicOrderView } from '../../scripts/supabase-orders.mjs';
 import {
     upsertCustomer,
@@ -51,9 +51,9 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const missing = assertPaymentBackend(config);
+    const missing = assertOrderBackend(config);
     if (missing.length) {
-        return res.status(503).json({ error: 'Pagamento não configurado', missing });
+        return res.status(503).json({ error: 'Pedidos não configurados', missing });
     }
 
     try {

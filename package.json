@@ -17,6 +17,7 @@
     "migrate:hub-auth": "node scripts/apply-hub-auth-migration.mjs",
     "migrate:all": "node scripts/apply-pending-migrations.mjs",
     "migrate:check": "node scripts/check-migrations.mjs",
+    "verify:prod": "node scripts/verify-production.mjs",
     "totem": "echo \"Abra http://localhost:5173/totem.html após login Hub com cargo Totem\""
   },
   "devDependencies": {
