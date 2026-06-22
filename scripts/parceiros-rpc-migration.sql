@@ -32,7 +32,11 @@ begin
     nullif(p->>'unit_id', ''),
     case when coalesce(p->>'customer_id', '') = '' then null else (p->>'customer_id')::uuid end,
     nullif(p->>'hub_user_id', ''),
-    coalesce(nullif(p->>'payment_method', ''), 'pix'),
+    case
+      when nullif(p->>'payment_method', '') is not null then nullif(p->>'payment_method', '')
+      when coalesce(nullif(p->>'channel', ''), 'parceiros') = 'totem' then null
+      else 'pix'
+    end,
     nullif(p->>'due_date', '')::date,
     coalesce(nullif(p->>'financial_status', ''), 'pendente')
   )

@@ -95,7 +95,7 @@ Aguardando confirmação no PDV…
                 window.location.replace(successUrl(order.id));
                 return;
             }
-            if (!order.paymentMethod) {
+            if (!order.paymentChosen || !order.paymentMethod) {
                 window.location.replace(`totem-pagamento.html?order=${encodeURIComponent(orderId)}`);
                 return;
             }

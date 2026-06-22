@@ -40,10 +40,11 @@
 
     const renderMethodPicker = (order) => {
         root.innerHTML = `<div class="lig-payment-card totem-pay-card">
-<h1 class="lig-payment-title">Como deseja pagar?</h1>
-<p class="lig-payment-lead">Escolha a forma de pagamento. Em seguida, dirija-se ao caixa para finalizar no PDV.</p>
+<h1 class="lig-payment-title">Formas de pagamento</h1>
+<p class="lig-payment-lead">Selecione como deseja pagar. Após confirmar, você será direcionado ao caixa para finalizar no PDV.</p>
 ${renderSummary(order)}
-<div class="totem-pay-methods">
+<h2 class="totem-pay-methods__title">Escolha uma forma</h2>
+<div class="totem-pay-methods" role="group" aria-label="Formas de pagamento">
 <button type="button" class="totem-pay-method" data-method="pix" aria-label="Pix">
 <img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix totem-pay-method__brand" width="72" height="26" alt="">
 <span class="totem-pay-method__hint">No caixa / PDV</span>
@@ -108,7 +109,7 @@ ${renderSummary(order)}
                 return;
             }
 
-            if (order.paymentMethod) {
+            if (order.paymentChosen && order.paymentMethod) {
                 window.location.replace(caixaUrl(order.id));
                 return;
             }

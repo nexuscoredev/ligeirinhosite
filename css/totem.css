@@ -1549,6 +1549,16 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     margin-bottom: 1rem;
 }
 
+.totem-pay-methods__title {
+    margin: 0 0 0.65rem;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--lig-text-muted);
+}
+
 .totem-pay-methods {
     display: grid;
     grid-template-columns: 1fr 1fr;

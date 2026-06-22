@@ -101,6 +101,9 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         err.status = 400;
         throw err;
     }
+    if (order.financial_status === 'aguardando_caixa' && order.payment_method) {
+        return order;
+    }
 
     const payment_method = normalizeTotemPaymentMethod(method);
     const patch = {

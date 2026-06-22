@@ -101,6 +101,7 @@ export function publicOrderView(order) {
         notes: order.notes,
         customerName: order.customer_name,
         paymentMethod: order.payment_method,
+        paymentChosen: order.financial_status === 'aguardando_caixa',
         dueDate: order.due_date,
         paidAt: order.paid_at,
         channel: order.channel || 'parceiros',
