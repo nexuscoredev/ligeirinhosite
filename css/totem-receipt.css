@@ -1,0 +1,205 @@
+/* Comprovante térmico — tela oculta, visível só na impressão */
+
+.totem-receipt-print {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: 80mm;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.totem-receipt__paper {
+    width: 76mm;
+    margin: 0 auto;
+    padding: 2mm 0;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+    font-size: 11px;
+    line-height: 1.35;
+    color: #000;
+    background: #fff;
+}
+
+.totem-receipt__brand {
+    font-size: 12px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.totem-receipt__title {
+    margin: 0.35rem 0 0;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 0.06em;
+}
+
+.totem-receipt__subtitle {
+    margin: 0.2rem 0 0;
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    color: #333;
+}
+
+.totem-receipt__divider {
+    margin: 0.45rem 0;
+    border-top: 1px dashed #000;
+}
+
+.totem-receipt__code-label {
+    margin: 0;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: center;
+    color: #444;
+}
+
+.totem-receipt__code {
+    margin: 0.25rem 0 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-align: center;
+    font-family: ui-monospace, 'Cascadia Mono', monospace;
+}
+
+.totem-receipt__meta {
+    margin: 0.2rem 0 0;
+    font-size: 10px;
+    text-align: center;
+    color: #444;
+}
+
+.totem-receipt__items {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10px;
+}
+
+.totem-receipt__items td {
+    padding: 0.15rem 0;
+    vertical-align: top;
+}
+
+.totem-receipt__qty {
+    width: 1.65rem;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.totem-receipt__name {
+    padding-right: 0.25rem;
+    word-break: break-word;
+}
+
+.totem-receipt__price {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.totem-receipt__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 10px;
+    margin: 0.15rem 0;
+}
+
+.totem-receipt__row strong {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.totem-receipt__row--total {
+    margin-top: 0.35rem;
+    font-size: 11px;
+}
+
+.totem-receipt__row--total strong {
+    font-size: 14px;
+}
+
+.totem-receipt__foot {
+    margin: 0.35rem 0 0;
+    font-size: 9px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.totem-receipt__foot--muted {
+    margin-top: 0.5rem;
+    font-weight: 700;
+    font-size: 10px;
+}
+
+.totem-caixa-card__print-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 0 0 0.85rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.75rem;
+    background: rgba(240, 201, 41, 0.14);
+    border: 1px solid rgba(240, 201, 41, 0.35);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lig-text);
+}
+
+.totem-caixa-card__print-note .material-symbols-outlined {
+    font-size: 1.125rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-caixa-card__reprint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    width: 100%;
+    margin-top: 0.65rem;
+}
+
+@media print {
+    @page {
+        size: 80mm auto;
+        margin: 2mm;
+    }
+
+    html,
+    body {
+        width: 80mm !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    .totem-receipt-print,
+    .totem-receipt-print * {
+        visibility: visible;
+    }
+
+    .totem-receipt-print {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        pointer-events: none;
+        z-index: 9999;
+    }
+}
