@@ -880,8 +880,39 @@ body.totem-kiosk {
 
 .totem-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-    gap: 0.65rem;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 0.7rem;
+}
+
+html.totem--kiosk .totem-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+html.totem--kiosk .totem-product__media {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: clamp(5.25rem, 17dvh, 8.25rem);
+}
+
+html.totem--kiosk .totem-product__media img {
+    max-width: 92%;
+    max-height: 92%;
+    padding: 0.4rem;
+}
+
+html.totem--kiosk .totem-product__body {
+    padding: 0.5rem 0.6rem 0.6rem;
+    gap: 0.35rem;
+}
+
+html.totem--kiosk .totem-product__name {
+    font-size: 0.78rem;
+    line-height: 1.3;
+}
+
+html.totem--kiosk .totem-product__price {
+    font-size: 1rem;
 }
 
 .totem-grid--refresh .totem-product {
