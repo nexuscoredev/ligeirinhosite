@@ -238,8 +238,7 @@ ${cardHtml('Produtos', `${productsBody}${items.length > 3 ? `<p class="resumo-mo
 ${cardHtml(
     'Resumo do pedido',
     `<div class="resumo-total-row"><span>Subtotal (${units} produtos)</span><span>${formatPrice(subtotal)}</span></div>
-<div class="resumo-total-row"><span>Taxa de entrega</span><span class="resumo-free">Grátis</span></div>
-<div class="resumo-total-row resumo-total-row--final"><span>Total</span><strong>${formatPrice(subtotal)}</strong></div>`
+<div class="resumo-total-row"><span>Taxa de entrega</span><span class="resumo-free">Grátis</span></div>`
 )}
 </div>
 <div class="resumo-footer">
