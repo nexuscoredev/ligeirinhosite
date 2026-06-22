@@ -1283,6 +1283,94 @@ body.totem-kiosk {
     letter-spacing: -0.02em;
 }
 
+/* ——— Cart add toast ——— */
+.totem-cart-toast {
+    position: fixed;
+    z-index: 90;
+    left: 1rem;
+    right: 1rem;
+    bottom: calc(3.25rem + env(safe-area-inset-bottom, 0px));
+    max-width: 24rem;
+    margin-inline: auto;
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition:
+        opacity 0.22s var(--totem-ease-out),
+        transform 0.22s var(--totem-ease-out);
+}
+
+.totem-cart-toast--visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.totem-cart-toast__inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    border-radius: 1rem;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
+    box-shadow: var(--lig-shadow-md);
+}
+
+.totem-cart-toast__icon {
+    flex-shrink: 0;
+    font-size: 1.625rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-cart-toast__text {
+    min-width: 0;
+    flex: 1;
+}
+
+.totem-cart-toast__title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--lig-text);
+}
+
+.totem-cart-toast__name {
+    margin: 0.15rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--lig-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.totem-cart-toast__action {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: var(--lig-yellow-text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 0.35rem 0.5rem;
+    min-height: 36px;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+
+.totem-cart-toast__action:active {
+    background: rgba(240, 201, 41, 0.12);
+}
+
+html.totem--landscape .totem-cart-toast {
+    left: auto;
+    right: 1rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* ——— Footer ——— */
 .totem-footer {
     padding: clamp(0.4rem, 1dvh, 0.65rem) 1rem calc(clamp(0.4rem, 1dvh, 0.65rem) + env(safe-area-inset-bottom, 0px));
@@ -2046,6 +2134,7 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     .totem-cart-panel--closing,
     .totem-cart-sheet,
     .totem-cart-line,
+    .totem-cart-toast,
     .totem-admin-modal--open,
     .totem-admin-modal--open .totem-admin-card {
         animation: none !important;

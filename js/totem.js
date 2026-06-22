@@ -50,6 +50,40 @@
     let lastCartCount = 0;
     let lastAnimatedCategory = '';
     const tierByGroup = new Map();
+    let cartToastTimer = null;
+
+    const shortProductName = (name) => {
+        const text = String(name || '').trim();
+        if (text.length <= 42) return text;
+        return `${text.slice(0, 39)}…`;
+    };
+
+    const hideCartToast = () => {
+        const toast = document.getElementById('totem-cart-toast');
+        if (!toast) return;
+        toast.classList.remove('totem-cart-toast--visible');
+        window.clearTimeout(cartToastTimer);
+        cartToastTimer = window.setTimeout(() => {
+            toast.hidden = true;
+        }, 220);
+    };
+
+    const showCartAddedToast = (productName) => {
+        const toast = document.getElementById('totem-cart-toast');
+        const nameEl = document.getElementById('totem-cart-toast-name');
+        if (!toast) return;
+
+        if (nameEl) nameEl.textContent = shortProductName(productName);
+        toast.hidden = false;
+        window.requestAnimationFrame(() => {
+            toast.classList.add('totem-cart-toast--visible');
+        });
+        window.clearTimeout(cartToastTimer);
+        cartToastTimer = window.setTimeout(hideCartToast, 2800);
+
+        if (cartBadge) pulseClass(cartBadge, 'totem-btn__badge--pop');
+        if (cartBtn) pulseClass(cartBtn, 'totem-product--pulse');
+    };
 
     const activeTierFor = (group) => {
         if (!group?.key) return 'caixa';
@@ -478,18 +512,23 @@ ${tiersHtml}
         renderCart();
         renderProducts();
         pulseProduct(key);
+        showCartAddedToast(name);
         bumpIdle();
     };
 
     const changeQty = (cartKey, delta) => {
         const cart = cartApi.loadCart();
         if (!cart[cartKey]) return;
+        const itemName = cart[cartKey].name;
         cart[cartKey].qty += delta;
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
-        if (delta > 0) pulseProduct(cartKey);
+        if (delta > 0) {
+            pulseProduct(cartKey);
+            showCartAddedToast(itemName);
+        }
         bumpIdle();
     };
 
@@ -620,6 +659,10 @@ ${tiersHtml}
 
         homeBtn?.addEventListener('click', resetSession);
         cartBtn?.addEventListener('click', openCart);
+        document.getElementById('totem-cart-toast-open')?.addEventListener('click', () => {
+            hideCartToast();
+            openCart();
+        });
         document.getElementById('totem-cart-close')?.addEventListener('click', closeCart);
         checkoutBtn?.addEventListener('click', startCheckout);
 
