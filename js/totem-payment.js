@@ -44,9 +44,8 @@
 <p class="lig-payment-lead">Escolha a forma de pagamento. Em seguida, dirija-se ao caixa para finalizar no PDV.</p>
 ${renderSummary(order)}
 <div class="totem-pay-methods">
-<button type="button" class="totem-pay-method" data-method="pix">
-<span class="material-symbols-outlined" aria-hidden="true">qr_code_2</span>
-<span class="totem-pay-method__label">Pix</span>
+<button type="button" class="totem-pay-method" data-method="pix" aria-label="Pix">
+<img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix totem-pay-method__brand" width="72" height="26" alt="">
 <span class="totem-pay-method__hint">No caixa / PDV</span>
 </button>
 <button type="button" class="totem-pay-method" data-method="cartao">

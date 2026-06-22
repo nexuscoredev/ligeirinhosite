@@ -23,6 +23,14 @@
         return 'Dinheiro';
     };
 
+    const renderPaymentMethod = (m) => {
+        const key = String(m || '').toLowerCase();
+        if (key === 'pix') {
+            return `<img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix" width="64" height="23" alt="Pix">`;
+        }
+        return `<strong>${esc(methodLabel(m))}</strong>`;
+    };
+
     let pollTimer = null;
 
     const showError = (msg) => {
@@ -35,15 +43,14 @@
 
     const renderWaiting = (order) => {
         const code = String(order.id).slice(0, 8).toUpperCase();
-        const pay = methodLabel(order.paymentMethod);
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-caixa-card">
 <span class="material-symbols-outlined totem-pay-icon totem-caixa-card__icon" aria-hidden="true">storefront</span>
 <h1 class="lig-payment-title">Dirija-se ao caixa</h1>
 <p class="lig-payment-lead">Seu pedido entrou na fila do <strong>Ligeirinho Parceiros</strong>. Apresente o código abaixo para o operador finalizar o pagamento.</p>
 <p class="totem-success-code totem-caixa-card__code">${esc(code)}</p>
 <div class="totem-caixa-card__meta">
-<p><span>Forma escolhida</span><strong>${esc(pay)}</strong></p>
-<p><span>Total</span><strong>${formatPrice(order.total)}</strong></p>
+<p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order.paymentMethod)}</span></p>
+<p class="totem-caixa-card__row"><span>Total</span><strong class="totem-caixa-card__value">${formatPrice(order.total)}</strong></p>
 </div>
 <p class="lig-payment-hint totem-caixa-card__hint">
 <span class="totem-caixa-pulse" aria-hidden="true"></span>

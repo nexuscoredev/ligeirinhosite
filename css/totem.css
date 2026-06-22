@@ -1614,6 +1614,85 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: #0d9488;
 }
 
+.totem-pay-mark {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.totem-pay-mark--pix {
+    height: 1.35rem;
+    width: auto;
+}
+
+.totem-pay-method__brand {
+    margin: 0 auto 0.35rem;
+}
+
+/* ——— Totem aguardando caixa ——— */
+.totem-caixa-card__icon {
+    color: var(--lig-yellow-text);
+}
+
+.totem-caixa-card__code {
+    margin: 0.75rem 0 1rem;
+}
+
+.totem-caixa-card__meta {
+    display: grid;
+    gap: 0.5rem;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.85rem;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--lig-border);
+}
+
+.totem-caixa-card__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-caixa-card__value {
+    color: var(--lig-text);
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.totem-caixa-card__value .totem-pay-mark--pix {
+    height: 1.25rem;
+}
+
+.totem-caixa-card__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.totem-caixa-pulse {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: var(--lig-yellow);
+    animation: totem-caixa-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes totem-caixa-pulse {
+    0%,
+    100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 .totem-pay-pix {
     display: flex;
     flex-direction: column;
