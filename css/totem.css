@@ -338,9 +338,10 @@ body.totem-kiosk {
 .totem-welcome {
     position: relative;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     text-align: center;
-    padding: clamp(0.35rem, 1dvh, 0.65rem) clamp(0.75rem, 2.5vw, 1.25rem);
+    padding: clamp(0.75rem, 4dvh, 1.75rem) clamp(0.75rem, 2.5vw, 1.25rem)
+        clamp(0.5rem, 1.5dvh, 0.85rem);
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 0;
@@ -355,11 +356,12 @@ body.totem-kiosk {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: clamp(0.55rem, 1.75dvh, 0.95rem);
+    justify-content: flex-start;
+    gap: clamp(0.45rem, 1.25dvh, 0.75rem);
     transform: scale(var(--totem-welcome-scale));
     transform-origin: center top;
-    padding: 0.25rem 0 0.5rem;
+    padding: 0;
+    margin: 0 auto;
 }
 
 .totem-welcome__hero {
@@ -1387,7 +1389,7 @@ html.totem--landscape .totem-cart-toast {
 /* ——— Idle hint ——— */
 .totem-idle-hint {
     position: fixed;
-    bottom: 4.75rem;
+    bottom: calc(2.85rem + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%) translateY(12px);
     background: #14120f;

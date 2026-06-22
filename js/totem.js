@@ -326,6 +326,7 @@
         homeBtn.hidden = !inCatalog;
         cartBtn.hidden = !inCatalog;
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
+        if (!inCatalog) idleHint?.classList.remove('totem-idle-hint--visible');
     };
 
     const resetCart = () => {
@@ -337,6 +338,7 @@
     const resetSession = () => {
         closeCart();
         resetCart();
+        idleHint?.classList.remove('totem-idle-hint--visible');
         setView('welcome');
         resetIdleTimer();
     };
