@@ -1,5 +1,5 @@
 import { paymentEnv, assertOrderBackend } from '../../../scripts/payment-env.mjs';
-import { requireSeparationAuth } from '../../../scripts/separation-auth.mjs';
+import { requireCaixaAuth } from '../../../scripts/pdv-caixa-auth.mjs';
 import { confirmCaixaPayment } from '../../../scripts/supabase-caixa.mjs';
 import { dbFromPaymentConfig, publicOrderView } from '../../../scripts/supabase-orders.mjs';
 
@@ -8,7 +8,7 @@ export const config = { maxDuration: 25 };
 export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-    const auth = requireSeparationAuth(req, process.env);
+    const auth = await requireCaixaAuth(req, process.env);
     if (auth.error) return res.status(auth.status).json({ error: auth.error });
 
     const host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -32,9 +32,13 @@ export default async function handler(req, res) {
             useRpc: db.useRpc,
         });
 
+        const hubPedido = order._hubPedido || null;
+
         return res.status(200).json({
             orderId: order.id,
             order: publicOrderView(order),
+            hubPedidoNumero: hubPedido?.numero ?? null,
+            hubPedidoId: hubPedido?.id ?? null,
         });
     } catch (err) {
         console.error('caixa/pay', err);

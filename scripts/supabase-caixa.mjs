@@ -1,5 +1,6 @@
 import { fetchOrderById, patchOrder } from './supabase-orders.mjs';
 import { maybeInitSeparation } from './separation-init.mjs';
+import { confirmHubPedidoForTotem } from './hub-totem-pedido.mjs';
 
 async function sbFetch(url, key, path, options = {}) {
     const res = await fetch(`${url}/rest/v1/${path}`, {
@@ -162,5 +163,12 @@ export async function confirmCaixaPayment(
 
     const updated = await patchOrder(url, key, orderId, patch, { useRpc });
     await maybeInitSeparation(url, key, updated, env, { useRpc });
+    let hubPedido = null;
+    try {
+        hubPedido = await confirmHubPedidoForTotem(updated, env, op);
+    } catch (hubErr) {
+        console.error('confirmHubPedidoForTotem', hubErr.message || hubErr);
+    }
+    if (hubPedido) updated._hubPedido = hubPedido;
     return updated;
 }

@@ -69,6 +69,23 @@ body.totem-kiosk {
     color: var(--lig-text);
 }
 
+/* Boas-vindas: main só ocupa o conteúdo — rodapé cola no botão */
+.totem-app:has(#totem-view-welcome.totem-view--active) {
+    grid-template-rows: auto auto auto;
+    align-content: start;
+}
+
+.totem-app:has(#totem-view-welcome.totem-view--active) .totem-main {
+    overflow: visible;
+}
+
+.totem-app:has(#totem-view-welcome.totem-view--active) .totem-welcome.totem-view--active {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+}
+
 /* ——— Header ——— */
 .totem-header {
     display: flex;
@@ -341,7 +358,7 @@ body.totem-kiosk {
     justify-content: flex-start;
     text-align: center;
     padding: clamp(0.75rem, 4dvh, 1.75rem) clamp(0.75rem, 2.5vw, 1.25rem)
-        clamp(0.5rem, 1.5dvh, 0.85rem);
+        clamp(0.35rem, 0.75dvh, 0.5rem);
     overflow-x: hidden;
     overflow-y: auto;
     min-height: 0;
@@ -1802,6 +1819,29 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     50% {
         opacity: 1;
     }
+}
+
+.totem-caixa-card__timeout {
+    margin: 0.35rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--lig-text-subtle);
+    text-align: center;
+}
+
+.totem-caixa-card__timeout strong {
+    color: var(--lig-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.totem-caixa-card__novo {
+    width: 100%;
+    margin-top: 0.65rem;
+    min-height: clamp(48px, 6dvh, 56px);
+    gap: 0.45rem;
+}
+
+.totem-caixa-card__novo .material-symbols-outlined {
+    font-size: 1.35rem;
 }
 
 .totem-pay-pix {

@@ -1,5 +1,6 @@
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import { dbFromPaymentConfig, publicOrderView } from '../../scripts/supabase-orders.mjs';
+import { ensureHubPedidoForTotem } from '../../scripts/hub-totem-pedido.mjs';
 import { selectTotemPayment, normalizeTotemPaymentMethod } from '../../scripts/supabase-caixa.mjs';
 
 export const config = { maxDuration: 15 };
@@ -34,6 +35,7 @@ export default async function handler(req, res) {
 
         const db = dbFromPaymentConfig(config);
         const order = await selectTotemPayment(db.url, db.key, id, rawMethod, { useRpc: db.useRpc });
+        await ensureHubPedidoForTotem(order, process.env);
 
         return res.status(200).json({
             orderId: order.id,
