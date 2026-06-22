@@ -366,6 +366,7 @@ body.totem-kiosk {
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
     width: 100%;
 }
 
@@ -1709,36 +1710,49 @@ html.totem--phone.totem--landscape .totem-header__sub {
     display: none;
 }
 
-html.totem--phone.totem--landscape .totem-welcome__content {
-    display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+html.totem--phone.totem--landscape .totem-welcome__content,
+html.totem--tablet.totem--landscape .totem-welcome__content {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.85rem;
-    width: min(100%, 52rem);
-    transform: none;
-    padding: 0;
+    justify-content: center;
+    width: min(100%, 32rem);
+    transform: scale(var(--totem-welcome-scale));
+    transform-origin: center top;
 }
 
-html.totem--phone.totem--landscape .totem-welcome__hero {
-    align-items: flex-start;
-    text-align: left;
+html.totem--phone.totem--landscape .totem-welcome__hero,
+html.totem--tablet.totem--landscape .totem-welcome__hero {
+    align-items: center;
+    text-align: center;
+    width: 100%;
 }
 
-html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
-    justify-content: flex-start;
+html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark,
+html.totem--tablet.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
+    justify-content: center;
+}
+
+html.totem--phone.totem--landscape .totem-welcome__lead,
+html.totem--tablet.totem--landscape .totem-welcome__lead {
+    margin-inline: auto;
 }
 
 html.totem--phone.totem--landscape .totem-welcome__logo {
-    width: clamp(4rem, 28dvh, 5.5rem);
+    width: clamp(4rem, 22dvh, 5.5rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(1.5rem, 8dvh, 2rem);
+    font-size: clamp(1.5rem, 7dvh, 2rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__lead {
-    margin-inline: 0;
     font-size: 0.8125rem;
+}
+
+html.totem--landscape .totem-welcome__panel {
+    width: 100%;
+    max-width: 22rem;
 }
 
 html.totem--phone.totem--landscape .totem-catalog {
@@ -1902,28 +1916,6 @@ html.totem--tablet.totem--landscape .totem-cat-btn {
 html.totem--tablet.totem--landscape .totem-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.7rem;
-}
-
-html.totem--tablet.totem--landscape .totem-welcome__content {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    align-items: center;
-    gap: 1.25rem;
-    width: min(100%, 54rem);
-    transform: none;
-}
-
-html.totem--tablet.totem--landscape .totem-welcome__hero {
-    text-align: left;
-    align-items: flex-start;
-}
-
-html.totem--tablet.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
-    justify-content: flex-start;
-}
-
-html.totem--tablet.totem--landscape .totem-welcome__lead {
-    margin-inline: 0;
 }
 
 /* Carrinho lateral em landscape (tablet/phone) */
