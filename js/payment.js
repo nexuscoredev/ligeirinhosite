@@ -87,12 +87,51 @@ ${renderSummary(order)}
         window.location.replace(successUrl(order.id));
     };
 
-    const mountBrick = async (order, publicKey) => {
+    const mountPixCheckout = async (order) => {
+        root.innerHTML = `<div class="lig-payment-card">
+<p class="lig-payment-lead">Gerando código Pix…</p>
+${renderSummary(order)}
+</div>`;
+        try {
+            const res = await fetch('/api/payments/pix', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: order.id }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Erro ao gerar Pix');
+            const merged = {
+                ...order,
+                ...(data.order || {}),
+                pixQrCode: data.pix?.qr_code || data.order?.pixQrCode,
+                pixQrBase64: data.pix?.qr_code_base64 || data.order?.pixQrBase64,
+            };
+            renderPixPending(merged);
+            startPolling(order.id);
+        } catch (err) {
+            showError(err.message);
+        }
+    };
+
+    const mountBrick = async (order, publicKey, { cardsOnly = false } = {}) => {
+        const hint = cardsOnly
+            ? 'Pagamento seguro via Mercado Pago · débito e crédito'
+            : 'Pagamento seguro via Mercado Pago · Pix, crédito e débito';
         root.innerHTML = `${renderSummary(order)}<div id="payment-brick" class="lig-payment-brick"></div>
-<p class="lig-payment-hint">Pagamento seguro via Mercado Pago · Pix, crédito e débito</p>`;
+<p class="lig-payment-hint">${hint}</p>`;
 
         const mp = new MercadoPago(publicKey, { locale: 'pt-BR' });
         const bricks = mp.bricks();
+
+        const paymentMethodsConfig = cardsOnly
+            ? { creditCard: 'all', debitCard: 'all', maxInstallments: 12 }
+            : {
+                  creditCard: 'all',
+                  debitCard: 'all',
+                  ticket: 'all',
+                  bankTransfer: 'all',
+                  maxInstallments: 12,
+              };
 
         await bricks.create('payment', 'payment-brick', {
             initialization: {
@@ -105,13 +144,7 @@ ${renderSummary(order)}
             },
             customization: {
                 visual: { style: { theme: 'default' } },
-                paymentMethods: {
-                    creditCard: 'all',
-                    debitCard: 'all',
-                    ticket: 'all',
-                    bankTransfer: 'all',
-                    maxInstallments: 12,
-                },
+                paymentMethods: paymentMethodsConfig,
             },
             callbacks: {
                 onReady: () => {},
@@ -206,6 +239,16 @@ ${renderSummary(order)}
             if (order.status === 'pending_payment' && order.pixQrCode) {
                 renderPixPending(order);
                 startPolling(order.id);
+                return;
+            }
+
+            const method = String(order.paymentMethod || '').toLowerCase();
+            if (method === 'pix') {
+                await mountPixCheckout(order);
+                return;
+            }
+            if (method === 'cartao') {
+                await mountBrick(order, configData.publicKey, { cardsOnly: true });
                 return;
             }
 

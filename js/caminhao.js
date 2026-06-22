@@ -184,8 +184,8 @@ ${condicaoBlock}
             cartApi.saveCheckout({
                 deliveryType: deliveryInput?.value || 'entrega',
                 address: section?.querySelector('[data-checkout="address"]')?.value || '',
-                payment: 'mercado_pago',
-                paymentMethod: cartApi.loadCheckout().paymentMethod || 'mercado_pago',
+                payment: cartApi.loadCheckout().paymentMethod || '',
+                paymentMethod: cartApi.loadCheckout().paymentMethod || '',
                 condicaoPagamento: s?.condicaoPagamento || cartApi.loadCheckout().condicaoPagamento || '',
                 notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
             });

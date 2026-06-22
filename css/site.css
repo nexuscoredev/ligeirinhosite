@@ -8156,6 +8156,24 @@ body.lig-install-open {
     color: var(--lig-yellow-text);
 }
 
+.resumo-option__logo {
+    width: 2.75rem;
+    height: 1.5rem;
+    object-fit: contain;
+    object-position: left center;
+    flex-shrink: 0;
+}
+
+.resumo-option__logo--pix {
+    width: 3.5rem;
+    height: 1.15rem;
+}
+
+.resumo-option__logo--cartao {
+    width: 3.25rem;
+    height: 1.5rem;
+}
+
 .resumo-option__body {
     display: grid;
     gap: 0.15rem;

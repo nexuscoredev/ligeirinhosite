@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v90';
+const CACHE_NAME = 'ligeirinho-app-v91';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
@@ -90,6 +90,7 @@ const APP_SHELL = [
     '/img/app-icon-512-maskable.png',
     '/img/icon-whatsapp.svg',
     '/img/icon-pix.svg',
+    '/img/icon-cartoes.svg',
     '/img/icon-instagram.svg',
     '/img/icon-google-maps.svg',
     '/img/icon-google.svg',

@@ -20,8 +20,8 @@
     const defaultCheckout = () => ({
         deliveryType: 'entrega',
         address: '',
-        payment: 'mercado_pago',
-        paymentMethod: 'mercado_pago',
+        payment: '',
+        paymentMethod: '',
         condicaoPagamento: '',
         deliveryDate: '',
         notes: '',

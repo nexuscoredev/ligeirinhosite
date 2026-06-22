@@ -126,7 +126,7 @@ export default async function handler(req, res) {
                 ? 'pendente'
                 : isCreditOrder
                   ? 'pendente'
-                  : paymentMethod === 'mercado_pago'
+                  : ['pix', 'cartao', 'mercado_pago'].includes(paymentMethod)
                     ? 'em_cobranca'
                     : 'pendente';
 

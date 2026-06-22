@@ -16,14 +16,46 @@
 
     const session = () => auth?.loadSession?.() || null;
 
+    const loadCheckoutState = () => {
+        const checkout = cartApi.loadCheckout();
+        if (checkout.paymentMethod === 'mercado_pago' || checkout.paymentMethod === 'boleto') {
+            cartApi.saveCheckout({ paymentMethod: '', payment: '' });
+            return { ...checkout, paymentMethod: '', payment: '' };
+        }
+        return checkout;
+    };
+
     const paymentMethods = () => {
-        const s = session();
-        if (s?.paymentMethods?.length) return s.paymentMethods;
-        return [
-            { id: 'mercado_pago', label: 'Pix / Cartão (Mercado Pago)', hint: 'Pagamento online imediato' },
-            { id: 'boleto', label: 'Boleto', hint: 'Taxas podem ser aplicadas' },
-            { id: 'dinheiro', label: 'Dinheiro', hint: 'Na entrega ou retirada' },
+        const fallback = [
+            { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: 'img/icon-pix.svg' },
+            {
+                id: 'cartao',
+                label: 'Cartão débito e crédito',
+                hint: 'Visa, Mastercard e Elo',
+                logo: 'img/icon-cartoes.svg',
+            },
+            { id: 'dinheiro', label: 'Dinheiro', hint: 'Na entrega ou retirada', icon: 'payments' },
         ];
+        const s = session();
+        if (!s?.paymentMethods?.length) return fallback;
+        const cleaned = s.paymentMethods.filter((m) => m.id !== 'boleto' && m.id !== 'mercado_pago');
+        return cleaned.length ? cleaned : fallback;
+    };
+
+    const paymentMethodIconHtml = (opt) => {
+        if (opt.logo) {
+            const logoMod = opt.id === 'pix' ? ' resumo-option__logo--pix' : ' resumo-option__logo--cartao';
+            return `<img src="${esc(opt.logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
+        }
+        const icon =
+            opt.icon ||
+            (opt.id === 'dinheiro' ? 'payments' : opt.id === 'prazo' ? 'calendar_month' : 'credit_card');
+        return `<span class="material-symbols-outlined resumo-option__icon" aria-hidden="true">${icon}</span>`;
+    };
+
+    const isOnlinePayment = (method) => {
+        const key = String(method || '').toLowerCase();
+        return key === 'pix' || key === 'cartao' || key === 'mercado_pago';
     };
 
     const deliveryApi = window.LigeirinhoParceiroDelivery;
@@ -113,7 +145,7 @@ ${body}
             return;
         }
 
-        const checkout = cartApi.loadCheckout();
+        const checkout = loadCheckoutState();
         const { units, subtotal } = cartApi.cartSummary(cart);
         const s = session();
         const errors = validateCheckout(checkout);
@@ -184,7 +216,7 @@ ${cardHtml(
     };
 
     const renderPicker = () => {
-        const checkout = cartApi.loadCheckout();
+        const checkout = loadCheckoutState();
         const title = pickerMode === 'date' ? 'Data de entrega' : 'Condições de pagamento';
 
         let body = '';
@@ -203,7 +235,7 @@ ${cardHtml(
             body = paymentMethods()
                 .map(
                     (opt) => `<button type="button" class="resumo-option resumo-option--payment${checkout.paymentMethod === opt.id ? ' resumo-option--active' : ''}" data-pick-payment="${esc(opt.id)}">
-<span class="material-symbols-outlined resumo-option__icon">${opt.id === 'dinheiro' ? 'payments' : opt.id === 'boleto' ? 'description' : 'credit_card'}</span>
+${paymentMethodIconHtml(opt)}
 <div class="resumo-option__body">
 <strong>${esc(opt.label)}</strong>
 ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
@@ -256,7 +288,7 @@ ${headerHtml(title)}
 
     const confirmOrder = async () => {
         const cart = cartApi.loadCart();
-        const checkout = cartApi.loadCheckout();
+        const checkout = loadCheckoutState();
         const errors = validateCheckout(checkout);
         if (Object.keys(errors).length) {
             step = 'resumo';
@@ -280,7 +312,7 @@ ${headerHtml(title)}
             packType: item.packType,
         }));
 
-        const paymentMethod = checkout.paymentMethod || 'mercado_pago';
+        const paymentMethod = checkout.paymentMethod || 'pix';
         const notes = [
             checkout.notes,
             checkout.deliveryDate ? `Entrega: ${checkout.deliveryDate}` : '',
@@ -316,7 +348,7 @@ ${headerHtml(title)}
 
             cartApi.saveLastOrder(cart, checkout);
 
-            if (paymentMethod === 'mercado_pago') {
+            if (isOnlinePayment(paymentMethod)) {
                 window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
                 return;
             }

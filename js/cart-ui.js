@@ -423,7 +423,8 @@ ${lineThumbHtml(item)}
             cartApi.saveCheckout({
                 deliveryType: deliveryInput?.value || 'entrega',
                 address: section?.querySelector('[data-checkout="address"]')?.value || '',
-                payment: 'mercado_pago',
+                payment: cartApi.loadCheckout().paymentMethod || '',
+                paymentMethod: cartApi.loadCheckout().paymentMethod || '',
                 notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
             });
             renderCheckoutFields();

@@ -181,15 +181,20 @@ export async function fetchFormasPagamento(config, ids = []) {
 }
 
 export const DEFAULT_PAYMENT_METHODS = [
-    { id: 'mercado_pago', label: 'Pix / Cartão (Mercado Pago)', hint: 'Pagamento online imediato' },
-    { id: 'boleto', label: 'Boleto', hint: 'Taxas podem ser aplicadas' },
-    { id: 'dinheiro', label: 'Dinheiro', hint: 'Pagamento na entrega ou retirada' },
-    { id: 'prazo', label: 'Prazo / Crediário', hint: 'Conforme condição comercial' },
+    { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: 'img/icon-pix.svg' },
+    {
+        id: 'cartao',
+        label: 'Cartão débito e crédito',
+        hint: 'Visa, Mastercard e Elo',
+        logo: 'img/icon-cartoes.svg',
+    },
+    { id: 'dinheiro', label: 'Dinheiro', hint: 'Pagamento na entrega ou retirada', icon: 'payments' },
+    { id: 'prazo', label: 'Prazo / Crediário', hint: 'Conforme condição comercial', icon: 'calendar_month' },
 ];
 
 export function paymentMethodsForParceiro(formas = [], condicaoPagamento = '') {
     if (!formas.length) {
-        const methods = [...DEFAULT_PAYMENT_METHODS];
+        const methods = DEFAULT_PAYMENT_METHODS.filter((m) => m.id !== 'boleto');
         if (!condicaoPagamento || /vista/i.test(condicaoPagamento)) {
             return methods.filter((m) => m.id !== 'prazo');
         }
@@ -197,10 +202,9 @@ export function paymentMethodsForParceiro(formas = [], condicaoPagamento = '') {
     }
 
     const tipoToMethod = {
-        pix: 'mercado_pago',
-        cartao_debito: 'mercado_pago',
-        cartao_credito: 'mercado_pago',
-        boleto: 'boleto',
+        pix: 'pix',
+        cartao_debito: 'cartao',
+        cartao_credito: 'cartao',
         dinheiro: 'dinheiro',
         crediario: 'prazo',
     };
@@ -210,7 +214,7 @@ export function paymentMethodsForParceiro(formas = [], condicaoPagamento = '') {
         const mapped = tipoToMethod[f.tipo];
         if (mapped) ids.add(mapped);
     });
-    if (!ids.size) return DEFAULT_PAYMENT_METHODS;
+    if (!ids.size) return DEFAULT_PAYMENT_METHODS.filter((m) => m.id !== 'boleto');
     return DEFAULT_PAYMENT_METHODS.filter((m) => ids.has(m.id));
 }
 
