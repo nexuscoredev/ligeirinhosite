@@ -38,39 +38,14 @@
             .split('')
             .join(' ')}`;
 
-    let currentOrder = null;
-
-    const printReceipt = async (order, { force = false } = {}) => {
-        const receipt = window.LigeirinhoTotemReceipt;
-        if (!receipt?.printOrderReceipt) return false;
-
-        let autoPrint = true;
-        try {
-            const res = await fetch('data/totem-units.json');
-            const cfg = await res.json();
-            autoPrint = cfg.defaults?.autoPrintReceipt !== false;
-        } catch {
-            /* use default */
-        }
-        if (!force && !autoPrint) return false;
-
-        const session = window.LigeirinhoAuth?.loadSession?.();
-        return receipt.printOrderReceipt(order, {
-            force,
-            totemLabel: order.totemLabel || session?.totemLabel,
-        });
-    };
-
-    const bindReprint = () => {
-        document.getElementById('totem-reprint-receipt')?.addEventListener('click', () => {
-            if (currentOrder) printReceipt(currentOrder, { force: true });
-        });
-    };
-
     let pollTimer = null;
     let screenTimeout = null;
     let countdownTimer = null;
     const SCREEN_TIMEOUT_MS = 30000;
+
+    const bindActions = () => {
+        document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
+    };
 
     const clearTimers = () => {
         if (pollTimer) clearInterval(pollTimer);
@@ -105,11 +80,6 @@
         screenTimeout = window.setTimeout(goNovoPedido, SCREEN_TIMEOUT_MS);
     };
 
-    const bindActions = () => {
-        bindReprint();
-        document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
-    };
-
     const showError = (msg) => {
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error totem-pay-card">
 <h1 class="lig-payment-title">Não foi possível continuar</h1>
@@ -119,16 +89,11 @@
     };
 
     const renderWaiting = (order) => {
-        currentOrder = order;
         const code = formatDisplayCode(order.id);
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-caixa-card">
 <span class="material-symbols-outlined totem-pay-icon totem-caixa-card__icon" aria-hidden="true">storefront</span>
 <h1 class="lig-payment-title">Dirija-se ao caixa</h1>
-<p class="lig-payment-lead">Seu pedido entrou na fila do <strong>Ligeirinho Parceiros</strong>. Apresente o <strong>comprovante impresso</strong> ou o código abaixo para o operador finalizar o pagamento.</p>
-<p class="totem-caixa-card__print-note" id="totem-print-status" role="status">
-<span class="material-symbols-outlined" aria-hidden="true">print</span>
-<span>Imprimindo comprovante…</span>
-</p>
+<p class="lig-payment-lead">Seu pedido entrou na fila do <strong>Ligeirinho Parceiros</strong>. Informe o código abaixo para o operador finalizar o pagamento.</p>
 <p class="totem-success-code totem-caixa-card__code">${esc(code)}</p>
 <div class="totem-caixa-card__meta">
 <p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order.paymentMethod)}</span></p>
@@ -145,23 +110,10 @@ Nova tela em <strong id="totem-caixa-countdown">30</strong>s para o próximo cli
 <span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
 <span>Novo pedido</span>
 </button>
-<button type="button" class="totem-btn totem-btn--ghost totem-caixa-card__reprint" id="totem-reprint-receipt">
-<span class="material-symbols-outlined" aria-hidden="true">print</span>
-Imprimir comprovante novamente
-</button>
 </div>`;
 
         bindActions();
         startScreenTimeout();
-        printReceipt(order).then((printed) => {
-            const status = document.getElementById('totem-print-status');
-            if (!status) return;
-            const text = status.querySelector('span:last-child');
-            if (!text) return;
-            text.textContent = printed
-                ? 'Comprovante impresso. Leve ao caixa.'
-                : 'Retire o comprovante na impressora ou use o botão abaixo.';
-        });
     };
 
     const startPolling = (id) => {

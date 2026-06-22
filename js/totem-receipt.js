@@ -1,4 +1,7 @@
 (function () {
+    /** Impressão térmica desligada até configuração da impressora no totem. */
+    const RECEIPT_PRINT_ENABLED = false;
+
     const esc = (s) =>
         String(s ?? '')
             .replace(/&/g, '&amp;')
@@ -77,7 +80,7 @@
     };
 
     const printOrderReceipt = (order, opts = {}) => {
-        if (!order?.id) return false;
+        if (!RECEIPT_PRINT_ENABLED || !order?.id) return false;
 
         const storageKey = `totem-receipt:${order.id}`;
         const force = Boolean(opts.force);
