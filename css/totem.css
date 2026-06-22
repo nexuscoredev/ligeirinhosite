@@ -215,9 +215,14 @@ body.totem-kiosk {
     flex-direction: column;
 }
 
+.totem-main > .totem-view--active {
+    flex: 1;
+    min-height: 0;
+}
+
 .totem-view {
     display: none;
-    height: 100%;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -400,10 +405,19 @@ body.totem-kiosk {
 /* ——— Catalog ——— */
 .totem-catalog {
     display: grid;
-    grid-template-columns: var(--totem-sidebar-w) 1fr;
+    grid-template-columns: var(--totem-sidebar-w) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
     min-height: 0;
+    flex: 1;
     height: 100%;
+    overflow: hidden;
     background: transparent;
+}
+
+.totem-catalog > * {
+    min-height: 0;
+    min-width: 0;
 }
 
 .totem-categories-wrap {
@@ -428,6 +442,7 @@ body.totem-kiosk {
     overflow-y: auto;
     flex: 1;
     min-height: 0;
+    touch-action: pan-y;
     padding: 0.65rem;
     border-radius: 1.25rem 0 0 1.25rem;
     border: 1px solid var(--lig-border);
@@ -542,6 +557,7 @@ body.totem-kiosk {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    height: 100%;
     overflow: hidden;
     padding: 0.55rem 0.55rem 0.55rem 0;
     background:
@@ -550,14 +566,17 @@ body.totem-kiosk {
 }
 
 .totem-products__body {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+    max-height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    touch-action: pan-y;
     position: relative;
     padding: 0 0.2rem 0.2rem;
+    scrollbar-gutter: stable;
 }
 
 .totem-products__head {
@@ -1218,23 +1237,28 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 
 /* ——— Scrollbars ——— */
 .totem-categories::-webkit-scrollbar,
-.totem-products .totem-grid::-webkit-scrollbar,
+.totem-products__body::-webkit-scrollbar,
 .totem-cart-list::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
 .totem-categories::-webkit-scrollbar-thumb,
-.totem-products .totem-grid::-webkit-scrollbar-thumb,
+.totem-products__body::-webkit-scrollbar-thumb,
 .totem-cart-list::-webkit-scrollbar-thumb {
     background: rgba(20, 18, 15, 0.15);
     border-radius: 999px;
 }
 
+.totem-products__body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(20, 18, 15, 0.2) transparent;
+}
+
 @media (max-width: 768px) {
     .totem-catalog {
         grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
     }
 
     .totem-categories-wrap {
