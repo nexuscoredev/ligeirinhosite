@@ -108,7 +108,7 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
     }
 
     const res = await fetch(
-        `${parceirosUrl}/rest/v1/orders?channel=eq.totem&id=ilike.${encodeURIComponent(`${prefix}*`)}&select=id,total,customer_name,totem_label,unit_id,created_at,payment_method,items,notes,status,financial_status,channel&order=created_at.desc&limit=5`,
+        `${parceirosUrl}/rest/v1/orders?channel=eq.totem&id::text=ilike.${encodeURIComponent(`${prefix}*`)}&select=id,total,customer_name,totem_label,unit_id,created_at,payment_method,items,notes,status,financial_status,channel&order=created_at.desc&limit=5`,
         {
             headers: {
                 apikey: parceirosKey,
