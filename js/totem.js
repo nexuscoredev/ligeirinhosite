@@ -16,6 +16,7 @@
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
     const cartPanel = document.getElementById('totem-cart-panel');
+    const totemHeader = document.querySelector('.totem-header');
     const cartList = document.getElementById('totem-cart-list');
     const cartTotalEl = document.getElementById('totem-cart-total');
     const checkoutBtn = document.getElementById('totem-checkout-btn');
@@ -46,6 +47,32 @@
     let idleHintTimer = null;
     let adminTapCount = 0;
     let adminTapTimer = null;
+    let lastCartCount = 0;
+    let lastAnimatedCategory = '';
+
+    const pulseClass = (el, className, ms = 450) => {
+        if (!el) return;
+        el.classList.remove(className);
+        void el.offsetWidth;
+        el.classList.add(className);
+        window.setTimeout(() => el.classList.remove(className), ms);
+    };
+
+    const refreshMotion = (el, className) => {
+        if (!el) return;
+        el.classList.remove(className);
+        void el.offsetWidth;
+        el.classList.add(className);
+        window.setTimeout(() => el.classList.remove(className), 500);
+    };
+
+    const refreshProductGrid = () => {
+        if (!productsGrid) return;
+        productsGrid.classList.remove('totem-grid--refresh');
+        void productsGrid.offsetWidth;
+        productsGrid.classList.add('totem-grid--refresh');
+        window.setTimeout(() => productsGrid.classList.remove('totem-grid--refresh'), 700);
+    };
 
     const session = () => auth.loadSession();
 
@@ -172,12 +199,13 @@
             }
             if (active) {
                 el.classList.add('totem-view--entering');
-                window.setTimeout(() => el.classList.remove('totem-view--entering'), 480);
+                window.setTimeout(() => el.classList.remove('totem-view--entering'), 650);
             }
         });
         const inCatalog = name === 'catalog';
         homeBtn.hidden = !inCatalog;
         cartBtn.hidden = !inCatalog;
+        totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
     };
 
     const resetCart = () => {
@@ -214,14 +242,14 @@
     const renderCategories = () => {
         if (!categoriesEl) return;
         categoriesEl.innerHTML = totemCategories
-            .map((cat) => {
+            .map((cat, index) => {
                 const active = cat.id === activeCategory;
                 const catForIcon = catalogData?.categories?.find(
                     (c) => canonCategoryId(c.id) === cat.id
                 ) || { id: cat.id, name: cat.name, products: [] };
                 const icon = categoryIcon(catForIcon);
                 const label = catalog.formatCategoryLabel(cat.name);
-                return `<button type="button" class="totem-cat-btn${active ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}" aria-current="${active ? 'true' : 'false'}">
+                return `<button type="button" class="totem-cat-btn${active ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}" aria-current="${active ? 'true' : 'false'}" style="--totem-cat-i:${index}">
 <span class="totem-cat-btn__icon material-symbols-outlined" aria-hidden="true">${esc(icon)}</span>
 <span class="totem-cat-btn__label">${esc(label)}</span>
 <span class="totem-cat-btn__count">${cat.count}</span>
@@ -244,6 +272,12 @@
         if (productsCount) {
             productsCount.textContent =
                 items.length === 1 ? '1 produto' : `${items.length} produtos`;
+        }
+        if (catLabel && activeCategory !== lastAnimatedCategory) {
+            refreshMotion(categoryTitle, 'totem-products__title--refresh');
+            refreshMotion(productsCount, 'totem-products__count--refresh');
+            refreshProductGrid();
+            lastAnimatedCategory = activeCategory;
         }
 
         const isEmpty = items.length === 0;
@@ -279,7 +313,7 @@
                     : product.name;
                 const price = active.price;
                 const tierLabel = pricing.TIER_SHORT?.[tier] || '';
-                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}" style="--totem-card-i:${index}">
+                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}" style="--totem-card-i:${Math.min(index, 14)}">
 <div class="totem-product__media">
 ${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
@@ -299,6 +333,15 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
 </article>`;
             })
             .join('');
+    };
+
+    const pulseProduct = (cartKey) => {
+        const card = productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`);
+        pulseClass(card, 'totem-product--pulse');
+        const badge = card?.querySelector('.totem-product__badge');
+        if (badge) pulseClass(badge, 'totem-product__badge--pop');
+        const qtyEl = card?.querySelector('.totem-qty-value');
+        if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');
     };
 
     const addItem = (cartKey, itemKey) => {
@@ -322,6 +365,7 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
+        pulseProduct(key);
         bumpIdle();
     };
 
@@ -333,6 +377,7 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
+        if (delta > 0) pulseProduct(cartKey);
         bumpIdle();
     };
 
@@ -342,6 +387,10 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         const count = cartApi.cartItemCount(cart);
         const total = cartApi.cartTotalValue(cart);
         if (cartBadge) cartBadge.textContent = String(count);
+        if (count !== lastCartCount) {
+            if (count > 0) pulseClass(cartBadge, 'totem-btn__badge--pop');
+            lastCartCount = count;
+        }
         if (cartTotalEl) cartTotalEl.textContent = formatPrice(total);
         if (checkoutBtn) {
             checkoutBtn.disabled = count === 0;
@@ -351,7 +400,7 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         cartList.innerHTML = items.length
             ? items
                   .map(
-                      (item) => `<div class="totem-cart-line">
+                      (item, index) => `<div class="totem-cart-line" style="--totem-line-i:${index}">
 <div><div class="totem-cart-line__name">${esc(item.name)}</div><div class="totem-cart-line__meta">${item.qty}x ${formatPrice(item.price)}</div></div>
 <div class="flex gap-2"><button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(item.cartKey || item.id)}">−</button><button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(item.cartKey || item.id)}">+</button></div>
 </div>`
@@ -368,8 +417,12 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
     };
 
     const closeCart = () => {
-        cartPanel?.classList.remove('totem-cart-panel--open');
-        cartPanel?.setAttribute('aria-hidden', 'true');
+        if (!cartPanel?.classList.contains('totem-cart-panel--open')) return;
+        cartPanel.classList.add('totem-cart-panel--closing');
+        window.setTimeout(() => {
+            cartPanel.classList.remove('totem-cart-panel--open', 'totem-cart-panel--closing');
+            cartPanel.setAttribute('aria-hidden', 'true');
+        }, 300);
     };
 
     const startCheckout = async () => {

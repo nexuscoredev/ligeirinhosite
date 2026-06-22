@@ -29,6 +29,12 @@ html.totem-kiosk[data-theme='light'] {
     --lig-radius-lg: 1.125rem;
     --lig-radius-xl: 1.5rem;
     --lig-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --totem-ease-spring: cubic-bezier(0.34, 1.28, 0.64, 1);
+    --totem-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --totem-dur-fast: 0.18s;
+    --totem-dur-med: 0.42s;
+    --totem-dur-slow: 0.62s;
+    --totem-stagger: 45ms;
 }
 
 html.totem-kiosk,
@@ -261,13 +267,62 @@ body.totem-kiosk {
 }
 
 .totem-view--entering {
-    animation: totem-view-in 0.48s var(--lig-ease) both;
+    animation: totem-view-in var(--totem-dur-med) var(--totem-ease-out) both;
+}
+
+.totem-view--entering.totem-catalog .totem-categories-wrap {
+    animation: totem-slide-in-left var(--totem-dur-slow) var(--totem-ease-out) both;
+}
+
+.totem-view--entering.totem-catalog .totem-products {
+    animation: totem-fade-up var(--totem-dur-slow) var(--totem-ease-out) 0.07s both;
+}
+
+.totem-header--catalog .totem-header__actions .totem-btn {
+    animation: totem-fade-in var(--totem-dur-med) var(--totem-ease-out) both;
+}
+
+.totem-header--catalog .totem-header__actions .totem-btn:nth-child(2) {
+    animation-delay: 0.06s;
 }
 
 @keyframes totem-view-in {
     from {
         opacity: 0;
-        transform: translateY(12px);
+        transform: translateY(14px) scale(0.992);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes totem-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes totem-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes totem-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
     }
     to {
         opacity: 1;
@@ -299,7 +354,6 @@ body.totem-kiosk {
     gap: clamp(0.65rem, 2dvh, 1.1rem);
     transform: scale(var(--totem-welcome-scale));
     transform-origin: center center;
-    animation: totem-welcome-in 0.7s var(--lig-ease) both;
 }
 
 .totem-welcome__hero {
@@ -309,15 +363,29 @@ body.totem-kiosk {
     width: 100%;
 }
 
-@keyframes totem-welcome-in {
-    from {
-        opacity: 0;
-        transform: translateY(16px) scale(0.99);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+.totem-welcome__hero > :not(.totem-welcome__logo-wrap) {
+    animation: totem-fade-up var(--totem-dur-slow) var(--totem-ease-out) both;
+}
+
+.totem-welcome__eyebrow {
+    animation-delay: 0.1s;
+}
+
+.totem-welcome__wordmark {
+    animation-delay: 0.16s;
+}
+
+.totem-welcome__lead {
+    animation-delay: 0.22s;
+}
+
+.totem-welcome__panel {
+    animation: totem-panel-in var(--totem-dur-slow) var(--totem-ease-out) 0.28s both;
+}
+
+.totem-welcome__option {
+    animation: totem-fade-up var(--totem-dur-med) var(--totem-ease-out) both;
+    animation-delay: calc(0.36s + var(--totem-opt-i, 0) * 0.07s);
 }
 
 .totem-welcome__logo-wrap {
@@ -329,6 +397,41 @@ body.totem-kiosk {
         0 0 0 1px rgba(20, 18, 15, 0.06),
         0 8px 24px rgba(20, 18, 15, 0.06);
     margin-bottom: clamp(0.35rem, 1.25dvh, 0.75rem);
+    animation:
+        totem-logo-in var(--totem-dur-slow) var(--totem-ease-spring) 0.04s both,
+        totem-logo-float 5s ease-in-out 0.8s infinite;
+}
+
+@keyframes totem-logo-in {
+    from {
+        opacity: 0;
+        transform: scale(0.88) translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes totem-logo-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+@keyframes totem-panel-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .totem-welcome__logo {
@@ -425,22 +528,36 @@ body.totem-kiosk {
     padding-inline: 1.25rem;
     font-size: clamp(0.9375rem, 2.1dvh, 1.0625rem);
     border-radius: 1rem;
-    animation: totem-cta-pulse 2.8s ease-in-out infinite;
+    animation:
+        totem-fade-up var(--totem-dur-med) var(--totem-ease-out) 0.58s both,
+        totem-cta-glow 2.8s ease-in-out 1s infinite;
 }
 
-@keyframes totem-cta-pulse {
+.totem-welcome__cta .material-symbols-outlined {
+    animation: totem-arrow-nudge 2.8s ease-in-out 1s infinite;
+}
+
+@keyframes totem-cta-glow {
     0%,
     100% {
-        transform: scale(1);
         box-shadow:
             0 4px 18px rgba(240, 201, 41, 0.28),
             inset 0 1px 0 rgba(255, 255, 255, 0.45);
     }
     50% {
-        transform: scale(1.015);
         box-shadow:
-            0 8px 28px rgba(240, 201, 41, 0.42),
+            0 10px 32px rgba(240, 201, 41, 0.45),
             inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+}
+
+@keyframes totem-arrow-nudge {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(4px);
     }
 }
 
@@ -511,12 +628,18 @@ body.totem-kiosk {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 600;
     position: relative;
+    animation: totem-fade-in var(--totem-dur-med) var(--totem-ease-out) both;
+    animation-delay: calc(var(--totem-cat-i, 0) * 0.04s);
     transition:
-        background 0.22s var(--lig-ease),
-        color 0.22s ease,
-        border-color 0.22s ease,
-        transform 0.18s var(--lig-ease),
-        box-shadow 0.22s ease;
+        background 0.28s var(--totem-ease-out),
+        color 0.28s ease,
+        border-color 0.28s ease,
+        transform 0.22s var(--totem-ease-spring),
+        box-shadow 0.28s ease;
+}
+
+.totem-cat-btn:active {
+    transform: scale(0.98);
 }
 
 .totem-cat-btn__icon {
@@ -646,6 +769,25 @@ body.totem-kiosk {
     color: var(--lig-text);
 }
 
+.totem-products__title--refresh {
+    animation: totem-title-refresh 0.4s var(--totem-ease-out) both;
+}
+
+.totem-products__count--refresh {
+    animation: totem-fade-in 0.35s var(--totem-ease-out) both;
+}
+
+@keyframes totem-title-refresh {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .totem-products__count {
     margin: 0;
     padding: 0.35rem 0.75rem;
@@ -715,6 +857,11 @@ body.totem-kiosk {
     gap: 0.65rem;
 }
 
+.totem-grid--refresh .totem-product {
+    animation: totem-card-in var(--totem-dur-med) var(--totem-ease-spring) both;
+    animation-delay: calc(var(--totem-card-i, 0) * 0.032s);
+}
+
 .totem-product {
     display: flex;
     flex-direction: column;
@@ -727,21 +874,40 @@ body.totem-kiosk {
         0 1px 0 rgba(255, 255, 255, 0.8) inset,
         var(--lig-shadow-sm);
     transition:
-        transform 0.24s var(--lig-ease),
-        box-shadow 0.24s ease,
-        border-color 0.24s ease;
-    animation: totem-card-in 0.42s var(--lig-ease) both;
-    animation-delay: calc(var(--totem-card-i, 0) * 28ms);
+        transform 0.28s var(--totem-ease-spring),
+        box-shadow 0.28s ease,
+        border-color 0.28s ease;
+    animation: totem-card-in var(--totem-dur-med) var(--totem-ease-spring) both;
+    animation-delay: calc(var(--totem-card-i, 0) * 0.032s);
+}
+
+.totem-product--pulse {
+    animation: totem-product-pulse 0.48s var(--totem-ease-spring) both;
 }
 
 @keyframes totem-card-in {
     from {
         opacity: 0;
-        transform: translateY(10px) scale(0.98);
+        transform: translateY(14px) scale(0.96);
     }
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes totem-product-pulse {
+    0% {
+        transform: scale(1);
+    }
+    45% {
+        transform: scale(1.028);
+        box-shadow:
+            0 0 0 1px rgba(240, 201, 41, 0.28),
+            0 12px 28px rgba(240, 201, 41, 0.16);
+    }
+    100% {
+        transform: scale(1);
     }
 }
 
@@ -791,6 +957,24 @@ body.totem-kiosk {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.totem-product__badge--pop {
+    animation: totem-badge-pop 0.45s var(--totem-ease-spring) both;
+}
+
+@keyframes totem-badge-pop {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+    55% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .totem-product__media img {
@@ -897,6 +1081,28 @@ body.totem-kiosk {
     font-weight: 800;
     color: var(--lig-text);
     font-variant-numeric: tabular-nums;
+    transition: transform 0.2s var(--totem-ease-spring);
+}
+
+.totem-qty-value--pop {
+    animation: totem-qty-pop 0.38s var(--totem-ease-spring) both;
+}
+
+@keyframes totem-qty-pop {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.22);
+        color: var(--lig-yellow-text);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.totem-btn__badge--pop {
+    animation: totem-badge-pop 0.45s var(--totem-ease-spring) both;
 }
 
 /* ——— Cart ——— */
@@ -914,7 +1120,33 @@ body.totem-kiosk {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    animation: totem-overlay-in 0.25s ease both;
+    animation: totem-overlay-in 0.3s var(--totem-ease-out) both;
+}
+
+.totem-cart-panel--closing {
+    animation: totem-overlay-out 0.28s ease both;
+}
+
+.totem-cart-panel--closing .totem-cart-sheet {
+    animation: totem-sheet-down 0.3s var(--totem-ease-out) both;
+}
+
+@keyframes totem-overlay-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes totem-sheet-down {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(100%);
+    }
 }
 
 @keyframes totem-overlay-in {
@@ -937,14 +1169,16 @@ body.totem-kiosk {
     gap: 1rem;
     box-shadow: var(--lig-shadow);
     border-top: 1px solid rgba(240, 201, 41, 0.22);
-    animation: totem-sheet-up 0.38s var(--lig-ease) both;
+    animation: totem-sheet-up 0.42s var(--totem-ease-spring) both;
 }
 
 @keyframes totem-sheet-up {
     from {
+        opacity: 0.9;
         transform: translateY(100%);
     }
     to {
+        opacity: 1;
         transform: translateY(0);
     }
 }
@@ -977,6 +1211,8 @@ body.totem-kiosk {
     gap: 1rem;
     padding: 0.875rem 0;
     border-bottom: 1px solid var(--lig-border);
+    animation: totem-fade-in var(--totem-dur-med) var(--totem-ease-out) both;
+    animation-delay: calc(var(--totem-line-i, 0) * 0.05s);
 }
 
 .totem-cart-line__name {
@@ -1028,7 +1264,7 @@ body.totem-kiosk {
     position: fixed;
     bottom: 4.75rem;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(12px);
     background: #14120f;
     color: #fff;
     padding: 0.625rem 1.25rem;
@@ -1037,13 +1273,16 @@ body.totem-kiosk {
     font-weight: 600;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s ease;
+    transition:
+        opacity 0.38s var(--totem-ease-out),
+        transform 0.38s var(--totem-ease-out);
     z-index: 70;
     box-shadow: var(--lig-shadow-md);
 }
 
 .totem-idle-hint--visible {
     opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 /* ——— Admin modal ——— */
@@ -1062,6 +1301,22 @@ body.totem-kiosk {
 
 .totem-admin-modal--open {
     display: flex;
+    animation: totem-overlay-in 0.28s var(--totem-ease-out) both;
+}
+
+.totem-admin-modal--open .totem-admin-card {
+    animation: totem-modal-in 0.42s var(--totem-ease-spring) both;
+}
+
+@keyframes totem-modal-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .totem-admin-card {
@@ -1355,13 +1610,40 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 @media (prefers-reduced-motion: reduce) {
     .totem-product,
     .totem-view--entering,
-    .totem-welcome__content,
-    .totem-welcome__cta {
-        animation: none;
+    .totem-view--entering.totem-catalog .totem-categories-wrap,
+    .totem-view--entering.totem-catalog .totem-products,
+    .totem-header--catalog .totem-header__actions .totem-btn,
+    .totem-welcome__hero > :not(.totem-welcome__logo-wrap),
+    .totem-welcome__logo-wrap,
+    .totem-welcome__panel,
+    .totem-welcome__option,
+    .totem-welcome__cta,
+    .totem-welcome__cta .material-symbols-outlined,
+    .totem-cat-btn,
+    .totem-grid--refresh .totem-product,
+    .totem-product--pulse,
+    .totem-product__badge--pop,
+    .totem-qty-value--pop,
+    .totem-btn__badge--pop,
+    .totem-products__title--refresh,
+    .totem-products__count--refresh,
+    .totem-cart-panel--open,
+    .totem-cart-panel--closing,
+    .totem-cart-sheet,
+    .totem-cart-line,
+    .totem-admin-modal--open,
+    .totem-admin-modal--open .totem-admin-card {
+        animation: none !important;
+        transition: none !important;
     }
 
-    .totem-welcome__cta {
-        transform: none;
+    .totem-idle-hint {
+        transition: opacity 0.15s ease;
+        transform: translateX(-50%);
+    }
+
+    .totem-idle-hint--visible {
+        transform: translateX(-50%);
     }
 }
 
