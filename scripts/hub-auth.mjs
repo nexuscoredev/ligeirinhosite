@@ -1,3 +1,5 @@
+import { buildParceiroExtras, resolveLoginEmailExtended } from './hub-parceiro.mjs';
+
 const DEFAULT_HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
 const DEFAULT_HUB_ANON_KEY =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxpc3pwd29jd3ZreXR6eWF4dml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjczNzUsImV4cCI6MjA5NTMwMzM3NX0.rMfpheVgAKQ4HelKB0ZoNDZXiU_3XQdv7ujLHxgdjEA';
@@ -49,9 +51,9 @@ async function hubRpc(config, name, body, token) {
 }
 
 async function hubSignIn(config, login, password) {
-    const email = await hubRpc(config, 'resolve_login_email', { p_login: login });
+    const email = await resolveLoginEmailExtended(config, login);
     if (!email || typeof email !== 'string') {
-        return { error: 'Usuário ou senha incorretos.' };
+        return { error: 'Usuário, CNPJ ou senha incorretos.' };
     }
 
     const res = await fetch(`${config.url}/auth/v1/token?grant_type=password`, {
@@ -68,16 +70,23 @@ async function hubSignIn(config, login, password) {
 }
 
 async function fetchUsuarioByAuthId(config, userId, accessToken) {
-    const url = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone&id=eq.${encodeURIComponent(userId)}&limit=1`;
-    const res = await fetch(url, { headers: hubHeaders(config.anonKey, accessToken) });
-    const rows = await res.json();
+    const select =
+        'id,email,nome,cargo,ativo,login,telefone,must_change_password';
+    const url = `${config.url}/rest/v1/usuarios?select=${encodeURIComponent(select)}&id=eq.${encodeURIComponent(userId)}&limit=1`;
+    let res = await fetch(url, { headers: hubHeaders(config.anonKey, accessToken) });
+    let rows = await res.json();
+    if (!res.ok && /must_change_password/i.test(rows?.message || '')) {
+        const fallbackUrl = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone&id=eq.${encodeURIComponent(userId)}&limit=1`;
+        res = await fetch(fallbackUrl, { headers: hubHeaders(config.anonKey, accessToken) });
+        rows = await res.json();
+    }
     if (!res.ok) throw new Error(rows?.message || 'Falha ao carregar perfil');
     return Array.isArray(rows) ? rows[0] : null;
 }
 
 async function fetchUsuarioByEmail(config, email) {
     if (!config.serviceKey) return null;
-    const url = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone&email=eq.${encodeURIComponent(email)}&limit=1`;
+    const url = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone,must_change_password&email=eq.${encodeURIComponent(email)}&limit=1`;
     const res = await fetch(url, { headers: hubHeaders(config.serviceKey) });
     const rows = await res.json();
     if (!res.ok) return null;
@@ -87,7 +96,7 @@ async function fetchUsuarioByEmail(config, email) {
 async function fetchUsuarioByPhone(config, phone) {
     if (!config.serviceKey) return null;
     const digits = String(phone || '').replace(/\D/g, '');
-    const url = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone&telefone=eq.${encodeURIComponent(digits)}&limit=1`;
+    const url = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone,must_change_password&telefone=eq.${encodeURIComponent(digits)}&limit=1`;
     const res = await fetch(url, { headers: hubHeaders(config.serviceKey) });
     const rows = await res.json();
     if (!res.ok) return null;
@@ -118,6 +127,7 @@ function profileFromUsuario(usuario, extras = {}) {
         role,
         cargo: usuario.cargo || '',
         hubUserId: usuario.id,
+        mustChangePassword: Boolean(usuario.must_change_password || extras.mustChangePassword),
         ...extras,
     };
 }
@@ -129,7 +139,12 @@ export async function resolveHubLogin(config, login, password) {
     const usuario = await fetchUsuarioByAuthId(config, auth.userId, auth.accessToken);
     if (!usuario) return { error: 'Perfil não encontrado no Hub.' };
 
-    const profile = profileFromUsuario(usuario, { provider: 'hub' });
+    const parceiro = await buildParceiroExtras(config, usuario);
+    if (parceiro.bloqueadoPedido) {
+        return { error: 'Sua conta está bloqueada para novos pedidos. Fale com o comercial.' };
+    }
+
+    const profile = profileFromUsuario(usuario, { provider: 'hub', ...parceiro });
     if (!profile) return { error: 'Usuário inativo.' };
 
     return { profile, accessToken: auth.accessToken, refreshToken: auth.refreshToken };
@@ -147,7 +162,8 @@ export async function resolveProfileByEmail(config, email, extras = {}) {
             provider: extras.provider || 'google',
         };
     }
-    return profileFromUsuario(usuario, { ...extras, email, provider: extras.provider || 'google' }) || {
+    const parceiro = await buildParceiroExtras(config, usuario);
+    return profileFromUsuario(usuario, { ...extras, email, provider: extras.provider || 'google', ...parceiro }) || {
         sub: extras.sub || email,
         email,
         role: 'PARCEIRO',
@@ -173,6 +189,7 @@ export async function resolveProfileByPhone(config, phone, name) {
             phone: normalizedPhone,
             name: name || usuario.nome,
             provider: 'phone',
+            ...(await buildParceiroExtras(config, usuario)),
         }) || {
             sub: `phone:${normalizedPhone}`,
             name: name || '',

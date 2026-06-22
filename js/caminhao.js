@@ -14,7 +14,7 @@
     const cartUi = window.LigeirinhoCartUI;
     if (!cartApi) return;
 
-    const PAY_LABEL = 'Pagar com Mercado Pago';
+    const PAY_LABEL = 'Continuar';
     let checkoutBound = false;
 
     const esc = (v) =>
@@ -116,9 +116,19 @@ ${thumb}
 </div>`;
     };
 
-    const checkoutHtml = () => `<a href="pedidos.html" class="caminhao-continue">Continuar comprando</a>
+    const checkoutHtml = () => {
+        const s = window.LigeirinhoAuth?.loadSession?.();
+        const condicao = s?.condicaoPagamento || '';
+        const condicaoBlock = condicao
+            ? `<div class="caminhao-checkout__condicao">
+<p class="caminhao-checkout__label">Condição de pagamento</p>
+<p class="caminhao-checkout__condicao-value">${esc(condicao)}</p>
+</div>`
+            : '';
+        return `<a href="pedidos.html" class="caminhao-continue">Continuar comprando</a>
 <section class="caminhao-checkout cart-checkout" id="caminhao-checkout" aria-label="Detalhes do pedido">
 <p class="caminhao-checkout__label">Detalhes do pedido</p>
+${condicaoBlock}
 <div class="caminhao-checkout__delivery">
 <label class="caminhao-delivery-opt">
 <input type="radio" name="caminhao-delivery" value="entrega" class="sr-only" data-checkout="deliveryType"> Entrega
@@ -130,12 +140,16 @@ ${thumb}
 <input type="text" data-checkout="address" id="caminhao-address" placeholder="Endereço completo (rua, nº, bairro)" class="caminhao-input" autocomplete="street-address">
 <p class="caminhao-checkout__error hidden" data-checkout-error="address" role="alert"></p>
 <textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="caminhao-input caminhao-input--area"></textarea>
-<p class="caminhao-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
+<p class="caminhao-checkout__hint">Na próxima etapa você escolhe data de entrega e forma de pagamento.</p>
 </section>
 <div class="caminhao-footer">
 <div id="caminhao-summary"></div>
-<button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn lig-cart-mp-btn" disabled aria-label="${PAY_LABEL}">${payBtnLogoHtml()}</button>
+<button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn caminhao-pay-btn--continue" disabled aria-label="${PAY_LABEL}">
+<span>${PAY_LABEL}</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
 </div>`;
+    };
 
     const setPayButton = (cart) => {
         const btn = document.getElementById('caminhao-pay-btn');
@@ -169,10 +183,13 @@ ${thumb}
         const onCheckoutChange = () => {
             const section = root.querySelector('.cart-checkout');
             const deliveryInput = section?.querySelector('[data-checkout="deliveryType"]:checked');
+            const s = window.LigeirinhoAuth?.loadSession?.();
             cartApi.saveCheckout({
                 deliveryType: deliveryInput?.value || 'entrega',
                 address: section?.querySelector('[data-checkout="address"]')?.value || '',
                 payment: 'mercado_pago',
+                paymentMethod: cartApi.loadCheckout().paymentMethod || 'mercado_pago',
+                condicaoPagamento: s?.condicaoPagamento || cartApi.loadCheckout().condicaoPagamento || '',
                 notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
             });
             renderCheckoutFields();
@@ -264,7 +281,14 @@ ${items.length ? checkoutHtml() : ''}
         });
 
         root.querySelector('#caminhao-pay-btn')?.addEventListener('click', () => {
-            cartUi?.startPayment?.(['caminhao-pay-btn']);
+            const cart = cartApi.loadCart();
+            const { canCheckout } = cartUi?.updateCheckoutErrors?.(cart) || { canCheckout: false };
+            if (!canCheckout) return;
+            const s = window.LigeirinhoAuth?.loadSession?.();
+            if (s?.condicaoPagamento) {
+                cartApi.saveCheckout({ condicaoPagamento: s.condicaoPagamento });
+            }
+            window.location.href = 'resumo-pedido.html';
         });
 
         root.querySelectorAll('.cart-qty-minus').forEach((btn) => {

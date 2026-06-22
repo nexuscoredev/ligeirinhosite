@@ -47,6 +47,14 @@
             hubUserId: user.hubUserId || '',
             totemUnitId: user.totemUnitId || '',
             totemLabel: user.totemLabel || '',
+            mustChangePassword: Boolean(user.mustChangePassword),
+            cnpj: user.cnpj || '',
+            condicaoPagamento: user.condicaoPagamento || '',
+            parcelasVencimento: user.parcelasVencimento || '',
+            pessoaId: user.pessoaId || '',
+            paymentMethods: user.paymentMethods || [],
+            deliveryDateOptions: user.deliveryDateOptions || [],
+            razaoSocial: user.razaoSocial || '',
             loggedInAt: Date.now(),
         };
         localStorage.setItem(AUTH_KEY, JSON.stringify(session));
@@ -229,8 +237,24 @@
             hubUserId: profile.hubUserId,
             totemUnitId: profile.totemUnitId,
             totemLabel: profile.totemLabel,
+            mustChangePassword: Boolean(profile.mustChangePassword),
+            cnpj: profile.cnpj || '',
+            condicaoPagamento: profile.condicaoPagamento || '',
+            parcelasVencimento: profile.parcelasVencimento || '',
+            pessoaId: profile.pessoaId || '',
+            paymentMethods: profile.paymentMethods || [],
+            deliveryDateOptions: profile.deliveryDateOptions || [],
+            razaoSocial: profile.razaoSocial || '',
         });
     };
+
+    const patchSession = (patch) => {
+        const current = loadSession();
+        if (!current) return null;
+        return saveSession({ ...current, ...patch });
+    };
+
+    const needsPasswordChange = (session) => Boolean(session?.mustChangePassword);
 
     window.LigeirinhoAuth = {
         AUTH_KEY,
@@ -244,6 +268,8 @@
         loadSession,
         saveSession,
         applyProfile,
+        patchSession,
+        needsPasswordChange,
         saveFromGoogleCredential,
         saveFromAppleAuthorization,
         saveFromPhoneProfile,

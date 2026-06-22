@@ -21,6 +21,9 @@
         deliveryType: 'entrega',
         address: '',
         payment: 'mercado_pago',
+        paymentMethod: 'mercado_pago',
+        condicaoPagamento: '',
+        deliveryDate: '',
         notes: '',
     });
 

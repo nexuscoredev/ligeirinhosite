@@ -11,7 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const LOGIN = 'Totem';
 const PASSWORD = 'admin123';
-const NOME = 'Totem Autoatendimento';
+const NOME = 'Ligeirinho Totem';
 const CARGO = 'Caixa';
 
 function loadHubServiceKey() {

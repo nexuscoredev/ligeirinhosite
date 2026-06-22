@@ -31,6 +31,14 @@ function publicProfile(profile) {
         totemUnitId: profile.totemUnitId || null,
         totemLabel: profile.totemLabel || null,
         isTotem: isTotemRole(profile.role),
+        mustChangePassword: Boolean(profile.mustChangePassword),
+        cnpj: profile.cnpj || '',
+        condicaoPagamento: profile.condicaoPagamento || '',
+        parcelasVencimento: profile.parcelasVencimento || '',
+        pessoaId: profile.pessoaId || null,
+        paymentMethods: profile.paymentMethods || [],
+        deliveryDateOptions: profile.deliveryDateOptions || [],
+        razaoSocial: profile.razaoSocial || '',
     };
 }
 

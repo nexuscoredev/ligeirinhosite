@@ -165,7 +165,7 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
             {
                 title: 'Informação pessoal',
                 icon: 'badge',
-                sub: 'Nome, telefone e dados da conta.',
+                sub: 'Nome, telefone, e-mail e senha.',
                 nav: 'dados',
             },
             {
@@ -285,9 +285,11 @@ ${
     const renderDados = () => {
         const s = session();
         const rows = [
-            { label: 'Nome', value: s?.name || '—', editable: false },
-            { label: 'Telefone celular', value: s?.phone || '—', editable: false },
-            { label: 'E-mail', value: s?.email || '—', editable: false },
+            { label: 'Nome', value: s?.name || s?.razaoSocial || '—', nav: '' },
+            { label: 'CNPJ', value: s?.cnpj || '—', nav: '' },
+            { label: 'Telefone celular', value: formatPhoneDisplay(s?.phone) || '—', nav: 'telefone' },
+            { label: 'E-mail', value: s?.email || '—', nav: 'email' },
+            { label: 'Condição de pagamento', value: s?.condicaoPagamento || '—', nav: '' },
         ];
 
         const body = `<div class="conta-sub-body">
@@ -295,18 +297,25 @@ ${
     s?.sub
         ? `<div class="conta-info-card">
 ${rows
-    .map(
-        (r) => `<div class="conta-info-row">
+    .map((r) => {
+        const editable = Boolean(r.nav);
+        return `<div class="conta-info-row${editable ? ' conta-info-row--link' : ''}">
 <div class="conta-info-row__main">
 <p class="conta-info-row__label">${esc(r.label)}</p>
 <p class="conta-info-row__value">${esc(r.value)}</p>
 </div>
-</div>`
-    )
+${
+    editable
+        ? `<button type="button" class="conta-info-row__edit" data-conta-nav="${esc(r.nav)}" aria-label="Alterar ${esc(r.label)}">
+<span class="material-symbols-outlined">edit</span>
+</button>`
+        : ''
+}
+</div>`;
+    })
     .join('')}
 </div>
-<p class="conta-hint">Para alterar seus dados, entre em contato pelo WhatsApp ou fale com nosso time.</p>
-<a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer" class="conta-btn conta-btn--outline">Falar no WhatsApp</a>`
+<button type="button" class="conta-btn conta-btn--outline conta-btn--full" data-conta-nav="senha">Alterar senha</button>`
         : `<div class="conta-empty">
 <span class="material-symbols-outlined conta-empty__icon">person</span>
 <p class="conta-empty__title">Faça login para ver seus dados</p>
@@ -315,6 +324,170 @@ ${rows
 }
 </div>`;
         wrapPage('Informação pessoal', isDesktop() ? '' : '', body, 'dados');
+    };
+
+    const accountHeaders = async () => {
+        const token = await auth?.getHubAccessToken?.();
+        if (!token) throw new Error('Faça login com usuário e senha do Hub para alterar dados.');
+        return {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+        };
+    };
+
+    const renderTelefone = () => {
+        const s = session();
+        const body = `<div class="conta-sub-body">
+<form class="conta-edit-form" id="conta-telefone-form">
+<label class="conta-edit-label">Novo telefone celular</label>
+<input class="conta-edit-input" id="conta-telefone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" value="${esc(formatPhoneDisplay(s?.phone || ''))}">
+<p class="conta-hint">Usado para contato sobre pedidos e entregas.</p>
+<p class="conta-edit-status" id="conta-telefone-status" hidden></p>
+<button type="submit" class="conta-btn conta-btn--primary conta-btn--full">Salvar telefone</button>
+</form>
+</div>`;
+        wrapPage('Atualizar telefone', 'dados', body, 'dados');
+
+        root.querySelector('#conta-telefone-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = root.querySelector('#conta-telefone-status');
+            const value = root.querySelector('#conta-telefone-input')?.value || '';
+            try {
+                const headers = await accountHeaders();
+                const res = await fetch('/api/account/profile', {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ field: 'telefone', value }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+                auth.patchSession(data.profile);
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = 'Telefone atualizado.';
+                    status.className = 'conta-edit-status conta-edit-status--ok';
+                }
+                window.setTimeout(() => navigate('dados'), 700);
+            } catch (err) {
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = err.message;
+                    status.className = 'conta-edit-status conta-edit-status--error';
+                }
+            }
+        });
+    };
+
+    const renderEmail = () => {
+        const s = session();
+        const body = `<div class="conta-sub-body">
+<form class="conta-edit-form" id="conta-email-form">
+<label class="conta-edit-label">Novo e-mail</label>
+<input class="conta-edit-input" id="conta-email-input" type="email" autocomplete="email" placeholder="voce@empresa.com.br" value="${esc(s?.email || '')}">
+<p class="conta-hint">Preferencialmente o e-mail comercial da empresa.</p>
+<p class="conta-edit-status" id="conta-email-status" hidden></p>
+<button type="submit" class="conta-btn conta-btn--primary conta-btn--full">Salvar e-mail</button>
+</form>
+</div>`;
+        wrapPage('Atualizar e-mail', 'dados', body, 'dados');
+
+        root.querySelector('#conta-email-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = root.querySelector('#conta-email-status');
+            const value = root.querySelector('#conta-email-input')?.value || '';
+            try {
+                const headers = await accountHeaders();
+                const res = await fetch('/api/account/profile', {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ field: 'email', value }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+                auth.patchSession(data.profile);
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = 'E-mail atualizado.';
+                    status.className = 'conta-edit-status conta-edit-status--ok';
+                }
+                window.setTimeout(() => navigate('dados'), 700);
+            } catch (err) {
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = err.message;
+                    status.className = 'conta-edit-status conta-edit-status--error';
+                }
+            }
+        });
+    };
+
+    const renderSenha = () => {
+        const s = session();
+        const primeiro = new URLSearchParams(window.location.search).get('primeiro') === '1' || s?.mustChangePassword;
+        const body = `<div class="conta-sub-body">
+${
+    primeiro
+        ? `<div class="conta-alert conta-alert--warn">
+<strong>Primeiro acesso</strong>
+<p>Por segurança, defina uma nova senha antes de continuar usando o app.</p>
+</div>`
+        : ''
+}
+<form class="conta-edit-form" id="conta-senha-form">
+${
+    !primeiro
+        ? `<label class="conta-edit-label">Senha atual</label>
+<input class="conta-edit-input" id="conta-senha-atual" type="password" autocomplete="current-password">`
+        : ''
+}
+<label class="conta-edit-label">${primeiro ? 'Nova senha' : 'Nova senha'}</label>
+<input class="conta-edit-input" id="conta-senha-nova" type="password" autocomplete="new-password" minlength="6">
+<label class="conta-edit-label">Confirmar nova senha</label>
+<input class="conta-edit-input" id="conta-senha-confirma" type="password" autocomplete="new-password" minlength="6">
+<p class="conta-hint">Mínimo de 6 caracteres.</p>
+<p class="conta-edit-status" id="conta-senha-status" hidden></p>
+<button type="submit" class="conta-btn conta-btn--dark conta-btn--full">${primeiro ? 'Definir senha e continuar' : 'Salvar nova senha'}</button>
+</form>
+</div>`;
+        wrapPage(primeiro ? 'Definir senha' : 'Alterar senha', primeiro ? '' : 'dados', body, 'dados');
+
+        root.querySelector('#conta-senha-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = root.querySelector('#conta-senha-status');
+            const currentPassword = root.querySelector('#conta-senha-atual')?.value || '';
+            const newPassword = root.querySelector('#conta-senha-nova')?.value || '';
+            const confirmPassword = root.querySelector('#conta-senha-confirma')?.value || '';
+            try {
+                const headers = await accountHeaders();
+                const res = await fetch('/api/account/password', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        currentPassword,
+                        newPassword,
+                        confirmPassword,
+                        firstAccess: primeiro,
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Erro ao alterar senha.');
+                auth.patchSession({ mustChangePassword: false });
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = data.message || 'Senha atualizada.';
+                    status.className = 'conta-edit-status conta-edit-status--ok';
+                }
+                window.setTimeout(() => {
+                    window.location.href = primeiro ? 'inicio.html' : 'conta.html#dados';
+                }, 800);
+            } catch (err) {
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = err.message;
+                    status.className = 'conta-edit-status conta-edit-status--error';
+                }
+            }
+        });
     };
 
     const renderPreferencias = () => {
@@ -417,6 +590,7 @@ ${menuRow({
 <h2 class="conta-settings-group__title">Conta</h2>
 <div class="conta-menu-list conta-menu-list--flush">
 ${s?.sub ? menuRow({ title: 'Sair da conta', icon: 'logout', nav: 'logout' }) : menuRow({ title: 'Entrar', icon: 'login', href: LOGIN('conta.html') })}
+${s?.sub && s?.provider === 'hub' ? menuRow({ title: 'Alterar senha', icon: 'lock', nav: 'senha' }) : ''}
 </div>
 </section>
 <section class="conta-settings-group">
@@ -476,6 +650,15 @@ ${
                 break;
             case 'dados':
                 renderDados();
+                break;
+            case 'telefone':
+                renderTelefone();
+                break;
+            case 'email':
+                renderEmail();
+                break;
+            case 'senha':
+                renderSenha();
                 break;
             case 'preferencias':
                 renderPreferencias();

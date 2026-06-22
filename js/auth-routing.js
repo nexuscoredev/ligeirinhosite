@@ -8,16 +8,22 @@
     const LOGIN_PAGE = 'index.html';
 
     const TOTEM_PAGES = new Set(['totem', 'totem-pagamento', 'totem-sucesso']);
-    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro']);
+    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro', 'resumo-pedido']);
 
-    const defaultPathForRole = (role) => {
+    const PASSWORD_HOME = 'conta.html#senha';
+
+    const defaultPathForRole = (role, session) => {
+        if (session?.mustChangePassword) return PASSWORD_HOME;
         if (auth.isTotemRole(role)) return TOTEM_HOME;
         if (String(role || '').toUpperCase() === 'ADMIN') return PARCEIRO_HOME;
         return ACCOUNT_HOME;
     };
 
-    const safeNextUrl = (nextUrl, role) => {
-        const fallback = defaultPathForRole(role);
+    const safeNextUrl = (nextUrl, role, session) => {
+        const fallback = defaultPathForRole(role, session);
+        if (session?.mustChangePassword) {
+            return nextUrl?.includes('conta.html#senha') ? nextUrl : PASSWORD_HOME;
+        }
         if (!nextUrl) return fallback;
         const base = nextUrl.split('#')[0];
         if (nextUrl.startsWith('//') || nextUrl.includes('://')) return fallback;
@@ -32,6 +38,17 @@
     const guardPageAccess = () => {
         const page = currentPage();
         const session = auth.loadSession();
+
+        if (session?.mustChangePassword && auth.getHubAccessToken) {
+            const hash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+            const onPasswordScreen =
+                page === 'conta' && (hash === 'senha' || hash.startsWith('senha'));
+            const onLogin = page === 'login';
+            if (!onPasswordScreen && !onLogin) {
+                window.location.replace(`${PASSWORD_HOME}?primeiro=1`);
+                return false;
+            }
+        }
 
         if (TOTEM_PAGES.has(page)) {
             if (!session) {
@@ -81,17 +98,18 @@
 
         const session = auth.applyProfile(data.profile);
         if (!session) throw new Error('Não foi possível iniciar a sessão.');
-        return session;
+        return { session, mustChangePassword: Boolean(data.profile?.mustChangePassword) };
     };
 
-    const redirectAfterLogin = (role, nextUrl) => {
-        window.location.href = safeNextUrl(nextUrl, role);
+    const redirectAfterLogin = (role, nextUrl, session) => {
+        window.location.href = safeNextUrl(nextUrl, role, session);
     };
 
     window.LigeirinhoAuthRouting = {
         TOTEM_HOME,
         PARCEIRO_HOME,
         ACCOUNT_HOME,
+        PASSWORD_HOME,
         defaultPathForRole,
         safeNextUrl,
         guardPageAccess,

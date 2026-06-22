@@ -31,9 +31,18 @@
         setStatus('Validando acesso…', false);
 
         try {
-            const session = await routing.loginWithProfile({ type: 'hub', login, password });
-            setStatus('Entrada realizada! Redirecionando…', false);
-            window.setTimeout(() => routing.redirectAfterLogin(session.role, nextUrl), 400);
+            const result = await routing.loginWithProfile({ type: 'hub', login, password });
+            const session = result.session || result;
+            setStatus(
+                result.mustChangePassword || session.mustChangePassword
+                    ? 'Defina uma nova senha para continuar…'
+                    : 'Entrada realizada! Redirecionando…',
+                false
+            );
+            window.setTimeout(
+                () => routing.redirectAfterLogin(session.role, nextUrl, session),
+                400
+            );
         } catch (err) {
             setStatus(err.message || 'Usuário ou senha incorretos.', true);
             submitBtn && (submitBtn.disabled = false);

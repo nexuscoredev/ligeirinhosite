@@ -1,6 +1,6 @@
 (function () {
     const LG_QUERY = '(min-width: 1024px)';
-    const PAY_BTN_LABEL = 'Pagar com Mercado Pago';
+    const PAY_BTN_LABEL = 'Continuar';
     const MP_PAY_LOGO = 'img/mercado-pago-logo-white-horizontal.svg';
     const payBtnInnerHtml = () =>
         `<img src="${MP_PAY_LOGO}" alt="" class="lig-mp-pay-logo" width="108" height="27" decoding="async">`;
@@ -620,69 +620,21 @@ ${lineThumbHtml(item)}
         updateFloatCart(cartApi.loadCart());
     };
 
-    const startAppPayment = async (buttonIds = ['cart-pay-btn', 'cart-pay-btn-mobile']) => {
+    const goToResumo = () => {
         const cart = cartApi.loadCart();
         const checkout = cartApi.loadCheckout();
         if (!cartApi.cartItemCount(cart)) return;
-
         const needsAddress = checkout.deliveryType === 'entrega';
         if (needsAddress && !checkout.address?.trim()) return;
-
-        const session = window.LigeirinhoAuth?.loadSession?.();
-        const items = cartApi.cartEntries(cart).map((item) => ({
-            id: item.id,
-            cartKey: item.cartKey || item.id,
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            packType: item.packType,
-        }));
-
-        const payButtons = Array.isArray(buttonIds) ? buttonIds : ['cart-pay-btn', 'cart-pay-btn-mobile'];
-        payButtons.forEach((id) => {
-            const btn = document.getElementById(id);
-            if (btn) {
-                btn.disabled = true;
-                setPayButtonContent(btn, 'loading');
-            }
-        });
-
-        try {
-            const res = await fetch('/api/orders/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    items,
-                    deliveryType: checkout.deliveryType,
-                    address: checkout.address,
-                    notes: checkout.notes,
-                    paymentMethod: 'mercado_pago',
-                    hubUserId: session?.hubUserId || '',
-                    customer: {
-                        name: session?.name || '',
-                        phone: session?.phone || '',
-                        email: session?.email || '',
-                        hubUserId: session?.hubUserId || '',
-                    },
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Não foi possível iniciar o pagamento');
-
-            cartApi.saveLastOrder(cart, checkout);
-            cartApi.saveCheckout({ payment: 'mercado_pago' });
-            window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
-        } catch (err) {
-            window.alert(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
-            payButtons.forEach((id) => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    btn.disabled = false;
-                    setPayButtonContent(btn);
-                }
-            });
+        const s = window.LigeirinhoAuth?.loadSession?.();
+        if (s?.condicaoPagamento) {
+            cartApi.saveCheckout({ condicaoPagamento: s.condicaoPagamento });
         }
+        close({ restoreScroll: true });
+        window.location.href = 'resumo-pedido.html';
     };
+
+    const startAppPayment = goToResumo;
 
     const handleCartAction = (e) => {
         if (e.target.closest('#cart-reorder-btn')) {
