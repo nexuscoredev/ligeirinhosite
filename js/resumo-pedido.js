@@ -26,23 +26,43 @@
         ];
     };
 
+    const deliveryApi = window.LigeirinhoParceiroDelivery;
+
     const deliveryOptions = () => {
         const s = session();
-        if (s?.deliveryDateOptions?.length) return s.deliveryDateOptions;
-        const options = [];
-        const now = new Date();
-        for (let i = 1; i <= 4; i += 1) {
-            const d = new Date(now);
-            d.setDate(d.getDate() + i);
-            options.push({
-                value: d.toISOString().slice(0, 10),
-                label: d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
-                weekday: d.toLocaleDateString('pt-BR', { weekday: 'long' }),
-                type: 'Regular',
-                priceLabel: 'Grátis',
-            });
+        const dias = s?.datasEntrega || [];
+        if (dias.length && deliveryApi?.deliveryDateOptions) {
+            return deliveryApi.deliveryDateOptions(dias);
         }
-        return options;
+        if (s?.deliveryDateOptions?.length) return s.deliveryDateOptions;
+        return [];
+    };
+
+    const syncDeliveryDateWithHub = () => {
+        const checkout = cartApi.loadCheckout();
+        const dias = session()?.datasEntrega || [];
+        if (!checkout.deliveryDate) return;
+        if (!dias.length) {
+            cartApi.saveCheckout({ deliveryDate: '' });
+            return;
+        }
+        if (deliveryApi?.isDeliveryDateAllowed && !deliveryApi.isDeliveryDateAllowed(checkout.deliveryDate, dias)) {
+            cartApi.saveCheckout({ deliveryDate: '' });
+        }
+    };
+
+    const refreshParceiroProfile = async () => {
+        const token = await auth?.getHubAccessToken?.();
+        if (!token) return;
+        try {
+            const res = await fetch('/api/account/profile', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const data = await res.json();
+            if (res.ok && data.profile) auth.applyProfile(data.profile);
+        } catch {
+            /* mantém sessão local */
+        }
     };
 
     let step = 'resumo';
@@ -60,7 +80,14 @@
         if (checkout.deliveryType === 'entrega' && !checkout.address?.trim()) {
             errors.address = 'Informe o endereço para entrega.';
         }
-        if (!checkout.deliveryDate) errors.deliveryDate = 'Selecione a data de entrega.';
+        const opts = deliveryOptions();
+        if (!opts.length) {
+            errors.deliveryDate = 'Nenhum dia de entrega configurado no Hub para sua conta.';
+        } else if (!checkout.deliveryDate) {
+            errors.deliveryDate = 'Selecione a data de entrega.';
+        } else if (!opts.some((d) => d.value === checkout.deliveryDate)) {
+            errors.deliveryDate = 'Data de entrega inválida para seu cadastro.';
+        }
         if (!checkout.paymentMethod) errors.paymentMethod = 'Selecione o método de pagamento.';
         return errors;
     };
@@ -101,6 +128,7 @@ ${body}
         const condicao = checkout.condicaoPagamento || s?.condicaoPagamento || '—';
         const dateLabel =
             deliveryOptions().find((d) => d.value === checkout.deliveryDate)?.label || 'Selecionar data';
+        const diasLabel = s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || '';
         const payLabel =
             paymentMethods().find((m) => m.id === checkout.paymentMethod)?.label || 'Selecionar método';
 
@@ -123,9 +151,10 @@ ${headerHtml('Resumo do pedido')}
 ${cardHtml('Condição de pagamento', `<p class="resumo-field-value">${esc(condicao)}</p>${s?.parcelasVencimento ? `<p class="resumo-field-hint">${esc(s.parcelasVencimento)}</p>` : ''}`)}
 ${cardHtml(
     'Data de entrega',
-    `<p class="resumo-field-hint">Campo obrigatório</p>
-<button type="button" class="resumo-select-btn${errors.deliveryDate ? ' resumo-select-btn--error' : ''}" data-open-picker="date">${esc(dateLabel)}</button>
-${errors.deliveryDate ? `<p class="resumo-error">${esc(errors.deliveryDate)}</p>` : ''}`
+    `${diasLabel ? `<p class="resumo-field-hint">Dias liberados no seu cadastro: ${esc(diasLabel)}</p>` : '<p class="resumo-field-hint">Campo obrigatório</p>'}
+<button type="button" class="resumo-select-btn${errors.deliveryDate ? ' resumo-select-btn--error' : ''}" data-open-picker="date"${deliveryOptions().length ? '' : ' disabled'}>${esc(dateLabel)}</button>
+${errors.deliveryDate ? `<p class="resumo-error">${esc(errors.deliveryDate)}</p>` : ''}
+${!deliveryOptions().length ? '<p class="resumo-error">Nenhum dia de entrega configurado no Hub para sua conta. Fale com seu representante.</p>' : ''}`
 )}
 ${cardHtml(
     'Método de pagamento',
@@ -163,19 +192,30 @@ ${cardHtml(
 
     const renderPicker = () => {
         const checkout = cartApi.loadCheckout();
-        const title = pickerMode === 'date' ? 'Data de entrega' : 'Método de pagamento';
+        const title = pickerMode === 'date' ? 'Data de entrega' : 'Condições de pagamento';
 
         let body = '';
+        const options = deliveryOptions();
         if (pickerMode === 'date') {
-            body = deliveryOptions()
-                .map(
-                    (opt) => `<button type="button" class="resumo-option${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
+            if (!options.length) {
+                const diasLabel =
+                    session()?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(session()?.datasEntrega) || '';
+                body = `<p class="resumo-empty-picker">${esc(
+                    diasLabel
+                        ? `Seu cadastro prevê entrega em ${diasLabel}, mas não há datas disponíveis nos próximos dias. Entre em contato com seu representante.`
+                        : 'Nenhum dia de entrega foi configurado no Ligeirinho Hub para sua conta. Entre em contato com seu representante.'
+                )}</p>`;
+            } else {
+                body = options
+                    .map(
+                        (opt) => `<button type="button" class="resumo-option${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
 <span class="resumo-option__date">${esc(opt.label)}</span>
 <span class="resumo-option__meta">${esc(opt.type)} · ${esc(opt.weekday)}</span>
 <span class="resumo-option__price">${esc(opt.priceLabel)}</span>
 </button>`
-                )
-                .join('');
+                    )
+                    .join('');
+            }
         } else {
             body = paymentMethods()
                 .map(
@@ -190,10 +230,20 @@ ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
                 .join('');
         }
 
+        const pickerLead =
+            pickerMode === 'date'
+                ? (() => {
+                      const diasLabel = session()?.diasEntregaLabel || '';
+                      return diasLabel
+                          ? `Escolha uma data entre os dias liberados no seu cadastro (${diasLabel}).`
+                          : 'Escolha a melhor data para receber seu pedido.';
+                  })()
+                : 'Escolha a forma de pagamento para este pedido.';
+
         root.innerHTML = `<div class="resumo-shell">
 ${headerHtml(title)}
 <div class="resumo-content resumo-content--picker">
-<p class="resumo-picker-lead">${pickerMode === 'date' ? 'Escolha a melhor data para receber seu pedido.' : 'Escolha o método de pagamento para este pedido.'}</p>
+<p class="resumo-picker-lead">${esc(pickerLead)}</p>
 <div class="resumo-options">${body}</div>
 </div>
 </div>`;
@@ -202,8 +252,8 @@ ${headerHtml(title)}
         root.querySelectorAll('[data-pick-date]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 cartApi.saveCheckout({ deliveryDate: btn.dataset.pickDate });
-                step = 'resumo';
-                pickerMode = null;
+                step = 'picker';
+                pickerMode = 'payment';
                 render();
             });
         });
@@ -314,5 +364,24 @@ ${headerHtml(title)}
         else renderResumo();
     };
 
-    render();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('picker') === 'date') {
+        step = 'picker';
+        pickerMode = 'date';
+    } else if (params.get('picker') === 'payment') {
+        step = 'picker';
+        pickerMode = 'payment';
+    }
+
+    const boot = async () => {
+        await refreshParceiroProfile();
+        syncDeliveryDateWithHub();
+        if (params.get('picker') === 'date' && !deliveryOptions().length) {
+            step = 'resumo';
+            pickerMode = null;
+        }
+        render();
+    };
+
+    boot();
 })();

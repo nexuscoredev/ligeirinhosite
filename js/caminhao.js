@@ -14,7 +14,7 @@
     const cartUi = window.LigeirinhoCartUI;
     if (!cartApi) return;
 
-    const PAY_LABEL = 'Continuar';
+    const PAY_LABEL = 'Escolher data de entrega';
     let checkoutBound = false;
 
     const esc = (v) =>
@@ -103,10 +103,6 @@ ${thumb}
 </article>`;
     };
 
-    const payBtnLogoHtml = () =>
-        cartUi?.payButtonHtml?.() ||
-        '<img src="img/mercado-pago-logo-white-horizontal.svg" alt="" class="lig-mp-pay-logo" width="108" height="27" decoding="async">';
-
     const summaryBlockHtml = (cart) => {
         const { units, subtotal } = cartApi.cartSummary(cart);
         const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
@@ -145,8 +141,9 @@ ${condicaoBlock}
 <div class="caminhao-footer">
 <div id="caminhao-summary"></div>
 <button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn caminhao-pay-btn--continue" disabled aria-label="${PAY_LABEL}">
+<span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
 <span>${PAY_LABEL}</span>
-<span class="material-symbols-outlined">arrow_forward</span>
+<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
 </button>
 </div>`;
     };
@@ -288,7 +285,7 @@ ${items.length ? checkoutHtml() : ''}
             if (s?.condicaoPagamento) {
                 cartApi.saveCheckout({ condicaoPagamento: s.condicaoPagamento });
             }
-            window.location.href = 'resumo-pedido.html';
+            window.location.href = 'resumo-pedido.html?picker=date';
         });
 
         root.querySelectorAll('.cart-qty-minus').forEach((btn) => {

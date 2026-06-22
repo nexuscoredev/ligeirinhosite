@@ -19,12 +19,6 @@
             body: 'Confira descontos em cervejas, destilados e refrigerantes.',
             href: 'ofertas.html',
         },
-        {
-            id: 'seed-raios',
-            title: 'Club Raios',
-            body: 'Ganhe pontos a cada pedido pago e troque por benefícios.',
-            href: 'raios.html',
-        },
     ];
 
     let pollTimer = null;

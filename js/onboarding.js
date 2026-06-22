@@ -55,24 +55,11 @@
 <h2 class="text-lg font-bold lig-page-section-title mb-2">O que você mais pede?</h2>
 <p class="text-sm lig-page-lead mb-4">Personalizamos a home com suas preferências.</p>
 <div class="flex flex-wrap gap-2 mb-5">${chips}</div>
-<button type="button" class="lig-btn-primary w-full" data-onboard-next>Continuar</button>
-</div>
-<div class="lig-onboarding__step" data-step="2">
-<div class="lig-clube-teaser mb-5">
-<div class="lig-clube-teaser__icon mb-2">⚡</div>
-<h2 class="text-lg font-bold lig-page-section-title">Club Raios</h2>
-<p class="text-sm lig-page-lead mt-2">Ganhe Raios a cada pedido pago pelo app e troque por benefícios.</p>
-</div>
-<label class="flex items-center gap-2 text-sm lig-page-lead cursor-pointer mb-5">
-<input type="checkbox" id="onboard-club" class="rounded border-[var(--lig-border)] text-vibrant-yellow focus:ring-vibrant-yellow" checked>
-Quero participar do Club Raios
-</label>
 <button type="button" class="lig-btn-primary w-full" data-onboard-finish>Começar a pedir</button>
 </div>
 <div class="lig-onboarding__dots" aria-hidden="true">
 <span class="lig-onboarding__dot lig-onboarding__dot--active" data-dot="0"></span>
 <span class="lig-onboarding__dot" data-dot="1"></span>
-<span class="lig-onboarding__dot" data-dot="2"></span>
 </div>
 </div>`;
         return el;
@@ -97,15 +84,7 @@ Quero participar do Club Raios
             window.LigeirinhoCart.saveCheckout({ address, deliveryType: 'entrega' });
         }
         const selected = [...root.querySelectorAll('input[name="onboard-cat"]:checked')].map((el) => el.value);
-        const clubOptIn = Boolean(root.querySelector('#onboard-club')?.checked);
-        window.LigeirinhoCart?.savePrefs?.({ categories: selected, clubOptIn });
-        if (clubOptIn && window.LigeirinhoRaios) {
-            window.LigeirinhoRaios.join();
-            fetch('data/raios-config.json')
-                .then((r) => (r.ok ? r.json() : {}))
-                .then((cfg) => window.LigeirinhoRaios.creditWelcomeBonus(cfg.welcomeBonus))
-                .catch(() => window.LigeirinhoRaios.creditWelcomeBonus());
-        }
+        window.LigeirinhoCart?.savePrefs?.({ categories: selected });
         markDone();
         root.setAttribute('hidden', '');
         document.body.style.overflow = '';
@@ -114,7 +93,7 @@ Quero participar do Club Raios
     const bind = () => {
         root.querySelectorAll('[data-onboard-next]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                if (currentStep < 2) showStep(currentStep + 1);
+                if (currentStep < 1) showStep(currentStep + 1);
             });
         });
         root.querySelector('[data-onboard-finish]')?.addEventListener('click', finish);

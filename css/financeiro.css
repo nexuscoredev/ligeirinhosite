@@ -39,6 +39,7 @@
     border-radius: 0.75rem;
     background: var(--lig-surface-alt);
     font-size: 1rem;
+    color: var(--lig-text);
 }
 
 .fin-btn {
@@ -338,4 +339,6 @@
     padding: 0 0.75rem;
     border: 1px solid var(--lig-border);
     border-radius: 0.5rem;
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
 }

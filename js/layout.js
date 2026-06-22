@@ -72,12 +72,18 @@
         document.head.appendChild(siteCss);
     }
 
+    if (!document.querySelector('link[href="css/theme-forms.css"]')) {
+        const formsCss = document.createElement('link');
+        formsCss.rel = 'stylesheet';
+        formsCss.href = 'css/theme-forms.css';
+        document.head.appendChild(formsCss);
+    }
+
     const page = document.body.dataset.page || '';
     const appSectionPages = new Set([
         'inicio',
         'ofertas',
         'pedidos',
-        'raios',
         'caminhao',
         'conta',
         'pagamento',
@@ -115,7 +121,6 @@
     const appNavItems = [
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
-        { id: 'raios', href: 'raios.html', label: 'Club Raios', icon: 'bolt' },
     ];
 
     const institutionalNavItems = [
@@ -198,7 +203,7 @@ ${desktopNavHtml}
 </button>
 </div>
 </div>
-${showAppChrome && page !== 'conta' && page !== 'raios' ? `<div class="ze-app-chrome">
+${showAppChrome && page !== 'conta' ? `<div class="ze-app-chrome">
 <div class="ze-fulfillment-bar ze-location-bar" id="ze-location-wrap">
 <button type="button" id="ze-location-main" class="ze-fulfillment-bar__main" aria-label="Forma de recebimento e endereço">
 <span class="ze-fulfillment-bar__icon-wrap" aria-hidden="true">
@@ -276,13 +281,12 @@ ${navMobileLinksHtml}
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
-        { id: 'raios', href: 'raios.html', label: 'Raios', icon: 'bolt' },
         { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];
 
     const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Navegação do app">
-<div class="grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6">
+<div class="grid grid-cols-5 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--5">
 ${bottomTabItems
     .map((item) => {
         const isActive = page === item.id;
@@ -322,7 +326,6 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <a class="lig-footer-link" href="inicio.html">Início</a>
 <a class="lig-footer-link" href="ofertas.html">Ofertas</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
-<a class="lig-footer-link" href="raios.html">Club Raios</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>
 <a class="lig-footer-link" href="quemsomos.html">Quem somos</a>

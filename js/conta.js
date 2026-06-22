@@ -506,12 +506,6 @@ ${esc(cat.label)}
         const body = `<div class="conta-sub-body">
 <p class="conta-sub-lead">Destacamos suas categorias favoritas na página inicial.</p>
 <div class="conta-prefs-chips" id="conta-prefs">${chips}</div>
-<div class="conta-clube-teaser">
-<span class="conta-clube-teaser__icon">⚡</span>
-<p class="conta-clube-teaser__title">Club Raios</p>
-<p class="conta-clube-teaser__sub">Acumule pontos a cada pedido e resgate benefícios.</p>
-<a href="raios.html" class="conta-btn conta-btn--outline conta-btn--full mt-3">Abrir Club Raios</a>
-</div>
 </div>`;
         wrapPage('Preferências', isDesktop() ? '' : '', body, 'preferencias');
 
@@ -559,7 +553,7 @@ ${menuRow({
         const faqs = [
             {
                 q: 'Como faço um pedido?',
-                a: 'Adicione produtos ao caminhão na home ou catálogo e toque em Pagar com Mercado Pago.',
+                a: 'Adicione produtos ao caminhão na home ou catálogo e toque em Escolher data de entrega para concluir o pedido.',
             },
             {
                 q: 'Quais formas de pagamento?',

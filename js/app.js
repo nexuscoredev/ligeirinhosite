@@ -24,6 +24,7 @@
     ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
     ensureMeta('apple-mobile-web-app-title', 'Ligeirinho Parceiros');
     ensureLink('manifest', 'manifest.webmanifest');
+    ensureLink('stylesheet', 'css/theme-forms.css');
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

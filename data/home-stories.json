@@ -49,21 +49,6 @@
       ]
     },
     {
-      "id": "promo-raios",
-      "label": "Raios",
-      "ringColor": "#7c4dff",
-      "thumbIcon": "bolt",
-      "slides": [
-        {
-          "kicker": "Club Raios",
-          "title": "Ganhe Raios a cada pedido",
-          "body": "Acumule pontos e troque por benefícios no app.",
-          "cta": { "label": "Participar", "href": "raios.html" },
-          "theme": "purple"
-        }
-      ]
-    },
-    {
       "id": "promo-combos",
       "label": "Combos",
       "ringColor": "#00c853",

@@ -38,6 +38,8 @@ function publicProfile(profile) {
         pessoaId: profile.pessoaId || null,
         paymentMethods: profile.paymentMethods || [],
         deliveryDateOptions: profile.deliveryDateOptions || [],
+        datasEntrega: profile.datasEntrega || [],
+        diasEntregaLabel: profile.diasEntregaLabel || '',
         razaoSocial: profile.razaoSocial || '',
     };
 }

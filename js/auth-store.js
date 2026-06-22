@@ -54,6 +54,8 @@
             pessoaId: user.pessoaId || '',
             paymentMethods: user.paymentMethods || [],
             deliveryDateOptions: user.deliveryDateOptions || [],
+            datasEntrega: user.datasEntrega || [],
+            diasEntregaLabel: user.diasEntregaLabel || '',
             razaoSocial: user.razaoSocial || '',
             loggedInAt: Date.now(),
         };
@@ -244,6 +246,8 @@
             pessoaId: profile.pessoaId || '',
             paymentMethods: profile.paymentMethods || [],
             deliveryDateOptions: profile.deliveryDateOptions || [],
+            datasEntrega: profile.datasEntrega || [],
+            diasEntregaLabel: profile.diasEntregaLabel || '',
             razaoSocial: profile.razaoSocial || '',
         });
     };

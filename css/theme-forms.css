@@ -1,0 +1,112 @@
+/**
+ * Corrige inputs no modo escuro: o plugin @tailwindcss/forms (CDN) aplica fundo branco
+ * depois do site.css e quebra contraste com texto claro.
+ */
+
+[data-theme='dark'] input:where(
+        [type='text'],
+        [type='search'],
+        [type='email'],
+        [type='tel'],
+        [type='password'],
+        [type='url'],
+        [type='number'],
+        [type='date'],
+        [type='time']
+    ):not(.lig-login-setup__input):not(.lig-login-phone__otp-input),
+[data-theme='dark'] textarea:not(.lig-login-setup__input),
+[data-theme='dark'] select {
+    background-color: var(--lig-surface-alt) !important;
+    border-color: var(--lig-border) !important;
+    color: var(--lig-text) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] input:where(
+            [type='text'],
+            [type='search'],
+            [type='email'],
+            [type='tel'],
+            [type='password'],
+            [type='url'],
+            [type='number'],
+            [type='date'],
+            [type='time']
+        ):not(.lig-login-setup__input):not(.lig-login-phone__otp-input),
+    [data-theme='auto'] textarea:not(.lig-login-setup__input),
+    [data-theme='auto'] select {
+        background-color: var(--lig-surface-alt) !important;
+        border-color: var(--lig-border) !important;
+        color: var(--lig-text) !important;
+    }
+}
+
+[data-theme='dark'] input:where(
+        [type='text'],
+        [type='search'],
+        [type='email'],
+        [type='tel'],
+        [type='password'],
+        [type='url'],
+        [type='number']
+    ):not(.lig-login-setup__input):not(.lig-login-phone__otp-input)::placeholder,
+[data-theme='dark'] textarea:not(.lig-login-setup__input)::placeholder {
+    color: var(--lig-text-subtle) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] input:where(
+            [type='text'],
+            [type='search'],
+            [type='email'],
+            [type='tel'],
+            [type='password'],
+            [type='url'],
+            [type='number']
+        ):not(.lig-login-setup__input):not(.lig-login-phone__otp-input)::placeholder,
+    [data-theme='auto'] textarea:not(.lig-login-setup__input)::placeholder {
+        color: var(--lig-text-subtle) !important;
+    }
+}
+
+.lig-cart-input,
+.lig-page-input,
+.caminhao-input,
+.conta-edit-input,
+.fin-field,
+.ofertas-filter-panel__select,
+.fin-settings-row input {
+    background-color: var(--lig-surface-alt) !important;
+    border-color: var(--lig-border) !important;
+    color: var(--lig-text) !important;
+}
+
+.lig-cart-input::placeholder,
+.lig-page-input::placeholder,
+.caminhao-input::placeholder,
+.conta-edit-input::placeholder,
+.fin-field::placeholder {
+    color: var(--lig-text-subtle) !important;
+}
+
+[data-theme='dark'] input:-webkit-autofill,
+[data-theme='dark'] input:-webkit-autofill:hover,
+[data-theme='dark'] input:-webkit-autofill:focus,
+[data-theme='dark'] textarea:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--lig-surface-alt) inset !important;
+    box-shadow: 0 0 0 1000px var(--lig-surface-alt) inset !important;
+    -webkit-text-fill-color: var(--lig-text) !important;
+    caret-color: var(--lig-text);
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] input:-webkit-autofill,
+    [data-theme='auto'] input:-webkit-autofill:hover,
+    [data-theme='auto'] input:-webkit-autofill:focus,
+    [data-theme='auto'] textarea:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0 1000px var(--lig-surface-alt) inset !important;
+        box-shadow: 0 0 0 1000px var(--lig-surface-alt) inset !important;
+        -webkit-text-fill-color: var(--lig-text) !important;
+        caret-color: var(--lig-text);
+    }
+}

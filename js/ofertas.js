@@ -11,7 +11,6 @@
     let config = {};
     let catalogData = null;
     let displayItems = [];
-    let activeTab = 'descontos';
     let sortMode = 'name';
     let filterCategory = '';
     let filterOpen = false;
@@ -123,21 +122,6 @@ ${catalog.qtyStepperHtml(cartKey, qty, { dark: false })}
 </article>`;
     };
 
-    const pointsOfferRow = (offer) => {
-        const img = categoryImage(offer.imageCategory || offer.categoryId);
-        const member = window.LigeirinhoRaios?.isMember?.();
-        return `<article class="ofertas-points-row">
-${img ? `<img src="${esc(img)}" alt="" class="ofertas-points-row__img" loading="lazy">` : '<div class="ofertas-points-row__img ofertas-points-row__img--placeholder"><span class="material-symbols-outlined">local_offer</span></div>'}
-<div class="ofertas-points-row__body">
-${offer.daysLeft ? `<p class="ofertas-points-row__timer"><span class="ofertas-points-row__dot"></span>Faltam ${offer.daysLeft} dias</p>` : ''}
-<p class="ofertas-points-row__title">${esc(offer.title)}</p>
-<p class="ofertas-points-row__sub">${esc(offer.subtitle)}</p>
-<a href="pedidos.html?categoria=${encodeURIComponent(offer.categoryId)}" class="ofertas-points-row__more">Mostrar mais</a>
-<span class="ofertas-points-row__pts">⚡ ${member ? 'Ganhe' : 'Até'} ${offer.points} Raios</span>
-</div>
-</article>`;
-    };
-
     const getDiscountItems = () => {
         const cats = new Set(config.discountCategories || []);
         let items = displayItems.filter((item) => cats.has(item.categoryId));
@@ -150,18 +134,11 @@ ${offer.daysLeft ? `<p class="ofertas-points-row__timer"><span class="ofertas-po
     };
 
     const renderShell = () => {
-        const tabs = [
-            { id: 'descontos', label: 'Descontos', icon: 'sell' },
-            { id: 'pontos', label: 'Pontos', icon: 'bolt' },
-        ];
-
-        const showToolbar = activeTab !== 'pontos';
-
         root.innerHTML = `<div class="ofertas-shell">
 <header class="ofertas-header">
 <h1 class="ofertas-header__title">Ofertas</h1>
 </header>
-${showToolbar ? `<div class="ofertas-toolbar">
+<div class="ofertas-toolbar">
 <button type="button" class="ofertas-toolbar__btn" id="ofertas-filter-btn" aria-expanded="${filterOpen}">
 <span class="material-symbols-outlined">filter_list</span>
 <span>Filtro</span>
@@ -184,17 +161,7 @@ ${(catalogData?.categories || [])
     .map((c) => `<option value="${esc(c.id)}">${esc(catalog.formatCategoryLabel(c.name))}</option>`)
     .join('')}
 </select>
-</div>` : ''}
-<nav class="ofertas-tabs ofertas-tabs--duo" aria-label="Tipo de oferta">
-${tabs
-    .map(
-        (t) => `<button type="button" class="ofertas-tab${activeTab === t.id ? ' ofertas-tab--active' : ''}" data-ofertas-tab="${t.id}">
-<span class="ofertas-tab__icon"><span class="material-symbols-outlined">${t.icon}</span></span>
-<span class="ofertas-tab__label">${t.label}</span>
-</button>`
-    )
-    .join('')}
-</nav>
+</div>
 <div id="ofertas-list" class="ofertas-list" role="list"></div>
 </div>`;
     };
@@ -203,17 +170,10 @@ ${tabs
         const list = root.querySelector('#ofertas-list');
         if (!list) return;
 
-        if (activeTab === 'descontos') {
-            const items = getDiscountItems();
-            list.innerHTML = items.length
-                ? items.map(offerProductRow).join('')
-                : '<p class="ofertas-empty">Nenhuma oferta de desconto nesta categoria.</p>';
-        } else {
-            const offers = config.pointsOffers || [];
-            list.innerHTML = offers.length
-                ? offers.map(pointsOfferRow).join('')
-                : '<p class="ofertas-empty">Nenhuma oferta de pontos no momento.</p>';
-        }
+        const items = getDiscountItems();
+        list.innerHTML = items.length
+            ? items.map(offerProductRow).join('')
+            : '<p class="ofertas-empty">Nenhuma oferta de desconto nesta categoria.</p>';
 
         bindListActions();
     };
@@ -226,15 +186,6 @@ ${tabs
     };
 
     const bindShell = () => {
-        root.querySelectorAll('[data-ofertas-tab]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                activeTab = btn.dataset.ofertasTab;
-                renderShell();
-                renderList();
-                bindShell();
-            });
-        });
-
         root.querySelector('#ofertas-sort')?.addEventListener('change', (e) => {
             sortMode = e.target.value;
             renderList();
@@ -266,29 +217,14 @@ ${tabs
         if (filterEl) filterEl.value = filterCategory;
     };
 
-    const pointsFromRaios = (raiosCfg) =>
-        (raiosCfg?.missions || []).map((m) => ({
-            id: m.id,
-            title: m.title,
-            subtitle: m.subtitle || 'Valendo mais Raios!',
-            points: m.points,
-            daysLeft: 14,
-            categoryId: m.categoryId,
-            imageCategory: m.categoryId,
-        }));
-
     const init = () => {
-        const tabParam = new URLSearchParams(window.location.search).get('tab');
-        if (tabParam && ['descontos', 'pontos'].includes(tabParam)) activeTab = tabParam;
-
         Promise.all([
             window.LigeirinhoCatalogLoader.load(),
             fetch('data/ofertas-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
-            fetch('data/raios-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
-        ]).then(([catalogJson, cfg, raiosCfg]) => {
-            config = { ...cfg, pointsOffers: pointsFromRaios(raiosCfg) };
+        ]).then(([catalogJson, cfg]) => {
+            config = cfg;
             catalogData = catalogJson;
             displayItems = pricing.getDisplayProducts(catalogJson);
             window.__ligProductGroups = pricing.buildGroups(catalogJson);
@@ -297,7 +233,7 @@ ${tabs
     };
 
     window.addEventListener('ligeirinho-cart-changed', () => {
-        if (activeTab === 'descontos') renderList();
+        renderList();
     });
 
     init();

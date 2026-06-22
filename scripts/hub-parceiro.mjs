@@ -1,4 +1,12 @@
 import { hubConfig } from './hub-auth.mjs';
+import {
+    deliveryDateOptions,
+    resolveParceiroClienteFields,
+    rotuloDiasEntrega,
+} from './parceiro-delivery.mjs';
+
+const CLIENTE_PARCEIROS_SELECT =
+    'canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids';
 
 export function normalizeDocDigits(value) {
     return String(value || '').replace(/\D/g, '');
@@ -117,7 +125,7 @@ export async function fetchPessoaParceiroByCnpj(config, digits) {
     if (!config.serviceKey || digits.length < 11) return null;
     const rows = await hubRest(
         config,
-        `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(canal_cliente,ativo)&cpf_cnpj_digits=eq.${encodeURIComponent(digits)}&limit=1`
+        `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(${CLIENTE_PARCEIROS_SELECT})&cpf_cnpj_digits=eq.${encodeURIComponent(digits)}&limit=1`
     );
     const pessoa = Array.isArray(rows) ? rows[0] : null;
     if (!pessoa) return null;
@@ -136,7 +144,7 @@ async function findPessoaForUsuario(config, usuario) {
     if (usuario?.email) {
         const rows = await hubRest(
             config,
-            `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(canal_cliente,ativo)&email=ilike.${encodeURIComponent(usuario.email)}&limit=3`
+            `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(${CLIENTE_PARCEIROS_SELECT})&email=ilike.${encodeURIComponent(usuario.email)}&limit=3`
         );
         const list = Array.isArray(rows) ? rows : [];
         const match = list.find((p) => {
@@ -150,7 +158,7 @@ async function findPessoaForUsuario(config, usuario) {
         const local = phoneDigits.slice(-11);
         const rows = await hubRest(
             config,
-            `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(canal_cliente,ativo)&telefone=ilike.*${encodeURIComponent(local)}*&limit=3`
+            `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(${CLIENTE_PARCEIROS_SELECT})&telefone=ilike.*${encodeURIComponent(local)}*&limit=3`
         );
         const list = Array.isArray(rows) ? rows : [];
         const match = list.find((p) => {
@@ -206,62 +214,30 @@ export function paymentMethodsForParceiro(formas = [], condicaoPagamento = '') {
     return DEFAULT_PAYMENT_METHODS.filter((m) => ids.has(m.id));
 }
 
-export function deliveryDateOptions(datasEntrega = [], count = 4) {
-    const allowed = new Set((datasEntrega || []).map(Number));
-    const options = [];
-    const now = new Date();
-    for (let i = 1; i <= 21 && options.length < count; i += 1) {
-        const d = new Date(now);
-        d.setDate(d.getDate() + i);
-        const dow = d.getDay();
-        if (allowed.size && !allowed.has(dow)) continue;
-        const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-        options.push({
-            value: d.toISOString().slice(0, 10),
-            label,
-            weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
-            type: 'Regular',
-            priceLabel: 'Grátis',
-        });
-    }
-    if (!options.length) {
-        for (let i = 1; i <= count; i += 1) {
-            const d = new Date(now);
-            d.setDate(d.getDate() + i);
-            const label = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-            const weekday = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-            options.push({
-                value: d.toISOString().slice(0, 10),
-                label,
-                weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
-                type: 'Regular',
-                priceLabel: 'Grátis',
-            });
-        }
-    }
-    return options;
-}
+export { deliveryDateOptions } from './parceiro-delivery.mjs';
 
 export async function buildParceiroExtras(config, usuario) {
     if (!config.serviceKey || !usuario?.id) return {};
     const pessoa = await findPessoaForUsuario(config, usuario);
     if (!pessoa) return {};
 
-    const formas = await fetchFormasPagamento(config, pessoa.formas_pagamento_ids || []);
+    const clienteFields = resolveParceiroClienteFields(pessoa);
+    const formas = await fetchFormasPagamento(config, clienteFields.formasPagamentoIds);
     const cnpjDigits = pessoa.cpf_cnpj_digits || normalizeDocDigits(pessoa.cpf_cnpj);
+    const datasEntrega = clienteFields.datasEntrega;
 
     return {
         pessoaId: pessoa.id,
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
         cnpjDigits,
-        condicaoPagamento: pessoa.condicao_pagamento || '',
-        parcelasVencimento: pessoa.parcelas_vencimento || '',
-        datasEntrega: pessoa.datas_entrega || [],
+        condicaoPagamento: clienteFields.condicaoPagamento,
+        parcelasVencimento: clienteFields.parcelasVencimento,
+        datasEntrega,
+        diasEntregaLabel: rotuloDiasEntrega(datasEntrega),
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
-        paymentMethods: paymentMethodsForParceiro(formas, pessoa.condicao_pagamento),
-        deliveryDateOptions: deliveryDateOptions(pessoa.datas_entrega),
+        paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
+        deliveryDateOptions: deliveryDateOptions(datasEntrega),
         razaoSocial: pessoa.nome_fantasia || pessoa.nome || '',
     };
 }

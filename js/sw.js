@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v82';
+const CACHE_NAME = 'ligeirinho-app-v87';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
@@ -16,7 +16,6 @@ const APP_SHELL = [
     '/ofertas',
     '/caminhao',
     '/conta',
-    '/raios',
     '/quemsomos',
     '/contato',
     '/login',
@@ -29,6 +28,7 @@ const APP_SHELL = [
     '/versao',
     '/manifest.webmanifest',
     '/css/site.css',
+    '/css/theme-forms.css',
     '/js/theme.js',
     '/js/theme-ui.js',
     '/js/app.js',
@@ -48,14 +48,13 @@ const APP_SHELL = [
     '/js/pedidos.js',
     '/js/ofertas.js',
     '/js/caminhao.js',
+    '/js/parceiro-delivery.js',
+    '/js/resumo-pedido.js',
     '/data/ofertas-config.json',
     '/data/client-notifications.json',
     '/data/home-stories.json',
     '/js/onboarding.js',
     '/js/conta.js',
-    '/js/raios-store.js',
-    '/js/raios.js',
-    '/data/raios-config.json',
     '/js/auth-config-loader.js',
     '/js/phone-auth.js',
     '/js/login-phone.js',

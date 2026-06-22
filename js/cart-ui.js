@@ -1,18 +1,17 @@
 (function () {
     const LG_QUERY = '(min-width: 1024px)';
-    const PAY_BTN_LABEL = 'Continuar';
-    const MP_PAY_LOGO = 'img/mercado-pago-logo-white-horizontal.svg';
+    const PAY_BTN_LABEL = 'Escolher data de entrega';
     const payBtnInnerHtml = () =>
-        `<img src="${MP_PAY_LOGO}" alt="" class="lig-mp-pay-logo" width="108" height="27" decoding="async">`;
+        `<span class="material-symbols-outlined lig-cart-continue-btn__icon" aria-hidden="true">calendar_month</span><span>${PAY_BTN_LABEL}</span>`;
 
     const setPayButtonContent = (btn, mode = 'default') => {
         if (!btn) return;
         if (mode === 'loading') {
             btn.textContent = 'Processando…';
-            btn.classList.add('lig-cart-mp-btn--loading');
+            btn.classList.add('lig-cart-continue-btn--loading');
             return;
         }
-        btn.classList.remove('lig-cart-mp-btn--loading');
+        btn.classList.remove('lig-cart-continue-btn--loading');
         btn.innerHTML = payBtnInnerHtml();
     };
 
@@ -47,7 +46,7 @@
 <input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
 <p class="lig-cart-checkout__error hidden" data-checkout-error="address" role="alert"></p>
 <textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
-<p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
+<p class="lig-cart-checkout__hint">Na próxima tela você confirma a data de entrega e a forma de pagamento.</p>
 </div>
 <div id="cart-summary" class="lig-cart-summary-wrap shrink-0"></div>
 </div>
@@ -56,7 +55,7 @@
 <span class="lig-cart-footer__label">Total</span>
 <span id="cart-total" class="lig-cart-footer__value">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn" class="lig-cart-mp-btn w-full py-3 rounded-full transition-colors flex items-center justify-center pointer-events-none opacity-50" disabled aria-disabled="true" aria-label="${PAY_BTN_LABEL}">
+<button type="button" id="cart-pay-btn" class="lig-cart-continue-btn w-full py-3 rounded-full transition-colors flex items-center justify-center pointer-events-none opacity-50" disabled aria-disabled="true" aria-label="${PAY_BTN_LABEL}">
 ${payBtnInnerHtml()}
 </button>
 </div>
@@ -88,7 +87,7 @@ ${payBtnInnerHtml()}
 </div>
 <input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
-<p class="lig-cart-checkout__hint">Pix, cartão de crédito ou débito via Mercado Pago.</p>
+<p class="lig-cart-checkout__hint">Na próxima tela você confirma a data de entrega e a forma de pagamento.</p>
 </div>
 </div>
 <div class="lig-cart-footer shrink-0">
@@ -96,7 +95,7 @@ ${payBtnInnerHtml()}
 <span class="lig-cart-footer__label">Total</span>
 <span id="cart-total-mobile" class="lig-cart-footer__value">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn-mobile" class="lig-cart-mp-btn w-full py-3 rounded-full flex items-center justify-center pointer-events-none opacity-50" disabled aria-label="${PAY_BTN_LABEL}">${payBtnInnerHtml()}</button>
+<button type="button" id="cart-pay-btn-mobile" class="lig-cart-continue-btn w-full py-3 rounded-full flex items-center justify-center pointer-events-none opacity-50" disabled aria-label="${PAY_BTN_LABEL}">${payBtnInnerHtml()}</button>
 </div>
 </div>
 </div>`;
@@ -631,7 +630,7 @@ ${lineThumbHtml(item)}
             cartApi.saveCheckout({ condicaoPagamento: s.condicaoPagamento });
         }
         close({ restoreScroll: true });
-        window.location.href = 'resumo-pedido.html';
+        window.location.href = 'resumo-pedido.html?picker=date';
     };
 
     const startAppPayment = goToResumo;
