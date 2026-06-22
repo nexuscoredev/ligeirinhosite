@@ -7923,6 +7923,17 @@ body.lig-install-open {
     background: rgba(239, 68, 68, 0.06);
 }
 
+.resumo-select-btn--payment {
+    display: flex;
+    align-items: center;
+}
+
+.resumo-select-btn__payment {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
 .resumo-error {
     color: #ef4444;
     font-size: 0.8rem;

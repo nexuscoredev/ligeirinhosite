@@ -31,35 +31,67 @@
         return value.startsWith('/') ? value : `/${value.replace(/^\.\//, '')}`;
     };
 
+    const PAYMENT_MARKS = {
+        pix: { logo: '/img/icon-pix.svg' },
+        cartao: { logo: '/img/icon-cartoes.svg' },
+        dinheiro: { icon: 'payments' },
+        prazo: { icon: 'calendar_month' },
+    };
+
+    const enrichPaymentMethod = (method) => {
+        const mark = PAYMENT_MARKS[method.id] || {};
+        const logo = method.logo || mark.logo || '';
+        return {
+            ...mark,
+            ...method,
+            logo: logo ? assetUrl(logo) : '',
+        };
+    };
+
     const paymentMethods = () => {
         const fallback = [
-            { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: '/img/icon-pix.svg' },
-            {
+            enrichPaymentMethod({
+                id: 'pix',
+                label: 'Pix',
+                hint: 'Pagamento instantâneo',
+            }),
+            enrichPaymentMethod({
                 id: 'cartao',
                 label: 'Cartão débito e crédito',
                 hint: 'Visa, Mastercard e Elo',
-                logo: '/img/icon-cartoes.svg',
-            },
-            { id: 'dinheiro', label: 'Dinheiro', hint: 'Na entrega ou retirada', icon: 'payments' },
+            }),
+            enrichPaymentMethod({
+                id: 'dinheiro',
+                label: 'Dinheiro',
+                hint: 'Na entrega ou retirada',
+            }),
         ];
         const s = session();
         if (!s?.paymentMethods?.length) return fallback;
         const cleaned = s.paymentMethods
             .filter((m) => m.id !== 'boleto' && m.id !== 'mercado_pago')
-            .map((m) => ({ ...m, logo: m.logo ? assetUrl(m.logo) : m.logo }));
+            .map((m) => enrichPaymentMethod(m));
         return cleaned.length ? cleaned : fallback;
     };
 
     const paymentMethodIconHtml = (opt) => {
-        const logo = opt.logo ? assetUrl(opt.logo) : '';
+        const enriched = enrichPaymentMethod(opt);
+        const logo = enriched.logo;
         if (logo) {
-            const logoMod = opt.id === 'pix' ? ' resumo-option__logo--pix' : ' resumo-option__logo--cartao';
+            const logoMod = enriched.id === 'pix' ? ' resumo-option__logo--pix' : ' resumo-option__logo--cartao';
             return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
         }
         const icon =
-            opt.icon ||
-            (opt.id === 'dinheiro' ? 'payments' : opt.id === 'prazo' ? 'calendar_month' : 'credit_card');
+            enriched.icon ||
+            (enriched.id === 'dinheiro' ? 'payments' : enriched.id === 'prazo' ? 'calendar_month' : 'credit_card');
         return `<span class="material-symbols-outlined resumo-option__icon" aria-hidden="true">${icon}</span>`;
+    };
+
+    const paymentMethodSelectHtml = (methodId) => {
+        if (!methodId) return esc('Selecionar método');
+        const opt = paymentMethods().find((m) => m.id === methodId);
+        if (!opt) return esc('Selecionar método');
+        return `<span class="resumo-select-btn__payment">${paymentMethodIconHtml(opt)}<span>${esc(opt.label)}</span></span>`;
     };
 
     const isOnlinePayment = (method) => {
@@ -158,14 +190,12 @@ ${body}
         const { units, subtotal } = cartApi.cartSummary(cart);
         const s = session();
         const errors = validateCheckout(checkout);
-        const condicao = checkout.condicaoPagamento || s?.condicaoPagamento || '—';
         const dateLabel =
             deliveryOptions().find((d) => d.value === checkout.deliveryDate)?.label || 'Selecionar data';
         const diasLabel = s?.datasEntrega?.length
             ? s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || ''
             : '';
-        const payLabel =
-            paymentMethods().find((m) => m.id === checkout.paymentMethod)?.label || 'Selecionar método';
+        const payLabel = paymentMethodSelectHtml(checkout.paymentMethod);
 
         const productsBody = items
             .slice(0, 3)
@@ -183,7 +213,6 @@ ${body}
         root.innerHTML = `<div class="resumo-shell">
 ${headerHtml('Resumo do pedido')}
 <div class="resumo-content">
-${cardHtml('Condição de pagamento', `<p class="resumo-field-value">${esc(condicao)}</p>${s?.parcelasVencimento ? `<p class="resumo-field-hint">${esc(s.parcelasVencimento)}</p>` : ''}`)}
 ${cardHtml(
     'Data de entrega',
     `${diasLabel ? `<p class="resumo-field-hint">Dias de entrega: ${esc(diasLabel)}</p>` : '<p class="resumo-field-hint">Campo obrigatório</p>'}
@@ -193,7 +222,7 @@ ${errors.deliveryDate ? `<p class="resumo-error">${esc(errors.deliveryDate)}</p>
 ${cardHtml(
     'Método de pagamento',
     `<p class="resumo-field-hint">Campo obrigatório</p>
-<button type="button" class="resumo-select-btn${errors.paymentMethod ? ' resumo-select-btn--error' : ''}" data-open-picker="payment">${esc(payLabel)}</button>
+<button type="button" class="resumo-select-btn resumo-select-btn--payment${errors.paymentMethod ? ' resumo-select-btn--error' : ''}" data-open-picker="payment">${payLabel}</button>
 ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</p>` : ''}`
 )}
 ${cardHtml('Produtos', `${productsBody}${items.length > 3 ? `<p class="resumo-more">+ ${items.length - 3} itens</p>` : ''}`, String(units))}
