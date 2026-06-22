@@ -97,6 +97,32 @@ async function resolverProdutosHub(config, items = []) {
     return map;
 }
 
+const TOTEM_ORDER_SELECT =
+    'id,total,customer_name,totem_label,unit_id,created_at,payment_method,items,notes,status,financial_status,channel';
+
+function parceirosHeaders(parceirosKey) {
+    return {
+        apikey: parceirosKey,
+        Authorization: `Bearer ${parceirosKey}`,
+        'Content-Type': 'application/json',
+    };
+}
+
+async function parceirosRest(parceirosUrl, parceirosKey, path, options = {}) {
+    const res = await fetch(`${parceirosUrl}/rest/v1/${path}`, {
+        method: options.method || 'GET',
+        headers: parceirosHeaders(parceirosKey),
+        body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+    const rows = await res.json().catch(() => null);
+    return { ok: res.ok, status: res.status, rows, message: rows?.message };
+}
+
+function pickTotemOrderByPrefix(list, prefix) {
+    if (!Array.isArray(list) || !list.length) return null;
+    return list.find((o) => String(o.id || '').toLowerCase().startsWith(prefix)) || list[0];
+}
+
 export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
     const prefix = parseTotemOrderCode(code);
     if (!prefix) {
@@ -107,31 +133,52 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
         throw err;
     }
 
-    const res = await fetch(
-        `${parceirosUrl}/rest/v1/orders?channel=eq.totem&id::text=ilike.${encodeURIComponent(`${prefix}*`)}&select=id,total,customer_name,totem_label,unit_id,created_at,payment_method,items,notes,status,financial_status,channel&order=created_at.desc&limit=5`,
-        {
-            headers: {
-                apikey: parceirosKey,
-                Authorization: `Bearer ${parceirosKey}`,
-            },
-        },
-    );
-    const rows = await res.json().catch(() => []);
-    if (!res.ok) {
-        const err = new Error(rows?.message || 'Erro ao buscar pedido');
-        err.status = res.status;
-        throw err;
+    // 1) Coluna texto totem_code (eq) — sem cast/ilike em uuid.
+    {
+        const { ok, rows } = await parceirosRest(
+            parceirosUrl,
+            parceirosKey,
+            `orders?channel=eq.totem&totem_code=eq.${encodeURIComponent(prefix)}&select=${TOTEM_ORDER_SELECT}&order=created_at.desc&limit=5`,
+        );
+        if (ok) {
+            const order = pickTotemOrderByPrefix(rows, prefix);
+            if (order) return order;
+        }
     }
 
-    const list = Array.isArray(rows) ? rows : [];
-    if (!list.length) {
-        const err = new Error(`Pedido ${prefix.toUpperCase()} não encontrado.`);
-        err.status = 404;
-        throw err;
+    // 2) RPC server-side (id::text no SQL, não via PostgREST filter).
+    {
+        const res = await fetch(`${parceirosUrl}/rest/v1/rpc/rpc_lookup_totem_order_by_code`, {
+            method: 'POST',
+            headers: parceirosHeaders(parceirosKey),
+            body: JSON.stringify({ p_prefix: prefix }),
+        });
+        if (res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && typeof data === 'object' && data.id) return data;
+        }
     }
 
-    const order = list.find((o) => String(o.id || '').toLowerCase().startsWith(prefix)) || list[0];
-    return order;
+    // 3) Fallback: pedidos totem recentes + filtro em memória.
+    {
+        const { ok, rows, message } = await parceirosRest(
+            parceirosUrl,
+            parceirosKey,
+            `orders?channel=eq.totem&select=${TOTEM_ORDER_SELECT}&order=created_at.desc&limit=120`,
+        );
+        if (!ok) {
+            const err = new Error(message || 'Erro ao buscar pedido');
+            err.status = 500;
+            throw err;
+        }
+        const order = pickTotemOrderByPrefix(rows, prefix);
+        if (!order) {
+            const err = new Error(`Pedido ${prefix.toUpperCase()} não encontrado.`);
+            err.status = 404;
+            throw err;
+        }
+        return order;
+    }
 }
 
 export function publicTotemLookupView(order, hubPedido = null) {
