@@ -3,7 +3,8 @@
     "idleTimeoutMs": 120000,
     "successTimeoutMs": 18000,
     "adminPin": "123456",
-    "autoPrintReceipt": false
+    "autoPrintReceipt": true,
+    "autoPrintDelayMs": 450
   },
   "units": {
     "default": {

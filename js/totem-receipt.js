@@ -1,6 +1,26 @@
 (function () {
-    /** Impressão térmica desligada até configuração da impressora no totem. */
-    const RECEIPT_PRINT_ENABLED = false;
+    const AUTO_PRINT_DELAY_MS = 450;
+
+    let cachedConfig = null;
+
+    const loadReceiptConfig = async () => {
+        if (cachedConfig) return cachedConfig;
+        try {
+            const cfg = await fetch('data/totem-units.json').then((r) => r.json());
+            cachedConfig = {
+                autoPrint: cfg?.defaults?.autoPrintReceipt === true,
+                autoPrintDelayMs: Number(cfg?.defaults?.autoPrintDelayMs) || AUTO_PRINT_DELAY_MS,
+                totemLabel: cfg?.units?.default?.label || 'Ligeirinho Totem',
+            };
+        } catch {
+            cachedConfig = {
+                autoPrint: false,
+                autoPrintDelayMs: AUTO_PRINT_DELAY_MS,
+                totemLabel: 'Ligeirinho Totem',
+            };
+        }
+        return cachedConfig;
+    };
 
     const esc = (s) =>
         String(s ?? '')
@@ -135,27 +155,40 @@
         return el;
     };
 
-    const printOrderReceipt = (order, opts = {}) => {
-        if (!RECEIPT_PRINT_ENABLED || !order?.id) return false;
+    const printOrderReceipt = async (order, opts = {}) => {
+        if (!order?.id) return false;
+
+        const force = Boolean(opts.force);
+        const auto = Boolean(opts.auto);
+        if (!force && !auto) return false;
+
+        const config = await loadReceiptConfig();
+        if (auto && !config.autoPrint) return false;
 
         const storageKey = `totem-receipt:${order.id}`;
-        const force = Boolean(opts.force);
         if (!force && sessionStorage.getItem(storageKey)) return false;
 
         const root = ensurePrintRoot();
-        root.innerHTML = buildReceiptHtml(order, opts);
-        sessionStorage.setItem(storageKey, String(Date.now()));
+        root.innerHTML = buildReceiptHtml(order, {
+            totemLabel: opts.totemLabel || config.totemLabel,
+            ...opts,
+        });
+        if (!force) sessionStorage.setItem(storageKey, String(Date.now()));
 
-        const runPrint = () => {
-            try {
-                window.print();
-            } catch {
-                /* ignore */
-            }
-        };
+        const delayMs = Number(opts.delayMs) || config.autoPrintDelayMs || AUTO_PRINT_DELAY_MS;
 
-        window.requestAnimationFrame(() => window.setTimeout(runPrint, 200));
-        return true;
+        return new Promise((resolve) => {
+            window.requestAnimationFrame(() => {
+                window.setTimeout(() => {
+                    try {
+                        window.print();
+                        resolve(true);
+                    } catch {
+                        resolve(false);
+                    }
+                }, delayMs);
+            });
+        });
     };
 
     window.LigeirinhoTotemReceipt = {
@@ -163,6 +196,7 @@
         formatCode,
         compactCode,
         copyToClipboard,
+        loadReceiptConfig,
         printOrderReceipt,
     };
 })();

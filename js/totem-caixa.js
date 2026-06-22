@@ -38,10 +38,30 @@
     let pollTimer = null;
     let screenTimeout = null;
     let countdownTimer = null;
+    let currentOrder = null;
+    let totemLabel = 'Ligeirinho Totem';
+    let autoPrintEnabled = false;
+    let autoPrintTriggered = false;
     const SCREEN_TIMEOUT_MS = 30000;
 
     const bindActions = () => {
         document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
+        document.getElementById('totem-caixa-reprint')?.addEventListener('click', () => {
+            if (!currentOrder) return;
+            receipt?.printOrderReceipt?.(currentOrder, { force: true, totemLabel });
+        });
+    };
+
+    const showPrintNote = () => {
+        const note = document.getElementById('totem-caixa-print-note');
+        if (note) note.hidden = false;
+    };
+
+    const triggerAutoPrint = async (order) => {
+        if (!receipt?.printOrderReceipt || autoPrintTriggered || !autoPrintEnabled) return;
+        autoPrintTriggered = true;
+        const printed = await receipt.printOrderReceipt(order, { auto: true, totemLabel });
+        if (printed) showPrintNote();
     };
 
     const clearTimers = () => {
@@ -86,13 +106,21 @@
     };
 
     const renderWaiting = (order) => {
+        currentOrder = order;
         const code = formatDisplayCode(order.id);
         const copyCode = compactDisplayCode(order.id);
+        const printNoteHtml = autoPrintEnabled
+            ? `<p class="totem-caixa-card__print-note" id="totem-caixa-print-note" hidden>
+<span class="material-symbols-outlined" aria-hidden="true">print</span>
+Comprovante enviado para a impressora padrão
+</p>`
+            : '';
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-caixa-card">
 <span class="material-symbols-outlined totem-pay-icon totem-caixa-card__icon" aria-hidden="true">storefront</span>
 <h1 class="lig-payment-title">Dirija-se ao caixa</h1>
 <p class="lig-payment-lead">Seu pedido entrou na fila do <strong>Ligeirinho Parceiros</strong>. Informe o código abaixo para o operador finalizar o pagamento.</p>
 <button type="button" class="totem-success-code totem-caixa-card__code" data-totem-copy-code data-copy-text="${esc(copyCode)}" aria-label="Copiar código do pedido">${esc(code)}</button>
+${printNoteHtml}
 <div class="totem-caixa-card__meta">
 <p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order.paymentMethod)}</span></p>
 <p class="totem-caixa-card__row"><span>Total</span><strong class="totem-caixa-card__value">${formatPrice(order.total)}</strong></p>
@@ -101,6 +129,10 @@
 <span class="totem-caixa-pulse" aria-hidden="true"></span>
 Aguardando confirmação no PDV…
 </p>
+<button type="button" class="totem-btn totem-btn--ghost totem-caixa-card__reprint" id="totem-caixa-reprint">
+<span class="material-symbols-outlined" aria-hidden="true">print</span>
+Imprimir comprovante
+</button>
 <p class="totem-caixa-card__timeout" id="totem-caixa-timeout-wrap" aria-live="polite">
 Nova tela em <strong id="totem-caixa-countdown">30</strong>s para o próximo cliente.
 </p>
@@ -112,6 +144,7 @@ Nova tela em <strong id="totem-caixa-countdown">30</strong>s para o próximo cli
 
         bindActions();
         startScreenTimeout();
+        void triggerAutoPrint(order);
     };
 
     const startPolling = (id) => {
@@ -141,9 +174,17 @@ Nova tela em <strong id="totem-caixa-countdown">30</strong>s para o próximo cli
         }
 
         try {
-            const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`);
+            const [res, receiptConfig] = await Promise.all([
+                fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`),
+                receipt?.loadReceiptConfig?.() ?? Promise.resolve(null),
+            ]);
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Pedido não encontrado');
+
+            if (receiptConfig) {
+                autoPrintEnabled = receiptConfig.autoPrint === true;
+                totemLabel = receiptConfig.totemLabel || totemLabel;
+            }
 
             const order = data.order;
             if (order.status === 'paid') {
