@@ -38,6 +38,7 @@
 
     let catalogData = null;
     let displayItems = [];
+    let totemCategories = [];
     let activeCategory = '';
     let totemConfig = { defaults: {}, units: {}, loginUnitMap: {} };
     let unitSettings = null;
@@ -53,6 +54,77 @@
         const mapped = totemConfig.loginUnitMap?.[s?.login] || totemConfig.loginUnitMap?.[s?.email];
         const unitId = s?.totemUnitId || mapped || 'default';
         return totemConfig.units?.[unitId] || totemConfig.units?.default || { label: 'Ligeirinho', hiddenCategories: [], hiddenProductIds: [] };
+    };
+
+    const CATEGORY_CANON = {
+        cerveja: { id: 'cerveja', name: 'Cerveja' },
+        cervejas: { id: 'cerveja', name: 'Cerveja' },
+        whisky: { id: 'whisky', name: 'Whiskys' },
+        whiskys: { id: 'whisky', name: 'Whiskys' },
+        vodka: { id: 'vodka', name: 'Vodkas' },
+        vodkas: { id: 'vodka', name: 'Vodkas' },
+        gin: { id: 'gin', name: 'Gins' },
+        gins: { id: 'gin', name: 'Gins' },
+        refrigerante: { id: 'refrigerante', name: 'Refrigerante' },
+        refrigerantes: { id: 'refrigerante', name: 'Refrigerante' },
+        destilado: { id: 'destilados', name: 'Destilados' },
+        destilados: { id: 'destilados', name: 'Destilados' },
+    };
+
+    const canonCategoryId = (id) => {
+        const key = String(id || '').toLowerCase();
+        return CATEGORY_CANON[key]?.id || key;
+    };
+
+    const canonCategoryName = (id, fallback = '') => {
+        const key = String(id || '').toLowerCase();
+        return CATEGORY_CANON[key]?.name || fallback || catalog.formatCategoryLabel(fallback || id);
+    };
+
+    const buildTotemCategories = () => {
+        const order = (catalogData?.categories || []).map((c) => canonCategoryId(c.id));
+        const orderIndex = new Map(order.map((id, i) => [id, i]));
+        const counts = new Map();
+
+        displayItems.forEach((item) => {
+            const cid = canonCategoryId(item.categoryId);
+            counts.set(cid, (counts.get(cid) || 0) + 1);
+        });
+
+        const merged = [];
+        const seen = new Set();
+        (catalogData?.categories || []).forEach((cat) => {
+            const cid = canonCategoryId(cat.id);
+            if (seen.has(cid)) return;
+            const count = counts.get(cid) || 0;
+            if (!count) return;
+            seen.add(cid);
+            merged.push({
+                id: cid,
+                name: canonCategoryName(cat.id, cat.name),
+                count,
+            });
+        });
+
+        counts.forEach((count, cid) => {
+            if (seen.has(cid)) return;
+            merged.push({ id: cid, name: canonCategoryName(cid, cid), count });
+        });
+
+        merged.sort(
+            (a, b) =>
+                (orderIndex.get(a.id) ?? 999) - (orderIndex.get(b.id) ?? 999) ||
+                a.name.localeCompare(b.name, 'pt-BR')
+        );
+        return merged;
+    };
+
+    const normalizeDisplayItems = () => {
+        displayItems = displayItems.map((item) => ({
+            ...item,
+            categoryId: canonCategoryId(item.categoryId),
+            categoryName: canonCategoryName(item.categoryId, item.categoryName),
+        }));
     };
 
     const filterCatalog = (data) => {
@@ -74,7 +146,12 @@
     };
 
     const activeCategoryMeta = () =>
-        catalogData?.categories?.find((cat) => cat.id === activeCategory) || null;
+        totemCategories.find((cat) => cat.id === activeCategory) || null;
+
+    const itemsForActiveCategory = () => {
+        if (!activeCategory) return displayItems;
+        return displayItems.filter((item) => item.categoryId === activeCategory);
+    };
 
     const categoryIcon = (cat) => {
         const cover = catalog.categoryCoverMedia(cat, catalogData?.categories || []);
@@ -129,16 +206,19 @@
     };
 
     const renderCategories = () => {
-        if (!categoriesEl || !catalogData) return;
-        const cats = catalogData.categories;
-        categoriesEl.innerHTML = cats
+        if (!categoriesEl) return;
+        categoriesEl.innerHTML = totemCategories
             .map((cat) => {
                 const active = cat.id === activeCategory;
-                const icon = categoryIcon(cat);
+                const catForIcon = catalogData?.categories?.find(
+                    (c) => canonCategoryId(c.id) === cat.id
+                ) || { id: cat.id, name: cat.name, products: [] };
+                const icon = categoryIcon(catForIcon);
                 const label = catalog.formatCategoryLabel(cat.name);
-                return `<button type="button" class="totem-cat-btn${active ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}">
+                return `<button type="button" class="totem-cat-btn${active ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}" aria-current="${active ? 'true' : 'false'}">
 <span class="totem-cat-btn__icon material-symbols-outlined" aria-hidden="true">${esc(icon)}</span>
 <span class="totem-cat-btn__label">${esc(label)}</span>
+<span class="totem-cat-btn__count">${cat.count}</span>
 </button>`;
             })
             .join('');
@@ -146,7 +226,10 @@
 
     const renderProducts = () => {
         if (!productsGrid) return;
-        const items = displayItems.filter((item) => !activeCategory || item.categoryId === activeCategory);
+        if (activeCategory && !totemCategories.some((c) => c.id === activeCategory)) {
+            activeCategory = totemCategories[0]?.id || '';
+        }
+        const items = itemsForActiveCategory();
         const catMeta = activeCategoryMeta();
         const catLabel = catMeta ? catalog.formatCategoryLabel(catMeta.name) : '';
 
@@ -156,8 +239,21 @@
             productsCount.textContent =
                 items.length === 1 ? '1 produto' : `${items.length} produtos`;
         }
-        if (productsEmpty) productsEmpty.hidden = items.length > 0;
-        productsGrid.hidden = items.length === 0;
+
+        const isEmpty = items.length === 0;
+        if (productsEmpty) {
+            productsEmpty.hidden = !isEmpty;
+            productsEmpty.style.display = isEmpty ? '' : 'none';
+        }
+        if (productsGrid) {
+            productsGrid.hidden = isEmpty;
+            productsGrid.style.display = isEmpty ? 'none' : '';
+        }
+
+        if (isEmpty) {
+            productsGrid.innerHTML = '';
+            return;
+        }
 
         productsGrid.innerHTML = items
             .map((item, index) => {
@@ -342,8 +438,8 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
     const bindEvents = () => {
         startBtn?.addEventListener('click', () => {
             resetCart();
-            if (!activeCategory && catalogData?.categories?.[0]) {
-                activeCategory = catalogData.categories[0].id;
+            if (!activeCategory && totemCategories[0]) {
+                activeCategory = totemCategories[0].id;
             }
             renderCategories();
             renderProducts();
@@ -359,7 +455,7 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         categoriesEl?.addEventListener('click', (e) => {
             const btn = e.target.closest('.totem-cat-btn');
             if (!btn) return;
-            activeCategory = btn.dataset.cat || '';
+            activeCategory = canonCategoryId(btn.dataset.cat || '');
             renderCategories();
             renderProducts();
             bumpIdle();
@@ -436,11 +532,15 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         catalogData = filterCatalog(rawCatalog);
         pricing.rebuildGroups?.(catalogData);
         displayItems = buildDisplayItems();
-        void packCfg;
-        void tierCfg;
-        if (catalogData.categories?.[0]) activeCategory = catalogData.categories[0].id;
+        normalizeDisplayItems();
+        totemCategories = buildTotemCategories();
+        if (totemCategories[0]) {
+            activeCategory = totemCategories[0].id;
+        }
 
         bindEvents();
+        renderCategories();
+        renderProducts();
         renderCart();
         resetIdleTimer();
     };

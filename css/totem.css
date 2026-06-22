@@ -53,7 +53,8 @@ body.totem-kiosk {
     max-height: 100svh;
     overflow: hidden;
     --totem-welcome-scale: min(1, calc((100svh - 9.5rem) / 500));
-    --totem-sidebar-w: clamp(13.5rem, 18vw, 17.5rem);
+    --totem-sidebar-w: clamp(11.5rem, 15vw, 14.5rem);
+    --totem-ui-scale: 0.9;
     background:
         radial-gradient(ellipse 120% 80% at 50% -20%, rgba(240, 201, 41, 0.09), transparent 55%),
         linear-gradient(180deg, #f7f4ed 0%, var(--lig-bg) 42%, #efe9de 100%);
@@ -83,8 +84,8 @@ body.totem-kiosk {
 }
 
 .totem-header__logo {
-    width: clamp(40px, 6.5dvh, 48px);
-    height: clamp(40px, 6.5dvh, 48px);
+    width: clamp(34px, 5dvh, 40px);
+    height: clamp(34px, 5dvh, 40px);
     object-fit: contain;
     background: var(--lig-brand-logo-bg);
     border-radius: 1rem;
@@ -95,7 +96,7 @@ body.totem-kiosk {
 }
 
 .totem-header__title .lig-brand__wordmark {
-    font-size: clamp(1rem, 2.8dvh, 1.2rem);
+    font-size: clamp(0.9rem, 2.2dvh, 1.05rem);
 }
 
 .totem-header__sub {
@@ -123,15 +124,15 @@ body.totem-kiosk {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    min-height: 48px;
-    min-width: 48px;
-    padding: 0.65rem 1.15rem;
+    gap: 0.45rem;
+    min-height: 42px;
+    min-width: 42px;
+    padding: 0.5rem 0.95rem;
     border-radius: 999px;
     border: none;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 0.9375rem;
+    font-size: 0.8125rem;
     letter-spacing: 0.01em;
     cursor: pointer;
     transition:
@@ -210,6 +211,8 @@ body.totem-kiosk {
 .totem-main {
     overflow: hidden;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .totem-view {
@@ -399,6 +402,7 @@ body.totem-kiosk {
     display: grid;
     grid-template-columns: var(--totem-sidebar-w) 1fr;
     min-height: 0;
+    height: 100%;
     background: transparent;
 }
 
@@ -406,7 +410,8 @@ body.totem-kiosk {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    padding: 0.85rem 0 0.85rem 0.85rem;
+    height: 100%;
+    padding: 0.55rem 0 0.55rem 0.55rem;
 }
 
 .totem-categories__label {
@@ -437,19 +442,19 @@ body.totem-kiosk {
 .totem-cat-btn {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.5rem;
     width: 100%;
     text-align: left;
-    padding: 0.72rem 0.85rem;
-    margin-bottom: 0.3rem;
-    border-radius: 0.9rem;
+    padding: 0.5rem 0.65rem;
+    margin-bottom: 0.2rem;
+    border-radius: 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
     border: 1px solid transparent;
     background: transparent;
     color: var(--lig-text-muted);
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 600;
-    font-size: 0.8125rem;
-    line-height: 1.2;
     position: relative;
     transition:
         background 0.22s var(--lig-ease),
@@ -461,15 +466,15 @@ body.totem-kiosk {
 
 .totem-cat-btn__icon {
     flex: 0 0 auto;
-    width: 2rem;
-    height: 2rem;
+    width: 1.65rem;
+    height: 1.65rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0.65rem;
+    border-radius: 0.55rem;
     background: rgba(20, 18, 15, 0.04);
     color: var(--lig-text-subtle);
-    font-size: 1.125rem;
+    font-size: 1rem;
     transition:
         background 0.22s ease,
         color 0.22s ease,
@@ -477,10 +482,29 @@ body.totem-kiosk {
 }
 
 .totem-cat-btn__label {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.totem-cat-btn__count {
+    flex: 0 0 auto;
+    min-width: 1.35rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    background: rgba(20, 18, 15, 0.05);
+    font-size: 0.625rem;
+    font-weight: 800;
+    color: var(--lig-text-subtle);
+    text-align: center;
+    line-height: 1.35;
+}
+
+.totem-cat-btn--active .totem-cat-btn__count {
+    background: rgba(138, 101, 0, 0.12);
+    color: var(--lig-yellow-text);
 }
 
 .totem-cat-btn::before {
@@ -519,18 +543,30 @@ body.totem-kiosk {
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
-    padding: 0.85rem 0.85rem 0.85rem 0;
+    padding: 0.55rem 0.55rem 0.55rem 0;
     background:
         radial-gradient(circle at 85% 12%, rgba(240, 201, 41, 0.08), transparent 34%),
         radial-gradient(circle at 8% 88%, rgba(20, 18, 15, 0.03), transparent 30%);
 }
 
+.totem-products__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    position: relative;
+    padding: 0 0.2rem 0.2rem;
+}
+
 .totem-products__head {
+    flex-shrink: 0;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.15rem 0.35rem 0.85rem;
+    gap: 0.75rem;
+    padding: 0.1rem 0.25rem 0.55rem;
 }
 
 .totem-products__eyebrow {
@@ -545,7 +581,7 @@ body.totem-kiosk {
 .totem-products__title {
     margin: 0;
     font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
-    font-size: clamp(1.25rem, 2.4dvh, 1.6rem);
+    font-size: clamp(1.05rem, 2dvh, 1.35rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--lig-text);
@@ -564,24 +600,30 @@ body.totem-kiosk {
 }
 
 .totem-products .totem-grid {
-    overflow-y: auto;
-    flex: 1;
-    min-height: 0;
-    padding: 0.15rem 0.35rem 0.35rem;
+    overflow: visible;
+    padding: 0.1rem 0.15rem 0.25rem;
     align-content: start;
 }
 
+.totem-empty[hidden] {
+    display: none !important;
+}
+
+.totem-grid[hidden] {
+    display: none !important;
+}
+
 .totem-empty {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     gap: 0.35rem;
-    padding: 2rem 1.5rem;
-    margin: 0.35rem;
-    border-radius: 1.25rem;
+    min-height: min(100%, 14rem);
+    padding: 1.5rem 1rem;
+    margin: 0.15rem;
+    border-radius: 1rem;
     background: rgba(255, 255, 255, 0.62);
     border: 1px dashed rgba(20, 18, 15, 0.12);
 }
@@ -610,8 +652,8 @@ body.totem-kiosk {
 
 .totem-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
-    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: 0.65rem;
 }
 
 .totem-product {
@@ -619,9 +661,9 @@ body.totem-kiosk {
     flex-direction: column;
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(20, 18, 15, 0.07);
-    border-radius: 1.125rem;
+    border-radius: 0.9rem;
     overflow: hidden;
-    min-height: 250px;
+    min-height: 198px;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.8) inset,
         var(--lig-shadow-sm);
@@ -710,19 +752,19 @@ body.totem-kiosk {
 }
 
 .totem-product__body {
-    padding: 0.85rem 0.9rem 0.95rem;
+    padding: 0.55rem 0.65rem 0.65rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.35rem;
     flex: 1;
 }
 
 .totem-product__name {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 0.84rem;
-    line-height: 1.35;
-    min-height: 2.5em;
+    font-size: 0.78rem;
+    line-height: 1.3;
+    min-height: 2.4em;
     color: var(--lig-text);
     letter-spacing: -0.01em;
 }
