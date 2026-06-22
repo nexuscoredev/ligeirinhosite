@@ -26,37 +26,47 @@
 </div>
 </div>
 <div class="totem-header__actions">
-<button type="button" class="totem-btn totem-btn--ghost" id="totem-home-btn" hidden>
+<button type="button" class="totem-btn totem-btn--ghost totem-btn--icon" id="totem-home-btn" hidden>
 <span class="material-symbols-outlined">home</span>
-Início
+<span class="totem-btn__label">Início</span>
 </button>
-<button type="button" class="totem-btn totem-btn--cart" id="totem-cart-btn" hidden>
+<button type="button" class="totem-btn totem-btn--cart totem-btn--icon" id="totem-cart-btn" hidden>
 <span class="material-symbols-outlined">shopping_cart</span>
-Carrinho
-<span class="totem-btn__badge" id="totem-cart-badge">0</span>
+<span class="totem-btn__label">Carrinho</span>
+<span class="totem-btn__badge totem-btn__badge--inline" id="totem-cart-badge">0</span>
 </button>
 </div>
 </header>
 
 <main class="totem-main">
 <section id="totem-view-welcome" class="totem-view totem-view--active totem-welcome" aria-label="Boas-vindas">
-<div class="totem-welcome__glow" aria-hidden="true"></div>
 <div class="totem-welcome__content">
+<div class="totem-welcome__hero">
 <div class="totem-welcome__logo-wrap">
 <img class="totem-welcome__logo" src="img/ligeirinhologo.png" alt="Ligeirinho">
 </div>
 <p class="totem-welcome__eyebrow">Bem-vindo ao</p>
 <h1 class="totem-welcome__wordmark"><span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Totem</span></span></h1>
 <p class="totem-welcome__lead">Escolha suas bebidas, pague com segurança e retire no balcão em poucos toques.</p>
-<ul class="totem-welcome__features" aria-label="Benefícios">
-<li><span class="material-symbols-outlined" aria-hidden="true">qr_code_2</span> Pix instantâneo</li>
-<li><span class="material-symbols-outlined" aria-hidden="true">credit_card</span> Crédito e débito</li>
-<li><span class="material-symbols-outlined" aria-hidden="true">storefront</span> Retirada na loja</li>
-</ul>
+</div>
+<div class="totem-welcome__panel" aria-label="Pagamento e retirada">
+<div class="totem-welcome__option">
+<span class="totem-welcome__option-icon material-symbols-outlined" aria-hidden="true">qr_code_2</span>
+<span class="totem-welcome__option-label">Pagar via Pix</span>
+</div>
+<div class="totem-welcome__option">
+<span class="totem-welcome__option-icon material-symbols-outlined" aria-hidden="true">credit_card</span>
+<span class="totem-welcome__option-label">Cartão débito/crédito</span>
+</div>
+<div class="totem-welcome__option">
+<span class="totem-welcome__option-icon material-symbols-outlined" aria-hidden="true">storefront</span>
+<span class="totem-welcome__option-label">Retirar na loja</span>
+</div>
 <button type="button" class="totem-btn totem-btn--primary totem-btn--xl totem-welcome__cta" id="totem-start-btn">
 <span>Toque para começar</span>
 <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
 </button>
+</div>
 </div>
 </section>
 
