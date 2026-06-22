@@ -313,7 +313,8 @@
                     : product.name;
                 const price = active.price;
                 const tierLabel = pricing.TIER_SHORT?.[tier] || '';
-                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}" style="--totem-card-i:${Math.min(index, 14)}">
+                const itemKey = displayItemKey({ group, product, defaultTier: tier });
+                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}">
 <div class="totem-product__media">
 ${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
@@ -327,7 +328,7 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
 <span class="totem-qty-value">${qty}</span>
-<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}" aria-label="Aumentar">+</button>
+<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" aria-label="Aumentar">+</button>
 </div>
 </div>
 </article>`;
@@ -344,15 +345,33 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');
     };
 
+    const displayItemKey = (item) =>
+        item.group?.key ? `${item.group.key}::${item.defaultTier || 'caixa'}` : item.product.id;
+
+    const findDisplayItem = (cartKey, itemKey) => {
+        if (cartKey) {
+            const match = displayItems.find((i) => {
+                const tier = i.defaultTier || pricing.getTotemDefaultTier(i.group) || pricing.getDefaultTier(i.group);
+                const variant = i.group ? pricing.getVariant(i.group, tier) : null;
+                const key = variant ? catalog.cartKeyFor(variant) : i.product.id;
+                return key === cartKey;
+            });
+            if (match) return match;
+        }
+        return displayItems.find(
+            (i) => displayItemKey(i) === itemKey || (i.group?.key || i.product.id) === itemKey
+        );
+    };
+
     const addItem = (cartKey, itemKey) => {
-        const item = displayItems.find((i) => (i.group?.key || i.product.id) === itemKey);
+        const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
         const group = item.group;
         const tier = item.defaultTier || pricing.getTotemDefaultTier(group) || pricing.getDefaultTier(group);
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
-        const packType = variant?.tier || tier || 'unidade';
+        const packType = variant?.tier || tier || 'caixa';
         const name = group
             ? pricing.cartItemName({ ...variant, tier: packType }, group)
             : product.name;

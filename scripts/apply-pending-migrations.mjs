@@ -25,6 +25,8 @@ async function applyParceiros() {
         await runSqlFile(client, 'totem-schema-migration.sql');
         console.log('[parceiros] Aplicando separation-schema-migration.sql…');
         await runSqlFile(client, 'separation-schema-migration.sql');
+        console.log('[parceiros] Aplicando caixa-schema-migration.sql…');
+        await runSqlFile(client, 'caixa-schema-migration.sql');
 
         const tables = await client.query(
             `select table_name from information_schema.tables

@@ -116,6 +116,7 @@ ${qtyLabel ? `<span class="sep-item__qty">${qtyLabel}</span>` : ''}
             root.innerHTML = `<div class="fin-header">
 <div><h1>Separação</h1><p class="text-sm text-on-surface-variant">Cervejas primeiro · ordem do catálogo Hub</p></div>
 <div class="fin-actions">
+<a href="caixa.html" class="fin-btn fin-btn--ghost">Caixa PDV</a>
 <a href="financeiro.html" class="fin-btn fin-btn--ghost">Financeiro</a>
 <button type="button" class="fin-btn fin-btn--ghost" id="sep-logout-btn">Sair</button>
 </div>

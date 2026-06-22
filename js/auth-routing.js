@@ -7,8 +7,8 @@
     const ACCOUNT_HOME = 'conta.html';
     const LOGIN_PAGE = 'index.html';
 
-    const TOTEM_PAGES = new Set(['totem', 'totem-pagamento', 'totem-sucesso']);
-    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro', 'separacao', 'resumo-pedido']);
+    const TOTEM_PAGES = new Set(['totem', 'totem-pagamento', 'totem-caixa', 'totem-sucesso']);
+    const RESTRICTED_FOR_TOTEM = new Set(['inicio', 'pedidos', 'contato', 'conta', 'raios', 'ofertas', 'caminhao', 'quemsomos', 'pagamento', 'pedido', 'versao', 'financeiro', 'separacao', 'caixa', 'resumo-pedido']);
 
     const PASSWORD_HOME = 'conta.html#senha';
 
@@ -68,6 +68,14 @@
         }
 
         if (page === 'separacao' && session) {
+            const role = String(session.role || '').toUpperCase();
+            if (role !== 'ADMIN' && role !== 'OPERADOR') {
+                window.location.replace(PARCEIRO_HOME);
+                return false;
+            }
+        }
+
+        if (page === 'caixa' && session) {
             const role = String(session.role || '').toUpperCase();
             if (role !== 'ADMIN' && role !== 'OPERADOR') {
                 window.location.replace(PARCEIRO_HOME);

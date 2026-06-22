@@ -131,8 +131,16 @@
 
     const session = window.LigeirinhoAuth?.loadSession?.();
     const financeRole = String(session?.role || '').toUpperCase();
-    if (financeRole === 'ADMIN' || financeRole === 'OPERADOR') {
-        navItems.push({ id: 'financeiro', href: 'financeiro.html', label: 'Financeiro', icon: 'payments' });
+    const operatorNav =
+        financeRole === 'ADMIN' || financeRole === 'OPERADOR'
+            ? [
+                  { id: 'caixa', href: 'caixa.html', label: 'Caixa', icon: 'point_of_sale' },
+                  { id: 'separacao', href: 'separacao.html', label: 'Separação', icon: 'inventory_2' },
+                  { id: 'financeiro', href: 'financeiro.html', label: 'Financeiro', icon: 'payments' },
+              ]
+            : [];
+    if (operatorNav.length) {
+        navItems.push(...operatorNav);
     }
 
     const desktopAppNavItems = [
@@ -140,10 +148,7 @@
         ...appNavItems,
     ];
     const desktopInstitutionalItems = [...institutionalNavItems];
-    const desktopFinanceItems =
-        financeRole === 'ADMIN' || financeRole === 'OPERADOR'
-            ? [{ id: 'financeiro', href: 'financeiro.html', label: 'Financeiro', icon: 'payments' }]
-            : [];
+    const desktopFinanceItems = operatorNav;
 
     const desktopNavHtml = `<nav class="lig-desktop-nav hidden md:flex" aria-label="Navegação principal">
 <div class="lig-desktop-nav__track">

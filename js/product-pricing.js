@@ -241,45 +241,51 @@
     };
 
     const getTotemDefaultTier = (group) => {
-        if (group?.variants?.unidade?.price != null) return 'unidade';
-        if (group?.variants?.caixa?.price != null) return 'caixa';
-        if (group?.variants?.pallet?.price != null) return 'pallet';
-        return null;
+        const tiers = getAvailableTiers(group);
+        if (tiers.includes('caixa')) return 'caixa';
+        return tiers[0] || null;
     };
 
-    /** Totem varejo: exibe unidade quando disponível, senão caixa/pallet. */
+    /** Totem: somente caixa e pallet (sem venda por unidade). */
     const getTotemDisplayProducts = (catalogData, groupsMap = null) => {
         const groups = groupsMap || buildGroups(catalogData);
         const items = [];
         const seen = new Set();
 
         catalogData.categories.forEach((cat) => {
+            const groupKeys = new Set();
             cat.products.forEach((product) => {
-                const key = `${cat.id}::${normalizeKey(product.name, cat.id)}`;
-                if (seen.has(key)) return;
+                const pack = parsePack(product.name);
+                if (pack.type === 'unidade') return;
+                groupKeys.add(`${cat.id}::${normalizeKey(product.name, cat.id)}`);
+            });
 
+            groupKeys.forEach((key) => {
                 const group = groups.get(key);
                 if (!group) return;
 
-                const defaultTier = getTotemDefaultTier(group);
-                if (!defaultTier) return;
+                getAvailableTiers(group).forEach((defaultTier) => {
+                    const itemKey = `${key}::${defaultTier}`;
+                    if (seen.has(itemKey)) return;
+                    seen.add(itemKey);
 
-                seen.add(key);
-                const variant = getVariant(group, defaultTier);
+                    const variant = getVariant(group, defaultTier);
+                    if (!variant) return;
 
-                items.push({
-                    group,
-                    product: {
-                        id: group.primaryId,
-                        name: group.baseName,
-                        price: variant?.price ?? product.price,
-                        image: group.image,
-                        adultOnly: group.adultOnly,
-                        description: group.description,
-                    },
-                    categoryName: cat.name,
-                    categoryId: cat.id,
-                    defaultTier,
+                    items.push({
+                        group,
+                        product: {
+                            id: group.primaryId,
+                            name: group.baseName,
+                            price: variant.price,
+                            image: getTierImage(group, defaultTier),
+                            adultOnly: group.adultOnly,
+                            description: group.description,
+                        },
+                        categoryName: cat.name,
+                        categoryId: cat.id,
+                        defaultTier,
+                    });
                 });
             });
         });

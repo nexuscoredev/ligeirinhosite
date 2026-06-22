@@ -1,0 +1,216 @@
+/* Caixa / PDV — fila de pagamento do totem */
+
+.caixa-page {
+    max-width: 90rem;
+}
+
+.caixa-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 340px) 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .caixa-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.caixa-queue,
+.caixa-pdv {
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.caixa-queue__head,
+.caixa-pdv__head {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--lig-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.caixa-queue__head h2,
+.caixa-pdv__head h2 {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 800;
+}
+
+.caixa-queue__list {
+    max-height: calc(100vh - 12rem);
+    overflow-y: auto;
+}
+
+.caixa-queue__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.875rem 1rem;
+    border: none;
+    border-bottom: 1px solid var(--lig-border);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.caixa-queue__item:hover,
+.caixa-queue__item.is-active {
+    background: rgba(240, 201, 41, 0.12);
+}
+
+.caixa-queue__meta {
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+}
+
+.caixa-pdv__body {
+    padding: 1rem;
+}
+
+.caixa-pdv__code {
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-align: center;
+    margin: 0.5rem 0 1rem;
+    color: var(--lig-yellow-text);
+}
+
+.caixa-pdv__items {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    border: 1px solid var(--lig-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.caixa-pdv__items li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid var(--lig-border);
+    font-size: 0.875rem;
+}
+
+.caixa-pdv__items li:last-child {
+    border-bottom: none;
+}
+
+.caixa-pdv__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border-radius: 0.75rem;
+    background: var(--lig-surface-alt);
+    border: 1px solid var(--lig-border);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.caixa-pdv__methods {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 520px) {
+    .caixa-pdv__methods {
+        grid-template-columns: 1fr;
+    }
+}
+
+.caixa-pdv__method {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.8125rem;
+}
+
+.caixa-pdv__method.is-active {
+    border-color: rgba(240, 201, 41, 0.65);
+    background: rgba(240, 201, 41, 0.14);
+}
+
+.caixa-pdv__empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--lig-text-muted);
+}
+
+/* Totem — aguardando caixa */
+.totem-caixa-card__icon {
+    color: var(--lig-yellow-text);
+}
+
+.totem-caixa-card__code {
+    margin: 0.75rem 0 1rem;
+}
+
+.totem-caixa-card__meta {
+    display: grid;
+    gap: 0.5rem;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.85rem;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--lig-border);
+}
+
+.totem-caixa-card__meta p {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-caixa-card__meta strong {
+    color: var(--lig-text);
+}
+
+.totem-caixa-card__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.totem-caixa-pulse {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: var(--lig-yellow);
+    animation: totem-caixa-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes totem-caixa-pulse {
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: scale(0.9);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+}

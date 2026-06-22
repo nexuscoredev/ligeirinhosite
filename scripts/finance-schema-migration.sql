@@ -31,7 +31,7 @@ alter table public.orders add column if not exists latest_charge_id uuid;
 
 alter table public.orders drop constraint if exists orders_financial_status_check;
 alter table public.orders add constraint orders_financial_status_check
-  check (financial_status in ('pendente', 'pago', 'vencido', 'cancelado', 'em_cobranca'));
+  check (financial_status in ('pendente', 'pago', 'vencido', 'cancelado', 'em_cobranca', 'aguardando_caixa'));
 
 create index if not exists orders_financial_status_idx on public.orders (financial_status);
 create index if not exists orders_due_date_idx on public.orders (due_date);

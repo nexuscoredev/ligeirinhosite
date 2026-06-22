@@ -76,9 +76,11 @@ export default async function handler(req, res) {
 
         const customer = body.customer || {};
         const hubUserId = String(body.hubUserId || customer.hubUserId || '').trim() || null;
-        const paymentMethod = String(body.paymentMethod || body.payment || 'pix').toLowerCase();
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
-        const isCreditOrder = CREDIT_METHODS.has(paymentMethod);
+        const isTotem = channel === 'totem';
+        let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
+        if (!paymentMethod && !isTotem) paymentMethod = 'pix';
+        const isCreditOrder = paymentMethod && CREDIT_METHODS.has(paymentMethod);
 
         const db = dbFromPaymentConfig(config);
 
@@ -119,7 +121,14 @@ export default async function handler(req, res) {
         }
 
         const dueDays = Number(settings?.default_due_days) || 30;
-        const financialStatus = isCreditOrder ? 'pendente' : paymentMethod === 'mercado_pago' ? 'em_cobranca' : 'pendente';
+        const financialStatus =
+            isTotem && !paymentMethod
+                ? 'pendente'
+                : isCreditOrder
+                  ? 'pendente'
+                  : paymentMethod === 'mercado_pago'
+                    ? 'em_cobranca'
+                    : 'pendente';
 
         const row = {
             status: 'pending',
@@ -137,7 +146,7 @@ export default async function handler(req, res) {
             unit_id: String(body.unitId || '').trim().slice(0, 64) || null,
             customer_id: customerRow?.id || null,
             hub_user_id: hubUserId,
-            payment_method: paymentMethod,
+            payment_method: paymentMethod || null,
             due_date: isCreditOrder || financialStatus === 'pendente' ? addDays(new Date(), dueDays) : null,
             financial_status: financialStatus,
         };

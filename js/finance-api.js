@@ -75,6 +75,12 @@
             method: 'POST',
             body: JSON.stringify({ itemId, delta }),
         });
+    const caixaQueue = () => request('/api/totem/caixa/queue');
+    const caixaPay = (orderId, pdvMethod) =>
+        request('/api/totem/caixa/pay', {
+            method: 'POST',
+            body: JSON.stringify({ orderId, pdvMethod }),
+        });
     const separationExport = async (orderId) => {
         const res = await fetch(`/api/totem/separation/export?id=${encodeURIComponent(orderId)}`, {
             headers: headers(),
@@ -149,6 +155,8 @@
         separationQueue,
         separationOrder,
         separationPick,
+        caixaQueue,
+        caixaPay,
         separationExport,
         formatMoney,
         formatDate,
