@@ -1,7 +1,7 @@
 import { paymentEnv, assertOrderBackend } from '../../../scripts/payment-env.mjs';
 import { requireSeparationAuth } from '../../../scripts/separation-auth.mjs';
 import { fetchPickItems, exportPickCsv } from '../../../scripts/supabase-separation.mjs';
-import { fetchOrderById } from '../../../scripts/supabase-orders.mjs';
+import { fetchOrderById, dbFromPaymentConfig } from '../../../scripts/supabase-orders.mjs';
 import { maybeInitSeparation } from '../../../scripts/separation-init.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -22,10 +22,11 @@ export default async function handler(req, res) {
     if (!UUID_RE.test(orderId)) return res.status(400).json({ error: 'Pedido inválido' });
 
     try {
-        let order = await fetchOrderById(cfg.supabaseUrl, cfg.supabaseServiceKey, orderId);
+        const db = dbFromPaymentConfig(cfg);
+        let order = await fetchOrderById(db.url, db.key, orderId, { useRpc: db.useRpc });
         if (!order) return res.status(404).json({ error: 'Pedido não encontrado' });
-        await maybeInitSeparation(cfg.supabaseUrl, cfg.supabaseServiceKey, order, process.env);
-        const items = await fetchPickItems(cfg.supabaseUrl, cfg.supabaseServiceKey, orderId);
+        await maybeInitSeparation(db.url, db.key, order, process.env, { useRpc: db.useRpc });
+        const items = await fetchPickItems(db.url, db.key, orderId, { useRpc: db.useRpc });
         const csv = exportPickCsv(order, items);
         const code = String(order.id).slice(0, 8).toUpperCase();
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');

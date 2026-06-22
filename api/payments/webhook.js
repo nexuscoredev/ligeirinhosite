@@ -3,6 +3,7 @@ import {
     fetchOrderById,
     fetchOrderByMpPaymentId,
     patchOrder,
+    dbFromPaymentConfig,
 } from '../../scripts/supabase-orders.mjs';
 import {
     mpGetPayment,
@@ -53,13 +54,14 @@ async function applyCashback(config, order) {
 async function syncPayment(config, paymentId, reqBody) {
     const payment = await mpGetPayment(config.mpAccessToken, paymentId);
     const orderId = payment.external_reference;
+    const db = dbFromPaymentConfig(config);
     let order = null;
 
     if (orderId && UUID_RE.test(orderId)) {
-        order = await fetchOrderById(config.supabaseUrl, config.supabaseServiceKey, orderId);
+        order = await fetchOrderById(db.url, db.key, orderId, { useRpc: db.useRpc });
     }
     if (!order) {
-        order = await fetchOrderByMpPaymentId(config.supabaseUrl, config.supabaseServiceKey, paymentId);
+        order = await fetchOrderByMpPaymentId(db.url, db.key, paymentId, { useRpc: db.useRpc });
     }
     if (!order) return null;
 
@@ -80,14 +82,14 @@ async function syncPayment(config, paymentId, reqBody) {
     };
     if (paidAt) patch.paid_at = paidAt;
 
-    await patchOrder(config.supabaseUrl, config.supabaseServiceKey, order.id, patch);
+    await patchOrder(db.url, db.key, order.id, patch, { useRpc: db.useRpc });
 
     if (payment.status === 'approved') {
-        await maybeInitSeparation(config.supabaseUrl, config.supabaseServiceKey, {
+        await maybeInitSeparation(db.url, db.key, {
             ...order,
             status: orderStatus,
             paid_at: paidAt,
-        }, process.env);
+        }, process.env, { useRpc: db.useRpc });
     }
 
     let charge = await fetchChargeByMpPaymentId(config.supabaseUrl, config.supabaseServiceKey, paymentId);

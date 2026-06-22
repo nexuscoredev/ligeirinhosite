@@ -1,50 +1,89 @@
-const headers = (serviceKey, extra = {}) => ({
-    apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
-    'Content-Type': 'application/json',
-    ...extra,
-});
+function headers(apiKey, extra = {}) {
+    return {
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        ...extra,
+    };
+}
 
-export async function insertOrder(supabaseUrl, serviceKey, row) {
-    const res = await fetch(`${supabaseUrl}/rest/v1/orders`, {
-        method: 'POST',
-        headers: headers(serviceKey, { Prefer: 'return=representation' }),
-        body: JSON.stringify(row),
-    });
+async function parseJson(res) {
     const data = await res.json().catch(() => null);
     if (!res.ok) {
         const msg = data?.message || data?.error || res.statusText;
-        throw new Error(`Supabase insert failed: ${msg}`);
+        throw new Error(`Supabase failed: ${msg}`);
     }
+    return data;
+}
+
+export async function insertOrder(supabaseUrl, apiKey, row, { useRpc = false } = {}) {
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_create_order`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({ p: row }),
+        });
+        return parseJson(res);
+    }
+
+    const res = await fetch(`${supabaseUrl}/rest/v1/orders`, {
+        method: 'POST',
+        headers: headers(apiKey, { Prefer: 'return=representation' }),
+        body: JSON.stringify(row),
+    });
+    const data = await parseJson(res);
     return Array.isArray(data) ? data[0] : data;
 }
 
-export async function fetchOrderById(supabaseUrl, serviceKey, id) {
-    const url = `${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=*&limit=1`;
-    const res = await fetch(url, { headers: headers(serviceKey) });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-        throw new Error(data?.message || 'Supabase fetch failed');
+export async function fetchOrderById(supabaseUrl, apiKey, id, { useRpc = false } = {}) {
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_get_order`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({ p_id: id }),
+        });
+        const data = await parseJson(res);
+        return data || null;
     }
+
+    const url = `${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}&select=*&limit=1`;
+    const res = await fetch(url, { headers: headers(apiKey) });
+    const data = await parseJson(res);
     return Array.isArray(data) ? data[0] : null;
 }
 
-export async function patchOrder(supabaseUrl, serviceKey, id, patch) {
+export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({ p_id: id, p_patch: { ...patch, updated_at: new Date().toISOString() } }),
+        });
+        return parseJson(res);
+    }
+
     const res = await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH',
-        headers: headers(serviceKey, { Prefer: 'return=representation' }),
+        headers: headers(apiKey, { Prefer: 'return=representation' }),
         body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
     });
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-        throw new Error(data?.message || 'Supabase patch failed');
-    }
+    const data = await parseJson(res);
     return Array.isArray(data) ? data[0] : data;
 }
 
-export async function fetchOrderByMpPaymentId(supabaseUrl, serviceKey, mpPaymentId) {
+export async function fetchOrderByMpPaymentId(supabaseUrl, apiKey, mpPaymentId, { useRpc = false } = {}) {
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_fetch_order_by_mp`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({ p_mp_payment_id: Number(mpPaymentId) }),
+        });
+        const data = await parseJson(res);
+        return data || null;
+    }
+
     const url = `${supabaseUrl}/rest/v1/orders?mp_payment_id=eq.${encodeURIComponent(String(mpPaymentId))}&select=*&limit=1`;
-    const res = await fetch(url, { headers: headers(serviceKey) });
+    const res = await fetch(url, { headers: headers(apiKey) });
     const data = await res.json().catch(() => null);
     if (!res.ok) return null;
     return Array.isArray(data) ? data[0] : null;
@@ -74,4 +113,16 @@ export function publicOrderView(order) {
         pixQrBase64: order.pix_qr_base64 || null,
         createdAt: order.created_at,
     };
+}
+
+export function dbFromPaymentConfig(config) {
+    return {
+        url: config.supabaseUrl,
+        key: config.supabaseApiKey || config.supabaseServiceKey,
+        useRpc: Boolean(config.supabaseUseRpc),
+    };
+}
+
+export function supabaseOrderOpts(config) {
+    return dbFromPaymentConfig(config);
 }

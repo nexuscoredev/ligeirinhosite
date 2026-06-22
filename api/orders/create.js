@@ -1,5 +1,5 @@
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
-import { insertOrder, publicOrderView } from '../../scripts/supabase-orders.mjs';
+import { insertOrder, publicOrderView, dbFromPaymentConfig } from '../../scripts/supabase-orders.mjs';
 import {
     upsertCustomer,
     fetchCustomerByHubUserId,
@@ -80,6 +80,8 @@ export default async function handler(req, res) {
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
         const isCreditOrder = CREDIT_METHODS.has(paymentMethod);
 
+        const db = dbFromPaymentConfig(config);
+
         let customerRow = null;
         let settings = null;
         try {
@@ -142,7 +144,7 @@ export default async function handler(req, res) {
 
         let order;
         try {
-            order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, row);
+            order = await insertOrder(db.url, db.key, row, { useRpc: db.useRpc });
         } catch (insertErr) {
             const msg = String(insertErr.message || '');
             if (/column/i.test(msg)) {
@@ -156,13 +158,13 @@ export default async function handler(req, res) {
                 } = row;
                 if (channel === 'totem') {
                     const { channel: _f, totem_id: _g, totem_label: _h, unit_id: _i, ...minimal } = legacyRow;
-                    order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, minimal);
+                    order = await insertOrder(db.url, db.key, minimal, { useRpc: db.useRpc });
                 } else {
-                    order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, legacyRow);
+                    order = await insertOrder(db.url, db.key, legacyRow, { useRpc: db.useRpc });
                 }
             } else if (channel === 'totem' && /column/i.test(msg)) {
                 const { channel: _c, totem_id: _t, totem_label: _l, unit_id: _u, ...legacyRow } = row;
-                order = await insertOrder(config.supabaseUrl, config.supabaseServiceKey, legacyRow);
+                order = await insertOrder(db.url, db.key, legacyRow, { useRpc: db.useRpc });
             } else {
                 throw insertErr;
             }

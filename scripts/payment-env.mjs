@@ -1,14 +1,21 @@
+import { parceirosSupabaseConfig } from './parceiros-supabase.mjs';
+
 export function paymentEnv(env = process.env, requestOrigin = null) {
     const baseUrl =
         String(env.APP_BASE_URL || '').trim() ||
         (env.VERCEL_URL ? `https://${env.VERCEL_URL}` : '') ||
         String(requestOrigin || '').trim();
 
+    const parceiros = parceirosSupabaseConfig(env);
+
     return {
         mpAccessToken: String(env.MP_ACCESS_TOKEN || '').trim(),
         mpPublicKey: String(env.MP_PUBLIC_KEY || '').trim(),
-        supabaseUrl: String(env.SUPABASE_URL || '').trim().replace(/\/$/, ''),
-        supabaseServiceKey: String(env.SUPABASE_SERVICE_ROLE_KEY || '').trim(),
+        supabaseUrl: parceiros.url,
+        supabaseServiceKey: parceiros.serviceKey,
+        supabaseAnonKey: parceiros.anonKey,
+        supabaseApiKey: parceiros.apiKey,
+        supabaseUseRpc: parceiros.useRpc,
         appBaseUrl: baseUrl.replace(/\/$/, ''),
     };
 }
@@ -17,7 +24,7 @@ export function paymentEnv(env = process.env, requestOrigin = null) {
 export function assertOrderBackend(config) {
     const missing = [];
     if (!config.supabaseUrl) missing.push('SUPABASE_URL');
-    if (!config.supabaseServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+    if (!config.supabaseApiKey) missing.push('SUPABASE_SERVICE_ROLE_KEY ou SUPABASE_ANON_KEY');
     return missing;
 }
 

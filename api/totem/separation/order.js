@@ -1,7 +1,7 @@
 import { paymentEnv, assertOrderBackend } from '../../../scripts/payment-env.mjs';
 import { requireSeparationAuth } from '../../../scripts/separation-auth.mjs';
 import { fetchPickItems, pickItem } from '../../../scripts/supabase-separation.mjs';
-import { fetchOrderById } from '../../../scripts/supabase-orders.mjs';
+import { fetchOrderById, dbFromPaymentConfig } from '../../../scripts/supabase-orders.mjs';
 import { pickProgress } from '../../../scripts/separation-utils.mjs';
 import { maybeInitSeparation } from '../../../scripts/separation-init.mjs';
 
@@ -27,12 +27,14 @@ export default async function handler(req, res) {
     }
 
     try {
+        const db = dbFromPaymentConfig(cfg);
+
         if (req.method === 'GET') {
-            let order = await fetchOrderById(cfg.supabaseUrl, cfg.supabaseServiceKey, orderId);
+            let order = await fetchOrderById(db.url, db.key, orderId, { useRpc: db.useRpc });
             if (!order) return res.status(404).json({ error: 'Pedido não encontrado' });
-            await maybeInitSeparation(cfg.supabaseUrl, cfg.supabaseServiceKey, order, process.env);
-            const items = await fetchPickItems(cfg.supabaseUrl, cfg.supabaseServiceKey, orderId);
-            order = await fetchOrderById(cfg.supabaseUrl, cfg.supabaseServiceKey, orderId);
+            await maybeInitSeparation(db.url, db.key, order, process.env, { useRpc: db.useRpc });
+            const items = await fetchPickItems(db.url, db.key, orderId, { useRpc: db.useRpc });
+            order = await fetchOrderById(db.url, db.key, orderId, { useRpc: db.useRpc });
             return res.status(200).json({
                 order: {
                     id: order.id,
@@ -50,11 +52,12 @@ export default async function handler(req, res) {
         if (req.method === 'POST') {
             const { itemId, delta } = req.body || {};
             if (!itemId) return res.status(400).json({ error: 'itemId obrigatório' });
-            const result = await pickItem(cfg.supabaseUrl, cfg.supabaseServiceKey, {
+            const result = await pickItem(db.url, db.key, {
                 orderId,
                 itemId,
                 pickedBy: auth.user.name || auth.user.login,
                 delta: Number(delta) || 1,
+                useRpc: db.useRpc,
             });
             return res.status(200).json(result);
         }

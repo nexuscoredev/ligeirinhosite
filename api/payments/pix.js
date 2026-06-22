@@ -1,5 +1,5 @@
 import { paymentEnv, assertPixBackend } from '../../scripts/payment-env.mjs';
-import { fetchOrderById, patchOrder, publicOrderView } from '../../scripts/supabase-orders.mjs';
+import { fetchOrderById, patchOrder, publicOrderView, dbFromPaymentConfig } from '../../scripts/supabase-orders.mjs';
 import {
     mpCreatePixPayment,
     mapMpStatusToOrder,
@@ -35,7 +35,8 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Pedido inválido' });
         }
 
-        const order = await fetchOrderById(config.supabaseUrl, config.supabaseServiceKey, id);
+        const db = dbFromPaymentConfig(config);
+        const order = await fetchOrderById(db.url, db.key, id, { useRpc: db.useRpc });
         if (!order) {
             return res.status(404).json({ error: 'Pedido não encontrado' });
         }
@@ -67,7 +68,7 @@ export default async function handler(req, res) {
         const pix = extractPixFromPayment(payment);
         const orderStatus = mapMpStatusToOrder(payment.status);
 
-        const updated = await patchOrder(config.supabaseUrl, config.supabaseServiceKey, order.id, {
+        const updated = await patchOrder(db.url, db.key, order.id, {
             status: orderStatus,
             payment_method: 'pix',
             mp_payment_id: payment.id,
@@ -76,10 +77,10 @@ export default async function handler(req, res) {
             pix_qr_code: pix?.qr_code || null,
             pix_qr_base64: pix?.qr_code_base64 || null,
             ...(orderStatus === 'paid' ? { paid_at: new Date().toISOString() } : {}),
-        });
+        }, { useRpc: db.useRpc });
 
         if (orderStatus === 'paid') {
-            await maybeInitSeparation(config.supabaseUrl, config.supabaseServiceKey, updated, process.env);
+            await maybeInitSeparation(db.url, db.key, updated, process.env, { useRpc: db.useRpc });
         }
 
         return res.status(200).json({

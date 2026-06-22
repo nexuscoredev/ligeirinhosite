@@ -1,6 +1,7 @@
 import { paymentEnv, assertOrderBackend } from '../../../scripts/payment-env.mjs';
 import { requireSeparationAuth } from '../../../scripts/separation-auth.mjs';
 import { listSeparationQueue } from '../../../scripts/supabase-separation.mjs';
+import { dbFromPaymentConfig } from '../../../scripts/supabase-orders.mjs';
 
 export const config = { maxDuration: 25 };
 
@@ -19,7 +20,8 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
     try {
-        const queue = await listSeparationQueue(cfg.supabaseUrl, cfg.supabaseServiceKey);
+        const db = dbFromPaymentConfig(cfg);
+        const queue = await listSeparationQueue(db.url, db.key, { useRpc: db.useRpc });
         return res.status(200).json({ queue });
     } catch (err) {
         console.error('separation/queue', err);

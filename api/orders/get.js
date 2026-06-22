@@ -1,5 +1,5 @@
-import { paymentEnv, assertPaymentBackend } from '../../scripts/payment-env.mjs';
-import { fetchOrderById, publicOrderView } from '../../scripts/supabase-orders.mjs';
+import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
+import { fetchOrderById, publicOrderView, dbFromPaymentConfig } from '../../scripts/supabase-orders.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -21,13 +21,14 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'ID de pedido inválido' });
     }
 
-    const missing = assertPaymentBackend(config);
+    const missing = assertOrderBackend(config);
     if (missing.length) {
         return res.status(503).json({ error: 'Backend indisponível', missing });
     }
 
     try {
-        const order = await fetchOrderById(config.supabaseUrl, config.supabaseServiceKey, id);
+        const db = dbFromPaymentConfig(config);
+        const order = await fetchOrderById(db.url, db.key, id, { useRpc: db.useRpc });
         if (!order) {
             return res.status(404).json({ error: 'Pedido não encontrado' });
         }

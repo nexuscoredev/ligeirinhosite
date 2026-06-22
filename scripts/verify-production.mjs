@@ -98,7 +98,7 @@ async function main() {
     const blockers = [];
     if (!catalog.json?.totalProducts) blockers.push('Catálogo Hub');
     if (!methods.pix && !methods.card) blockers.push('Pix/Cartão env');
-    if (!order.json?.orderId) blockers.push('Supabase Parceiros env / orders API');
+    if (!order.json?.orderId) blockers.push('orders API (deploy RPC pendente?)');
     if (!col.ok) blockers.push('Hub migration must_change_password');
     if (blockers.length) console.log('Bloqueios:', blockers.join(' · '));
     else console.log('Tudo OK nos checks automáticos.');
