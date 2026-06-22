@@ -6,3 +6,4 @@ dist/
 .env.*.local
 data/auth-config.local.json
 .vercel
+.env.vercel.pull

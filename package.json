@@ -13,9 +13,14 @@
     "create:totem-user": "node scripts/create-totem-user.mjs",
     "compare:catalogo": "node scripts/compare-catalogo-hub.mjs",
     "migrate:finance": "node scripts/apply-finance-migration.mjs",
+    "migrate:totem": "node scripts/apply-totem-migration.mjs",
+    "migrate:hub-auth": "node scripts/apply-hub-auth-migration.mjs",
+    "migrate:all": "node scripts/apply-pending-migrations.mjs",
+    "migrate:check": "node scripts/check-migrations.mjs",
     "totem": "echo \"Abra http://localhost:5173/totem.html após login Hub com cargo Totem\""
   },
   "devDependencies": {
+    "pg": "^8.16.3",
     "vite": "^6.3.5"
   }
 }
