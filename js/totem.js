@@ -49,6 +49,92 @@
     let adminTapTimer = null;
     let lastCartCount = 0;
     let lastAnimatedCategory = '';
+    const tierByGroup = new Map();
+
+    const activeTierFor = (group) => {
+        if (!group?.key) return 'caixa';
+        return (
+            tierByGroup.get(group.key) ||
+            pricing.getTotemDefaultTier(group) ||
+            pricing.getDefaultTier(group) ||
+            'caixa'
+        );
+    };
+
+    const priceTiersHtml = (group, activeTier) => {
+        if (!group) return '';
+        const tiers = pricing.getAvailableTiers(group);
+        if (tiers.length <= 1) return '';
+        const buttons = tiers
+            .map((tier) => {
+                const active = tier === activeTier;
+                const label = pricing.TIER_SHORT?.[tier] || tier;
+                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)}</button>`;
+            })
+            .join('');
+        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Embalagem">${buttons}</div></div>`;
+    };
+
+    const refreshTotemProductCard = (card) => {
+        if (!card?.dataset?.groupKey) return;
+        const group = window.__ligProductGroups?.get?.(card.dataset.groupKey);
+        if (!group) return;
+
+        const tier = card.dataset.priceTier || activeTierFor(group);
+        const variant = pricing.getVariant(group, tier);
+        if (!variant) return;
+
+        const cartKey = catalog.cartKeyFor(variant);
+        const cart = cartApi.loadCart();
+        const qty = cart[cartKey]?.qty || 0;
+
+        card.dataset.priceTier = tier;
+        card.dataset.cartKey = cartKey;
+        card.classList.toggle('totem-product--selected', qty > 0);
+
+        const imgEl = card.querySelector('.totem-product__media img');
+        const imgSrc = catalog.productImageUrl(pricing.getTierImage(group, tier));
+        if (imgEl && imgSrc) imgEl.src = imgSrc;
+
+        const badge = card.querySelector('.totem-product__badge');
+        if (qty > 0) {
+            if (badge) {
+                badge.textContent = String(qty);
+                badge.setAttribute('aria-label', `${qty} no carrinho`);
+            } else {
+                const media = card.querySelector('.totem-product__media');
+                if (media) {
+                    media.insertAdjacentHTML(
+                        'afterbegin',
+                        `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>`
+                    );
+                }
+            }
+        } else if (badge) {
+            badge.remove();
+        }
+
+        const priceEl = card.querySelector('.totem-product__price');
+        if (priceEl) priceEl.textContent = formatPrice(variant.price);
+
+        const minus = card.querySelector('.totem-minus');
+        const plus = card.querySelector('.totem-plus');
+        const qtyEl = card.querySelector('.totem-qty-value');
+        if (minus) {
+            minus.dataset.cartKey = cartKey;
+            minus.disabled = qty <= 0;
+        }
+        if (plus) {
+            plus.dataset.cartKey = cartKey;
+        }
+        if (qtyEl) qtyEl.textContent = String(qty);
+
+        card.querySelectorAll('.ze-price-tier').forEach((btn) => {
+            const isActive = btn.dataset.priceTier === tier;
+            btn.classList.toggle('ze-price-tier--active', isActive);
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    };
 
     const pulseClass = (el, className, ms = 450) => {
         if (!el) return;
@@ -305,30 +391,27 @@
             .map((item, index) => {
                 const group = item.group || null;
                 const product = item.product;
-                const tier = item.defaultTier || pricing.getTotemDefaultTier(group) || pricing.getDefaultTier(group);
+                const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
                 const variant = group ? pricing.getVariant(group, tier) : null;
-                const active = variant || product;
                 const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
                 const cart = cartApi.loadCart();
                 const qty = cart[cartKey]?.qty || 0;
                 const img = catalog.productImageUrl(
                     group ? pricing.getTierImage(group, tier) : product.image
                 );
-                const name = group
-                    ? pricing.cartItemName({ ...variant, tier }, group)
-                    : product.name;
-                const price = active.price;
-                const tierLabel = pricing.TIER_SHORT?.[tier] || '';
-                const itemKey = displayItemKey({ group, product, defaultTier: tier });
-                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}">
+                const name = group?.baseName || product.name;
+                const price = (variant || product).price;
+                const itemKey = group?.key || product.id;
+                const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}">
 <div class="totem-product__media">
 ${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
+${tiersHtml}
 <div class="totem-product__meta">
-${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
 <span class="totem-product__price">${formatPrice(price)}</span>
 </div>
 <div class="totem-product__qty">
@@ -343,7 +426,9 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
     };
 
     const pulseProduct = (cartKey) => {
-        const card = productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`);
+        const card =
+            productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`) ||
+            productsGrid?.querySelector(`.totem-plus[data-cart-key="${cartKey}"]`)?.closest('.totem-product');
         pulseClass(card, 'totem-product--pulse');
         const badge = card?.querySelector('.totem-product__badge');
         if (badge) pulseClass(badge, 'totem-product__badge--pop');
@@ -351,29 +436,31 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');
     };
 
-    const displayItemKey = (item) =>
-        item.group?.key ? `${item.group.key}::${item.defaultTier || 'caixa'}` : item.product.id;
-
     const findDisplayItem = (cartKey, itemKey) => {
+        if (itemKey) {
+            const byGroup = displayItems.find((i) => (i.group?.key || i.product.id) === itemKey);
+            if (byGroup) return byGroup;
+        }
         if (cartKey) {
             const match = displayItems.find((i) => {
-                const tier = i.defaultTier || pricing.getTotemDefaultTier(i.group) || pricing.getDefaultTier(i.group);
-                const variant = i.group ? pricing.getVariant(i.group, tier) : null;
-                const key = variant ? catalog.cartKeyFor(variant) : i.product.id;
-                return key === cartKey;
+                const group = i.group;
+                if (!group) return i.product.id === cartKey;
+                return pricing.getAvailableTiers(group).some((tier) => {
+                    const variant = pricing.getVariant(group, tier);
+                    return variant && catalog.cartKeyFor(variant) === cartKey;
+                });
             });
             if (match) return match;
         }
-        return displayItems.find(
-            (i) => displayItemKey(i) === itemKey || (i.group?.key || i.product.id) === itemKey
-        );
+        return null;
     };
 
     const addItem = (cartKey, itemKey) => {
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
         const group = item.group;
-        const tier = item.defaultTier || pricing.getTotemDefaultTier(group) || pricing.getDefaultTier(group);
+        const card = itemKey ? productsGrid?.querySelector(`[data-item-key="${itemKey}"]`) : null;
+        const tier = card?.dataset?.priceTier || activeTierFor(group);
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
@@ -546,6 +633,17 @@ ${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
         });
 
         productsGrid?.addEventListener('click', (e) => {
+            const tierBtn = e.target.closest('.ze-price-tier');
+            if (tierBtn) {
+                const card = tierBtn.closest('.totem-product');
+                if (!card?.dataset?.groupKey) return;
+                const tier = tierBtn.dataset.priceTier;
+                tierByGroup.set(card.dataset.groupKey, tier);
+                card.dataset.priceTier = tier;
+                refreshTotemProductCard(card);
+                bumpIdle();
+                return;
+            }
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
             if (plus) addItem(plus.dataset.cartKey, plus.dataset.itemKey);

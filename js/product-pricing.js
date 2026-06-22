@@ -246,7 +246,7 @@
         return tiers[0] || null;
     };
 
-    /** Totem: somente caixa e pallet (sem venda por unidade). */
+    /** Totem: um card por produto, com alternância caixa/pallet no card. */
     const getTotemDisplayProducts = (catalogData, groupsMap = null) => {
         const groups = groupsMap || buildGroups(catalogData);
         const items = [];
@@ -261,31 +261,30 @@
             });
 
             groupKeys.forEach((key) => {
+                if (seen.has(key)) return;
                 const group = groups.get(key);
                 if (!group) return;
 
-                getAvailableTiers(group).forEach((defaultTier) => {
-                    const itemKey = `${key}::${defaultTier}`;
-                    if (seen.has(itemKey)) return;
-                    seen.add(itemKey);
+                const defaultTier = getTotemDefaultTier(group);
+                if (!defaultTier) return;
 
-                    const variant = getVariant(group, defaultTier);
-                    if (!variant) return;
+                seen.add(key);
+                const variant = getVariant(group, defaultTier);
+                if (!variant) return;
 
-                    items.push({
-                        group,
-                        product: {
-                            id: group.primaryId,
-                            name: group.baseName,
-                            price: variant.price,
-                            image: getTierImage(group, defaultTier),
-                            adultOnly: group.adultOnly,
-                            description: group.description,
-                        },
-                        categoryName: cat.name,
-                        categoryId: cat.id,
-                        defaultTier,
-                    });
+                items.push({
+                    group,
+                    product: {
+                        id: group.primaryId,
+                        name: group.baseName,
+                        price: variant.price,
+                        image: getTierImage(group, defaultTier),
+                        adultOnly: group.adultOnly,
+                        description: group.description,
+                    },
+                    categoryName: cat.name,
+                    categoryId: cat.id,
+                    defaultTier,
                 });
             });
         });
