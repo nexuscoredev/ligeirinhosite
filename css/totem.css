@@ -572,13 +572,28 @@ body.totem-kiosk {
 
 /* ——— Catalog ——— */
 .totem-catalog {
-    grid-template-columns: var(--totem-sidebar-w) minmax(0, 1fr);
+    grid-template-columns: var(--totem-sidebar-w) 1px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     align-items: stretch;
     min-height: 0;
     height: 100%;
     overflow: hidden;
     background: transparent;
+}
+
+.totem-catalog__divider {
+    width: 1px;
+    align-self: stretch;
+    margin: 0.55rem 0;
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(20, 18, 15, 0.1) 10%,
+        rgba(20, 18, 15, 0.16) 50%,
+        rgba(20, 18, 15, 0.1) 90%,
+        transparent 100%
+    );
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.72);
 }
 
 .totem-catalog > * {
@@ -757,7 +772,9 @@ body.totem-kiosk {
     align-items: flex-end;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.1rem 0.25rem 0.55rem;
+    padding: 0.35rem 0.25rem 0.65rem;
+    margin-bottom: 0.15rem;
+    border-bottom: 1px solid rgba(20, 18, 15, 0.08);
 }
 
 .totem-products__eyebrow {
@@ -1822,8 +1839,13 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         grid-template-rows: auto minmax(0, 1fr);
     }
 
+    .totem-catalog__divider {
+        display: none;
+    }
+
     .totem-categories-wrap {
         padding: 0.55rem 0.55rem 0;
+        border-bottom: 1px solid rgba(20, 18, 15, 0.1);
     }
 
     .totem-categories__label {
@@ -2037,7 +2059,7 @@ html.totem--landscape .totem-welcome__panel {
 }
 
 html.totem--phone.totem--landscape .totem-catalog {
-    grid-template-columns: minmax(4.25rem, 5.5rem) minmax(0, 1fr);
+    grid-template-columns: minmax(4.25rem, 5.5rem) 1px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
 }
 
@@ -2132,7 +2154,7 @@ html.totem--phone.totem--landscape .totem-pay-method {
 
 /* —— Tablet portrait —— */
 html.totem--tablet.totem--portrait .totem-catalog {
-    grid-template-columns: minmax(10rem, 12rem) minmax(0, 1fr);
+    grid-template-columns: minmax(10rem, 12rem) 1px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
 }
 
@@ -2173,7 +2195,7 @@ html.totem--tablet.totem--portrait .totem-product {
 
 /* —— Tablet landscape —— */
 html.totem--tablet.totem--landscape .totem-catalog {
-    grid-template-columns: minmax(11rem, 13rem) minmax(0, 1fr);
+    grid-template-columns: minmax(11rem, 13rem) 1px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
 }
 
