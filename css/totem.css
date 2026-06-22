@@ -928,6 +928,10 @@ html.totem--kiosk .totem-product__name {
     line-height: 1.3;
 }
 
+html.totem--kiosk .totem-product__price-block .totem-product__price {
+    font-size: 1rem;
+}
+
 html.totem--kiosk .totem-product__price {
     font-size: 1rem;
 }
@@ -1102,8 +1106,17 @@ html.totem--kiosk .totem-product__price {
 .totem-product .ze-price-tiers-slot {
     min-height: 1.625rem;
     width: 100%;
-    margin: 0.1rem 0 0.15rem;
+    margin: 0;
     flex-shrink: 0;
+}
+
+.totem-product__pricing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0.1rem;
 }
 
 .totem-product .ze-price-tier {
@@ -1116,11 +1129,31 @@ html.totem--kiosk .totem-product__price {
 }
 
 .totem-product__meta {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    display: block;
+    width: 100%;
+    min-width: 0;
+}
+
+.totem-product__price-block {
+    width: 100%;
+}
+
+.totem-product__price-block .totem-product__price {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    color: var(--lig-text);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.totem-product__price-block .ze-price-block__unit {
+    display: block;
+    margin-top: 0.125rem;
+    font-size: 0.5625rem;
+    font-weight: 500;
+    color: var(--lig-text-subtle);
+    line-height: 1.25;
 }
 
 .totem-product__tier {

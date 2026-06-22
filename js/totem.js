@@ -109,6 +109,47 @@
         return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Embalagem">${buttons}</div></div>`;
     };
 
+    const priceSubtitleHtml = (variant) => {
+        if (!variant) return '';
+        const meta = pricing.pricePackMeta(variant);
+        const parts = [meta.unitSuffix];
+        if (meta.detail) parts.push(meta.detail);
+        if (meta.packagePrice != null) parts.push(`total ${formatPrice(meta.packagePrice)}`);
+        return parts.join(' · ');
+    };
+
+    const priceBlockHtml = (variant) => {
+        if (!variant) return '';
+        const meta = pricing.pricePackMeta(variant);
+        const displayPrice = meta.unitPrice ?? variant.price;
+        const subtitle = priceSubtitleHtml(variant);
+        return `<div class="ze-price-block totem-product__price-block" data-price-display>
+<span class="totem-product__price ze-product-card__price">${formatPrice(displayPrice)}</span>
+${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
+</div>`;
+    };
+
+    const updatePriceBlock = (card, variant) => {
+        if (!variant) return;
+        const meta = pricing.pricePackMeta(variant);
+        const displayPrice = meta.unitPrice ?? variant.price;
+        const subtitle = priceSubtitleHtml(variant);
+        const priceBlock = card.querySelector('[data-price-display]');
+        if (!priceBlock) return;
+        const priceEl = priceBlock.querySelector('.totem-product__price');
+        const unitEl = priceBlock.querySelector('.ze-price-block__unit');
+        if (priceEl) priceEl.textContent = formatPrice(displayPrice);
+        if (unitEl) {
+            unitEl.textContent = subtitle;
+            unitEl.hidden = !subtitle;
+        } else if (subtitle) {
+            priceBlock.insertAdjacentHTML(
+                'beforeend',
+                `<span class="ze-price-block__unit">${esc(subtitle)}</span>`
+            );
+        }
+    };
+
     const refreshTotemProductCard = (card) => {
         if (!card?.dataset?.groupKey) return;
         const group = window.__ligProductGroups?.get?.(card.dataset.groupKey);
@@ -149,7 +190,11 @@
         }
 
         const priceEl = card.querySelector('.totem-product__price');
-        if (priceEl) priceEl.textContent = formatPrice(variant.price);
+        if (priceEl && !card.querySelector('[data-price-display]')) {
+            priceEl.textContent = formatPrice(variant.price);
+        } else {
+            updatePriceBlock(card, variant);
+        }
 
         const minus = card.querySelector('.totem-minus');
         const plus = card.querySelector('.totem-plus');
@@ -436,9 +481,11 @@
                     group ? pricing.getTierImage(group, tier) : product.image
                 );
                 const name = group?.baseName || product.name;
-                const price = (variant || product).price;
                 const itemKey = group?.key || product.id;
                 const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+                const priceHtml = variant
+                    ? priceBlockHtml(variant)
+                    : `<div class="ze-price-block totem-product__price-block" data-price-display><span class="totem-product__price ze-product-card__price">${formatPrice(product.price)}</span></div>`;
                 return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}">
 <div class="totem-product__media">
 ${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
@@ -446,9 +493,9 @@ ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material
 </div>
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
+<div class="totem-product__pricing">
 ${tiersHtml}
-<div class="totem-product__meta">
-<span class="totem-product__price">${formatPrice(price)}</span>
+<div class="totem-product__meta">${priceHtml}</div>
 </div>
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
