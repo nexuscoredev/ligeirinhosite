@@ -163,7 +163,13 @@
             if (!el) return;
             const active = key === name;
             el.classList.toggle('totem-view--active', active);
-            el.hidden = !active;
+            if (active) {
+                el.removeAttribute('hidden');
+                el.setAttribute('aria-hidden', 'false');
+            } else {
+                el.setAttribute('hidden', '');
+                el.setAttribute('aria-hidden', 'true');
+            }
             if (active) {
                 el.classList.add('totem-view--entering');
                 window.setTimeout(() => el.classList.remove('totem-view--entering'), 480);
