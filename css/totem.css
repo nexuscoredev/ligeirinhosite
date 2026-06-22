@@ -37,6 +37,11 @@ html.totem-kiosk[data-theme='light'] {
     --totem-stagger: 45ms;
 }
 
+html.totem-kiosk {
+    --totem-zoom: 1;
+    zoom: 1;
+}
+
 html.totem-kiosk,
 body.totem-kiosk {
     height: 100svh;
@@ -58,9 +63,8 @@ body.totem-kiosk {
     height: 100svh;
     max-height: 100svh;
     overflow: hidden;
-    --totem-welcome-scale: min(1.12, calc((100svh - 9.5rem) / 420));
-    --totem-sidebar-w: clamp(11.5rem, 15vw, 14.5rem);
-    --totem-ui-scale: 0.9;
+    --totem-welcome-scale: min(1, calc((100svh - 11rem) / 520));
+    --totem-sidebar-w: clamp(10.5rem, 14vw, 13.5rem);
     background: var(--lig-bg);
     color: var(--lig-text);
 }
@@ -336,8 +340,9 @@ body.totem-kiosk {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: clamp(0.5rem, 1.5dvh, 1rem) clamp(0.85rem, 3vw, 1.5rem);
-    overflow: hidden;
+    padding: clamp(0.35rem, 1dvh, 0.65rem) clamp(0.75rem, 2.5vw, 1.25rem);
+    overflow-x: hidden;
+    overflow-y: auto;
     min-height: 0;
     background: var(--lig-bg);
 }
@@ -345,15 +350,16 @@ body.totem-kiosk {
 .totem-welcome__content {
     position: relative;
     z-index: 1;
-    width: min(100%, 38rem);
-    max-height: min(100%, calc(100svh - 8.5rem));
+    width: min(100%, 32rem);
+    max-height: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(0.85rem, 2.5dvh, 1.5rem);
+    gap: clamp(0.55rem, 1.75dvh, 0.95rem);
     transform: scale(var(--totem-welcome-scale));
-    transform-origin: center center;
+    transform-origin: center top;
+    padding: 0.25rem 0 0.5rem;
 }
 
 .totem-welcome__hero {
@@ -396,7 +402,7 @@ body.totem-kiosk {
     box-shadow:
         0 0 0 1px rgba(20, 18, 15, 0.06),
         0 12px 32px rgba(20, 18, 15, 0.08);
-    margin-bottom: clamp(0.65rem, 2dvh, 1.25rem);
+    margin-bottom: clamp(0.4rem, 1.25dvh, 0.85rem);
     animation:
         totem-logo-in var(--totem-dur-slow) var(--totem-ease-spring) 0.04s both,
         totem-logo-float 5s ease-in-out 0.8s infinite;
@@ -435,37 +441,37 @@ body.totem-kiosk {
 }
 
 .totem-welcome__logo {
-    width: clamp(7.5rem, 22dvh, 11rem);
+    width: clamp(5.5rem, 16dvh, 8rem);
     display: block;
-    border-radius: 1.35rem;
-    padding: clamp(0.45rem, 1.2dvh, 0.75rem);
+    border-radius: 1.2rem;
+    padding: clamp(0.35rem, 1dvh, 0.55rem);
 }
 
 .totem-welcome__eyebrow {
-    font-size: clamp(0.9375rem, 2.4dvh, 1.25rem);
+    font-size: clamp(0.8125rem, 2dvh, 1rem);
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--lig-text-subtle);
-    margin: 0 0 clamp(0.45rem, 1.25dvh, 0.75rem);
+    margin: 0 0 clamp(0.3rem, 0.9dvh, 0.5rem);
 }
 
 .totem-welcome__wordmark {
-    margin: 0 0 clamp(0.55rem, 1.5dvh, 1rem);
+    margin: 0 0 clamp(0.35rem, 1dvh, 0.65rem);
     line-height: 1;
 }
 
 .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(2.5rem, 7.5dvh, 3.75rem);
+    font-size: clamp(2rem, 5.5dvh, 2.75rem);
     justify-content: center;
 }
 
 .totem-welcome__lead {
     color: var(--lig-text-muted);
-    font-size: clamp(1.125rem, 2.8dvh, 1.4375rem);
-    line-height: 1.5;
+    font-size: clamp(0.9375rem, 2.2dvh, 1.125rem);
+    line-height: 1.45;
     margin: 0 auto;
-    max-width: 30rem;
+    max-width: 26rem;
 }
 
 .totem-welcome__panel {
@@ -1358,7 +1364,8 @@ body.totem-kiosk {
 /* ——— Payment & success (totem pages) ——— */
 body.totem-kiosk .lig-payment-page {
     min-height: auto;
-    max-width: 32rem;
+    max-width: 28rem;
+    padding-block: 0.75rem;
 }
 
 body.totem-kiosk .lig-payment-card {
@@ -1366,7 +1373,7 @@ body.totem-kiosk .lig-payment-card {
     border: 1px solid var(--lig-border);
     border-radius: var(--lig-radius-xl);
     box-shadow: var(--lig-shadow-md);
-    padding: 2rem 1.75rem;
+    padding: 1.35rem 1.25rem;
 }
 
 body.totem-kiosk .lig-payment-title {
@@ -1383,7 +1390,7 @@ body.totem-kiosk .lig-payment-summary {
 body.totem-kiosk .totem-success-code {
     display: inline-block;
     font-family: 'Plus Jakarta Sans', ui-monospace, monospace;
-    font-size: 2rem;
+    font-size: 1.65rem;
     font-weight: 800;
     letter-spacing: 0.2em;
     color: var(--lig-text);
@@ -1436,8 +1443,8 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    min-height: 7.5rem;
-    padding: 1rem 0.75rem;
+    min-height: 6.25rem;
+    padding: 0.85rem 0.65rem;
     border-radius: 1.125rem;
     border: 1px solid var(--lig-border-strong);
     background: linear-gradient(180deg, #fff 0%, var(--lig-surface-alt) 100%);
@@ -1573,6 +1580,8 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         border-radius: 1rem;
         padding: 0.55rem;
         mask-image: none;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
     }
 
     .totem-cat-btn {
@@ -1581,6 +1590,7 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         margin-bottom: 0;
         white-space: nowrap;
         padding: 0.55rem 0.85rem 0.55rem 0.55rem;
+        scroll-snap-align: start;
     }
 
     .totem-cat-btn::before {
@@ -1604,6 +1614,389 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 
     .totem-header {
         padding: 0.5rem 0.75rem;
+    }
+}
+
+/* ——— Responsive: tablets & mobile (portrait + landscape) ——— */
+
+@media (pointer: coarse) {
+    .totem-btn,
+    .totem-cat-btn,
+    .totem-qty-btn,
+    .totem-pay-method,
+    .totem-welcome__option {
+        min-height: 48px;
+    }
+
+    .totem-cat-btn {
+        min-height: 48px;
+    }
+}
+
+/* Monitores totem grandes — leve redução para caber mais conteúdo */
+@media (min-width: 1100px) and (min-height: 700px) {
+    html.totem-kiosk {
+        --totem-zoom: 0.88;
+        zoom: var(--totem-zoom);
+    }
+}
+
+/* Páginas de fluxo (pagamento / caixa / sucesso) */
+body.totem-kiosk.min-h-screen > main {
+    width: 100%;
+    max-width: min(32rem, 100%);
+    margin-inline: auto;
+    padding: clamp(0.75rem, 2dvh, 1.5rem) clamp(0.85rem, 3vw, 1.25rem);
+    padding-bottom: calc(clamp(0.75rem, 2dvh, 1.5rem) + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+}
+
+/* —— Phone portrait —— */
+html.totem--phone.totem--portrait .totem-app {
+    --totem-welcome-scale: 1;
+}
+
+html.totem--phone.totem--portrait .totem-header__sub {
+    display: none;
+}
+
+html.totem--phone.totem--portrait .totem-btn__label {
+    display: none;
+}
+
+html.totem--phone.totem--portrait .totem-btn--icon {
+    padding-inline: 0.65rem;
+}
+
+html.totem--phone.totem--portrait .totem-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+html.totem--phone.totem--portrait .totem-product {
+    min-height: 168px;
+}
+
+html.totem--phone.totem--portrait .totem-product__name {
+    font-size: 0.72rem;
+    min-height: 2.2em;
+}
+
+html.totem--phone.totem--portrait .totem-products__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+}
+
+html.totem--phone.totem--portrait .totem-cart-sheet {
+    max-height: 92dvh;
+    border-radius: 1.35rem 1.35rem 0 0;
+    padding-inline: 1rem;
+}
+
+html.totem--phone.totem--portrait .totem-footer {
+    font-size: 0.5625rem;
+    letter-spacing: 0.04em;
+}
+
+/* —— Phone landscape (prioriza altura) —— */
+html.totem--phone.totem--landscape .totem-footer,
+html.totem--short.totem--landscape .totem-footer {
+    display: none;
+}
+
+html.totem--phone.totem--landscape .totem-header__sub {
+    display: none;
+}
+
+html.totem--phone.totem--landscape .totem-welcome__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: center;
+    gap: 0.85rem;
+    width: min(100%, 52rem);
+    transform: none;
+    padding: 0;
+}
+
+html.totem--phone.totem--landscape .totem-welcome__hero {
+    align-items: flex-start;
+    text-align: left;
+}
+
+html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
+    justify-content: flex-start;
+}
+
+html.totem--phone.totem--landscape .totem-welcome__logo {
+    width: clamp(4rem, 28dvh, 5.5rem);
+}
+
+html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
+    font-size: clamp(1.5rem, 8dvh, 2rem);
+}
+
+html.totem--phone.totem--landscape .totem-welcome__lead {
+    margin-inline: 0;
+    font-size: 0.8125rem;
+}
+
+html.totem--phone.totem--landscape .totem-catalog {
+    grid-template-columns: minmax(4.25rem, 5.5rem) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+html.totem--phone.totem--landscape .totem-categories-wrap {
+    padding: 0.35rem 0 0.35rem 0.35rem;
+    min-height: 0;
+}
+
+html.totem--phone.totem--landscape .totem-categories {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    gap: 0.25rem;
+    padding: 0.4rem;
+    border-radius: 0.85rem 0 0 0.85rem;
+    border-right: none;
+    scroll-snap-type: none;
+}
+
+html.totem--phone.totem--landscape .totem-cat-btn {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.4rem 0.25rem;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+html.totem--phone.totem--landscape .totem-cat-btn__label {
+    font-size: 0.5625rem;
+    line-height: 1.1;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+html.totem--phone.totem--landscape .totem-cat-btn__count {
+    display: none;
+}
+
+html.totem--phone.totem--landscape .totem-cat-btn__icon {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 1.05rem;
+}
+
+html.totem--phone.totem--landscape .totem-products__head {
+    padding-bottom: 0.35rem;
+}
+
+html.totem--phone.totem--landscape .totem-products__title {
+    font-size: 1rem;
+}
+
+html.totem--phone.totem--landscape .totem-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+html.totem--phone.totem--landscape .totem-product {
+    min-height: 148px;
+}
+
+html.totem--phone.totem--landscape .totem-product__media img {
+    padding: 0.45rem;
+}
+
+html.totem--phone.totem--landscape .totem-product__body {
+    padding: 0.4rem 0.45rem 0.45rem;
+}
+
+html.totem--phone.totem--landscape .totem-qty-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1.15rem;
+}
+
+html.totem--phone.totem--landscape .totem-pay-methods {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.totem--phone.totem--landscape .totem-pay-method {
+    min-height: 5.5rem;
+    padding: 0.65rem 0.45rem;
+}
+
+/* —— Tablet portrait —— */
+html.totem--tablet.totem--portrait .totem-catalog {
+    grid-template-columns: minmax(10rem, 12rem) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+html.totem--tablet.totem--portrait .totem-categories-wrap {
+    padding: 0.55rem 0 0.55rem 0.55rem;
+    min-height: 0;
+}
+
+html.totem--tablet.totem--portrait .totem-categories {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    border-right: none;
+    scroll-snap-type: none;
+}
+
+html.totem--tablet.totem--portrait .totem-cat-btn {
+    width: 100%;
+    margin-bottom: 0.2rem;
+    white-space: normal;
+}
+
+html.totem--tablet.totem--portrait .totem-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+html.totem--tablet.totem--portrait .totem-welcome__content {
+    width: min(100%, 36rem);
+    transform: none;
+}
+
+html.totem--tablet.totem--portrait .totem-product {
+    min-height: 188px;
+}
+
+/* —— Tablet landscape —— */
+html.totem--tablet.totem--landscape .totem-catalog {
+    grid-template-columns: minmax(11rem, 13rem) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+html.totem--tablet.totem--landscape .totem-categories-wrap {
+    padding: 0.55rem 0 0.55rem 0.55rem;
+}
+
+html.totem--tablet.totem--landscape .totem-categories {
+    display: block;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 0;
+    scroll-snap-type: none;
+}
+
+html.totem--tablet.totem--landscape .totem-cat-btn {
+    width: 100%;
+}
+
+html.totem--tablet.totem--landscape .totem-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.7rem;
+}
+
+html.totem--tablet.totem--landscape .totem-welcome__content {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 1.25rem;
+    width: min(100%, 54rem);
+    transform: none;
+}
+
+html.totem--tablet.totem--landscape .totem-welcome__hero {
+    text-align: left;
+    align-items: flex-start;
+}
+
+html.totem--tablet.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
+    justify-content: flex-start;
+}
+
+html.totem--tablet.totem--landscape .totem-welcome__lead {
+    margin-inline: 0;
+}
+
+/* Carrinho lateral em landscape (tablet/phone) */
+html.totem--landscape .totem-cart-panel--open {
+    align-items: stretch;
+    justify-content: flex-end;
+}
+
+html.totem--landscape .totem-cart-sheet {
+    width: min(26rem, 92vw);
+    max-height: 100%;
+    height: 100%;
+    border-radius: 1.25rem 0 0 1.25rem;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    animation: totem-sheet-right 0.38s var(--totem-ease-spring) both;
+}
+
+html.totem--landscape .totem-cart-panel--closing .totem-cart-sheet {
+    animation: totem-sheet-right-out 0.3s var(--totem-ease-out) both;
+}
+
+@keyframes totem-sheet-right {
+    from {
+        opacity: 0.92;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes totem-sheet-right-out {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+/* Pagamento: métodos em linha no landscape */
+html.totem--landscape .totem-pay-methods {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+html.totem--portrait.totem--phone .totem-pay-methods {
+    grid-template-columns: 1fr;
+}
+
+html.totem--tablet.totem--portrait .totem-pay-methods {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Safe areas */
+.totem-header {
+    padding-top: calc(clamp(0.55rem, 1.25dvh, 0.8rem) + env(safe-area-inset-top, 0px));
+    padding-left: calc(clamp(0.85rem, 2vw, 1.35rem) + env(safe-area-inset-left, 0px));
+    padding-right: calc(clamp(0.85rem, 2vw, 1.35rem) + env(safe-area-inset-right, 0px));
+}
+
+.totem-footer {
+    padding-left: calc(1rem + env(safe-area-inset-left, 0px));
+    padding-right: calc(1rem + env(safe-area-inset-right, 0px));
+}
+
+@media (max-height: 720px) and (min-width: 1100px) {
+    html.totem-kiosk {
+        --totem-zoom: 0.82;
+    }
+
+    .totem-app {
+        --totem-welcome-scale: min(0.92, calc((100svh - 10rem) / 500));
     }
 }
 
@@ -1648,7 +2041,11 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 }
 
 @media (max-height: 720px) {
+    html.totem-kiosk {
+        --totem-zoom: 0.8;
+    }
+
     .totem-app {
-        --totem-welcome-scale: min(1, calc((100svh - 8.5rem) / 380));
+        --totem-welcome-scale: min(0.92, calc((100svh - 10rem) / 500));
     }
 }

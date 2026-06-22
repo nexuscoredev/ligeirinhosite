@@ -256,6 +256,12 @@
 </button>`;
             })
             .join('');
+        const activeBtn = categoriesEl.querySelector('.totem-cat-btn--active');
+        if (activeBtn) {
+            window.requestAnimationFrame(() => {
+                activeBtn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+            });
+        }
     };
 
     const renderProducts = () => {
