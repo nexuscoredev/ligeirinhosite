@@ -240,6 +240,53 @@
         return items;
     };
 
+    const getTotemDefaultTier = (group) => {
+        if (group?.variants?.unidade?.price != null) return 'unidade';
+        if (group?.variants?.caixa?.price != null) return 'caixa';
+        if (group?.variants?.pallet?.price != null) return 'pallet';
+        return null;
+    };
+
+    /** Totem varejo: exibe unidade quando disponível, senão caixa/pallet. */
+    const getTotemDisplayProducts = (catalogData, groupsMap = null) => {
+        const groups = groupsMap || buildGroups(catalogData);
+        const items = [];
+        const seen = new Set();
+
+        catalogData.categories.forEach((cat) => {
+            cat.products.forEach((product) => {
+                const key = `${cat.id}::${normalizeKey(product.name, cat.id)}`;
+                if (seen.has(key)) return;
+
+                const group = groups.get(key);
+                if (!group) return;
+
+                const defaultTier = getTotemDefaultTier(group);
+                if (!defaultTier) return;
+
+                seen.add(key);
+                const variant = getVariant(group, defaultTier);
+
+                items.push({
+                    group,
+                    product: {
+                        id: group.primaryId,
+                        name: group.baseName,
+                        price: variant?.price ?? product.price,
+                        image: group.image,
+                        adultOnly: group.adultOnly,
+                        description: group.description,
+                    },
+                    categoryName: cat.name,
+                    categoryId: cat.id,
+                    defaultTier,
+                });
+            });
+        });
+
+        return items;
+    };
+
     const getUnitPrice = (variant) => {
         if (!variant || variant.price == null) return null;
         const units = Number(variant.packSize) || 0;
@@ -313,6 +360,8 @@
         getDefaultTier,
         getVariant,
         getDisplayProducts,
+        getTotemDisplayProducts,
+        getTotemDefaultTier,
         packLineLabel,
         getUnitPrice,
         pricePackMeta,

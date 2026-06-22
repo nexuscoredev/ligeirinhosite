@@ -93,6 +93,8 @@
         energeticos: 'bolt',
         combos: 'local_fire_department',
         gelos: 'ac_unit',
+        licores: 'wine_bar',
+        'drinks-prontos': 'nightlife',
         vinhos: 'wine_bar',
         salgadinho: 'fastfood',
         tabacaria: 'smoking_rooms',

@@ -21,6 +21,10 @@
     const checkoutBtn = document.getElementById('totem-checkout-btn');
     const categoriesEl = document.getElementById('totem-categories');
     const productsGrid = document.getElementById('totem-products-grid');
+    const productsHead = document.getElementById('totem-products-head');
+    const categoryTitle = document.getElementById('totem-category-title');
+    const productsCount = document.getElementById('totem-products-count');
+    const productsEmpty = document.getElementById('totem-products-empty');
     const unitLabel = document.getElementById('totem-unit-label');
     const deviceLabel = document.getElementById('totem-device-label');
     const idleHint = document.getElementById('totem-idle-hint');
@@ -66,7 +70,15 @@
 
     const buildDisplayItems = () => {
         if (!catalogData) return [];
-        return pricing.getDisplayProducts(catalogData);
+        return pricing.getTotemDisplayProducts(catalogData);
+    };
+
+    const activeCategoryMeta = () =>
+        catalogData?.categories?.find((cat) => cat.id === activeCategory) || null;
+
+    const categoryIcon = (cat) => {
+        const cover = catalog.categoryCoverMedia(cat, catalogData?.categories || []);
+        return cover.icon || 'liquor';
     };
 
     const setView = (name) => {
@@ -120,37 +132,62 @@
         if (!categoriesEl || !catalogData) return;
         const cats = catalogData.categories;
         categoriesEl.innerHTML = cats
-            .map(
-                (cat) =>
-                    `<button type="button" class="totem-cat-btn${cat.id === activeCategory ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}">${esc(cat.name)}</button>`
-            )
+            .map((cat) => {
+                const active = cat.id === activeCategory;
+                const icon = categoryIcon(cat);
+                const label = catalog.formatCategoryLabel(cat.name);
+                return `<button type="button" class="totem-cat-btn${active ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}">
+<span class="totem-cat-btn__icon material-symbols-outlined" aria-hidden="true">${esc(icon)}</span>
+<span class="totem-cat-btn__label">${esc(label)}</span>
+</button>`;
+            })
             .join('');
     };
 
     const renderProducts = () => {
         if (!productsGrid) return;
         const items = displayItems.filter((item) => !activeCategory || item.categoryId === activeCategory);
+        const catMeta = activeCategoryMeta();
+        const catLabel = catMeta ? catalog.formatCategoryLabel(catMeta.name) : '';
+
+        if (productsHead) productsHead.hidden = !catLabel;
+        if (categoryTitle) categoryTitle.textContent = catLabel;
+        if (productsCount) {
+            productsCount.textContent =
+                items.length === 1 ? '1 produto' : `${items.length} produtos`;
+        }
+        if (productsEmpty) productsEmpty.hidden = items.length > 0;
+        productsGrid.hidden = items.length === 0;
+
         productsGrid.innerHTML = items
-            .map((item) => {
+            .map((item, index) => {
                 const group = item.group || null;
                 const product = item.product;
-                const variant = group ? pricing.getVariant(group, pricing.getDefaultTier(group)) : null;
+                const tier = item.defaultTier || pricing.getTotemDefaultTier(group) || pricing.getDefaultTier(group);
+                const variant = group ? pricing.getVariant(group, tier) : null;
                 const active = variant || product;
                 const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
                 const cart = cartApi.loadCart();
                 const qty = cart[cartKey]?.qty || 0;
                 const img = catalog.productImageUrl(
-                    group ? pricing.getTierImage(group, pricing.getDefaultTier(group)) : product.image
+                    group ? pricing.getTierImage(group, tier) : product.image
                 );
                 const name = group
-                    ? pricing.cartItemName({ ...variant, tier: pricing.getDefaultTier(group) }, group)
+                    ? pricing.cartItemName({ ...variant, tier }, group)
                     : product.name;
                 const price = active.price;
-                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}">
-<div class="totem-product__media">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined" style="font-size:3rem;color:#555">liquor</span>'}</div>
+                const tierLabel = pricing.TIER_SHORT?.[tier] || '';
+                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-cart-key="${esc(cartKey)}" data-item-key="${esc(group?.key || product.id)}" style="--totem-card-i:${index}">
+<div class="totem-product__media">
+${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
+${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
+</div>
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
-<div class="totem-product__price">${formatPrice(price)}</div>
+<div class="totem-product__meta">
+${tierLabel ? `<span class="totem-product__tier">${esc(tierLabel)}</span>` : ''}
+<span class="totem-product__price">${formatPrice(price)}</span>
+</div>
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
 <span class="totem-qty-value">${qty}</span>
@@ -166,10 +203,11 @@
         const item = displayItems.find((i) => (i.group?.key || i.product.id) === itemKey);
         if (!item) return;
         const group = item.group;
-        const variant = group ? pricing.getVariant(group, pricing.getDefaultTier(group)) : null;
+        const tier = item.defaultTier || pricing.getTotemDefaultTier(group) || pricing.getDefaultTier(group);
+        const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
-        const packType = variant?.tier || 'unidade';
+        const packType = variant?.tier || tier || 'unidade';
         const name = group
             ? pricing.cartItemName({ ...variant, tier: packType }, group)
             : product.name;

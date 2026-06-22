@@ -33,8 +33,10 @@ html.totem-kiosk[data-theme='light'] {
 
 html.totem-kiosk,
 body.totem-kiosk {
-    height: 100%;
+    height: 100svh;
+    max-height: 100svh;
     overflow: hidden;
+    overscroll-behavior: none;
     touch-action: manipulation;
     user-select: none;
     -webkit-user-select: none;
@@ -47,11 +49,14 @@ body.totem-kiosk {
 .totem-app {
     display: grid;
     grid-template-rows: auto 1fr auto;
-    height: 100dvh;
-    max-height: 100dvh;
+    height: 100svh;
+    max-height: 100svh;
+    overflow: hidden;
+    --totem-welcome-scale: min(1, calc((100svh - 9.5rem) / 500));
+    --totem-sidebar-w: clamp(13.5rem, 18vw, 17.5rem);
     background:
         radial-gradient(ellipse 120% 80% at 50% -20%, rgba(240, 201, 41, 0.09), transparent 55%),
-        var(--lig-bg);
+        linear-gradient(180deg, #f7f4ed 0%, var(--lig-bg) 42%, #efe9de 100%);
     color: var(--lig-text);
 }
 
@@ -60,8 +65,8 @@ body.totem-kiosk {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
+    gap: 0.75rem;
+    padding: clamp(0.5rem, 1.25dvh, 0.875rem) clamp(0.75rem, 2vw, 1.25rem);
     background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -78,8 +83,8 @@ body.totem-kiosk {
 }
 
 .totem-header__logo {
-    width: 52px;
-    height: 52px;
+    width: clamp(40px, 6.5dvh, 48px);
+    height: clamp(40px, 6.5dvh, 48px);
     object-fit: contain;
     background: var(--lig-brand-logo-bg);
     border-radius: 1rem;
@@ -90,7 +95,7 @@ body.totem-kiosk {
 }
 
 .totem-header__title .lig-brand__wordmark {
-    font-size: 1.3rem;
+    font-size: clamp(1rem, 2.8dvh, 1.2rem);
 }
 
 .totem-header__sub {
@@ -105,7 +110,12 @@ body.totem-kiosk {
 .totem-header__actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    padding: 0.2rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid var(--lig-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
 /* ——— Buttons ——— */
@@ -114,13 +124,14 @@ body.totem-kiosk {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 52px;
-    min-width: 52px;
-    padding: 0.75rem 1.35rem;
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.65rem 1.15rem;
     border-radius: 999px;
     border: none;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 0.9375rem;
     letter-spacing: 0.01em;
     cursor: pointer;
     transition:
@@ -156,23 +167,25 @@ body.totem-kiosk {
 }
 
 .totem-btn--ghost {
-    background: var(--lig-surface);
-    color: var(--lig-text);
-    border: 1px solid var(--lig-border-strong);
-    box-shadow: var(--lig-shadow-sm);
+    background: transparent;
+    color: var(--lig-text-muted);
+    border: 1px solid transparent;
+    box-shadow: none;
 }
 
 .totem-btn--ghost:hover {
-    border-color: rgba(240, 201, 41, 0.45);
-    background: var(--lig-surface-elevated);
+    color: var(--lig-text);
+    background: rgba(255, 255, 255, 0.72);
 }
 
 .totem-btn--cart {
     position: relative;
     background: linear-gradient(165deg, #fde047 0%, var(--lig-yellow) 50%, #d4a81a 100%);
     color: #14120f;
-    padding-inline: 1.5rem;
-    box-shadow: 0 4px 20px var(--lig-yellow-glow);
+    padding-inline: 1.25rem;
+    box-shadow:
+        0 4px 18px var(--lig-yellow-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.42);
 }
 
 .totem-btn__badge {
@@ -231,8 +244,9 @@ body.totem-kiosk {
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 2.5rem 1.5rem;
+    padding: clamp(0.35rem, 1.5dvh, 1rem) clamp(0.75rem, 3vw, 1.25rem);
     overflow: hidden;
+    min-height: 0;
 }
 
 .totem-welcome__glow {
@@ -247,7 +261,15 @@ body.totem-kiosk {
 .totem-welcome__content {
     position: relative;
     z-index: 1;
-    max-width: 28rem;
+    width: min(100%, 26rem);
+    max-height: min(100%, calc(100svh - 9rem));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    transform: scale(var(--totem-welcome-scale));
+    transform-origin: center center;
     animation: totem-welcome-in 0.7s var(--lig-ease) both;
 }
 
@@ -264,20 +286,20 @@ body.totem-kiosk {
 
 .totem-welcome__logo-wrap {
     display: inline-flex;
-    padding: 0.25rem;
-    border-radius: 1.75rem;
+    padding: 0.2rem;
+    border-radius: 1.35rem;
     background: var(--lig-brand-logo-bg);
     box-shadow:
         0 0 0 1px rgba(240, 201, 41, 0.3),
         var(--lig-shadow-md);
-    margin-bottom: 1.5rem;
+    margin-bottom: clamp(0.35rem, 1.5dvh, 0.85rem);
 }
 
 .totem-welcome__logo {
-    width: min(168px, 38vw);
+    width: clamp(5.5rem, 16dvh, 7.5rem);
     display: block;
-    border-radius: 1.5rem;
-    padding: 0.75rem;
+    border-radius: 1.15rem;
+    padding: clamp(0.35rem, 1dvh, 0.55rem);
 }
 
 .totem-welcome__eyebrow {
@@ -290,12 +312,12 @@ body.totem-kiosk {
 }
 
 .totem-welcome__wordmark {
-    margin: 0 0 1rem;
+    margin: 0 0 clamp(0.35rem, 1.25dvh, 0.65rem);
     line-height: 1;
 }
 
 .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(2rem, 6vw, 2.75rem);
+    font-size: clamp(1.5rem, 4.5dvh, 2.15rem);
     justify-content: center;
 }
 
@@ -310,42 +332,51 @@ body.totem-kiosk {
 
 .totem-welcome__lead {
     color: var(--lig-text-muted);
-    font-size: 1.0625rem;
-    line-height: 1.6;
-    margin: 0 auto 1.75rem;
+    font-size: clamp(0.8125rem, 1.9dvh, 0.95rem);
+    line-height: 1.45;
+    margin: 0 auto clamp(0.5rem, 1.5dvh, 0.9rem);
+    max-width: 22rem;
 }
 
 .totem-welcome__features {
     list-style: none;
-    margin: 0 auto 2rem;
+    margin: 0 auto clamp(0.5rem, 1.75dvh, 1rem);
     padding: 0;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
+    max-width: 24rem;
 }
 
 .totem-welcome__features li {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.5rem 0.875rem;
+    gap: 0.3rem;
+    padding: 0.35rem 0.65rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid var(--lig-border);
-    font-size: 0.8125rem;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(20, 18, 15, 0.06);
+    font-size: clamp(0.6875rem, 1.6dvh, 0.75rem);
     font-weight: 600;
     color: var(--lig-text-muted);
-    box-shadow: var(--lig-shadow-sm);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        var(--lig-shadow-sm);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .totem-welcome__features .material-symbols-outlined {
-    font-size: 1.125rem;
+    font-size: 1rem;
     color: var(--lig-yellow-text);
 }
 
 .totem-welcome__cta {
-    min-width: min(100%, 340px);
+    min-width: min(100%, 300px);
+    min-height: clamp(48px, 6.5dvh, 56px);
+    padding-inline: 1.35rem;
+    font-size: clamp(0.875rem, 2dvh, 1rem);
     animation: totem-cta-pulse 3s ease-in-out infinite;
 }
 
@@ -366,36 +397,90 @@ body.totem-kiosk {
 /* ——— Catalog ——— */
 .totem-catalog {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: var(--totem-sidebar-w) 1fr;
     min-height: 0;
+    background: transparent;
+}
+
+.totem-categories-wrap {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0.85rem 0 0.85rem 0.85rem;
+}
+
+.totem-categories__label {
+    margin: 0 0 0.5rem 0.35rem;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
 }
 
 .totem-categories {
     overflow-y: auto;
-    padding: 1.25rem 1rem;
-    border-right: 1px solid var(--lig-border);
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    flex: 1;
+    min-height: 0;
+    padding: 0.65rem;
+    border-radius: 1.25rem 0 0 1.25rem;
+    border: 1px solid var(--lig-border);
+    border-right: none;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--lig-shadow-sm);
+    mask-image: linear-gradient(180deg, #000 92%, transparent 100%);
 }
 
 .totem-cat-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     width: 100%;
     text-align: left;
-    padding: 0.9rem 1rem 0.9rem 1.15rem;
-    margin-bottom: 0.4rem;
-    border-radius: 0.875rem;
+    padding: 0.72rem 0.85rem;
+    margin-bottom: 0.3rem;
+    border-radius: 0.9rem;
     border: 1px solid transparent;
     background: transparent;
     color: var(--lig-text-muted);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.2;
     position: relative;
     transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        border-color 0.2s ease;
+        background 0.22s var(--lig-ease),
+        color 0.22s ease,
+        border-color 0.22s ease,
+        transform 0.18s var(--lig-ease),
+        box-shadow 0.22s ease;
+}
+
+.totem-cat-btn__icon {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.65rem;
+    background: rgba(20, 18, 15, 0.04);
+    color: var(--lig-text-subtle);
+    font-size: 1.125rem;
+    transition:
+        background 0.22s ease,
+        color 0.22s ease,
+        transform 0.22s var(--lig-ease);
+}
+
+.totem-cat-btn__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .totem-cat-btn::before {
@@ -407,53 +492,164 @@ body.totem-kiosk {
     width: 3px;
     height: 0;
     border-radius: 999px;
-    background: var(--lig-yellow);
+    background: linear-gradient(180deg, #fde047, var(--lig-yellow));
     transition: height 0.22s var(--lig-ease);
 }
 
 .totem-cat-btn--active {
-    background: var(--lig-yellow-light);
-    border-color: rgba(240, 201, 41, 0.35);
+    background: linear-gradient(135deg, rgba(255, 249, 232, 0.95), rgba(240, 201, 41, 0.16));
+    border-color: rgba(240, 201, 41, 0.38);
     color: var(--lig-yellow-text);
     font-weight: 700;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.totem-cat-btn--active .totem-cat-btn__icon {
+    background: linear-gradient(165deg, #fde047 0%, var(--lig-yellow) 100%);
+    color: #14120f;
+    transform: scale(1.04);
 }
 
 .totem-cat-btn--active::before {
-    height: 60%;
+    height: 58%;
 }
 
 .totem-products {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0.85rem 0.85rem 0.85rem 0;
+    background:
+        radial-gradient(circle at 85% 12%, rgba(240, 201, 41, 0.08), transparent 34%),
+        radial-gradient(circle at 8% 88%, rgba(20, 18, 15, 0.03), transparent 30%);
+}
+
+.totem-products__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.15rem 0.35rem 0.85rem;
+}
+
+.totem-products__eyebrow {
+    margin: 0 0 0.2rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
+.totem-products__title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: clamp(1.25rem, 2.4dvh, 1.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--lig-text);
+}
+
+.totem-products__count {
+    margin: 0;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--lig-border);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--lig-text-muted);
+    white-space: nowrap;
+}
+
+.totem-products .totem-grid {
     overflow-y: auto;
-    padding: 1.25rem;
-    background: transparent;
+    flex: 1;
+    min-height: 0;
+    padding: 0.15rem 0.35rem 0.35rem;
+    align-content: start;
+}
+
+.totem-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.35rem;
+    padding: 2rem 1.5rem;
+    margin: 0.35rem;
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px dashed rgba(20, 18, 15, 0.12);
+}
+
+.totem-empty__icon {
+    font-size: 2.75rem;
+    color: var(--lig-text-subtle);
+    margin-bottom: 0.35rem;
+}
+
+.totem-empty__title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-empty__lead {
+    margin: 0;
+    max-width: 18rem;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+    line-height: 1.5;
 }
 
 .totem-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 1.125rem;
+    grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+    gap: 0.9rem;
 }
 
 .totem-product {
     display: flex;
     flex-direction: column;
-    background: var(--lig-surface);
-    border: 1px solid var(--lig-border);
-    border-radius: var(--lig-radius-lg);
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(20, 18, 15, 0.07);
+    border-radius: 1.125rem;
     overflow: hidden;
-    min-height: 268px;
-    box-shadow: var(--lig-shadow-sm);
+    min-height: 250px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.8) inset,
+        var(--lig-shadow-sm);
     transition:
-        transform 0.22s var(--lig-ease),
-        box-shadow 0.22s ease,
-        border-color 0.22s ease;
+        transform 0.24s var(--lig-ease),
+        box-shadow 0.24s ease,
+        border-color 0.24s ease;
+    animation: totem-card-in 0.42s var(--lig-ease) both;
+    animation-delay: calc(var(--totem-card-i, 0) * 28ms);
+}
+
+@keyframes totem-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .totem-product--selected {
-    border-color: rgba(240, 201, 41, 0.55);
+    border-color: rgba(240, 201, 41, 0.62);
     box-shadow:
-        0 0 0 1px rgba(240, 201, 41, 0.2),
-        var(--lig-shadow-md);
+        0 0 0 1px rgba(240, 201, 41, 0.22),
+        0 10px 28px rgba(240, 201, 41, 0.14),
+        var(--lig-shadow-sm);
 }
 
 .totem-product:active {
@@ -473,53 +669,87 @@ body.totem-kiosk {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, transparent 70%, rgba(20, 18, 15, 0.03) 100%);
+    background: linear-gradient(180deg, transparent 68%, rgba(20, 18, 15, 0.04) 100%);
     pointer-events: none;
+}
+
+.totem-product__badge {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.55rem;
+    z-index: 2;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    background: #14120f;
+    color: var(--lig-yellow);
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .totem-product__media img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    padding: 0.875rem;
-    transition: transform 0.3s var(--lig-ease);
+    padding: 0.75rem;
+    transition: transform 0.32s var(--lig-ease);
 }
 
 .totem-product--selected .totem-product__media img {
-    transform: scale(1.03);
+    transform: scale(1.04);
 }
 
-.totem-product__media .material-symbols-outlined {
+.totem-product__placeholder {
+    font-size: 2.75rem;
     color: #d4cfc4;
 }
 
 .totem-product__body {
-    padding: 1rem 1rem 1.125rem;
+    padding: 0.85rem 0.9rem 0.95rem;
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.5rem;
     flex: 1;
 }
 
 .totem-product__name {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     line-height: 1.35;
-    min-height: 2.6em;
+    min-height: 2.5em;
     color: var(--lig-text);
     letter-spacing: -0.01em;
 }
 
+.totem-product__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.totem-product__tier {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.4rem;
+    background: rgba(20, 18, 15, 0.04);
+}
+
 .totem-product__price {
-    display: inline-flex;
-    align-self: flex-start;
-    font-size: 1.0625rem;
+    font-size: 1rem;
     font-weight: 800;
     color: var(--lig-yellow-text);
-    background: var(--lig-yellow-light);
-    padding: 0.2rem 0.65rem;
-    border-radius: 999px;
     letter-spacing: -0.02em;
 }
 
@@ -529,31 +759,34 @@ body.totem-kiosk {
     justify-content: space-between;
     gap: 0.5rem;
     margin-top: auto;
-    padding-top: 0.25rem;
+    padding-top: 0.35rem;
 }
 
 .totem-qty-btn {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 999px;
     border: 1px solid var(--lig-border-strong);
-    background: var(--lig-surface-alt);
+    background: linear-gradient(180deg, #fff 0%, var(--lig-surface-alt) 100%);
     color: var(--lig-yellow-text);
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
+    box-shadow: var(--lig-shadow-sm);
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
-        transform 0.15s var(--lig-ease);
+        transform 0.15s var(--lig-ease),
+        box-shadow 0.15s ease;
 }
 
 .totem-qty-btn:active:not(:disabled) {
     transform: scale(0.92);
     background: var(--lig-yellow-light);
+    box-shadow: none;
 }
 
 .totem-qty-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.38;
 }
 
 .totem-qty-value {
@@ -595,14 +828,14 @@ body.totem-kiosk {
 .totem-cart-sheet {
     width: min(720px, 100%);
     max-height: 88dvh;
-    background: var(--lig-surface);
+    background: linear-gradient(180deg, #fffcf7 0%, var(--lig-surface) 100%);
     border-radius: 1.75rem 1.75rem 0 0;
     padding: 0.75rem 1.5rem 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
     box-shadow: var(--lig-shadow);
-    border-top: 1px solid var(--lig-border);
+    border-top: 1px solid rgba(240, 201, 41, 0.22);
     animation: totem-sheet-up 0.38s var(--lig-ease) both;
 }
 
@@ -678,7 +911,7 @@ body.totem-kiosk {
 
 /* ——— Footer ——— */
 .totem-footer {
-    padding: 0.875rem 1.5rem calc(0.875rem + env(safe-area-inset-bottom, 0px));
+    padding: clamp(0.4rem, 1dvh, 0.65rem) 1rem calc(clamp(0.4rem, 1dvh, 0.65rem) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--lig-border);
     background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(12px);
@@ -825,14 +1058,14 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 
 /* ——— Scrollbars ——— */
 .totem-categories::-webkit-scrollbar,
-.totem-products::-webkit-scrollbar,
+.totem-products .totem-grid::-webkit-scrollbar,
 .totem-cart-list::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
 .totem-categories::-webkit-scrollbar-thumb,
-.totem-products::-webkit-scrollbar-thumb,
+.totem-products .totem-grid::-webkit-scrollbar-thumb,
 .totem-cart-list::-webkit-scrollbar-thumb {
     background: rgba(20, 18, 15, 0.15);
     border-radius: 999px;
@@ -844,14 +1077,25 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         grid-template-rows: auto 1fr;
     }
 
+    .totem-categories-wrap {
+        padding: 0.55rem 0.55rem 0;
+    }
+
+    .totem-categories__label {
+        display: none;
+    }
+
     .totem-categories {
         display: flex;
         overflow-x: auto;
         overflow-y: hidden;
-        gap: 0.5rem;
-        border-right: none;
-        border-bottom: 1px solid var(--lig-border);
-        padding: 0.875rem 1rem;
+        gap: 0.45rem;
+        flex: none;
+        border-right: 1px solid var(--lig-border);
+        border-bottom: none;
+        border-radius: 1rem;
+        padding: 0.55rem;
+        mask-image: none;
     }
 
     .totem-cat-btn {
@@ -859,7 +1103,7 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         width: auto;
         margin-bottom: 0;
         white-space: nowrap;
-        padding-inline: 1.125rem;
+        padding: 0.55rem 0.85rem 0.55rem 0.55rem;
     }
 
     .totem-cat-btn::before {
@@ -872,12 +1116,36 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
         border-color: transparent;
     }
 
+    .totem-cat-btn--active .totem-cat-btn__icon {
+        background: rgba(20, 18, 15, 0.08);
+        color: #14120f;
+    }
+
+    .totem-products {
+        padding: 0.55rem;
+    }
+
     .totem-header {
-        padding: 0.875rem 1rem;
+        padding: 0.5rem 0.75rem;
     }
 
     .totem-welcome__features {
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .totem-product,
+    .totem-view--entering,
+    .totem-welcome__content,
+    .totem-welcome__cta {
+        animation: none;
+    }
+}
+
+@media (max-height: 720px) {
+    .totem-app {
+        --totem-welcome-scale: min(0.92, calc((100svh - 8.5rem) / 460));
     }
 }
