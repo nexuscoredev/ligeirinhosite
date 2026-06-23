@@ -71,11 +71,13 @@ export function buildEscPosReceipt(order, opts = {}) {
     const ESC = '\x1B';
     const GS = '\x1D';
     let out = ESC + '@';
+    out += ESC + 'E' + '\x01';
     out += ESC + 'a' + '\x01';
     lines.forEach((line) => {
         out += line + '\n';
     });
     out += ESC + 'a' + '\x00';
+    out += ESC + 'E' + '\x00';
     out += '\n\n';
     out += GS + 'V' + '\x00';
 

@@ -196,28 +196,29 @@ ${itemsBlock}
     };
 
     const printCss = () => `@page{size:80mm auto;margin:0}html,body{width:80mm;max-width:80mm;margin:0;padding:0;background:#fff;overflow:hidden;font-family:'Courier New',Courier,ui-monospace,monospace}
-.totem-receipt__paper{box-sizing:border-box;width:72mm;max-width:72mm;margin:0 auto;padding:3mm 4mm;font-size:11px;line-height:1.35;color:#000;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
-.totem-receipt__brand{font-size:11px;font-weight:700;text-align:center;letter-spacing:.02em;text-transform:uppercase}
-.totem-receipt__title{margin:2mm 0 0;font-size:12px;font-weight:700;text-align:center;letter-spacing:.04em}
-.totem-receipt__subtitle{margin:1mm 0 0;font-size:10px;font-weight:600;text-align:center}
+.totem-receipt__paper{box-sizing:border-box;width:72mm;max-width:72mm;margin:0 auto;padding:3mm 4mm;font-size:11px;line-height:1.35;color:#000;font-weight:700;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
+.totem-receipt__paper *{font-weight:700}
+.totem-receipt__brand{font-size:12px;font-weight:900;text-align:center;letter-spacing:.02em;text-transform:uppercase}
+.totem-receipt__title{margin:2mm 0 0;font-size:13px;font-weight:900;text-align:center;letter-spacing:.04em}
+.totem-receipt__subtitle{margin:1mm 0 0;font-size:11px;font-weight:700;text-align:center}
 .totem-receipt__divider{margin:2.5mm 0;border-top:1px dashed #000}
-.totem-receipt__code-label{margin:0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:center}
-.totem-receipt__code{margin:1.5mm 0 0;font-size:15px;font-weight:700;text-align:center;letter-spacing:.06em;word-break:break-all}
-.totem-receipt__code--compact{letter-spacing:.06em;font-size:15px}
-.totem-receipt__meta{margin:1mm 0 0;font-size:10px;text-align:center}
+.totem-receipt__code-label{margin:0;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;text-align:center}
+.totem-receipt__code{margin:1.5mm 0 0;font-size:16px;font-weight:900;text-align:center;letter-spacing:.06em;word-break:break-all}
+.totem-receipt__code--compact{letter-spacing:.06em;font-size:16px;font-weight:900}
+.totem-receipt__meta{margin:1mm 0 0;font-size:11px;font-weight:700;text-align:center}
 .totem-receipt__items{display:flex;flex-direction:column;gap:2mm;width:100%}
 .totem-receipt__item{width:100%}
 .totem-receipt__item-head{display:flex;align-items:flex-start;gap:1.5mm;width:100%}
-.totem-receipt__qty{flex-shrink:0;min-width:5mm;font-weight:700}
-.totem-receipt__name{flex:1;min-width:0;font-size:10px;line-height:1.3}
-.totem-receipt__item-price{margin-top:.5mm;padding-left:6.5mm;font-size:10px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
-.totem-receipt__row{display:flex;align-items:baseline;justify-content:space-between;gap:2mm;width:100%;font-size:10px;margin:1mm 0}
-.totem-receipt__row>span{flex:1;min-width:0}
-.totem-receipt__row strong{flex-shrink:0;max-width:48%;text-align:right;font-size:10px;font-variant-numeric:tabular-nums;word-break:break-word}
-.totem-receipt__row--total{margin-top:2mm;font-size:11px}
-.totem-receipt__row--total strong{font-size:13px;max-width:55%}
-.totem-receipt__foot{margin:2mm 0 0;font-size:9px;line-height:1.35;text-align:center}
-.totem-receipt__foot--muted{margin-top:2mm;font-weight:700;font-size:9px}`;
+.totem-receipt__qty{flex-shrink:0;min-width:5mm;font-weight:900}
+.totem-receipt__name{flex:1;min-width:0;font-size:11px;line-height:1.3;font-weight:700}
+.totem-receipt__item-price{margin-top:.5mm;padding-left:6.5mm;font-size:11px;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
+.totem-receipt__row{display:flex;align-items:baseline;justify-content:space-between;gap:2mm;width:100%;font-size:11px;margin:1mm 0;font-weight:700}
+.totem-receipt__row>span{flex:1;min-width:0;font-weight:700}
+.totem-receipt__row strong{flex-shrink:0;max-width:48%;text-align:right;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums;word-break:break-word}
+.totem-receipt__row--total{margin-top:2mm;font-size:12px;font-weight:900}
+.totem-receipt__row--total strong{font-size:14px;font-weight:900;max-width:55%}
+.totem-receipt__foot{margin:2mm 0 0;font-size:10px;line-height:1.35;text-align:center;font-weight:700}
+.totem-receipt__foot--muted{margin-top:2mm;font-weight:900;font-size:10px}`;
 
     const printViaBridge = async (order, opts = {}) => {
         const url = String(opts.printBridgeUrl || '').trim();
@@ -363,11 +364,13 @@ ${itemsBlock}
         const ESC = '\x1B';
         const GS = '\x1D';
         let out = ESC + '@';
+        out += ESC + 'E' + '\x01';
         out += ESC + 'a' + '\x01';
         lines.forEach((line) => {
             out += line + '\n';
         });
         out += ESC + 'a' + '\x00';
+        out += ESC + 'E' + '\x00';
         out += '\n\n';
         out += GS + 'V' + '\x00';
 
