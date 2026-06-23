@@ -1,51 +1,57 @@
-/* Comprovante térmico — tela oculta, visível só na impressão */
+/* Comprovante térmico 80 mm — preview oculto, visível só na impressão */
 
 .totem-receipt-print {
     position: fixed;
     left: -10000px;
     top: 0;
-    width: 80mm;
+    width: 72mm;
+    max-width: 72mm;
     pointer-events: none;
     z-index: -1;
+    overflow: hidden;
 }
 
 .totem-receipt__paper {
-    width: 76mm;
-    margin: 0 auto;
-    padding: 2mm 0;
-    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 72mm;
+    margin: 0;
+    padding: 2mm 3mm;
+    font-family: 'Courier New', Courier, ui-monospace, monospace;
     font-size: 11px;
     line-height: 1.35;
     color: #000;
     background: #fff;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 
 .totem-receipt__brand {
-    font-size: 12px;
-    font-weight: 800;
+    font-size: 11px;
+    font-weight: 700;
     text-align: center;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
 }
 
 .totem-receipt__title {
-    margin: 0.35rem 0 0;
-    font-size: 13px;
-    font-weight: 800;
+    margin: 2mm 0 0;
+    font-size: 12px;
+    font-weight: 700;
     text-align: center;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
 }
 
 .totem-receipt__subtitle {
-    margin: 0.2rem 0 0;
+    margin: 1mm 0 0;
     font-size: 10px;
     font-weight: 600;
     text-align: center;
-    color: #333;
 }
 
 .totem-receipt__divider {
-    margin: 0.45rem 0;
+    margin: 2.5mm 0;
     border-top: 1px dashed #000;
 }
 
@@ -54,9 +60,8 @@
     font-size: 9px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     text-align: center;
-    color: #444;
 }
 
 .totem-receipt__code {
@@ -69,18 +74,23 @@
 }
 
 .totem-receipt__code--compact {
-    letter-spacing: 0.04em;
-    font-size: 16px;
+    margin: 1.5mm 0 0;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    word-break: break-all;
 }
 
 .totem-receipt__meta {
-    margin: 0.2rem 0 0;
+    margin: 1mm 0 0;
     font-size: 10px;
     text-align: center;
-    color: #444;
 }
 
 .totem-receipt__items {
+    display: flex;
+    flex-direction: column;
+    gap: 2mm;
     width: 100%;
     border-collapse: collapse;
     font-size: 10px;
@@ -91,56 +101,86 @@
     vertical-align: top;
 }
 
+.totem-receipt__item {
+    width: 100%;
+}
+
+.totem-receipt__item-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5mm;
+    width: 100%;
+}
+
 .totem-receipt__qty {
-    width: 1.65rem;
-    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 5mm;
     font-weight: 700;
 }
 
 .totem-receipt__name {
-    padding-right: 0.25rem;
+    flex: 1;
+    min-width: 0;
+    font-size: 10px;
+    line-height: 1.3;
     word-break: break-word;
 }
 
+.totem-receipt__item-price,
 .totem-receipt__price {
+    margin-top: 0.5mm;
+    padding-left: 6.5mm;
+    font-size: 10px;
+    font-weight: 700;
     text-align: right;
-    white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
 
 .totem-receipt__row {
     display: flex;
+    align-items: baseline;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 2mm;
+    width: 100%;
     font-size: 10px;
-    margin: 0.15rem 0;
+    margin: 1mm 0;
+}
+
+.totem-receipt__row > span {
+    flex: 1;
+    min-width: 0;
 }
 
 .totem-receipt__row strong {
-    font-size: 11px;
+    flex-shrink: 0;
+    max-width: 48%;
+    text-align: right;
+    font-size: 10px;
     font-variant-numeric: tabular-nums;
+    word-break: break-word;
 }
 
 .totem-receipt__row--total {
-    margin-top: 0.35rem;
+    margin-top: 2mm;
     font-size: 11px;
 }
 
 .totem-receipt__row--total strong {
-    font-size: 14px;
+    font-size: 13px;
+    max-width: 55%;
 }
 
 .totem-receipt__foot {
-    margin: 0.35rem 0 0;
+    margin: 2mm 0 0;
     font-size: 9px;
-    line-height: 1.4;
+    line-height: 1.35;
     text-align: center;
 }
 
 .totem-receipt__foot--muted {
-    margin-top: 0.5rem;
+    margin-top: 2mm;
     font-weight: 700;
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .totem-caixa-card__print-note {
@@ -175,12 +215,14 @@
 @media print {
     @page {
         size: 80mm auto;
-        margin: 2mm;
+        margin: 0;
     }
 
     html,
     body {
         width: 80mm !important;
+        min-width: 80mm !important;
+        max-width: 80mm !important;
         height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -203,8 +245,21 @@
         position: absolute;
         left: 0;
         top: 0;
-        width: 80mm;
+        width: 80mm !important;
+        max-width: 80mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
         pointer-events: none;
         z-index: 9999;
+        overflow: hidden;
+    }
+
+    .totem-receipt__paper {
+        width: 72mm !important;
+        max-width: 72mm !important;
+        margin: 0 auto !important;
+        padding: 3mm 4mm !important;
+        box-sizing: border-box !important;
+        page-break-inside: avoid;
     }
 }

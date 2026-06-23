@@ -77,6 +77,12 @@
         return raw ? `PED ${raw}` : '';
     };
 
+    const truncateName = (name, max = 42) => {
+        const text = String(name || '').trim();
+        if (text.length <= max) return text;
+        return `${text.slice(0, max - 1)}…`;
+    };
+
     const copyToClipboard = async (text) => {
         if (navigator.clipboard?.writeText) {
             try {
@@ -146,15 +152,29 @@
             .map((item) => {
                 const qty = Number(item.qty) || 1;
                 const lineTotal = Number(item.price) * qty;
+                const name = forPrint ? truncateName(item.name) : esc(item.name);
+                if (forPrint) {
+                    return `<div class="totem-receipt__item">
+<div class="totem-receipt__item-head">
+<span class="totem-receipt__qty">${qty}x</span>
+<span class="totem-receipt__name">${esc(name)}</span>
+</div>
+<div class="totem-receipt__item-price">${formatPrice(lineTotal)}</div>
+</div>`;
+                }
                 return `<tr>
 <td class="totem-receipt__qty">${qty}x</td>
-<td class="totem-receipt__name">${esc(item.name)}</td>
+<td class="totem-receipt__name">${name}</td>
 <td class="totem-receipt__price">${formatPrice(lineTotal)}</td>
 </tr>`;
             })
             .join('');
 
         const codeClass = forPrint ? 'totem-receipt__code totem-receipt__code--compact' : 'totem-receipt__code';
+        const itemsBlock = forPrint
+            ? `<div class="totem-receipt__items">${itemsHtml}</div>`
+            : `<table class="totem-receipt__items" aria-label="Itens do pedido"><tbody>${itemsHtml}</tbody></table>`;
+        const paymentLabel = forPrint ? 'Pagamento' : 'Forma de pagamento';
 
         return `<div class="totem-receipt__paper">
 <div class="totem-receipt__brand">${esc(unitLabel)}</div>
@@ -165,11 +185,9 @@
 <p class="${codeClass}">${esc(code)}</p>
 <p class="totem-receipt__meta">${esc(formatDateTime(order.createdAt))}</p>
 <div class="totem-receipt__divider" aria-hidden="true"></div>
-<table class="totem-receipt__items" aria-label="Itens do pedido">
-<tbody>${itemsHtml}</tbody>
-</table>
+${itemsBlock}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
-<div class="totem-receipt__row"><span>Forma de pagamento</span><strong>${esc(methodLabel(order.paymentMethod))}</strong></div>
+<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(methodLabel(order.paymentMethod))}</strong></div>
 <div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 <p class="totem-receipt__foot">Dirija-se ao caixa com este comprovante. O operador finalizará o pagamento no PDV.</p>
@@ -177,26 +195,29 @@
 </div>`;
     };
 
-    const printCss = () => `@page{size:80mm auto;margin:2mm}html,body{width:80mm;margin:0;padding:0;background:#fff;font-family:'Segoe UI',system-ui,sans-serif}
-.totem-receipt__paper{width:76mm;margin:0 auto;padding:2mm 0;font-size:11px;line-height:1.35;color:#000}
-.totem-receipt__brand{font-size:12px;font-weight:800;text-align:center;letter-spacing:.04em;text-transform:uppercase}
-.totem-receipt__title{margin:.35rem 0 0;font-size:13px;font-weight:800;text-align:center;letter-spacing:.06em}
-.totem-receipt__subtitle{margin:.2rem 0 0;font-size:10px;font-weight:600;text-align:center;color:#333}
-.totem-receipt__divider{margin:.45rem 0;border-top:1px dashed #000}
-.totem-receipt__code-label{margin:0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;text-align:center;color:#444}
-.totem-receipt__code{margin:.25rem 0 0;font-size:18px;font-weight:800;text-align:center;font-family:ui-monospace,monospace}
-.totem-receipt__code--compact{letter-spacing:.04em;font-size:16px}
-.totem-receipt__meta{margin:.2rem 0 0;font-size:10px;text-align:center;color:#444}
-.totem-receipt__items{width:100%;border-collapse:collapse;font-size:10px}
-.totem-receipt__items td{padding:.15rem 0;vertical-align:top}
-.totem-receipt__qty{width:1.65rem;white-space:nowrap;font-weight:700}
-.totem-receipt__name{padding-right:.25rem;word-break:break-word}
-.totem-receipt__price{text-align:right;white-space:nowrap}
-.totem-receipt__row{display:flex;justify-content:space-between;gap:.5rem;font-size:10px;margin:.15rem 0}
-.totem-receipt__row--total{margin-top:.35rem;font-size:11px}
-.totem-receipt__row--total strong{font-size:14px}
-.totem-receipt__foot{margin:.35rem 0 0;font-size:9px;line-height:1.4;text-align:center}
-.totem-receipt__foot--muted{margin-top:.5rem;font-weight:700;font-size:10px}`;
+    const printCss = () => `@page{size:80mm auto;margin:0}html,body{width:80mm;max-width:80mm;margin:0;padding:0;background:#fff;overflow:hidden;font-family:'Courier New',Courier,ui-monospace,monospace}
+.totem-receipt__paper{box-sizing:border-box;width:72mm;max-width:72mm;margin:0 auto;padding:3mm 4mm;font-size:11px;line-height:1.35;color:#000;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
+.totem-receipt__brand{font-size:11px;font-weight:700;text-align:center;letter-spacing:.02em;text-transform:uppercase}
+.totem-receipt__title{margin:2mm 0 0;font-size:12px;font-weight:700;text-align:center;letter-spacing:.04em}
+.totem-receipt__subtitle{margin:1mm 0 0;font-size:10px;font-weight:600;text-align:center}
+.totem-receipt__divider{margin:2.5mm 0;border-top:1px dashed #000}
+.totem-receipt__code-label{margin:0;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;text-align:center}
+.totem-receipt__code{margin:1.5mm 0 0;font-size:15px;font-weight:700;text-align:center;letter-spacing:.06em;word-break:break-all}
+.totem-receipt__code--compact{letter-spacing:.06em;font-size:15px}
+.totem-receipt__meta{margin:1mm 0 0;font-size:10px;text-align:center}
+.totem-receipt__items{display:flex;flex-direction:column;gap:2mm;width:100%}
+.totem-receipt__item{width:100%}
+.totem-receipt__item-head{display:flex;align-items:flex-start;gap:1.5mm;width:100%}
+.totem-receipt__qty{flex-shrink:0;min-width:5mm;font-weight:700}
+.totem-receipt__name{flex:1;min-width:0;font-size:10px;line-height:1.3}
+.totem-receipt__item-price{margin-top:.5mm;padding-left:6.5mm;font-size:10px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.totem-receipt__row{display:flex;align-items:baseline;justify-content:space-between;gap:2mm;width:100%;font-size:10px;margin:1mm 0}
+.totem-receipt__row>span{flex:1;min-width:0}
+.totem-receipt__row strong{flex-shrink:0;max-width:48%;text-align:right;font-size:10px;font-variant-numeric:tabular-nums;word-break:break-word}
+.totem-receipt__row--total{margin-top:2mm;font-size:11px}
+.totem-receipt__row--total strong{font-size:13px;max-width:55%}
+.totem-receipt__foot{margin:2mm 0 0;font-size:9px;line-height:1.35;text-align:center}
+.totem-receipt__foot--muted{margin-top:2mm;font-weight:700;font-size:9px}`;
 
     const printViaBridge = async (order, opts = {}) => {
         const url = String(opts.printBridgeUrl || '').trim();
@@ -327,8 +348,9 @@
         (order.items || []).forEach((item) => {
             const qty = Number(item.qty) || 1;
             const lineTotal = formatPrice(Number(item.price) * qty);
-            const name = String(item.name || '').slice(0, width - 8);
-            lines.push(padLine(`${qty}x ${name}`, lineTotal, width));
+            const name = String(item.name || '').trim();
+            lines.push(`${qty}x ${name}`.slice(0, width));
+            lines.push(padLine('', lineTotal, width));
         });
 
         lines.push(divider());

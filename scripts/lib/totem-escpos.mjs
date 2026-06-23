@@ -56,8 +56,9 @@ export function buildEscPosReceipt(order, opts = {}) {
     (order.items || []).forEach((item) => {
         const qty = Number(item.qty) || 1;
         const lineTotal = formatPrice(Number(item.price) * qty);
-        const name = String(item.name || '').slice(0, width - 8);
-        lines.push(padLine(`${qty}x ${name}`, lineTotal, width));
+        const name = String(item.name || '').trim();
+        lines.push(`${qty}x ${name}`.slice(0, width));
+        lines.push(padLine('', lineTotal, width));
     });
 
     lines.push(divider());
