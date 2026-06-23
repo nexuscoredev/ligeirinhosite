@@ -4,7 +4,10 @@
     "successTimeoutMs": 18000,
     "adminPin": "123456",
     "autoPrintReceipt": true,
-    "autoPrintDelayMs": 450
+    "autoPrintDelayMs": 450,
+    "printMode": "auto",
+    "escposBaudRate": 9600,
+    "escposLineChars": 42
   },
   "units": {
     "default": {

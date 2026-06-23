@@ -97,6 +97,7 @@ export function publicOrderView(order) {
         financialStatus: order.financial_status || 'pendente',
         total: Number(order.total),
         deliveryType: order.delivery_type,
+        deliveryDate: order.delivery_date || null,
         address: order.address,
         notes: order.notes,
         customerName: order.customer_name,

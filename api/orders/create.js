@@ -70,6 +70,8 @@ export default async function handler(req, res) {
 
         const deliveryType = body.deliveryType === 'retirada' ? 'retirada' : 'entrega';
         const address = String(body.address || '').trim().slice(0, 500);
+        const deliveryDateRaw = String(body.deliveryDate || '').trim();
+        const deliveryDate = /^\d{4}-\d{2}-\d{2}$/.test(deliveryDateRaw) ? deliveryDateRaw : null;
         if (deliveryType === 'entrega' && !address) {
             return res.status(400).json({ error: 'Informe o endereço para entrega' });
         }
@@ -135,6 +137,7 @@ export default async function handler(req, res) {
             items,
             total,
             delivery_type: deliveryType,
+            delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,
             notes: String(body.notes || '').trim().slice(0, 1000) || null,
             customer_name: String(customer.name || '').trim().slice(0, 120) || null,
@@ -163,6 +166,7 @@ export default async function handler(req, res) {
                     payment_method: _c,
                     due_date: _d,
                     financial_status: _e,
+                    delivery_date: _f,
                     ...legacyRow
                 } = row;
                 if (channel === 'totem') {

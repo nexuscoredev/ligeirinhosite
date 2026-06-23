@@ -541,7 +541,11 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
         const selectRetirada = () => {
             closeLocationMenu();
-            window.LigeirinhoCart?.saveCheckout?.({ deliveryType: 'retirada' });
+            window.LigeirinhoCart?.saveCheckout?.({
+                deliveryType: 'retirada',
+                deliveryDate: '',
+                deliveryDateLabel: '',
+            });
             window.LigeirinhoCartUI?.open?.();
         };
 

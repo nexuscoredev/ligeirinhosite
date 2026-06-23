@@ -68,6 +68,11 @@
     font-family: ui-monospace, 'Cascadia Mono', monospace;
 }
 
+.totem-receipt__code--compact {
+    letter-spacing: 0.04em;
+    font-size: 16px;
+}
+
 .totem-receipt__meta {
     margin: 0.2rem 0 0;
     font-size: 10px;

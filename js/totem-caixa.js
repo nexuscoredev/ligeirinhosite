@@ -46,9 +46,22 @@
 
     const bindActions = () => {
         document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
-        document.getElementById('totem-caixa-reprint')?.addEventListener('click', () => {
+        document.getElementById('totem-caixa-reprint')?.addEventListener('click', async () => {
             if (!currentOrder) return;
-            receipt?.printOrderReceipt?.(currentOrder, { force: true, totemLabel });
+            const printed = await receipt?.printOrderReceipt?.(currentOrder, {
+                force: true,
+                totemLabel,
+                requestSerial: true,
+            });
+            if (!printed && receipt?.escposSupported?.() && receipt?.pairPrinter) {
+                await receipt.pairPrinter();
+                await receipt.printOrderReceipt?.(currentOrder, {
+                    force: true,
+                    totemLabel,
+                    requestSerial: true,
+                });
+            }
+            showPrintNote();
         });
     };
 
