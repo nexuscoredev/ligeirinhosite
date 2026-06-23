@@ -42,7 +42,7 @@
     let totemLabel = 'Ligeirinho Totem';
     let autoPrintEnabled = false;
     let autoPrintTriggered = false;
-    const SCREEN_TIMEOUT_MS = 30000;
+    const SCREEN_TIMEOUT_MS = 10000;
 
     const bindActions = () => {
         document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
@@ -147,7 +147,7 @@ Aguardando confirmação no PDV…
 Imprimir comprovante
 </button>
 <p class="totem-caixa-card__timeout" id="totem-caixa-timeout-wrap" aria-live="polite">
-Nova tela em <strong id="totem-caixa-countdown">30</strong>s para o próximo cliente.
+Nova tela em <strong id="totem-caixa-countdown">${Math.round(SCREEN_TIMEOUT_MS / 1000)}</strong>s para o próximo cliente.
 </p>
 <button type="button" class="totem-btn totem-btn--primary totem-btn--xl totem-caixa-card__novo" id="totem-caixa-novo-pedido">
 <span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
