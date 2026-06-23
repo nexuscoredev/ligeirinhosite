@@ -227,7 +227,13 @@ ${renderSummary(order)}
                 return;
             }
             if (!configRes.ok || !configData.publicKey) {
-                showError(configData.error || 'Pagamento online não configurado no servidor.');
+                const missing = (configData.missing || configData.capabilities?.missing?.card || []).join(', ');
+                const webhook = configData.webhookUrl ? `\n\nWebhook MP: ${configData.webhookUrl}` : '';
+                showError(
+                    (configData.error || 'Pagamento online não configurado no servidor.') +
+                        (missing ? ` (${missing})` : '') +
+                        webhook
+                );
                 return;
             }
 

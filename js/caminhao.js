@@ -107,8 +107,7 @@ ${thumb}
         const { units, subtotal } = cartApi.cartSummary(cart);
         const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
         return `<div class="caminhao-summary">
-<div class="caminhao-summary__row"><span>Subtotal (${unitsLabel})</span><span>${formatPrice(subtotal)}</span></div>
-<div class="caminhao-summary__row caminhao-summary__row--total"><span>Total</span><strong>${formatPrice(subtotal)}</strong></div>
+<div class="caminhao-summary__row caminhao-summary__row--total"><span>Subtotal (${unitsLabel})</span><strong>${formatPrice(subtotal)}</strong></div>
 </div>`;
     };
 

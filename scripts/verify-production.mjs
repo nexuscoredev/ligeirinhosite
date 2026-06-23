@@ -61,14 +61,25 @@ async function main() {
     const catalog = await get('/api/catalog');
     console.log('GET /api/catalog:', catalog.status, catalog.json?.totalProducts != null ? `OK (${catalog.json.totalProducts} produtos)` : catalog.json?.error || catalog.json?.hint || 'erro');
 
-    const payCfg = await get('/api/payments/config?channel=totem');
-    const methods = payCfg.json?.methods || {};
+    const payTotem = await get('/api/payments/config?channel=totem');
+    const methods = payTotem.json?.methods || {};
     console.log(
         'GET /api/payments/config (totem):',
-        payCfg.status,
+        payTotem.status,
         methods.pix ? 'Pix OK' : 'Pix off',
         methods.card ? 'Cartão OK' : 'Cartão off'
     );
+
+    const payParceiros = await get('/api/payments/config');
+    console.log(
+        'GET /api/payments/config (parceiros):',
+        payParceiros.status,
+        payParceiros.json?.publicKey ? `MP OK (${String(payParceiros.json.publicKey).slice(0, 12)}…)` : payParceiros.json?.error || 'off',
+        payParceiros.json?.missing?.join?.(', ') || payParceiros.json?.capabilities?.missing?.pix?.join?.(', ') || ''
+    );
+    if (payParceiros.json?.webhookUrl) {
+        console.log('  Webhook MP:', payParceiros.json.webhookUrl);
+    }
 
     const order = await post('/api/orders/create', {
         items: [{ id: 'v', name: 'Verificacao', price: 10, qty: 1 }],
@@ -97,7 +108,8 @@ async function main() {
     console.log('\n=== Resumo ===');
     const blockers = [];
     if (!catalog.json?.totalProducts) blockers.push('Catálogo Hub');
-    if (!methods.pix && !methods.card) blockers.push('Pix/Cartão env');
+    if (!methods.pix && !methods.card) blockers.push('Totem Pix/Cartão env');
+    if (!payParceiros.json?.publicKey) blockers.push('Parceiros MP (MP_PUBLIC_KEY + MP_ACCESS_TOKEN)');
     if (!order.json?.orderId) blockers.push('orders API (deploy RPC pendente?)');
     if (!col.ok) blockers.push('Hub migration must_change_password');
     if (blockers.length) console.log('Bloqueios:', blockers.join(' · '));

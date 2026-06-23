@@ -8045,6 +8045,15 @@ body.lig-install-open {
     }
 }
 
+.resumo-footer--action {
+    justify-content: stretch;
+}
+
+.resumo-footer--action .resumo-confirm-btn {
+    width: 100%;
+    justify-content: center;
+}
+
 .resumo-footer__total {
     margin: 0;
     font-size: 0.85rem;

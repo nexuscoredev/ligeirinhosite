@@ -34,6 +34,7 @@ export default function handler(req, res) {
         return res.status(503).json({
             error: 'Pagamento indisponível',
             missing: ['MP_PUBLIC_KEY'],
+            webhookUrl: config.appBaseUrl ? `${config.appBaseUrl}/api/payments/webhook` : null,
             capabilities: caps,
         });
     }
@@ -41,6 +42,8 @@ export default function handler(req, res) {
     return res.status(200).json({
         publicKey: config.mpPublicKey,
         enabled: legacyMissing.length === 0,
+        mercadoPagoReady: caps.pix && caps.card,
+        webhookUrl: config.appBaseUrl ? `${config.appBaseUrl}/api/payments/webhook` : null,
         missing: legacyMissing.length ? legacyMissing : undefined,
         capabilities: caps,
     });

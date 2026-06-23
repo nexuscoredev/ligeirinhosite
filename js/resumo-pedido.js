@@ -16,14 +16,7 @@
 
     const session = () => auth?.loadSession?.() || null;
 
-    const loadCheckoutState = () => {
-        const checkout = cartApi.loadCheckout();
-        if (checkout.paymentMethod === 'mercado_pago' || checkout.paymentMethod === 'boleto') {
-            cartApi.saveCheckout({ paymentMethod: '', payment: '' });
-            return { ...checkout, paymentMethod: '', payment: '' };
-        }
-        return checkout;
-    };
+    const loadCheckoutState = () => cartApi.loadCheckout();
 
     const assetUrl = (path) => {
         const value = String(path || '').trim();
@@ -34,8 +27,10 @@
     const PAYMENT_MARKS = {
         pix: { logo: '/img/icon-pix.svg' },
         cartao: { logo: '/img/icon-cartoes.svg' },
+        mercado_pago: { logo: '/img/mercado-pago-wallet-logo.svg' },
         dinheiro: { icon: 'payments' },
         prazo: { icon: 'calendar_month' },
+        boleto: { icon: 'description' },
     };
 
     const CARTAO_LOGO_HTML =
@@ -57,16 +52,11 @@
     };
 
     const paymentMethods = () => {
-        const fallback = [
+        const base = [
             enrichPaymentMethod({
-                id: 'pix',
-                label: 'Pix',
-                hint: 'Pagamento instantâneo',
-            }),
-            enrichPaymentMethod({
-                id: 'cartao',
-                label: 'Cartão débito e crédito',
-                hint: 'Visa, Mastercard e Elo',
+                id: 'mercado_pago',
+                label: 'Mercado Pago',
+                hint: 'Pix, crédito e débito',
             }),
             enrichPaymentMethod({
                 id: 'dinheiro',
@@ -75,11 +65,11 @@
             }),
         ];
         const s = session();
-        if (!s?.paymentMethods?.length) return fallback;
-        const cleaned = s.paymentMethods
-            .filter((m) => m.id !== 'boleto' && m.id !== 'mercado_pago')
+        if (!s?.paymentMethods?.length) return base;
+        const extra = s.paymentMethods
+            .filter((m) => !['pix', 'cartao', 'mercado_pago', 'dinheiro'].includes(m.id))
             .map((m) => enrichPaymentMethod(m));
-        return cleaned.length ? cleaned : fallback;
+        return extra.length ? [...base, ...extra] : base;
     };
 
     const paymentMethodIconHtml = (opt) => {
@@ -87,7 +77,12 @@
         if (enriched.id === 'cartao') return CARTAO_LOGO_HTML;
         const logo = enriched.logo;
         if (logo) {
-            const logoMod = enriched.id === 'pix' ? ' resumo-option__logo--pix' : ' resumo-option__logo--cartao';
+            const logoMod =
+                enriched.id === 'pix'
+                    ? ' resumo-option__logo--pix'
+                    : enriched.id === 'mercado_pago'
+                      ? ' resumo-option__logo--mp'
+                      : ' resumo-option__logo--cartao';
             return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
         }
         const icon =
@@ -237,12 +232,11 @@ ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</
 ${cardHtml('Produtos', `${productsBody}${items.length > 3 ? `<p class="resumo-more">+ ${items.length - 3} itens</p>` : ''}`, String(units))}
 ${cardHtml(
     'Resumo do pedido',
-    `<div class="resumo-total-row"><span>Subtotal (${units} produtos)</span><span>${formatPrice(subtotal)}</span></div>
+    `<div class="resumo-total-row resumo-total-row--final"><span>Subtotal (${units} produtos)</span><strong>${formatPrice(subtotal)}</strong></div>
 <div class="resumo-total-row"><span>Taxa de entrega</span><span class="resumo-free">Grátis</span></div>`
 )}
 </div>
-<div class="resumo-footer">
-<p class="resumo-footer__total">Total estimado <strong>${formatPrice(subtotal)}</strong></p>
+<div class="resumo-footer resumo-footer--action">
 <button type="button" class="resumo-confirm-btn" id="resumo-confirm" ${Object.keys(errors).length ? 'disabled' : ''}>
 <span>Confirmar pedido</span>
 <span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
@@ -358,7 +352,7 @@ ${headerHtml(title)}
             packType: item.packType,
         }));
 
-        const paymentMethod = checkout.paymentMethod || 'pix';
+        const paymentMethod = checkout.paymentMethod || 'mercado_pago';
         const notes = [
             checkout.notes,
             checkout.deliveryDate ? `Entrega: ${checkout.deliveryDate}` : '',

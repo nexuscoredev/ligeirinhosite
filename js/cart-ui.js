@@ -321,8 +321,7 @@ ${lineThumbHtml(item)}
         const { units, subtotal } = cartApi.cartSummary(cart);
         const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
         return `<div class="lig-cart-summary">
-<div class="lig-cart-summary__row"><span>Subtotal (${unitsLabel})</span><span>${formatPrice(subtotal)}</span></div>
-<div class="lig-cart-summary__row lig-cart-summary__row--total"><span>Total</span><strong>${formatPrice(subtotal)}</strong></div>
+<div class="lig-cart-summary__row lig-cart-summary__row--total"><span>Subtotal (${unitsLabel})</span><strong>${formatPrice(subtotal)}</strong></div>
 </div>`;
     };
 
