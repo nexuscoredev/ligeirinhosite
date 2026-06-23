@@ -5,7 +5,7 @@
     "adminPin": "123456",
     "autoPrintReceipt": true,
     "autoPrintDelayMs": 450,
-    "printMode": "bridge",
+    "printMode": "browser",
     "printBridgeHost": "",
     "printBridgePort": 8787,
     "printBridgeUrl": "http://127.0.0.1:8787/print",
