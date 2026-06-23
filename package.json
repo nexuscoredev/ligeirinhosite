@@ -18,7 +18,8 @@
     "migrate:all": "node scripts/apply-pending-migrations.mjs",
     "migrate:check": "node scripts/check-migrations.mjs",
     "verify:prod": "node scripts/verify-production.mjs",
-    "totem": "echo \"Abra http://localhost:5173/totem.html após login Hub com cargo Totem\""
+    "totem": "echo \"Abra http://localhost:5173/totem.html após login Hub com cargo Totem\"",
+    "totem:print-bridge": "node scripts/totem-print-bridge.mjs"
   },
   "devDependencies": {
     "pg": "^8.16.3",

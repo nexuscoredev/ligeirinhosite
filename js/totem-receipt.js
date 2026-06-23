@@ -14,6 +14,7 @@
                 autoPrintDelayMs: Number(defaults.autoPrintDelayMs) || AUTO_PRINT_DELAY_MS,
                 totemLabel: cfg?.units?.default?.label || 'Ligeirinho Totem',
                 printMode: String(defaults.printMode || 'auto').toLowerCase(),
+                printBridgeUrl: String(defaults.printBridgeUrl || '').trim(),
                 escposBaudRate: Number(defaults.escposBaudRate) || 9600,
                 escposLineChars: Number(defaults.escposLineChars) || 42,
             };
@@ -23,6 +24,7 @@
                 autoPrintDelayMs: AUTO_PRINT_DELAY_MS,
                 totemLabel: 'Ligeirinho Totem',
                 printMode: 'auto',
+                printBridgeUrl: '',
                 escposBaudRate: 9600,
                 escposLineChars: 42,
             };
@@ -174,6 +176,26 @@
 .totem-receipt__row--total strong{font-size:14px}
 .totem-receipt__foot{margin:.35rem 0 0;font-size:9px;line-height:1.4;text-align:center}
 .totem-receipt__foot--muted{margin-top:.5rem;font-weight:700;font-size:10px}`;
+
+    const printViaBridge = async (order, opts = {}) => {
+        const url = String(opts.printBridgeUrl || '').trim();
+        if (!url) return false;
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    order,
+                    totemLabel: opts.totemLabel,
+                    escposLineChars: opts.escposLineChars,
+                }),
+            });
+            return res.ok;
+        } catch (err) {
+            console.warn('totem-receipt bridge', err);
+            return false;
+        }
+    };
 
     const printViaHiddenIframe = (order, opts = {}) =>
         new Promise((resolve) => {
@@ -361,6 +383,7 @@
                 requestSerial: Boolean(opts.requestSerial),
                 escposBaudRate: config.escposBaudRate,
                 escposLineChars: config.escposLineChars,
+                printBridgeUrl: opts.printBridgeUrl || config.printBridgeUrl,
             };
 
             if (mode === 'browser') {
@@ -369,12 +392,17 @@
             if (mode === 'escpos') {
                 return printViaEscPos(order, printOpts);
             }
-
-            if (escposSupported()) {
-                const escOk = await printViaEscPos(order, printOpts);
-                if (escOk) return true;
+            if (mode === 'bridge') {
+                return printViaBridge(order, printOpts);
             }
-            return printViaHiddenIframe(order, printOpts);
+
+            const escOk = await printViaEscPos(order, printOpts);
+            if (escOk) return true;
+
+            const bridgeOk = await printViaBridge(order, printOpts);
+            if (bridgeOk) return true;
+
+            return false;
         };
 
         return new Promise((resolve) => {
@@ -395,6 +423,7 @@
         copyToClipboard,
         loadReceiptConfig,
         printOrderReceipt,
+        printViaBridge,
         printViaHiddenIframe,
         printViaEscPos,
         pairPrinter,

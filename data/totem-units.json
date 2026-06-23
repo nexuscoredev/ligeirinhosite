@@ -6,6 +6,7 @@
     "autoPrintReceipt": true,
     "autoPrintDelayMs": 450,
     "printMode": "auto",
+    "printBridgeUrl": "http://127.0.0.1:8787/print",
     "escposBaudRate": 9600,
     "escposLineChars": 42
   },
