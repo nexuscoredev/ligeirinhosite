@@ -73,6 +73,8 @@ begin
     mp_transaction_id = coalesce(nullif(p_patch->>'mp_transaction_id', ''), mp_transaction_id),
     pix_qr_code = coalesce(nullif(p_patch->>'pix_qr_code', ''), pix_qr_code),
     pix_qr_base64 = coalesce(nullif(p_patch->>'pix_qr_base64', ''), pix_qr_base64),
+    pix_txid = coalesce(nullif(p_patch->>'pix_txid', ''), pix_txid),
+    pix_provider = coalesce(nullif(p_patch->>'pix_provider', ''), pix_provider),
     paid_at = coalesce(nullif(p_patch->>'paid_at', '')::timestamptz, paid_at),
     separation_status = coalesce(nullif(p_patch->>'separation_status', ''), separation_status),
     separation_started_at = coalesce(nullif(p_patch->>'separation_started_at', '')::timestamptz, separation_started_at),
@@ -86,6 +88,18 @@ begin
   return to_jsonb(r);
 end;
 $$;
+
+create or replace function public.rpc_fetch_order_by_pix_txid(p_pix_txid text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select to_jsonb(o) from public.orders o where o.pix_txid = p_pix_txid limit 1;
+$$;
+
+revoke all on function public.rpc_fetch_order_by_pix_txid(text) from public;
+grant execute on function public.rpc_fetch_order_by_pix_txid(text) to anon, authenticated, service_role;
 
 create or replace function public.rpc_fetch_order_by_mp(p_mp_payment_id bigint)
 returns jsonb

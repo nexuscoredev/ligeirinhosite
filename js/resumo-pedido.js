@@ -26,20 +26,11 @@
 
     const PAYMENT_MARKS = {
         pix: { logo: '/img/icon-pix.svg' },
-        cartao: { logo: '/img/icon-cartoes.svg' },
         mercado_pago: { logo: '/img/mercado-pago-wallet-logo.svg' },
         dinheiro: { icon: 'payments' },
         prazo: { icon: 'calendar_month' },
         boleto: { icon: 'description' },
     };
-
-    const CARTAO_LOGO_HTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 24" width="44" height="24" class="resumo-option__logo resumo-option__logo--cartao" aria-hidden="true">' +
-        '<rect x="0" y="2" width="36" height="20" rx="3" fill="#1A1F71"/>' +
-        '<text x="18" y="15.5" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif" font-size="8" font-weight="700" text-anchor="middle">VISA</text>' +
-        '<circle cx="55" cy="12" r="8" fill="#EB001B"/>' +
-        '<circle cx="65" cy="12" r="8" fill="#F79E1B" opacity="0.95"/>' +
-        '</svg>';
 
     const enrichPaymentMethod = (method) => {
         const mark = PAYMENT_MARKS[method.id] || {};
@@ -51,19 +42,50 @@
         };
     };
 
+    let paymentConfigCache = null;
+
+    const loadPaymentConfig = async () => {
+        if (paymentConfigCache) return paymentConfigCache;
+        try {
+            const res = await fetch('/api/payments/config');
+            paymentConfigCache = await res.json().catch(() => ({}));
+        } catch {
+            paymentConfigCache = {};
+        }
+        return paymentConfigCache;
+    };
+
     const paymentMethods = () => {
-        const base = [
-            enrichPaymentMethod({
-                id: 'mercado_pago',
-                label: 'Mercado Pago',
-                hint: 'Pix, crédito e débito',
-            }),
+        const caps = paymentConfigCache?.capabilities;
+        const base = [];
+        if (caps?.pix) {
+            base.push(
+                enrichPaymentMethod({
+                    id: 'pix',
+                    label: 'Pix',
+                    hint:
+                        paymentConfigCache?.pixProvider === 'santander'
+                            ? 'Pagamento instantâneo · Santander'
+                            : 'Pagamento instantâneo',
+                })
+            );
+        }
+        if (!base.length) {
+            base.push(
+                enrichPaymentMethod({
+                    id: 'mercado_pago',
+                    label: 'Mercado Pago',
+                    hint: 'Pix',
+                })
+            );
+        }
+        base.push(
             enrichPaymentMethod({
                 id: 'dinheiro',
                 label: 'Dinheiro',
                 hint: 'Na entrega ou retirada',
-            }),
-        ];
+            })
+        );
         const s = session();
         if (!s?.paymentMethods?.length) return base;
         const extra = s.paymentMethods
@@ -74,7 +96,6 @@
 
     const paymentMethodIconHtml = (opt) => {
         const enriched = enrichPaymentMethod(opt);
-        if (enriched.id === 'cartao') return CARTAO_LOGO_HTML;
         const logo = enriched.logo;
         if (logo) {
             const logoMod =
@@ -82,7 +103,7 @@
                     ? ' resumo-option__logo--pix'
                     : enriched.id === 'mercado_pago'
                       ? ' resumo-option__logo--mp'
-                      : ' resumo-option__logo--cartao';
+                      : '';
             return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
         }
         const icon =
@@ -100,7 +121,7 @@
 
     const isOnlinePayment = (method) => {
         const key = String(method || '').toLowerCase();
-        return key === 'pix' || key === 'cartao' || key === 'mercado_pago';
+        return key === 'pix' || key === 'mercado_pago';
     };
 
     const deliveryApi = window.LigeirinhoParceiroDelivery;
@@ -158,6 +179,9 @@
             errors.deliveryDate = 'Selecione uma data de entrega válida.';
         }
         if (!checkout.paymentMethod) errors.paymentMethod = 'Selecione o método de pagamento.';
+        else if (checkout.paymentMethod === 'cartao') {
+            errors.paymentMethod = 'Cartão não está disponível. Escolha Pix ou dinheiro.';
+        }
         return errors;
     };
 
@@ -432,6 +456,7 @@ ${headerHtml(title)}
     }
 
     const boot = async () => {
+        await loadPaymentConfig();
         await refreshParceiroProfile();
         syncDeliveryDateWithHub();
         render();

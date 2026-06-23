@@ -4,17 +4,38 @@
     let cachedConfig = null;
     let serialPort = null;
 
+    const BRIDGE_STORAGE_KEY = 'lig_totem_print_bridge_url';
+
+    const isMobileTotem = () =>
+        typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    const resolvePrintBridgeUrl = (defaults = {}, unit = {}) => {
+        try {
+            const fromStorage = String(localStorage.getItem(BRIDGE_STORAGE_KEY) || '').trim();
+            if (fromStorage) return fromStorage;
+        } catch {
+            /* ignore */
+        }
+        const host = String(unit.printBridgeHost || defaults.printBridgeHost || '').trim();
+        if (host) {
+            const port = Number(unit.printBridgePort || defaults.printBridgePort) || 8787;
+            return `http://${host.replace(/^https?:\/\//, '').replace(/\/$/, '')}:${port}/print`;
+        }
+        return String(unit.printBridgeUrl || defaults.printBridgeUrl || '').trim();
+    };
+
     const loadReceiptConfig = async () => {
         if (cachedConfig) return cachedConfig;
         try {
             const cfg = await fetch('data/totem-units.json').then((r) => r.json());
             const defaults = cfg?.defaults || {};
+            const unit = cfg?.units?.default || {};
             cachedConfig = {
                 autoPrint: defaults.autoPrintReceipt === true,
                 autoPrintDelayMs: Number(defaults.autoPrintDelayMs) || AUTO_PRINT_DELAY_MS,
-                totemLabel: cfg?.units?.default?.label || 'Ligeirinho Totem',
+                totemLabel: unit.label || 'Ligeirinho Totem',
                 printMode: String(defaults.printMode || 'auto').toLowerCase(),
-                printBridgeUrl: String(defaults.printBridgeUrl || '').trim(),
+                printBridgeUrl: resolvePrintBridgeUrl(defaults, unit),
                 escposBaudRate: Number(defaults.escposBaudRate) || 9600,
                 escposLineChars: Number(defaults.escposLineChars) || 42,
             };
@@ -396,13 +417,19 @@
                 return printViaBridge(order, printOpts);
             }
 
+            if (mode === 'auto' && isMobileTotem()) {
+                const bridgeOk = await printViaBridge(order, printOpts);
+                if (bridgeOk) return true;
+                return false;
+            }
+
             const escOk = await printViaEscPos(order, printOpts);
             if (escOk) return true;
 
             const bridgeOk = await printViaBridge(order, printOpts);
             if (bridgeOk) return true;
 
-            return false;
+            return printViaHiddenIframe(order, printOpts);
         };
 
         return new Promise((resolve) => {
@@ -416,6 +443,16 @@
         });
     };
 
+    try {
+        const bridgeFromUrl = new URLSearchParams(window.location.search).get('printBridge');
+        if (bridgeFromUrl) {
+            localStorage.setItem(BRIDGE_STORAGE_KEY, bridgeFromUrl.trim());
+            cachedConfig = null;
+        }
+    } catch {
+        /* ignore */
+    }
+
     window.LigeirinhoTotemReceipt = {
         buildReceiptHtml,
         formatCode,
@@ -428,5 +465,16 @@
         printViaEscPos,
         pairPrinter,
         escposSupported,
+        setPrintBridgeUrl(url) {
+            const value = String(url || '').trim();
+            if (!value) {
+                localStorage.removeItem(BRIDGE_STORAGE_KEY);
+                cachedConfig = null;
+                return;
+            }
+            localStorage.setItem(BRIDGE_STORAGE_KEY, value);
+            cachedConfig = null;
+        },
+        getPrintBridgeUrl: () => resolvePrintBridgeUrl(),
     };
 })();

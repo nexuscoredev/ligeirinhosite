@@ -89,6 +89,24 @@ export async function fetchOrderByMpPaymentId(supabaseUrl, apiKey, mpPaymentId, 
     return Array.isArray(data) ? data[0] : null;
 }
 
+export async function fetchOrderByPixTxid(supabaseUrl, apiKey, txid, { useRpc = false } = {}) {
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_fetch_order_by_pix_txid`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({ p_pix_txid: String(txid) }),
+        });
+        const data = await parseJson(res);
+        return data || null;
+    }
+
+    const url = `${supabaseUrl}/rest/v1/orders?pix_txid=eq.${encodeURIComponent(String(txid))}&select=*&limit=1`;
+    const res = await fetch(url, { headers: headers(apiKey) });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) return null;
+    return Array.isArray(data) ? data[0] : null;
+}
+
 export function publicOrderView(order) {
     if (!order) return null;
     return {
@@ -113,6 +131,8 @@ export function publicOrderView(order) {
         mpStatus: order.mp_status,
         pixQrCode: order.pix_qr_code || null,
         pixQrBase64: order.pix_qr_base64 || null,
+        pixTxid: order.pix_txid || null,
+        pixProvider: order.pix_provider || null,
         createdAt: order.created_at,
     };
 }

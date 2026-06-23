@@ -5,8 +5,12 @@ export default function handler(req, res) {
     const proto = req.headers['x-forwarded-proto'] || 'https';
     const origin = host ? `${proto}://${host}` : null;
     const config = paymentEnv(process.env, origin);
-    const caps = paymentCapabilities(config);
+    const caps = paymentCapabilities(config, process.env);
     const channel = String(req.query?.channel || '').toLowerCase();
+    const webhookMp = config.appBaseUrl ? `${config.appBaseUrl}/api/payments/webhook` : null;
+    const webhookSantander = config.appBaseUrl
+        ? `${config.appBaseUrl}/api/payments/webhook-santander`
+        : null;
 
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
@@ -23,28 +27,37 @@ export default function handler(req, res) {
                 card: caps.card,
             },
             order: caps.order,
+            pixProvider: caps.pixProvider,
             publicKey: caps.card ? config.mpPublicKey : null,
             enabled: caps.pix || caps.card,
             missing: caps.missing,
+            webhookUrl: caps.pixProvider === 'santander' ? webhookSantander : webhookMp,
         });
     }
 
-    const legacyMissing = caps.missing.card;
-    if (!config.mpPublicKey) {
+    const onlineEnabled = caps.pix || caps.card;
+    if (!onlineEnabled) {
         return res.status(503).json({
             error: 'Pagamento indisponível',
-            missing: ['MP_PUBLIC_KEY'],
-            webhookUrl: config.appBaseUrl ? `${config.appBaseUrl}/api/payments/webhook` : null,
+            missing: [...caps.missing.pix, ...caps.missing.card],
+            webhookUrl: webhookMp,
+            webhookSantanderUrl: webhookSantander,
             capabilities: caps,
         });
     }
 
     return res.status(200).json({
-        publicKey: config.mpPublicKey,
-        enabled: legacyMissing.length === 0,
-        mercadoPagoReady: caps.pix && caps.card,
-        webhookUrl: config.appBaseUrl ? `${config.appBaseUrl}/api/payments/webhook` : null,
-        missing: legacyMissing.length ? legacyMissing : undefined,
+        publicKey: caps.card ? config.mpPublicKey : null,
+        enabled: onlineEnabled,
+        pixProvider: caps.pixProvider,
+        mercadoPagoReady: caps.card,
+        santanderPixReady: caps.pix && caps.pixProvider === 'santander',
+        webhookUrl: webhookMp,
+        webhookSantanderUrl: webhookSantander,
+        missing: {
+            pix: caps.missing.pix.length ? caps.missing.pix : undefined,
+            card: caps.missing.card.length ? caps.missing.card : undefined,
+        },
         capabilities: caps,
     });
 }

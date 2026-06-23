@@ -1,4 +1,6 @@
 import { parceirosSupabaseConfig } from './parceiros-supabase.mjs';
+import { santanderConfigFromEnv, assertSantanderPixConfig } from './santander-http.mjs';
+import { isSantanderPixConfigured } from './pix-provider.mjs';
 
 export function paymentEnv(env = process.env, requestOrigin = null) {
     const baseUrl =
@@ -17,7 +19,16 @@ export function paymentEnv(env = process.env, requestOrigin = null) {
         supabaseApiKey: parceiros.apiKey,
         supabaseUseRpc: parceiros.useRpc,
         appBaseUrl: baseUrl.replace(/\/$/, ''),
+        pixProvider: resolvePixProviderName(env),
+        santander: santanderConfigFromEnv(env),
     };
+}
+
+export function resolvePixProviderName(env = process.env) {
+    const explicit = String(env.PIX_PROVIDER || '').trim().toLowerCase();
+    if (explicit === 'santander' || explicit === 'mercadopago') return explicit;
+    if (isSantanderPixConfigured(env)) return 'santander';
+    return 'mercadopago';
 }
 
 /** Pedidos no Supabase (totem e parceiros). */
@@ -28,28 +39,35 @@ export function assertOrderBackend(config) {
     return missing;
 }
 
-/** Pix server-side (não exige chave pública / Brick). */
-export function assertPixBackend(config) {
+/** Pix server-side (Santander ou Mercado Pago; não exige chave pública). */
+export function assertPixBackend(config, env = process.env) {
     const missing = assertOrderBackend(config);
-    if (!config.mpAccessToken) missing.push('MP_ACCESS_TOKEN');
+    const provider = resolvePixProviderName(env);
+    if (provider === 'santander') {
+        missing.push(...assertSantanderPixConfig(config.santander || santanderConfigFromEnv(env)));
+    } else if (!config.mpAccessToken) {
+        missing.push('MP_ACCESS_TOKEN');
+    }
     return missing;
 }
 
-/** Cartão via Brick (ainda usa token + chave pública do adquirente). */
+/** Cartão via Brick Mercado Pago. */
 export function assertCardBackend(config) {
-    const missing = assertPixBackend(config);
+    const missing = assertOrderBackend(config);
+    if (!config.mpAccessToken) missing.push('MP_ACCESS_TOKEN');
     if (!config.mpPublicKey) missing.push('MP_PUBLIC_KEY');
     return missing;
 }
 
-export function paymentCapabilities(config) {
+export function paymentCapabilities(config, env = process.env) {
     const orderMissing = assertOrderBackend(config);
-    const pixMissing = assertPixBackend(config);
+    const pixMissing = assertPixBackend(config, env);
     const cardMissing = assertCardBackend(config);
     return {
         order: orderMissing.length === 0,
         pix: pixMissing.length === 0,
         card: cardMissing.length === 0,
+        pixProvider: resolvePixProviderName(env),
         missing: {
             order: orderMissing,
             pix: pixMissing,

@@ -62,19 +62,31 @@
         },
         santander: {
             id: 'santander',
-            label: 'Santander (em breve)',
-            methods: ['pix', 'credit', 'debit'],
+            label: 'Santander Pix',
+            methods: ['pix'],
             async getConfig() {
-                return { enabled: false, publicKey: null };
+                const res = await fetch('/api/payments/config');
+                const data = await res.json();
+                return {
+                    enabled: Boolean(data.capabilities?.pix && data.pixProvider === 'santander'),
+                    publicKey: null,
+                };
             },
-            async createPayment() {
-                throw new Error('Integração Santander ainda não configurada.');
+            async createPayment(orderId) {
+                const res = await fetch('/api/payments/pix', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Falha ao gerar Pix');
+                return data;
             },
             loadSdk() {
-                return Promise.reject(new Error('Integração Santander ainda não configurada.'));
+                return Promise.resolve();
             },
             mountBrick() {
-                throw new Error('Integração Santander ainda não configurada.');
+                throw new Error('Santander suporta apenas Pix neste canal.');
             },
         },
     };

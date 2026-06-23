@@ -29,6 +29,8 @@ async function applyParceiros() {
         await runSqlFile(client, 'caixa-schema-migration.sql');
         console.log('[parceiros] Aplicando delivery-date-migration.sql…');
         await runSqlFile(client, 'delivery-date-migration.sql');
+        console.log('[parceiros] Aplicando santander-pix-migration.sql…');
+        await runSqlFile(client, 'santander-pix-migration.sql');
 
         const tables = await client.query(
             `select table_name from information_schema.tables

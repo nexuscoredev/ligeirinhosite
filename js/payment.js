@@ -113,25 +113,12 @@ ${renderSummary(order)}
         }
     };
 
-    const mountBrick = async (order, publicKey, { cardsOnly = false } = {}) => {
-        const hint = cardsOnly
-            ? 'Pagamento seguro via Mercado Pago · débito e crédito'
-            : 'Pagamento seguro via Mercado Pago · Pix, crédito e débito';
+    const mountBrick = async (order, publicKey) => {
         root.innerHTML = `${renderSummary(order)}<div id="payment-brick" class="lig-payment-brick"></div>
-<p class="lig-payment-hint">${hint}</p>`;
+<p class="lig-payment-hint">Pagamento seguro via Mercado Pago · Pix</p>`;
 
         const mp = new MercadoPago(publicKey, { locale: 'pt-BR' });
         const bricks = mp.bricks();
-
-        const paymentMethodsConfig = cardsOnly
-            ? { creditCard: 'all', debitCard: 'all', maxInstallments: 12 }
-            : {
-                  creditCard: 'all',
-                  debitCard: 'all',
-                  ticket: 'all',
-                  bankTransfer: 'all',
-                  maxInstallments: 12,
-              };
 
         await bricks.create('payment', 'payment-brick', {
             initialization: {
@@ -144,7 +131,12 @@ ${renderSummary(order)}
             },
             customization: {
                 visual: { style: { theme: 'default' } },
-                paymentMethods: paymentMethodsConfig,
+                paymentMethods: {
+                    creditCard: 'none',
+                    debitCard: 'none',
+                    ticket: 'none',
+                    bankTransfer: 'all',
+                },
             },
             callbacks: {
                 onReady: () => {},
@@ -226,14 +218,26 @@ ${renderSummary(order)}
                 showError(orderData.error || 'Pedido não encontrado');
                 return;
             }
-            if (!configRes.ok || !configData.publicKey) {
-                const missing = (configData.missing || configData.capabilities?.missing?.card || []).join(', ');
-                const webhook = configData.webhookUrl ? `\n\nWebhook MP: ${configData.webhookUrl}` : '';
+            if (!configRes.ok) {
+                const missing = (configData.missing?.pix || configData.capabilities?.missing?.pix || []).join(
+                    ', '
+                );
+                const webhook =
+                    configData.webhookSantanderUrl || configData.webhookUrl
+                        ? `\n\nWebhook: ${configData.webhookSantanderUrl || configData.webhookUrl}`
+                        : '';
                 showError(
                     (configData.error || 'Pagamento online não configurado no servidor.') +
                         (missing ? ` (${missing})` : '') +
                         webhook
                 );
+                return;
+            }
+
+            const caps = configData.capabilities || {};
+            const pixOk = Boolean(caps.pix);
+            if (!pixOk) {
+                showError(configData.error || 'Pagamento online não configurado no servidor.');
                 return;
             }
 
@@ -250,14 +254,22 @@ ${renderSummary(order)}
 
             const method = String(order.paymentMethod || '').toLowerCase();
             if (method === 'pix') {
+                if (!pixOk) {
+                    showError('Pix indisponível no momento.');
+                    return;
+                }
                 await mountPixCheckout(order);
                 return;
             }
             if (method === 'cartao') {
-                await mountBrick(order, configData.publicKey, { cardsOnly: true });
+                showError('Pagamento com cartão não está disponível. Volte e escolha Pix ou dinheiro.');
                 return;
             }
 
+            if (!configData.publicKey) {
+                showError('Mercado Pago não configurado para este pedido.');
+                return;
+            }
             await mountBrick(order, configData.publicKey);
         } catch (err) {
             showError(err.message || 'Erro ao carregar pagamento');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v103';
+const CACHE_NAME = 'ligeirinho-app-v105';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
@@ -97,6 +97,7 @@ const APP_SHELL = [
     '/img/icon-google.svg',
     '/img/icon-apple.svg',
     '/img/mercado-pago-logo-white-horizontal.svg',
+    '/img/mercado-pago-wallet-logo.svg',
 ];
 
 function cacheShellUrls(cache, urls) {

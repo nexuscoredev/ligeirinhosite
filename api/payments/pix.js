@@ -1,10 +1,6 @@
 import { paymentEnv, assertPixBackend } from '../../scripts/payment-env.mjs';
 import { fetchOrderById, patchOrder, publicOrderView, dbFromPaymentConfig } from '../../scripts/supabase-orders.mjs';
-import {
-    mpCreatePixPayment,
-    mapMpStatusToOrder,
-    extractPixFromPayment,
-} from '../../scripts/mercadopago-api.mjs';
+import { createPixCharge } from '../../scripts/pix-provider.mjs';
 import { maybeInitSeparation } from '../../scripts/separation-init.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -23,7 +19,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const missing = assertPixBackend(config);
+    const missing = assertPixBackend(config, process.env);
     if (missing.length) {
         return res.status(503).json({ error: 'Pix indisponível', missing });
     }
@@ -46,6 +42,7 @@ export default async function handler(req, res) {
         if (order.status === 'pending_payment' && order.pix_qr_code) {
             return res.status(200).json({
                 status: 'pending',
+                provider: order.pix_provider || config.pixProvider,
                 order: publicOrderView(order),
                 pix: {
                     qr_code: order.pix_qr_code,
@@ -57,42 +54,52 @@ export default async function handler(req, res) {
             return res.status(409).json({ error: 'Pedido não pode receber Pix neste status' });
         }
 
-        const notificationUrl = `${config.appBaseUrl}/api/payments/webhook`;
-        const payment = await mpCreatePixPayment(
-            config.mpAccessToken,
+        const notificationUrl =
+            config.pixProvider === 'santander'
+                ? `${config.appBaseUrl}/api/payments/webhook-santander`
+                : `${config.appBaseUrl}/api/payments/webhook`;
+
+        const charge = await createPixCharge({
+            env: process.env,
+            config,
             order,
             notificationUrl,
-            `lig-pix-${order.id}-${Date.now()}`
-        );
+        });
 
-        const pix = extractPixFromPayment(payment);
-        const orderStatus = mapMpStatusToOrder(payment.status);
-
-        const updated = await patchOrder(db.url, db.key, order.id, {
+        const orderStatus = charge.orderStatus;
+        const patch = {
             status: orderStatus,
             payment_method: 'pix',
-            mp_payment_id: payment.id,
-            mp_status: payment.status,
-            mp_status_detail: payment.status_detail || null,
-            pix_qr_code: pix?.qr_code || null,
-            pix_qr_base64: pix?.qr_code_base64 || null,
+            pix_provider: charge.provider,
+            pix_txid: charge.txid || null,
+            pix_qr_code: charge.pix?.qr_code || null,
+            pix_qr_base64: charge.pix?.qr_code_base64 || null,
             ...(orderStatus === 'paid' ? { paid_at: new Date().toISOString() } : {}),
-        }, { useRpc: db.useRpc });
+        };
+
+        if (charge.provider === 'mercadopago') {
+            patch.mp_payment_id = charge.mpPaymentId;
+            patch.mp_status = charge.providerStatus;
+            patch.mp_status_detail = charge.providerStatusDetail;
+        }
+
+        const updated = await patchOrder(db.url, db.key, order.id, patch, { useRpc: db.useRpc });
 
         if (orderStatus === 'paid') {
             await maybeInitSeparation(db.url, db.key, updated, process.env, { useRpc: db.useRpc });
         }
 
         return res.status(200).json({
-            status: payment.status,
+            status: charge.providerStatus,
+            provider: charge.provider,
             order: publicOrderView(updated),
-            pix: pix || undefined,
+            pix: charge.pix || undefined,
         });
     } catch (err) {
         console.error('payments/pix', err.details || err);
         return res.status(err.status || 500).json({
             error: err.message || 'Erro ao gerar Pix',
-            details: err.details?.cause || undefined,
+            details: err.details?.cause || err.details || undefined,
         });
     }
 }

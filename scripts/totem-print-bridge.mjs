@@ -1,13 +1,17 @@
 /**
  * Ponte de impressão silenciosa para o totem no PC do depósito.
  *
- * USB no mesmo PC (Windows):
- *   set TOTEM_PRINTER_NAME=EPSON TM-T20 Receipt
+ * USB no mesmo PC (Windows) — ex.: Elgin i9 (80mm, ESC/POS):
+ *   set TOTEM_PRINTER_NAME=ELGIN i9
  *   npm run totem:print-bridge
  *
- * Epson na rede (IP):
+ * Elgin i9 Ethernet (porta RAW 9100):
+ *   set TOTEM_BRIDGE_HOST=0.0.0.0
  *   set TOTEM_PRINTER_HOST=192.168.0.50
  *   npm run totem:print-bridge
+ *
+ * No tablet (Fully Kiosk), aponte printBridgeUrl para o IP do PC/RPi na mesma Wi‑Fi:
+ *   http://192.168.0.10:8787/print
  */
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -17,7 +21,9 @@ import { buildEscPosReceipt } from './lib/totem-escpos.mjs';
 
 const execFileAsync = promisify(execFile);
 
-const LISTEN_HOST = process.env.TOTEM_BRIDGE_HOST || '127.0.0.1';
+const LISTEN_HOST =
+    process.env.TOTEM_BRIDGE_HOST ||
+    (String(process.env.TOTEM_PRINTER_HOST || '').trim() ? '0.0.0.0' : '127.0.0.1');
 const LISTEN_PORT = Number(process.env.TOTEM_BRIDGE_PORT) || 8787;
 const PRINTER_NAME = String(process.env.TOTEM_PRINTER_NAME || '').trim();
 const PRINTER_HOST = String(process.env.TOTEM_PRINTER_HOST || '').trim();

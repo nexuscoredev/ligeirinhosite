@@ -557,7 +557,7 @@ ${menuRow({
             },
             {
                 q: 'Quais formas de pagamento?',
-                a: 'Pix, cartão de crédito e débito via Mercado Pago, direto no app.',
+                a: 'Pix (Santander) ou dinheiro na entrega/retirada, direto no app.',
             },
             {
                 q: 'Horário de funcionamento',
