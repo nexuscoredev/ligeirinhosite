@@ -47,7 +47,7 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Pedido não encontrado');
             const order = data.order;
-            const code = receipt?.formatCode?.(order.id) ?? order.id.slice(0, 8).toUpperCase();
+            const code = receipt?.formatCode?.(order.id) ?? order.id.replace(/[^a-fA-F0-9]/gi, '').slice(0, 4).toUpperCase();
             const copyCode = receipt?.compactCode?.(order.id) ?? code;
 
             root.innerHTML = `<div class="lig-payment-card lig-payment-card--success">

@@ -31,6 +31,8 @@ async function applyParceiros() {
         await runSqlFile(client, 'delivery-date-migration.sql');
         console.log('[parceiros] Aplicando santander-pix-migration.sql…');
         await runSqlFile(client, 'santander-pix-migration.sql');
+        console.log('[parceiros] Aplicando totem-code-4chars-migration.sql…');
+        await runSqlFile(client, 'totem-code-4chars-migration.sql');
 
         const tables = await client.query(
             `select table_name from information_schema.tables

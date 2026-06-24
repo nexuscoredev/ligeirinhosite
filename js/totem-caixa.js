@@ -32,7 +32,7 @@
     };
 
     const receipt = window.LigeirinhoTotemReceipt;
-    const formatDisplayCode = (id) => receipt?.formatCode?.(id) ?? String(id || '').slice(0, 8).toUpperCase();
+    const formatDisplayCode = (id) => receipt?.formatCode?.(id) ?? String(id || '').replace(/[^a-fA-F0-9]/gi, '').slice(0, 4).toUpperCase();
     const compactDisplayCode = (id) => receipt?.compactCode?.(id) ?? formatDisplayCode(id);
 
     let pollTimer = null;

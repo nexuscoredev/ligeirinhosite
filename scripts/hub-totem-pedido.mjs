@@ -127,7 +127,7 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
     const prefix = parseTotemOrderCode(code);
     if (!prefix) {
         const err = new Error(
-            'Código inválido — use PED seguido dos 8 caracteres do comprovante (ex.: PED 4F4F9236).',
+            'Código inválido — use PED seguido dos 4 caracteres do comprovante (ex.: PED 4F4F).',
         );
         err.status = 400;
         throw err;

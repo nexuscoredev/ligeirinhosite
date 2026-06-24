@@ -78,17 +78,20 @@
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+    const TOTEM_CODE_HEX_LENGTH = 4;
+
     const formatCode = (id) => {
         const raw = String(id || '')
-            .slice(0, 8)
+            .replace(/[^a-fA-F0-9]/gi, '')
+            .slice(0, TOTEM_CODE_HEX_LENGTH)
             .toUpperCase();
-        return `PED ${raw.split('').join(' ')}`;
+        return raw ? `PED ${raw.split('').join(' ')}` : '';
     };
 
     const compactCode = (id) => {
         const raw = String(id || '')
             .replace(/[^a-fA-F0-9]/gi, '')
-            .slice(0, 8)
+            .slice(0, TOTEM_CODE_HEX_LENGTH)
             .toUpperCase();
         return raw ? `PED ${raw}` : '';
     };
