@@ -14,9 +14,9 @@
 .totem-receipt__paper {
     box-sizing: border-box;
     width: 100%;
-    max-width: 72mm;
-    margin: 0;
-    padding: 2mm 3mm;
+    max-width: 76mm;
+    margin: 0 auto;
+    padding: 2mm 2mm 2mm 4mm;
     font-family: 'Courier New', Courier, ui-monospace, monospace;
     font-size: 11px;
     font-weight: 700;
@@ -265,13 +265,15 @@
         pointer-events: none;
         z-index: 9999;
         overflow: hidden;
+        display: flex;
+        justify-content: center;
     }
 
     .totem-receipt__paper {
-        width: 72mm !important;
-        max-width: 72mm !important;
-        margin: 0 auto !important;
-        padding: 3mm 4mm !important;
+        width: 76mm !important;
+        max-width: 76mm !important;
+        margin: 0 !important;
+        padding: 2mm 2mm 2mm 4mm !important;
         box-sizing: border-box !important;
         font-weight: 700 !important;
         page-break-inside: avoid;

@@ -5,6 +5,18 @@
     let serialPort = null;
 
     const BRIDGE_STORAGE_KEY = 'lig_totem_print_bridge_url';
+    const PRINT_MARGIN_LEFT_KEY = 'lig_totem_print_margin_left_mm';
+
+    const resolvePrintMarginLeftMm = (defaults = {}) => {
+        try {
+            const fromStorage = String(localStorage.getItem(PRINT_MARGIN_LEFT_KEY) || '').trim();
+            if (fromStorage && !Number.isNaN(Number(fromStorage))) return Number(fromStorage);
+        } catch {
+            /* ignore */
+        }
+        const fromConfig = Number(defaults.printMarginLeftMm);
+        return Number.isFinite(fromConfig) ? fromConfig : 4;
+    };
 
     const isMobileTotem = () =>
         typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -38,6 +50,8 @@
                 printBridgeUrl: resolvePrintBridgeUrl(defaults, unit),
                 escposBaudRate: Number(defaults.escposBaudRate) || 9600,
                 escposLineChars: Number(defaults.escposLineChars) || 42,
+                printMarginLeftMm: resolvePrintMarginLeftMm(defaults),
+                printPaperWidthMm: Number(defaults.printPaperWidthMm) || 76,
             };
         } catch {
             cachedConfig = {
@@ -48,6 +62,8 @@
                 printBridgeUrl: '',
                 escposBaudRate: 9600,
                 escposLineChars: 42,
+                printMarginLeftMm: 4,
+                printPaperWidthMm: 76,
             };
         }
         return cachedConfig;
@@ -195,8 +211,13 @@ ${itemsBlock}
 </div>`;
     };
 
-    const printCss = () => `@page{size:80mm auto;margin:0}html,body{width:80mm;max-width:80mm;margin:0;padding:0;background:#fff;overflow:hidden;font-family:'Courier New',Courier,ui-monospace,monospace}
-.totem-receipt__paper{box-sizing:border-box;width:72mm;max-width:72mm;margin:0 auto;padding:3mm 4mm;font-size:11px;line-height:1.35;color:#000;font-weight:700;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
+    const printCss = (opts = {}) => {
+        const marginLeft = Number(opts.printMarginLeftMm);
+        const marginLeftMm = Number.isFinite(marginLeft) ? marginLeft : 4;
+        const paperWidth = Number(opts.printPaperWidthMm) || 76;
+        return `@page{size:80mm auto;margin:0}html,body{width:80mm;max-width:80mm;min-width:80mm;margin:0;padding:0;background:#fff;overflow:hidden;font-family:'Courier New',Courier,ui-monospace,monospace}
+body{display:flex;justify-content:center;align-items:flex-start}
+.totem-receipt__paper{box-sizing:border-box;width:${paperWidth}mm;max-width:${paperWidth}mm;margin:0;padding:2mm 2mm 2mm ${marginLeftMm}mm;font-size:11px;line-height:1.35;color:#000;font-weight:700;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
 .totem-receipt__paper *{font-weight:700}
 .totem-receipt__brand{font-size:12px;font-weight:900;text-align:center;letter-spacing:.02em;text-transform:uppercase}
 .totem-receipt__title{margin:2mm 0 0;font-size:13px;font-weight:900;text-align:center;letter-spacing:.04em}
@@ -219,6 +240,7 @@ ${itemsBlock}
 .totem-receipt__row--total strong{font-size:14px;font-weight:900;max-width:55%}
 .totem-receipt__foot{margin:2mm 0 0;font-size:10px;line-height:1.35;text-align:center;font-weight:700}
 .totem-receipt__foot--muted{margin-top:2mm;font-weight:900;font-size:10px}`;
+    };
 
     const printViaBridge = async (order, opts = {}) => {
         const url = String(opts.printBridgeUrl || '').trim();
@@ -255,9 +277,11 @@ ${itemsBlock}
                 return;
             }
 
+            const css = printCss(opts);
+
             doc.open();
             doc.write(
-                `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title><style>${printCss()}</style></head><body>${html}</body></html>`
+                `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title><style>${css}</style></head><body>${html}</body></html>`
             );
             doc.close();
 
@@ -430,6 +454,8 @@ ${itemsBlock}
                 escposBaudRate: config.escposBaudRate,
                 escposLineChars: config.escposLineChars,
                 printBridgeUrl: opts.printBridgeUrl || config.printBridgeUrl,
+                printMarginLeftMm: opts.printMarginLeftMm ?? config.printMarginLeftMm,
+                printPaperWidthMm: opts.printPaperWidthMm ?? config.printPaperWidthMm,
             };
 
             if (mode === 'browser') {
@@ -469,9 +495,15 @@ ${itemsBlock}
     };
 
     try {
-        const bridgeFromUrl = new URLSearchParams(window.location.search).get('printBridge');
+        const params = new URLSearchParams(window.location.search);
+        const bridgeFromUrl = params.get('printBridge');
         if (bridgeFromUrl) {
             localStorage.setItem(BRIDGE_STORAGE_KEY, bridgeFromUrl.trim());
+            cachedConfig = null;
+        }
+        const marginFromUrl = params.get('printMarginLeft');
+        if (marginFromUrl != null && marginFromUrl !== '' && !Number.isNaN(Number(marginFromUrl))) {
+            localStorage.setItem(PRINT_MARGIN_LEFT_KEY, String(Number(marginFromUrl)));
             cachedConfig = null;
         }
     } catch {
@@ -501,5 +533,16 @@ ${itemsBlock}
             cachedConfig = null;
         },
         getPrintBridgeUrl: () => resolvePrintBridgeUrl(),
+        setPrintMarginLeftMm(mm) {
+            const value = Number(mm);
+            if (!Number.isFinite(value)) {
+                localStorage.removeItem(PRINT_MARGIN_LEFT_KEY);
+                cachedConfig = null;
+                return;
+            }
+            localStorage.setItem(PRINT_MARGIN_LEFT_KEY, String(value));
+            cachedConfig = null;
+        },
+        getPrintMarginLeftMm: () => resolvePrintMarginLeftMm(),
     };
 })();

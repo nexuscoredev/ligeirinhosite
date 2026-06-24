@@ -6,6 +6,8 @@
     "autoPrintReceipt": true,
     "autoPrintDelayMs": 450,
     "printMode": "browser",
+    "printMarginLeftMm": 4,
+    "printPaperWidthMm": 76,
     "printBridgeHost": "",
     "printBridgePort": 8787,
     "printBridgeUrl": "http://127.0.0.1:8787/print",
