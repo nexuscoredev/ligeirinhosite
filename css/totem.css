@@ -1050,6 +1050,12 @@ html.totem--kiosk.totem--landscape .totem-product__price {
         border-color 0.28s ease;
     animation: totem-card-in var(--totem-dur-med) var(--totem-ease-spring) both;
     animation-delay: calc(var(--totem-card-i, 0) * 0.032s);
+    cursor: pointer;
+}
+
+.totem-product .totem-qty-btn,
+.totem-product .ze-price-tier {
+    cursor: pointer;
 }
 
 .totem-product--pulse {
@@ -3129,6 +3135,321 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     }
 }
 
+/* ——— Detalhes do produto ——— */
+.totem-detail {
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+    display: none;
+    background: #f8f8f8;
+}
+
+.totem-detail--open {
+    display: block;
+    animation: totem-detail-in 0.32s var(--totem-ease-out) both;
+}
+
+.totem-detail--closing {
+    animation: totem-detail-out 0.24s ease both;
+}
+
+@keyframes totem-detail-in {
+    from {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes totem-detail-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(12px);
+    }
+}
+
+.totem-detail__sheet {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: #f8f8f8;
+}
+
+.totem-detail__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid rgba(20, 18, 15, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.totem-detail__back {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #1a1a1a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.totem-detail__back:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.totem-detail__heading {
+    margin: 0;
+    font-family: "Hanken Grotesk", sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.totem-detail__body {
+    flex: 1;
+    padding: 1.25rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.totem-detail__name {
+    margin: 0;
+    font-family: "Hanken Grotesk", sans-serif;
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 800;
+    line-height: 1.25;
+    color: #1a1a1a;
+    letter-spacing: -0.02em;
+}
+
+.totem-detail__subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.totem-detail__subtitle .material-symbols-outlined {
+    font-size: 1rem;
+    color: #16a34a;
+}
+
+.totem-detail__pricing {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+}
+
+.totem-detail__price-main {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    letter-spacing: -0.03em;
+}
+
+.totem-detail__price-unit {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.totem-detail__media {
+    position: relative;
+    margin: 0.25rem auto;
+    width: min(100%, 280px);
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0;
+}
+
+.totem-detail__media img {
+    max-height: 200px;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.12));
+}
+
+.totem-detail__placeholder {
+    font-size: 4rem;
+    color: #d1d5db;
+}
+
+.totem-detail__badge {
+    position: absolute;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 0.35rem;
+    padding: 0.35rem 0.45rem;
+    line-height: 1.1;
+    color: #fff;
+    z-index: 1;
+}
+
+.totem-detail__badge--return {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1a1a1a;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    border-radius: 0.4rem;
+    padding: 0.5rem 0.35rem;
+}
+
+.totem-detail__badge--vol {
+    left: 2.5rem;
+    bottom: 0.5rem;
+    background: #8b5e34;
+    font-size: 0.75rem;
+}
+
+.totem-detail__badge--pack {
+    right: 0;
+    top: 0.5rem;
+    background: #8b5e34;
+    font-size: 0.7rem;
+}
+
+.totem-detail__tiers {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.totem-detail__tiers .ze-price-tier {
+    min-width: 5.5rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.75rem;
+}
+
+.totem-detail__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.totem-detail__qty {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid rgba(20, 18, 15, 0.1);
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-detail__qty .totem-qty-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+}
+
+.totem-detail__qty-value {
+    min-width: 1.5rem;
+    text-align: center;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #1a1a1a;
+}
+
+.totem-detail__add {
+    flex: 1;
+    min-height: 3rem;
+    border: 0;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.totem-detail__add:hover {
+    background: #bbf7d0;
+}
+
+.totem-detail__add:active {
+    transform: scale(0.98);
+}
+
+.totem-detail__add--active {
+    background: #22c55e;
+    color: #fff;
+}
+
+.totem-detail__points {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.totem-detail__points .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+.totem-detail__points[hidden] {
+    display: none !important;
+}
+
+.totem-detail__vendor {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid rgba(20, 18, 15, 0.08);
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.totem-detail__vendor img {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+    border-radius: 0.35rem;
+}
+
+.totem-detail__vendor strong {
+    color: #374151;
+    font-weight: 600;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .totem-product,
     .totem-view--entering,
@@ -3154,6 +3475,8 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     .totem-cart-sheet,
     .totem-cart-line,
     .totem-cart-toast,
+    .totem-detail--open,
+    .totem-detail--closing,
     .totem-admin-modal--open,
     .totem-admin-modal--open .totem-admin-card {
         animation: none !important;

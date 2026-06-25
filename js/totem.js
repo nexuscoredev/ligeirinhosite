@@ -42,6 +42,8 @@
     const idleHint = document.getElementById('totem-idle-hint');
     const adminModal = document.getElementById('totem-admin-modal');
     const adminPin = document.getElementById('totem-admin-pin');
+    const detailPanel = document.getElementById('totem-product-detail');
+    const detailSheet = detailPanel?.querySelector('.totem-detail__sheet');
 
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -66,11 +68,184 @@
     let searchTimer = null;
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
+    let detailItemKey = null;
+    let detailPointsFlash = 0;
+    let pointsPerReal = 10;
+
+    const AMBEV_BRANDS = [
+        'STELLA ARTOIS',
+        'BRAHMA',
+        'BUDWEISER',
+        'SKOL',
+        'CORONA',
+        'ANTARCTICA',
+        'BECKS',
+        'SPATEN',
+        'COLORADO',
+        'PATAGONIA',
+        'ORIGINAL',
+        'BOHEMIA',
+    ];
 
     const shortProductName = (name) => {
         const text = String(name || '').trim();
         if (text.length <= 42) return text;
         return `${text.slice(0, 39)}…`;
+    };
+
+    const extractVolume = (name) => {
+        const match = String(name || '').match(/(\d+)\s*ml/i);
+        return match ? `${match[1]} ml` : '';
+    };
+
+    const isReturnable = (name) => /retorn[aá]vel/i.test(String(name || ''));
+
+    const inferVendor = (baseName) => {
+        const upper = String(baseName || '').toUpperCase();
+        const isAmbev = AMBEV_BRANDS.some((brand) => upper.includes(brand));
+        return {
+            name: isAmbev ? 'Ambev' : 'Ligeirinho',
+            logo: 'img/ligeirinhologo.png',
+        };
+    };
+
+    const productDetailSubtitle = (group, variant, tier) => {
+        const parts = [];
+        const packSize = variant?.packSize;
+        if (tier === 'caixa' && packSize) {
+            parts.push(`1x${packSize} Unidades`);
+        } else if (tier === 'pallet' && variant?.boxCount) {
+            parts.push(`Pallet · ${variant.boxCount} cx`);
+        } else if (tier === 'unidade') {
+            parts.push('1 Unidade');
+        }
+        const vol = extractVolume(group?.baseName || variant?.name || '');
+        if (vol) parts.push(`${vol} Garrafa`);
+        return parts.join(' • ');
+    };
+
+    const unitPriceSuffix = (variant, tier) => {
+        if (!variant) return '';
+        const unitPrice = pricing.getUnitPrice(variant);
+        if (unitPrice == null) return '';
+        const unitLabel =
+            tier === 'caixa' ? 'un' : tier === 'pallet' ? 'un' : pricing.TIER_LABELS?.[tier] || 'un';
+        return `${formatPrice(unitPrice)}/${unitLabel}`;
+    };
+
+    const tierPackBadge = (tier, variant) => {
+        if (tier === 'caixa' && variant?.packSize) return `CAIXA X ${variant.packSize}`;
+        if (tier === 'pallet' && variant?.boxCount) return `PALLET ${variant.boxCount} CX`;
+        if (tier === 'unidade') return 'UNIDADE';
+        return pricing.TIER_SHORT?.[tier]?.toUpperCase() || '';
+    };
+
+    const computePoints = (price, qty) => Math.max(0, Math.round(Number(price) * Number(qty) * pointsPerReal));
+
+    const getDetailContext = () => {
+        if (!detailItemKey) return null;
+        const item = displayItems.find((i) => (i.group?.key || i.product.id) === detailItemKey);
+        if (!item) return null;
+        const group = item.group;
+        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
+        const variant = group ? pricing.getVariant(group, tier) : null;
+        const product = item.product;
+        const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
+        const cart = cartApi.loadCart();
+        const qty = cart[cartKey]?.qty || 0;
+        const img = catalog.productImageUrl(group ? pricing.getTierImage(group, tier) : product.image);
+        const displayName = group
+            ? pricing.cartItemName({ ...variant, tier }, group)
+            : product.name;
+        return { item, group, tier, variant, product, cartKey, qty, img, displayName };
+    };
+
+    const closeProductDetail = () => {
+        if (!detailPanel) return;
+        detailPanel.classList.add('totem-detail--closing');
+        detailPanel.classList.remove('totem-detail--open');
+        window.setTimeout(() => {
+            detailPanel.classList.remove('totem-detail--closing');
+            detailPanel.setAttribute('aria-hidden', 'true');
+            detailItemKey = null;
+            detailPointsFlash = 0;
+            if (detailSheet) detailSheet.innerHTML = '';
+        }, 240);
+    };
+
+    const renderProductDetail = (flashPoints = 0) => {
+        if (!detailSheet || !detailItemKey) return;
+        const ctx = getDetailContext();
+        if (!ctx) {
+            closeProductDetail();
+            return;
+        }
+
+        const { group, tier, variant, product, cartKey, qty, img, displayName } = ctx;
+        const price = (variant || product).price;
+        const subtitle = productDetailSubtitle(group, variant, tier);
+        const returnable = isReturnable(group?.baseName || displayName);
+        const vol = extractVolume(group?.baseName || displayName);
+        const packBadge = tierPackBadge(tier, variant);
+        const vendor = inferVendor(group?.baseName || displayName);
+        const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+        const pointsMsg =
+            flashPoints > 0
+                ? `<p class="totem-detail__points" id="totem-detail-points"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>Você ganhou ${flashPoints} pontos.</p>`
+                : '<p class="totem-detail__points" id="totem-detail-points" hidden></p>';
+
+        detailSheet.innerHTML = `<header class="totem-detail__header">
+<button type="button" class="totem-detail__back" id="totem-detail-back" aria-label="Voltar">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="totem-detail__heading" id="totem-detail-heading">Detalhes do Produto</h1>
+</header>
+<div class="totem-detail__body">
+<h2 class="totem-detail__name">${esc(displayName)}</h2>
+<p class="totem-detail__subtitle">${esc(subtitle)}${returnable ? '<span class="material-symbols-outlined" aria-label="Retornável">recycling</span>' : ''}</p>
+<div class="totem-detail__pricing">
+<strong class="totem-detail__price-main">${formatPrice(price)}</strong>
+${unitPriceSuffix(variant, tier) ? `<span class="totem-detail__price-unit">${esc(unitPriceSuffix(variant, tier))}</span>` : ''}
+</div>
+<div class="totem-detail__media">
+${returnable ? '<span class="totem-detail__badge totem-detail__badge--return">Retornável</span>' : ''}
+${vol ? `<span class="totem-detail__badge totem-detail__badge--vol">${esc(vol)}</span>` : ''}
+${packBadge ? `<span class="totem-detail__badge totem-detail__badge--pack">${esc(packBadge)}</span>` : ''}
+${img ? `<img src="${esc(img)}" alt="">` : '<span class="material-symbols-outlined totem-detail__placeholder" aria-hidden="true">liquor</span>'}
+</div>
+${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
+<div class="totem-detail__actions">
+<div class="totem-detail__qty">
+<button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
+<span class="totem-detail__qty-value" id="totem-detail-qty">${qty}</span>
+<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(detailItemKey)}" aria-label="Aumentar">+</button>
+</div>
+<button type="button" class="totem-detail__add${qty ? ' totem-detail__add--active' : ''}" id="totem-detail-add" data-cart-key="${esc(cartKey)}" data-item-key="${esc(detailItemKey)}" aria-label="${qty ? 'Adicionado ao carrinho' : 'Adicionar ao carrinho'}">
+<span class="material-symbols-outlined" aria-hidden="true">${qty ? 'check' : 'add'}</span>
+</button>
+</div>
+${pointsMsg}
+</div>
+<footer class="totem-detail__vendor">
+<img src="${esc(vendor.logo)}" alt="">
+<span>Vendido e entregue por <strong>${esc(vendor.name)}</strong></span>
+</footer>`;
+    };
+
+    const openProductDetail = (itemKey) => {
+        if (!detailPanel || !detailSheet || !itemKey) return;
+        detailItemKey = itemKey;
+        detailPointsFlash = 0;
+        renderProductDetail();
+        detailPanel.setAttribute('aria-hidden', 'false');
+        detailPanel.classList.add('totem-detail--open');
+        detailPanel.classList.remove('totem-detail--closing');
+        bumpIdle();
+    };
+
+    const refreshDetailIfOpen = (flashPoints = 0) => {
+        if (!detailItemKey || !detailPanel?.classList.contains('totem-detail--open')) return;
+        renderProductDetail(flashPoints);
     };
 
     const hideCartToast = () => {
@@ -512,6 +687,7 @@ ${unitHtml}
     };
 
     const resetSession = () => {
+        closeProductDetail();
         closeCart();
         resetCart();
         clearSearch();
@@ -659,6 +835,7 @@ ${tiersHtml}
 </article>`;
             })
             .join('');
+        refreshDetailIfOpen();
     };
 
     const pulseProduct = (cartKey) => {
@@ -715,12 +892,14 @@ ${tiersHtml}
         return `${count} itens`;
     };
 
-    const addItem = (cartKey, itemKey) => {
+    const addItem = (cartKey, itemKey, opts = {}) => {
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
         const group = item.group;
         const card = itemKey ? productsGrid?.querySelector(`[data-item-key="${itemKey}"]`) : null;
-        const tier = card?.dataset?.priceTier || activeTierFor(group);
+        const tier = opts.fromDetail && group
+            ? activeTierFor(group)
+            : card?.dataset?.priceTier || (group ? activeTierFor(group) : 'caixa');
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
@@ -738,13 +917,21 @@ ${tiersHtml}
         renderCart();
         renderProducts();
         pulseProduct(key);
-        showCartAddedToast(name, cartLineImage(cart[key]));
+        const pointsEarned = computePoints(price, 1);
+        if (opts.fromDetail) {
+            refreshDetailIfOpen(pointsEarned);
+        } else {
+            showCartAddedToast(name, cartLineImage(cart[key]));
+        }
         bumpIdle();
     };
 
-    const changeQty = (cartKey, delta) => {
+    const changeQty = (cartKey, delta, opts = {}) => {
         const cart = cartApi.loadCart();
         if (!cart[cartKey]) return;
+        const line = cart[cartKey];
+        const itemName = line.name;
+        const unitPrice = line.price;
         cart[cartKey].qty += delta;
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
         cartApi.saveCart(cart);
@@ -752,8 +939,14 @@ ${tiersHtml}
         renderProducts();
         if (delta > 0) {
             pulseProduct(cartKey);
-            const line = cart[cartKey];
-            showCartAddedToast(line?.name, line ? cartLineImage(line) : '');
+            const pointsEarned = computePoints(unitPrice, 1);
+            if (opts.fromDetail) {
+                refreshDetailIfOpen(pointsEarned);
+            } else {
+                showCartAddedToast(itemName, cartLineImage(line));
+            }
+        } else if (opts.fromDetail) {
+            refreshDetailIfOpen();
         }
         bumpIdle();
     };
@@ -942,8 +1135,41 @@ ${cartLineThumbHtml(item)}
             }
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
-            if (plus) addItem(plus.dataset.cartKey, plus.dataset.itemKey);
-            if (minus) changeQty(minus.dataset.cartKey, -1);
+            if (plus) {
+                addItem(plus.dataset.cartKey, plus.dataset.itemKey);
+                return;
+            }
+            if (minus) {
+                changeQty(minus.dataset.cartKey, -1);
+                return;
+            }
+            const card = e.target.closest('.totem-product');
+            if (card?.dataset?.itemKey) {
+                openProductDetail(card.dataset.itemKey);
+            }
+        });
+
+        detailPanel?.addEventListener('click', (e) => {
+            if (e.target.closest('#totem-detail-back')) {
+                closeProductDetail();
+                return;
+            }
+            const tierBtn = e.target.closest('.ze-price-tier');
+            if (tierBtn && detailItemKey) {
+                const ctx = getDetailContext();
+                if (!ctx?.group?.key) return;
+                tierByGroup.set(ctx.group.key, tierBtn.dataset.priceTier);
+                renderProductDetail();
+                renderProducts();
+                bumpIdle();
+                return;
+            }
+            const plus = e.target.closest('.totem-plus');
+            const minus = e.target.closest('.totem-minus');
+            const addBtn = e.target.closest('#totem-detail-add');
+            if (plus) addItem(plus.dataset.cartKey, plus.dataset.itemKey, { fromDetail: true });
+            if (minus) changeQty(minus.dataset.cartKey, -1, { fromDetail: true });
+            if (addBtn) addItem(addBtn.dataset.cartKey, addBtn.dataset.itemKey, { fromDetail: true });
         });
 
         cartList?.addEventListener('click', (e) => {
@@ -1017,12 +1243,14 @@ ${cartLineThumbHtml(item)}
             deviceLabel.textContent = parts.join(' · ') || 'Autoatendimento';
         }
 
-        const [rawCatalog, configRes, packCfg, tierCfg] = await Promise.all([
+        const [rawCatalog, configRes, packCfg, tierCfg, raiosCfg] = await Promise.all([
             window.LigeirinhoCatalogLoader.load(),
             fetch('data/totem-units.json'),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
+            fetch('data/raios-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
         ]);
+        pointsPerReal = Number(raiosCfg.pointsPerReal) || 10;
         totemConfig = await configRes.json();
         unitSettings = resolveUnitSettings();
         catalogData = filterCatalog(rawCatalog);
