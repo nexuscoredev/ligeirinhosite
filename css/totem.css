@@ -69,14 +69,17 @@ body.totem-kiosk {
     color: var(--lig-text);
 }
 
-/* Boas-vindas: main só ocupa o conteúdo — rodapé cola no botão */
+/* Boas-vindas: conteúdo centralizado, rodapé fixo na base da tela */
 .totem-app:has(#totem-view-welcome.totem-view--active) {
-    grid-template-rows: auto auto auto;
-    align-content: start;
+    grid-template-rows: auto 1fr auto;
 }
 
 .totem-app:has(#totem-view-welcome.totem-view--active) .totem-main {
     overflow: visible;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
 }
 
 .totem-app:has(#totem-view-welcome.totem-view--active) .totem-welcome.totem-view--active {
@@ -84,6 +87,15 @@ body.totem-kiosk {
     inset: auto;
     width: 100%;
     height: auto;
+    flex: 0 0 auto;
+}
+
+.totem-app:has(#totem-view-welcome.totem-view--active) .totem-footer {
+    padding-top: 0.3rem;
+    padding-bottom: calc(0.3rem + env(safe-area-inset-bottom, 0px));
+    font-size: 0.5625rem;
+    letter-spacing: 0.04em;
+    border-top-color: rgba(20, 18, 15, 0.04);
 }
 
 /* ——— Header ——— */
@@ -1935,7 +1947,7 @@ html.totem-has-float-cart .totem-idle-hint {
 
 /* ——— Footer ——— */
 .totem-footer {
-    padding: clamp(0.4rem, 1dvh, 0.65rem) 1rem calc(clamp(0.4rem, 1dvh, 0.65rem) + env(safe-area-inset-bottom, 0px));
+    padding: clamp(0.25rem, 0.6dvh, 0.45rem) 1rem calc(clamp(0.25rem, 0.6dvh, 0.45rem) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid rgba(20, 18, 15, 0.06);
     background: var(--lig-bg);
     color: var(--lig-text-subtle);
