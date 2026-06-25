@@ -51,15 +51,24 @@
             const printed = await receipt?.printOrderReceipt?.(currentOrder, {
                 force: true,
                 totemLabel,
-                requestSerial: true,
+                printMode: 'bridge',
             });
-            if (!printed && receipt?.escposSupported?.() && receipt?.pairPrinter) {
-                await receipt.pairPrinter();
-                await receipt.printOrderReceipt?.(currentOrder, {
+            if (!printed) {
+                const fallback = await receipt?.printOrderReceipt?.(currentOrder, {
                     force: true,
                     totemLabel,
                     requestSerial: true,
+                    printMode: 'escpos',
                 });
+                if (!fallback && receipt?.escposSupported?.() && receipt?.pairPrinter) {
+                    await receipt.pairPrinter();
+                    await receipt.printOrderReceipt?.(currentOrder, {
+                        force: true,
+                        totemLabel,
+                        requestSerial: true,
+                        printMode: 'escpos',
+                    });
+                }
             }
             showPrintNote();
         });

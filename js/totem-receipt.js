@@ -52,6 +52,7 @@
                 escposLineChars: Number(defaults.escposLineChars) || 42,
                 printMarginLeftMm: resolvePrintMarginLeftMm(defaults),
                 printPaperWidthMm: Number(defaults.printPaperWidthMm) || 76,
+                printFallbackBrowser: defaults.printFallbackBrowser === true,
             };
         } catch {
             cachedConfig = {
@@ -64,6 +65,7 @@
                 escposLineChars: 42,
                 printMarginLeftMm: 4,
                 printPaperWidthMm: 76,
+                printFallbackBrowser: false,
             };
         }
         return cachedConfig;
@@ -265,6 +267,26 @@ body{display:flex;justify-content:center;align-items:flex-start}
         }
     };
 
+    const bridgeHealthUrl = (printBridgeUrl) => {
+        const raw = String(printBridgeUrl || '').trim();
+        if (!raw) return '';
+        return raw.replace(/\/print\/?$/i, '/health');
+    };
+
+    const bridgeReachable = async (printBridgeUrl) => {
+        const healthUrl = bridgeHealthUrl(printBridgeUrl);
+        if (!healthUrl) return false;
+        try {
+            const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timer = ctrl ? window.setTimeout(() => ctrl.abort(), 900) : null;
+            const res = await fetch(healthUrl, { method: 'GET', signal: ctrl?.signal });
+            if (timer) window.clearTimeout(timer);
+            return res.ok;
+        } catch {
+            return false;
+        }
+    };
+
     const printViaHiddenIframe = (order, opts = {}) =>
         new Promise((resolve) => {
             const html = buildReceiptHtml(order, { ...opts, forPrint: true });
@@ -460,6 +482,14 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 printMarginLeftMm: opts.printMarginLeftMm ?? config.printMarginLeftMm,
                 printPaperWidthMm: opts.printPaperWidthMm ?? config.printPaperWidthMm,
             };
+            const allowBrowser =
+                opts.printFallbackBrowser === true ||
+                (opts.printFallbackBrowser !== false && config.printFallbackBrowser);
+
+            const tryBridge = async () => {
+                if (!printOpts.printBridgeUrl) return false;
+                return printViaBridge(order, printOpts);
+            };
 
             if (mode === 'browser') {
                 return printViaHiddenIframe(order, printOpts);
@@ -468,22 +498,30 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return printViaEscPos(order, printOpts);
             }
             if (mode === 'bridge') {
-                return printViaBridge(order, printOpts);
+                return tryBridge();
             }
 
             if (mode === 'auto' && isMobileTotem()) {
-                const bridgeOk = await printViaBridge(order, printOpts);
+                const bridgeOk = await tryBridge();
                 if (bridgeOk) return true;
                 return false;
             }
 
+            // PC totem: ponte silenciosa (ESC/POS) → serial → só então Chrome print se habilitado
+            const bridgeOk = await tryBridge();
+            if (bridgeOk) return true;
+
             const escOk = await printViaEscPos(order, printOpts);
             if (escOk) return true;
 
-            const bridgeOk = await printViaBridge(order, printOpts);
-            if (bridgeOk) return true;
+            if (allowBrowser) {
+                return printViaHiddenIframe(order, printOpts);
+            }
 
-            return printViaHiddenIframe(order, printOpts);
+            console.warn(
+                'totem-receipt: impressao silenciosa indisponivel — inicie a ponte (npm run totem:print) ou habilite printFallbackBrowser'
+            );
+            return false;
         };
 
         return new Promise((resolve) => {
@@ -525,6 +563,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
         printViaEscPos,
         pairPrinter,
         escposSupported,
+        bridgeReachable,
+        bridgeHealthUrl,
         setPrintBridgeUrl(url) {
             const value = String(url || '').trim();
             if (!value) {
