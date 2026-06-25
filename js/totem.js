@@ -170,7 +170,7 @@
             detailItemKey = null;
             detailPointsFlash = 0;
             if (detailSheet) detailSheet.innerHTML = '';
-        }, 240);
+        }, 280);
     };
 
     const renderProductDetail = (flashPoints = 0) => {
@@ -1150,6 +1150,10 @@ ${cartLineThumbHtml(item)}
         });
 
         detailPanel?.addEventListener('click', (e) => {
+            if (e.target === detailPanel) {
+                closeProductDetail();
+                return;
+            }
             if (e.target.closest('#totem-detail-back')) {
                 closeProductDetail();
                 return;
