@@ -27,6 +27,8 @@
     const init = async () => {
         if (!routing.guardPageAccess()) return;
 
+        window.LigeirinhoTotemLoading?.mountPreset?.(root, 'success');
+
         let timeoutMs = 18000;
         try {
             const cfg = await fetch('data/totem-units.json').then((r) => r.json());

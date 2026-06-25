@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ligeirinho-app-v111';
+const CACHE_NAME = 'ligeirinho-app-v112';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
     '/js/totem-payment.js',
     '/js/totem-caixa.js',
+    '/js/totem-loading.js',
     '/js/totem-receipt.js',
     '/js/totem-success.js',
     '/js/totem-viewport.js',
@@ -67,6 +68,7 @@ const APP_SHELL = [
     '/js/totem.js',
     '/js/totem-payment.js',
     '/js/totem-caixa.js',
+    '/js/totem-loading.js',
     '/js/totem-receipt.js',
     '/js/totem-success.js',
     '/js/totem-viewport.js',

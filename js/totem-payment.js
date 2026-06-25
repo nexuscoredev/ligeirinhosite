@@ -15,6 +15,8 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
+    const loading = window.LigeirinhoTotemLoading;
+
     const showError = (msg) => {
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error totem-pay-card">
 <h1 class="lig-payment-title">Não foi possível continuar</h1>
@@ -34,33 +36,32 @@
 <h2 class="lig-payment-summary__title">Resumo do pedido</h2>
 <ul class="lig-payment-summary__list">${itemsHtml}</ul>
 <p class="lig-payment-summary__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></p>
-<p class="lig-payment-summary__meta">Retirada no balcão · pagamento no caixa (PDV)</p>
 </div>`;
     };
 
     const renderMethodPicker = (order) => {
         root.innerHTML = `<div class="lig-payment-card totem-pay-card">
 <h1 class="lig-payment-title">Formas de pagamento</h1>
-<p class="lig-payment-lead">Selecione como deseja pagar. Após confirmar, você será direcionado ao caixa para finalizar no PDV.</p>
+<p class="lig-payment-lead">Selecione a forma de pagamento</p>
 ${renderSummary(order)}
 <h2 class="totem-pay-methods__title">Escolha uma forma</h2>
 <div class="totem-pay-methods" role="group" aria-label="Formas de pagamento">
 <button type="button" class="totem-pay-method" data-method="pix" aria-label="Pix">
 <img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix totem-pay-method__brand" width="72" height="26" alt="">
-<span class="totem-pay-method__hint">No caixa / PDV</span>
+<span class="totem-pay-method__label">Pix</span>
 </button>
-<button type="button" class="totem-pay-method" data-method="cartao">
+<button type="button" class="totem-pay-method" data-method="cartao" aria-label="Cartão">
 <span class="material-symbols-outlined" aria-hidden="true">credit_card</span>
 <span class="totem-pay-method__label">Cartão</span>
-<span class="totem-pay-method__hint">Débito ou crédito no PDV</span>
 </button>
-<button type="button" class="totem-pay-method" data-method="dinheiro">
+<button type="button" class="totem-pay-method" data-method="dinheiro" aria-label="Dinheiro">
 <span class="material-symbols-outlined" aria-hidden="true">payments</span>
 <span class="totem-pay-method__label">Dinheiro</span>
-<span class="totem-pay-method__hint">Pagamento no balcão</span>
 </button>
 </div>
+<div class="totem-pay-actions">
 <a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-cancel>Cancelar</a>
+</div>
 </div>`;
 
         root.querySelectorAll('[data-method]').forEach((btn) => {
@@ -72,7 +73,7 @@ ${renderSummary(order)}
         if (btn) {
             btn.disabled = true;
         }
-        root.innerHTML = `<div class="lig-payment-card totem-pay-card"><p class="lig-payment-lead">Registrando sua escolha…</p></div>`;
+        loading?.mountPreset?.(root, 'paymentConfirm');
         try {
             const res = await fetch('/api/orders/select-payment', {
                 method: 'POST',
@@ -88,6 +89,8 @@ ${renderSummary(order)}
     };
 
     const init = async () => {
+        loading?.mountPreset?.(root, 'payment');
+
         if (!orderId) {
             showError('Pedido não informado.');
             return;

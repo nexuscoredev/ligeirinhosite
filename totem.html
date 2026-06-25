@@ -92,15 +92,34 @@
 </section>
 </main>
 
+<div id="totem-float-cart" class="totem-float-cart" aria-hidden="true">
+<button type="button" class="totem-float-cart__btn" id="totem-float-cart-btn" aria-label="Ver carrinho">
+<span class="totem-float-cart__action">
+<span class="totem-float-cart__icon" aria-hidden="true">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="totem-float-cart__badge" id="totem-float-cart-count">0</span>
+</span>
+<span class="totem-float-cart__copy">
+<span class="totem-float-cart__title">Ver carrinho</span>
+<span class="totem-float-cart__meta" id="totem-float-cart-meta">0 itens</span>
+</span>
+</span>
+<span class="totem-float-cart__total" id="totem-float-cart-total">R$ 0,00</span>
+</button>
+</div>
+
 <footer class="totem-footer" id="totem-footer-tap">Ligeirinho Totem · Pagamento seguro · Retirada no balcão</footer>
 </div>
 
 <div id="totem-cart-panel" class="totem-cart-panel" aria-hidden="true">
 <div class="totem-cart-sheet" role="dialog" aria-labelledby="totem-cart-title">
 <div class="totem-cart-sheet__handle" aria-hidden="true"></div>
-<div class="flex justify-between items-center">
+<div class="totem-cart-sheet__head">
+<div class="totem-cart-sheet__titles">
 <h2 id="totem-cart-title" class="text-xl font-bold">Seu pedido</h2>
-<button type="button" class="totem-btn totem-btn--ghost" id="totem-cart-close" aria-label="Fechar">
+<p id="totem-cart-count" class="totem-cart-sheet__count">Nenhum item</p>
+</div>
+<button type="button" class="totem-btn totem-btn--ghost totem-cart-sheet__close" id="totem-cart-close" aria-label="Fechar">
 <span class="material-symbols-outlined">close</span>
 </button>
 </div>
@@ -119,6 +138,7 @@
 
 <div id="totem-cart-toast" class="totem-cart-toast" hidden role="status" aria-live="polite" aria-atomic="true">
 <div class="totem-cart-toast__inner">
+<img id="totem-cart-toast-thumb" class="totem-cart-toast__thumb" alt="" hidden>
 <span class="material-symbols-outlined totem-cart-toast__icon" aria-hidden="true">check_circle</span>
 <div class="totem-cart-toast__text">
 <p class="totem-cart-toast__title">Adicionado ao carrinho</p>

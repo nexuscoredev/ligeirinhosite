@@ -15,10 +15,16 @@
     const homeBtn = document.getElementById('totem-home-btn');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
+    const floatCart = document.getElementById('totem-float-cart');
+    const floatCartBtn = document.getElementById('totem-float-cart-btn');
+    const floatCartCount = document.getElementById('totem-float-cart-count');
+    const floatCartMeta = document.getElementById('totem-float-cart-meta');
+    const floatCartTotal = document.getElementById('totem-float-cart-total');
     const cartPanel = document.getElementById('totem-cart-panel');
     const totemHeader = document.querySelector('.totem-header');
     const cartList = document.getElementById('totem-cart-list');
     const cartTotalEl = document.getElementById('totem-cart-total');
+    const cartCountEl = document.getElementById('totem-cart-count');
     const checkoutBtn = document.getElementById('totem-checkout-btn');
     const categoriesEl = document.getElementById('totem-categories');
     const productsGrid = document.getElementById('totem-products-grid');
@@ -77,12 +83,22 @@
         }, 220);
     };
 
-    const showCartAddedToast = (productName) => {
+    const showCartAddedToast = (productName, imageUrl) => {
         const toast = document.getElementById('totem-cart-toast');
         const nameEl = document.getElementById('totem-cart-toast-name');
+        const thumbEl = document.getElementById('totem-cart-toast-thumb');
         if (!toast) return;
 
         if (nameEl) nameEl.textContent = shortProductName(productName);
+        if (thumbEl) {
+            if (imageUrl) {
+                thumbEl.src = imageUrl;
+                thumbEl.hidden = false;
+            } else {
+                thumbEl.removeAttribute('src');
+                thumbEl.hidden = true;
+            }
+        }
         toast.hidden = false;
         window.requestAnimationFrame(() => {
             toast.classList.add('totem-cart-toast--visible');
@@ -91,7 +107,7 @@
         cartToastTimer = window.setTimeout(hideCartToast, 2800);
 
         if (cartBadge) pulseClass(cartBadge, 'totem-btn__badge--pop');
-        if (cartBtn) pulseClass(cartBtn, 'totem-product--pulse');
+        if (floatCartBtn) pulseClass(floatCartBtn, 'totem-float-cart__btn--pop');
     };
 
     const activeTierFor = (group) => {
@@ -118,45 +134,42 @@
         return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Embalagem">${buttons}</div></div>`;
     };
 
-    const priceSubtitleHtml = (variant) => {
-        if (!variant) return '';
-        const meta = pricing.pricePackMeta(variant);
-        const parts = [meta.unitSuffix];
-        if (meta.detail) parts.push(meta.detail);
-        if (meta.packagePrice != null) parts.push(`total ${formatPrice(meta.packagePrice)}`);
-        return parts.join(' · ');
-    };
-
     const priceBlockHtml = (variant) => {
         if (!variant) return '';
         const meta = pricing.pricePackMeta(variant);
-        const displayPrice = meta.unitPrice ?? variant.price;
-        const subtitle = priceSubtitleHtml(variant);
-        return `<div class="ze-price-block totem-product__price-block" data-price-display>
-<span class="totem-product__price ze-product-card__price">${formatPrice(displayPrice)}</span>
-${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
+        const packPrice = meta.packagePrice ?? variant.price;
+        const units = Math.max(1, Number(variant.packSize) || 1);
+        const showUnitBreakdown = units > 1 && meta.unitPrice != null;
+        const packLabel =
+            meta.tierLabel ||
+            (variant.tier === 'pallet' ? 'Pallet' : variant.tier === 'caixa' ? 'Caixa' : 'Unidade');
+
+        const detailHtml =
+            units > 1 && meta.detail
+                ? `<p class="totem-price-card__detail">${esc(meta.detail)}</p>`
+                : '';
+        const unitHtml = showUnitBreakdown
+            ? `<p class="totem-price-card__unit">${formatPrice(meta.unitPrice)}<span> / un</span></p>`
+            : '';
+
+        return `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+<div class="totem-price-card__main">
+<span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
+<span class="totem-price-card__pack">${esc(packLabel)}</span>
+</div>
+${detailHtml}
+${unitHtml}
 </div>`;
     };
 
     const updatePriceBlock = (card, variant) => {
         if (!variant) return;
-        const meta = pricing.pricePackMeta(variant);
-        const displayPrice = meta.unitPrice ?? variant.price;
-        const subtitle = priceSubtitleHtml(variant);
         const priceBlock = card.querySelector('[data-price-display]');
         if (!priceBlock) return;
-        const priceEl = priceBlock.querySelector('.totem-product__price');
-        const unitEl = priceBlock.querySelector('.ze-price-block__unit');
-        if (priceEl) priceEl.textContent = formatPrice(displayPrice);
-        if (unitEl) {
-            unitEl.textContent = subtitle;
-            unitEl.hidden = !subtitle;
-        } else if (subtitle) {
-            priceBlock.insertAdjacentHTML(
-                'beforeend',
-                `<span class="ze-price-block__unit">${esc(subtitle)}</span>`
-            );
-        }
+        const next = document.createElement('div');
+        next.innerHTML = priceBlockHtml(variant);
+        const replacement = next.firstElementChild;
+        if (replacement) priceBlock.replaceWith(replacement);
     };
 
     const refreshTotemProductCard = (card) => {
@@ -461,9 +474,36 @@ ${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
         });
         const inCatalog = name === 'catalog';
         homeBtn.hidden = !inCatalog;
-        cartBtn.hidden = !inCatalog;
+        if (cartBtn) cartBtn.hidden = true;
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
         if (!inCatalog) idleHint?.classList.remove('totem-idle-hint--visible');
+        updateFloatCart(cartApi.loadCart());
+    };
+
+    const isCartOpen = () => cartPanel?.classList.contains('totem-cart-panel--open');
+
+    const isInCatalog = () => views.catalog?.classList.contains('totem-view--active');
+
+    const updateFloatCart = (cart) => {
+        const cartData = cart || cartApi.loadCart();
+        const count = cartApi.cartItemCount(cartData);
+        const total = formatPrice(cartApi.cartTotalValue(cartData));
+
+        if (cartBadge) cartBadge.textContent = String(count);
+        if (floatCartCount) floatCartCount.textContent = count > 99 ? '99+' : String(count);
+        if (floatCartTotal) floatCartTotal.textContent = total;
+        if (floatCartMeta) floatCartMeta.textContent = count === 1 ? '1 item' : `${count} itens`;
+        if (floatCartBtn) {
+            floatCartBtn.setAttribute(
+                'aria-label',
+                count === 1 ? `Ver carrinho, 1 item, total ${total}` : `Ver carrinho, ${count} itens, total ${total}`
+            );
+        }
+
+        const visible = count > 0 && isInCatalog() && !isCartOpen();
+        floatCart?.classList.toggle('totem-float-cart--visible', visible);
+        floatCart?.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        document.documentElement.classList.toggle('totem-has-float-cart', count > 0 && isInCatalog());
     };
 
     const resetCart = () => {
@@ -596,7 +636,9 @@ ${subtitle ? `<span class="ze-price-block__unit">${esc(subtitle)}</span>` : ''}
                 const tiersHtml = group ? priceTiersHtml(group, tier) : '';
                 const priceHtml = variant
                     ? priceBlockHtml(variant)
-                    : `<div class="ze-price-block totem-product__price-block" data-price-display><span class="totem-product__price ze-product-card__price">${formatPrice(product.price)}</span></div>`;
+                    : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+<span class="totem-product__price totem-price-card__value">${formatPrice(product.price)}</span>
+</div>`;
                 return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}">
 <div class="totem-product__media">
 ${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
@@ -649,6 +691,30 @@ ${tiersHtml}
         return null;
     };
 
+    const cartLineImage = (item) => {
+        const display = findDisplayItem(item.cartKey || item.id, null);
+        if (!display) return '';
+        const group = display.group;
+        const product = display.product;
+        const tier = item.packType || (group ? activeTierFor(group) : 'caixa');
+        const imageRef = group ? pricing.getTierImage(group, tier) : product.image;
+        return catalog.productImageUrl(imageRef) || '';
+    };
+
+    const cartLineThumbHtml = (item) => {
+        const img = cartLineImage(item);
+        if (img) {
+            return `<div class="totem-cart-line__thumb"><img src="${esc(img)}" alt="" loading="lazy" decoding="async"></div>`;
+        }
+        return `<div class="totem-cart-line__thumb totem-cart-line__thumb--empty" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></div>`;
+    };
+
+    const formatCartCount = (count) => {
+        if (count === 0) return 'Nenhum item';
+        if (count === 1) return '1 item';
+        return `${count} itens`;
+    };
+
     const addItem = (cartKey, itemKey) => {
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
@@ -672,14 +738,13 @@ ${tiersHtml}
         renderCart();
         renderProducts();
         pulseProduct(key);
-        showCartAddedToast(name);
+        showCartAddedToast(name, cartLineImage(cart[key]));
         bumpIdle();
     };
 
     const changeQty = (cartKey, delta) => {
         const cart = cartApi.loadCart();
         if (!cart[cartKey]) return;
-        const itemName = cart[cartKey].name;
         cart[cartKey].qty += delta;
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
         cartApi.saveCart(cart);
@@ -687,7 +752,8 @@ ${tiersHtml}
         renderProducts();
         if (delta > 0) {
             pulseProduct(cartKey);
-            showCartAddedToast(itemName);
+            const line = cart[cartKey];
+            showCartAddedToast(line?.name, line ? cartLineImage(line) : '');
         }
         bumpIdle();
     };
@@ -698,6 +764,7 @@ ${tiersHtml}
         const count = cartApi.cartItemCount(cart);
         const total = cartApi.cartTotalValue(cart);
         if (cartBadge) cartBadge.textContent = String(count);
+        if (cartCountEl) cartCountEl.textContent = formatCartCount(count);
         if (count !== lastCartCount) {
             if (count > 0) pulseClass(cartBadge, 'totem-btn__badge--pop');
             lastCartCount = count;
@@ -710,19 +777,41 @@ ${tiersHtml}
         if (!cartList) return;
         cartList.innerHTML = items.length
             ? items
-                  .map(
-                      (item, index) => `<div class="totem-cart-line" style="--totem-line-i:${index}">
-<div><div class="totem-cart-line__name">${esc(item.name)}</div><div class="totem-cart-line__meta">${item.qty}x ${formatPrice(item.price)}</div></div>
-<div class="flex gap-2"><button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(item.cartKey || item.id)}">−</button><button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(item.cartKey || item.id)}">+</button></div>
-</div>`
-                  )
+                  .map((item, index) => {
+                      const key = item.cartKey || item.id;
+                      const pack = cartApi.packTypeLabel(item.packType);
+                      const lineTotal = cartApi.lineSubtotal(item);
+                      return `<article class="totem-cart-line" style="--totem-line-i:${index}">
+${cartLineThumbHtml(item)}
+<div class="totem-cart-line__body">
+<div class="totem-cart-line__name">${esc(item.name)}</div>
+<div class="totem-cart-line__meta">
+<span class="totem-cart-line__pack">${esc(pack)}</span>
+<span class="totem-cart-line__sep" aria-hidden="true">·</span>
+<span>${formatPrice(item.price)}</span>
+</div>
+<div class="totem-cart-line__subtotal">${formatPrice(lineTotal)}</div>
+</div>
+<div class="totem-cart-line__qty" role="group" aria-label="Quantidade">
+<button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(key)}" aria-label="Diminuir">−</button>
+<span class="totem-cart-line__qty-val">${item.qty}</span>
+<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(key)}" aria-label="Aumentar">+</button>
+</div>
+</article>`;
+                  })
                   .join('')
-            : '<p class="totem-muted">Seu carrinho está vazio.</p>';
+            : `<div class="totem-cart-empty">
+<span class="material-symbols-outlined totem-cart-empty__icon" aria-hidden="true">shopping_cart</span>
+<p class="totem-cart-empty__title">Seu carrinho está vazio</p>
+<p class="totem-cart-empty__lead">Toque em <strong>+</strong> nos produtos para começar.</p>
+</div>`;
+        updateFloatCart(cart);
     };
 
     const openCart = () => {
         cartPanel?.classList.add('totem-cart-panel--open');
         cartPanel?.setAttribute('aria-hidden', 'false');
+        updateFloatCart(cartApi.loadCart());
         renderCart();
         bumpIdle();
     };
@@ -733,6 +822,7 @@ ${tiersHtml}
         window.setTimeout(() => {
             cartPanel.classList.remove('totem-cart-panel--open', 'totem-cart-panel--closing');
             cartPanel.setAttribute('aria-hidden', 'true');
+            updateFloatCart(cartApi.loadCart());
         }, 300);
     };
 
@@ -740,7 +830,7 @@ ${tiersHtml}
         const cart = cartApi.loadCart();
         if (!cartApi.cartItemCount(cart)) return;
         checkoutBtn.disabled = true;
-        checkoutBtn.textContent = 'Criando pedido…';
+        checkoutBtn.textContent = 'Enviando pedido…';
 
         const s = session();
         const items = cartApi.cartEntries(cart).map((item) => ({
@@ -820,6 +910,7 @@ ${tiersHtml}
 
         homeBtn?.addEventListener('click', resetSession);
         cartBtn?.addEventListener('click', openCart);
+        floatCartBtn?.addEventListener('click', openCart);
         document.getElementById('totem-cart-toast-open')?.addEventListener('click', () => {
             hideCartToast();
             openCart();

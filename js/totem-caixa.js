@@ -181,6 +181,8 @@ Nova tela em <strong id="totem-caixa-countdown">${Math.round(SCREEN_TIMEOUT_MS /
     const init = async () => {
         if (routing && !routing.guardPageAccess()) return;
 
+        window.LigeirinhoTotemLoading?.mountPreset?.(root, 'caixa');
+
         if (!orderId) {
             showError('Pedido não informado.');
             return;
