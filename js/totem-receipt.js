@@ -1,8 +1,9 @@
 (function () {
-    const AUTO_PRINT_DELAY_MS = 450;
+    const AUTO_PRINT_DELAY_MS = 0;
 
     let cachedConfig = null;
     let serialPort = null;
+    let warmPrintFrame = null;
 
     const BRIDGE_STORAGE_KEY = 'lig_totem_print_bridge_url';
     const PRINT_MARGIN_LEFT_KEY = 'lig_totem_print_margin_left_mm';
@@ -245,6 +246,95 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .totem-receipt__row--total strong{font-size:14px;font-weight:900;max-width:55%}
 .totem-receipt__foot{margin:2mm 0 0;font-size:10px;line-height:1.35;text-align:center;font-weight:700}
 .totem-receipt__foot--muted{margin-top:2mm;font-weight:900;font-size:10px}`;
+    };
+
+    const printOptsKey = (opts = {}) =>
+        `${Number(opts.printMarginLeftMm) || 4}:${Number(opts.printPaperWidthMm) || 76}`;
+
+    const ensureWarmPrintFrame = (opts = {}) => {
+        const key = printOptsKey(opts);
+        if (warmPrintFrame?.isConnected && warmPrintFrame._optsKey === key) {
+            return warmPrintFrame;
+        }
+        if (warmPrintFrame?.isConnected) {
+            warmPrintFrame.remove();
+            warmPrintFrame = null;
+        }
+        const iframe = document.createElement('iframe');
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.setAttribute('title', 'Comprovante');
+        iframe.style.cssText =
+            'position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;visibility:hidden;pointer-events:none';
+        document.body.appendChild(iframe);
+        const css = printCss(opts);
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (doc) {
+            doc.open();
+            doc.write(
+                `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title><style>${css}</style></head><body></body></html>`
+            );
+            doc.close();
+        }
+        iframe._optsKey = key;
+        warmPrintFrame = iframe;
+        return iframe;
+    };
+
+    const prewarmPrint = async () => {
+        if (!document.body) return;
+        const config = await loadReceiptConfig();
+        ensureWarmPrintFrame({
+            printMarginLeftMm: config.printMarginLeftMm,
+            printPaperWidthMm: config.printPaperWidthMm,
+        });
+    };
+
+    const printInDocument = (doc, win, order, opts = {}) =>
+        new Promise((resolve) => {
+            if (!doc || !win) {
+                resolve(false);
+                return;
+            }
+            doc.body.innerHTML = buildReceiptHtml(order, { ...opts, forPrint: true });
+
+            let settled = false;
+            const finish = (ok) => {
+                if (settled) return;
+                settled = true;
+                resolve(ok);
+            };
+
+            win.addEventListener('afterprint', () => finish(true), { once: true });
+            try {
+                win.focus();
+                win.print();
+                window.setTimeout(() => finish(true), 500);
+            } catch {
+                finish(false);
+            }
+        });
+
+    const printViaWarmIframe = (order, opts = {}) => {
+        const iframe = ensureWarmPrintFrame(opts);
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        const win = iframe.contentWindow;
+        return printInDocument(doc, win, order, opts);
+    };
+
+    const printViaPrintWindow = (order, opts = {}, targetWin) => {
+        if (!targetWin || targetWin.closed) return Promise.resolve(false);
+        const css = printCss(opts);
+        const html = buildReceiptHtml(order, { ...opts, forPrint: true });
+        try {
+            targetWin.document.open();
+            targetWin.document.write(
+                `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Comprovante</title><style>${css}</style></head><body>${html}</body></html>`
+            );
+            targetWin.document.close();
+        } catch {
+            return Promise.resolve(false);
+        }
+        return printInDocument(targetWin.document, targetWin, order, opts);
     };
 
     const printViaBridge = async (order, opts = {}) => {
@@ -534,8 +624,17 @@ body{display:flex;justify-content:center;align-items:flex-start}
             const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
 
             const printBrowser = async () => {
-                const kioskOk = await printViaKiosk(order, printOpts);
-                if (kioskOk) return true;
+                if (opts.printWindow && !opts.printWindow.closed) {
+                    const popupOk = await printViaPrintWindow(order, printOpts, opts.printWindow);
+                    try {
+                        opts.printWindow.close();
+                    } catch {
+                        /* ignore */
+                    }
+                    if (popupOk) return true;
+                }
+                const iframeOk = await printViaWarmIframe(order, printOpts);
+                if (iframeOk) return true;
                 return printViaHiddenIframe(order, printOpts);
             };
 
@@ -573,14 +672,15 @@ body{display:flex;justify-content:center;align-items:flex-start}
             return printBrowser();
         };
 
+        const execute = async () => {
+            const ok = await runPrint();
+            if (ok) sessionStorage.setItem(storageKey, String(Date.now()));
+            return ok;
+        };
+
+        if (delayMs <= 0) return execute();
         return new Promise((resolve) => {
-            window.requestAnimationFrame(() => {
-                window.setTimeout(async () => {
-                    const ok = await runPrint();
-                    if (ok && !force) sessionStorage.setItem(storageKey, String(Date.now()));
-                    resolve(ok);
-                }, delayMs);
-            });
+            window.setTimeout(() => execute().then(resolve), delayMs);
         });
     };
 
@@ -609,6 +709,9 @@ body{display:flex;justify-content:center;align-items:flex-start}
         printOrderReceipt,
         printViaBridge,
         printViaKiosk,
+        printViaWarmIframe,
+        printViaPrintWindow,
+        prewarmPrint,
         printViaHiddenIframe,
         printViaEscPos,
         pairPrinter,
@@ -638,4 +741,10 @@ body{display:flex;justify-content:center;align-items:flex-start}
         },
         getPrintMarginLeftMm: () => resolvePrintMarginLeftMm(),
     };
+
+    if (document.body) {
+        void prewarmPrint();
+    } else {
+        document.addEventListener('DOMContentLoaded', () => void prewarmPrint(), { once: true });
+    }
 })();

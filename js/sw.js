@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v122';
+const CACHE_NAME = 'ligeirinho-app-v123';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',

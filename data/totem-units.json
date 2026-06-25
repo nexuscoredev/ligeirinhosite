@@ -4,7 +4,7 @@
     "successTimeoutMs": 18000,
     "adminPin": "123456",
     "autoPrintReceipt": true,
-    "autoPrintDelayMs": 450,
+    "autoPrintDelayMs": 0,
     "printMode": "kiosk",
     "printFallbackBrowser": true,
     "printMarginLeftMm": 4,
