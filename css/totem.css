@@ -64,6 +64,7 @@ body.totem-kiosk {
     max-height: 100svh;
     overflow: hidden;
     --totem-welcome-scale: min(1, calc((100svh - 7.5rem) / 520));
+    --totem-welcome-shift: clamp(-1.75rem, -4dvh, -1rem);
     --totem-sidebar-w: clamp(10.5rem, 14vw, 13.5rem);
     background: var(--lig-bg);
     color: var(--lig-text);
@@ -76,6 +77,7 @@ body.totem-kiosk {
     flex-direction: column;
     justify-content: center;
     min-height: 0;
+    padding-bottom: clamp(2.25rem, 8dvh, 4rem);
 }
 
 .totem-app:has(#totem-view-welcome.totem-view--active) .totem-welcome.totem-view--active {
@@ -357,7 +359,7 @@ body.totem-kiosk {
     align-items: center;
     justify-content: flex-start;
     text-align: center;
-    padding: clamp(0.75rem, 4dvh, 1.75rem) clamp(0.75rem, 2.5vw, 1.25rem)
+    padding: clamp(0.5rem, 2.5dvh, 1.25rem) clamp(0.75rem, 2.5vw, 1.25rem)
         clamp(0.35rem, 0.75dvh, 0.5rem);
     overflow-x: hidden;
     overflow-y: auto;
@@ -374,8 +376,8 @@ body.totem-kiosk {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: clamp(0.45rem, 1.25dvh, 0.75rem);
-    transform: scale(var(--totem-welcome-scale));
+    gap: clamp(0.35rem, 1dvh, 0.6rem);
+    transform: scale(var(--totem-welcome-scale)) translateY(var(--totem-welcome-shift));
     transform-origin: center top;
     padding: 0;
     margin: 0 auto;
@@ -2697,7 +2699,7 @@ html.totem--tablet.totem--landscape .totem-welcome__content {
     align-items: center;
     justify-content: center;
     width: min(100%, 32rem);
-    transform: scale(var(--totem-welcome-scale));
+    transform: scale(var(--totem-welcome-scale)) translateY(var(--totem-welcome-shift));
     transform-origin: center top;
 }
 
@@ -2949,7 +2951,7 @@ html.totem--kiosk.totem--portrait .totem-grid {
 
 html.totem--tablet.totem--portrait .totem-welcome__content {
     width: min(100%, 36rem);
-    transform: none;
+    transform: translateY(var(--totem-welcome-shift));
 }
 
 html.totem--tablet.totem--portrait .totem-product {
