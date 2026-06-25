@@ -9,12 +9,24 @@ param(
     [int]$PrinterPort = $(if ($env:TOTEM_PRINTER_PORT) { [int]$env:TOTEM_PRINTER_PORT } else { 9100 }),
     [int]$BridgePort = $(if ($env:TOTEM_BRIDGE_PORT) { [int]$env:TOTEM_BRIDGE_PORT } else { 8787 }),
     [string]$BridgeHost = $(if ($env:TOTEM_BRIDGE_HOST) { $env:TOTEM_BRIDGE_HOST } else { '0.0.0.0' }),
-    [switch]$ListPrinters
+    [switch]$ListPrinters,
+    [switch]$LocalOnly
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $repoRoot
+
+$node = Get-Command node -ErrorAction SilentlyContinue
+if (-not $node) {
+    Write-Host "[totem] Node.js nao encontrado no PATH. Instale em https://nodejs.org" -ForegroundColor Red
+    Read-Host "Enter para sair"
+    exit 1
+}
+
+if ($LocalOnly) {
+    $BridgeHost = '127.0.0.1'
+}
 
 if ($ListPrinters) {
     Write-Host "`nImpressoras instaladas no Windows:`n" -ForegroundColor Cyan
@@ -65,4 +77,4 @@ if ($lanIp) {
 }
 Write-Host "[totem] Teste: http://127.0.0.1:${BridgePort}/health`n" -ForegroundColor DarkGray
 
-npm run totem:print-bridge
+& node (Join-Path $repoRoot 'scripts\totem-print-bridge.mjs')
