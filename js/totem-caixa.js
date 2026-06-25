@@ -51,7 +51,7 @@
             await receipt?.printOrderReceipt?.(currentOrder, {
                 force: true,
                 totemLabel,
-                printMode: 'bridge',
+                printMode: 'kiosk',
             });
             showPrintNote();
         });

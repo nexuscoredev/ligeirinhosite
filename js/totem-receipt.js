@@ -287,6 +287,54 @@ body{display:flex;justify-content:center;align-items:flex-start}
         }
     };
 
+    const RECEIPT_PRINT_CLASS = 'totem-receipt-printing';
+
+    const ensurePrintRoot = () => {
+        let el = document.getElementById('totem-receipt-print');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'totem-receipt-print';
+            el.className = 'totem-receipt-print';
+            el.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(el);
+        }
+        return el;
+    };
+
+    /** Impressão na janela principal — funciona com Chrome --kiosk-printing (sem ponte local). */
+    const printViaKiosk = (order, opts = {}) =>
+        new Promise((resolve) => {
+            const root = ensurePrintRoot();
+            root.innerHTML = buildReceiptHtml(order, { ...opts, forPrint: true });
+
+            const cleanup = () => {
+                document.body.classList.remove(RECEIPT_PRINT_CLASS);
+            };
+
+            const finish = (ok) => {
+                if (finish.done) return;
+                finish.done = true;
+                window.setTimeout(() => {
+                    cleanup();
+                    resolve(ok);
+                }, 300);
+            };
+            finish.done = false;
+
+            window.addEventListener('afterprint', () => finish(true), { once: true });
+
+            window.requestAnimationFrame(() => {
+                document.body.classList.add(RECEIPT_PRINT_CLASS);
+                try {
+                    window.focus();
+                    window.print();
+                    window.setTimeout(() => finish(true), 1200);
+                } catch {
+                    finish(false);
+                }
+            });
+        });
+
     const printViaHiddenIframe = (order, opts = {}) =>
         new Promise((resolve) => {
             const html = buildReceiptHtml(order, { ...opts, forPrint: true });
@@ -482,33 +530,37 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 printMarginLeftMm: opts.printMarginLeftMm ?? config.printMarginLeftMm,
                 printPaperWidthMm: opts.printPaperWidthMm ?? config.printPaperWidthMm,
             };
-            const allowBrowser = Boolean(
-                opts.printFallbackBrowser === true ||
-                    (opts.printFallbackBrowser !== false && config.printFallbackBrowser)
-            );
 
             const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
 
-            const tryBridge = async (attempts = 4) => {
+            const printBrowser = async () => {
+                const kioskOk = await printViaKiosk(order, printOpts);
+                if (kioskOk) return true;
+                return printViaHiddenIframe(order, printOpts);
+            };
+
+            const tryBridge = async (attempts = 2) => {
                 if (!printOpts.printBridgeUrl) return false;
                 for (let i = 0; i < attempts; i += 1) {
                     if (await bridgeReachable(printOpts.printBridgeUrl)) {
                         const ok = await printViaBridge(order, printOpts);
                         if (ok) return true;
                     }
-                    if (i < attempts - 1) await sleep(500);
+                    if (i < attempts - 1) await sleep(400);
                 }
                 return false;
             };
 
-            if (mode === 'browser') {
-                return printViaHiddenIframe(order, printOpts);
+            if (mode === 'browser' || mode === 'kiosk') {
+                return printBrowser();
             }
             if (mode === 'escpos') {
                 return printViaEscPos(order, printOpts);
             }
             if (mode === 'bridge') {
-                return tryBridge();
+                const bridgeOk = await tryBridge();
+                if (bridgeOk) return true;
+                return printBrowser();
             }
 
             if (mode === 'auto' && isMobileTotem()) {
@@ -517,21 +569,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return false;
             }
 
-            // PC totem: somente ponte silenciosa (sem window.print / dialogo do Chrome)
-            const bridgeOk = await tryBridge();
-            if (bridgeOk) return true;
-
-            const escOk = await printViaEscPos(order, printOpts);
-            if (escOk) return true;
-
-            if (allowBrowser) {
-                return printViaHiddenIframe(order, printOpts);
-            }
-
-            console.warn(
-                'totem-receipt: ponte indisponivel — inicie totem-kiosk.bat ou npm run totem:print no PC da loja'
-            );
-            return false;
+            // PC totem: Chrome kiosk (sem Node/ponte) → serial USB opcional
+            return printBrowser();
         };
 
         return new Promise((resolve) => {
@@ -569,6 +608,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
         loadReceiptConfig,
         printOrderReceipt,
         printViaBridge,
+        printViaKiosk,
         printViaHiddenIframe,
         printViaEscPos,
         pairPrinter,
