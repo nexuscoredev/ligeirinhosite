@@ -289,6 +289,16 @@ body{display:flex;justify-content:center;align-items:flex-start}
         });
     };
 
+    const PRINTING_CLASS = 'totem-is-printing';
+
+    const beginPrintScreen = () => {
+        document.body.classList.add(PRINTING_CLASS);
+    };
+
+    const endPrintScreen = () => {
+        document.body.classList.remove(PRINTING_CLASS);
+    };
+
     const printInDocument = (doc, win, order, opts = {}) =>
         new Promise((resolve) => {
             if (!doc || !win) {
@@ -301,9 +311,11 @@ body{display:flex;justify-content:center;align-items:flex-start}
             const finish = (ok) => {
                 if (settled) return;
                 settled = true;
+                endPrintScreen();
                 resolve(ok);
             };
 
+            beginPrintScreen();
             win.addEventListener('afterprint', () => finish(true), { once: true });
             try {
                 win.focus();
@@ -623,20 +635,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
             const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
 
-            const printBrowser = async () => {
-                if (opts.printWindow && !opts.printWindow.closed) {
-                    const popupOk = await printViaPrintWindow(order, printOpts, opts.printWindow);
-                    try {
-                        opts.printWindow.close();
-                    } catch {
-                        /* ignore */
-                    }
-                    if (popupOk) return true;
-                }
-                const iframeOk = await printViaWarmIframe(order, printOpts);
-                if (iframeOk) return true;
-                return printViaHiddenIframe(order, printOpts);
-            };
+            const printBrowser = async () => printViaWarmIframe(order, printOpts);
 
             const tryBridge = async (attempts = 2) => {
                 if (!printOpts.printBridgeUrl) return false;
@@ -673,6 +672,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
         };
 
         const execute = async () => {
+            if (!force && sessionStorage.getItem(storageKey)) return false;
             const ok = await runPrint();
             if (ok) sessionStorage.setItem(storageKey, String(Date.now()));
             return ok;

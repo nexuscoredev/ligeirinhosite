@@ -65,28 +65,11 @@ ${renderSummary(order)}
 </div>`;
 
         root.querySelectorAll('[data-method]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const printWin = openPrintWindow();
-                selectMethod(order.id, btn.dataset.method, btn, printWin);
-            });
+            btn.addEventListener('click', () => selectMethod(order.id, btn.dataset.method, btn));
         });
     };
 
-    let cachedOrder = null;
-
-    const openPrintWindow = () => {
-        try {
-            return window.open(
-                'about:blank',
-                'lig_totem_print',
-                'width=1,height=1,left=-9999,top=-9999,toolbar=no,menubar=no,scrollbars=no'
-            );
-        } catch {
-            return null;
-        }
-    };
-
-    const selectMethod = async (id, method, btn, printWin) => {
+    const selectMethod = async (id, method, btn) => {
         if (btn) {
             btn.disabled = true;
         }
@@ -99,27 +82,8 @@ ${renderSummary(order)}
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Não foi possível registrar o pagamento');
-
-            const orderForPrint = {
-                ...(cachedOrder || {}),
-                id,
-                paymentMethod: method,
-                paymentChosen: true,
-                ...(data.order || {}),
-            };
-            void window.LigeirinhoTotemReceipt?.printOrderReceipt?.(orderForPrint, {
-                auto: true,
-                delayMs: 0,
-                printWindow: printWin || undefined,
-            });
-
             window.location.replace(caixaUrl(id));
         } catch (err) {
-            try {
-                printWin?.close();
-            } catch {
-                /* ignore */
-            }
             showError(err.message || 'Erro ao continuar');
         }
     };
@@ -142,8 +106,6 @@ ${renderSummary(order)}
             }
 
             const order = orderData.order;
-            cachedOrder = order;
-            void window.LigeirinhoTotemReceipt?.prewarmPrint?.();
 
             if (order.status === 'paid') {
                 window.location.replace(`totem-sucesso.html?order=${encodeURIComponent(order.id)}`);

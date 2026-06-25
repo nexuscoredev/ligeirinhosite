@@ -9,6 +9,34 @@
     pointer-events: none;
     z-index: -1;
     overflow: hidden;
+    visibility: hidden;
+}
+
+/* Totem visível por cima enquanto o comprovante imprime no iframe oculto */
+body.totem-is-printing {
+    overflow: hidden;
+}
+
+body.totem-is-printing > main,
+body.totem-is-printing #totem-caixa-root,
+body.totem-is-printing #payment-root,
+body.totem-is-printing #totem-root,
+body.totem-is-printing .lig-payment-page {
+    position: relative;
+    z-index: 2147483646;
+    isolation: isolate;
+}
+
+body.totem-is-printing iframe[title='Comprovante'],
+body.totem-is-printing .totem-receipt-print {
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    z-index: -1 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .totem-receipt__paper {
