@@ -59,21 +59,17 @@ body.totem-kiosk {
 
 .totem-app {
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     height: 100svh;
     max-height: 100svh;
     overflow: hidden;
-    --totem-welcome-scale: min(1, calc((100svh - 11rem) / 520));
+    --totem-welcome-scale: min(1, calc((100svh - 7.5rem) / 520));
     --totem-sidebar-w: clamp(10.5rem, 14vw, 13.5rem);
     background: var(--lig-bg);
     color: var(--lig-text);
 }
 
-/* Boas-vindas: conteúdo centralizado, rodapé fixo na base da tela */
-.totem-app:has(#totem-view-welcome.totem-view--active) {
-    grid-template-rows: auto 1fr auto;
-}
-
+/* Boas-vindas: conteúdo centralizado na área útil */
 .totem-app:has(#totem-view-welcome.totem-view--active) .totem-main {
     overflow: visible;
     display: flex;
@@ -88,14 +84,6 @@ body.totem-kiosk {
     width: 100%;
     height: auto;
     flex: 0 0 auto;
-}
-
-.totem-app:has(#totem-view-welcome.totem-view--active) .totem-footer {
-    padding-top: 0.3rem;
-    padding-bottom: calc(0.3rem + env(safe-area-inset-bottom, 0px));
-    font-size: 0.5625rem;
-    letter-spacing: 0.04em;
-    border-top-color: rgba(20, 18, 15, 0.04);
 }
 
 /* ——— Header ——— */
@@ -1809,7 +1797,7 @@ html.totem--landscape .totem-cart-toast {
     position: fixed;
     left: 0.75rem;
     right: 0.75rem;
-    bottom: calc(2.35rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
     z-index: 65;
     max-width: 28rem;
     margin: 0 auto;
@@ -1938,30 +1926,17 @@ html.totem-has-float-cart .totem-products__body {
 }
 
 html.totem-has-float-cart .totem-cart-toast {
-    bottom: calc(6.25rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
 html.totem-has-float-cart .totem-idle-hint {
-    bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* ——— Footer ——— */
-.totem-footer {
-    padding: clamp(0.25rem, 0.6dvh, 0.45rem) 1rem calc(clamp(0.25rem, 0.6dvh, 0.45rem) + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid rgba(20, 18, 15, 0.06);
-    background: var(--lig-bg);
-    color: var(--lig-text-subtle);
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-align: center;
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* ——— Idle hint ——— */
 .totem-idle-hint {
     position: fixed;
-    bottom: calc(2.85rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%) translateY(12px);
     background: #14120f;
@@ -2710,17 +2685,7 @@ html.totem--tablet.totem--portrait .totem-cart-sheet__footer {
     padding-bottom: calc(1.15rem + max(0.85rem, env(safe-area-inset-bottom, 0px)));
 }
 
-html.totem--phone.totem--portrait .totem-footer {
-    font-size: 0.5625rem;
-    letter-spacing: 0.04em;
-}
-
 /* —— Phone landscape (prioriza altura) —— */
-html.totem--phone.totem--landscape .totem-footer,
-html.totem--short.totem--landscape .totem-footer {
-    display: none;
-}
-
 html.totem--phone.totem--landscape .totem-header__sub {
     display: none;
 }
@@ -3130,11 +3095,6 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     padding-top: calc(clamp(0.55rem, 1.25dvh, 0.8rem) + env(safe-area-inset-top, 0px));
     padding-left: calc(clamp(0.85rem, 2vw, 1.35rem) + env(safe-area-inset-left, 0px));
     padding-right: calc(clamp(0.85rem, 2vw, 1.35rem) + env(safe-area-inset-right, 0px));
-}
-
-.totem-footer {
-    padding-left: calc(1rem + env(safe-area-inset-left, 0px));
-    padding-right: calc(1rem + env(safe-area-inset-right, 0px));
 }
 
 @media (max-height: 720px) and (min-width: 1100px) {

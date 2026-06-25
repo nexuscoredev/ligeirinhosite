@@ -1213,7 +1213,6 @@ ${cartLineThumbHtml(item)}
             bumpIdle();
         });
 
-        document.getElementById('totem-footer-tap')?.addEventListener('click', openAdminModal);
         document.getElementById('totem-admin-cancel')?.addEventListener('click', closeAdminModal);
         document.getElementById('totem-admin-confirm')?.addEventListener('click', confirmAdminLogout);
         adminPin?.addEventListener('keydown', (e) => {
