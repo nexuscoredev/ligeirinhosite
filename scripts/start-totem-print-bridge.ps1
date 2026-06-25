@@ -24,12 +24,19 @@ if ($ListPrinters) {
 }
 
 if (-not $PrinterName -and -not $PrinterHost) {
-    Write-Host "Defina a impressora USB ou o IP de rede." -ForegroundColor Yellow
-    Write-Host "  USB:  -PrinterName `"ELGIN i9`""
-    Write-Host "  Rede: -PrinterHost `"192.168.0.50`""
-    Write-Host "  Lista: -ListPrinters`n"
-    $PrinterName = 'ELGIN i9'
-    Write-Host "Tentando padrao USB: $PrinterName`n" -ForegroundColor DarkYellow
+    $defaultPrinter = Get-CimInstance -ClassName Win32_Printer -Filter "Default='True'" -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty Name
+    if ($defaultPrinter) {
+        $PrinterName = $defaultPrinter
+        Write-Host "[totem] Impressora padrao do Windows: $PrinterName" -ForegroundColor Green
+    } else {
+        Write-Host "Defina a impressora USB ou o IP de rede." -ForegroundColor Yellow
+        Write-Host "  USB:  -PrinterName `"ELGIN i9`""
+        Write-Host "  Rede: -PrinterHost `"192.168.0.50`""
+        Write-Host "  Lista: -ListPrinters`n"
+        $PrinterName = 'ELGIN i9'
+        Write-Host "Tentando padrao USB: $PrinterName`n" -ForegroundColor DarkYellow
+    }
 }
 
 $env:TOTEM_BRIDGE_HOST = $BridgeHost

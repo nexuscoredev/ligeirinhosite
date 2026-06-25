@@ -52,7 +52,7 @@
                 escposLineChars: Number(defaults.escposLineChars) || 42,
                 printMarginLeftMm: resolvePrintMarginLeftMm(defaults),
                 printPaperWidthMm: Number(defaults.printPaperWidthMm) || 76,
-                printFallbackBrowser: defaults.printFallbackBrowser !== false,
+                printFallbackBrowser: defaults.printFallbackBrowser === true,
             };
         } catch {
             cachedConfig = {
@@ -482,14 +482,23 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 printMarginLeftMm: opts.printMarginLeftMm ?? config.printMarginLeftMm,
                 printPaperWidthMm: opts.printPaperWidthMm ?? config.printPaperWidthMm,
             };
-            const allowBrowser =
+            const allowBrowser = Boolean(
                 opts.printFallbackBrowser === true ||
-                (opts.printFallbackBrowser !== false && config.printFallbackBrowser);
+                    (opts.printFallbackBrowser !== false && config.printFallbackBrowser)
+            );
 
-            const tryBridge = async () => {
+            const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
+
+            const tryBridge = async (attempts = 4) => {
                 if (!printOpts.printBridgeUrl) return false;
-                if (!(await bridgeReachable(printOpts.printBridgeUrl))) return false;
-                return printViaBridge(order, printOpts);
+                for (let i = 0; i < attempts; i += 1) {
+                    if (await bridgeReachable(printOpts.printBridgeUrl)) {
+                        const ok = await printViaBridge(order, printOpts);
+                        if (ok) return true;
+                    }
+                    if (i < attempts - 1) await sleep(500);
+                }
+                return false;
             };
 
             if (mode === 'browser') {
@@ -508,20 +517,19 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return false;
             }
 
-            // PC totem: ponte silenciosa → Chrome kiosk (iframe) → serial USB
+            // PC totem: somente ponte silenciosa (sem window.print / dialogo do Chrome)
             const bridgeOk = await tryBridge();
             if (bridgeOk) return true;
-
-            if (allowBrowser) {
-                const browserOk = await printViaHiddenIframe(order, printOpts);
-                if (browserOk) return true;
-            }
 
             const escOk = await printViaEscPos(order, printOpts);
             if (escOk) return true;
 
+            if (allowBrowser) {
+                return printViaHiddenIframe(order, printOpts);
+            }
+
             console.warn(
-                'totem-receipt: falha ao imprimir — verifique impressora padrao ou inicie a ponte (npm run totem:print)'
+                'totem-receipt: ponte indisponivel — inicie totem-kiosk.bat ou npm run totem:print no PC da loja'
             );
             return false;
         };
