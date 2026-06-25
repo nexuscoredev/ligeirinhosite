@@ -48,28 +48,11 @@
         document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
         document.getElementById('totem-caixa-reprint')?.addEventListener('click', async () => {
             if (!currentOrder) return;
-            const printed = await receipt?.printOrderReceipt?.(currentOrder, {
+            await receipt?.printOrderReceipt?.(currentOrder, {
                 force: true,
                 totemLabel,
-                printMode: 'bridge',
+                printMode: 'auto',
             });
-            if (!printed) {
-                const fallback = await receipt?.printOrderReceipt?.(currentOrder, {
-                    force: true,
-                    totemLabel,
-                    requestSerial: true,
-                    printMode: 'escpos',
-                });
-                if (!fallback && receipt?.escposSupported?.() && receipt?.pairPrinter) {
-                    await receipt.pairPrinter();
-                    await receipt.printOrderReceipt?.(currentOrder, {
-                        force: true,
-                        totemLabel,
-                        requestSerial: true,
-                        printMode: 'escpos',
-                    });
-                }
-            }
             showPrintNote();
         });
     };

@@ -52,7 +52,7 @@
                 escposLineChars: Number(defaults.escposLineChars) || 42,
                 printMarginLeftMm: resolvePrintMarginLeftMm(defaults),
                 printPaperWidthMm: Number(defaults.printPaperWidthMm) || 76,
-                printFallbackBrowser: defaults.printFallbackBrowser === true,
+                printFallbackBrowser: defaults.printFallbackBrowser !== false,
             };
         } catch {
             cachedConfig = {
@@ -65,7 +65,7 @@
                 escposLineChars: 42,
                 printMarginLeftMm: 4,
                 printPaperWidthMm: 76,
-                printFallbackBrowser: false,
+                printFallbackBrowser: true,
             };
         }
         return cachedConfig;
@@ -488,6 +488,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
             const tryBridge = async () => {
                 if (!printOpts.printBridgeUrl) return false;
+                if (!(await bridgeReachable(printOpts.printBridgeUrl))) return false;
                 return printViaBridge(order, printOpts);
             };
 
@@ -507,19 +508,20 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return false;
             }
 
-            // PC totem: ponte silenciosa (ESC/POS) → serial → só então Chrome print se habilitado
+            // PC totem: ponte silenciosa → Chrome kiosk (iframe) → serial USB
             const bridgeOk = await tryBridge();
             if (bridgeOk) return true;
+
+            if (allowBrowser) {
+                const browserOk = await printViaHiddenIframe(order, printOpts);
+                if (browserOk) return true;
+            }
 
             const escOk = await printViaEscPos(order, printOpts);
             if (escOk) return true;
 
-            if (allowBrowser) {
-                return printViaHiddenIframe(order, printOpts);
-            }
-
             console.warn(
-                'totem-receipt: impressao silenciosa indisponivel — inicie a ponte (npm run totem:print) ou habilite printFallbackBrowser'
+                'totem-receipt: falha ao imprimir — verifique impressora padrao ou inicie a ponte (npm run totem:print)'
             );
             return false;
         };

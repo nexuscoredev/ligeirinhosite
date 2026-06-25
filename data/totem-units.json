@@ -6,7 +6,7 @@
     "autoPrintReceipt": true,
     "autoPrintDelayMs": 450,
     "printMode": "auto",
-    "printFallbackBrowser": false,
+    "printFallbackBrowser": true,
     "printMarginLeftMm": 4,
     "printPaperWidthMm": 76,
     "printBridgeHost": "",
