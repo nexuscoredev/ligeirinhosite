@@ -45,7 +45,7 @@ async function applyParceiros() {
         const cols = await client.query(
             `select column_name from information_schema.columns
              where table_schema = 'public' and table_name = 'orders'
-               and column_name in ('channel','financial_status','totem_id')
+               and column_name in ('channel','financial_status','totem_id','pix_txid','pix_provider')
              order by 1`
         );
         console.log('[parceiros] Tabelas finance:', tables.rows.map((r) => r.table_name).join(', '));

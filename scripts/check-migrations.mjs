@@ -25,10 +25,17 @@ async function checkParceiros() {
         const needFinance = ['customer_id', 'financial_status', 'payment_method'];
         const needTotem = ['channel', 'totem_id', 'totem_label', 'unit_id'];
         const needSeparation = ['separation_status', 'separation_started_at'];
+        const needPix = ['pix_txid', 'pix_provider'];
 
         const pickTable = await client.query(
             `select 1 from information_schema.tables
              where table_schema = 'public' and table_name = 'order_pick_items'`
+        );
+
+        const pixRpc = await client.query(
+            `select 1 from pg_proc p
+             join pg_namespace n on n.oid = p.pronamespace
+             where n.nspname = 'public' and p.proname = 'rpc_fetch_order_by_pix_txid'`
         );
 
         return {
@@ -38,11 +45,16 @@ async function checkParceiros() {
             totemOk: needTotem.every((c) => colSet.has(c)),
             separationOk:
                 needSeparation.every((c) => colSet.has(c)) && pickTable.rows.length > 0,
+            pixOk: needPix.every((c) => colSet.has(c)) && pixRpc.rows.length > 0,
             missingFinance: needFinance.filter((c) => !colSet.has(c)),
             missingTotem: needTotem.filter((c) => !colSet.has(c)),
             missingSeparation: [
                 ...needSeparation.filter((c) => !colSet.has(c)),
                 ...(pickTable.rows.length ? [] : ['order_pick_items']),
+            ],
+            missingPix: [
+                ...needPix.filter((c) => !colSet.has(c)),
+                ...(pixRpc.rows.length ? [] : ['rpc_fetch_order_by_pix_txid']),
             ],
         };
     } finally {
@@ -90,6 +102,7 @@ async function main() {
         console.log('Finance:', p.financeOk ? 'OK' : `PENDENTE (${p.missingFinance.join(', ')})`);
         console.log('Totem:', p.totemOk ? 'OK' : `PENDENTE (${p.missingTotem.join(', ')})`);
         console.log('Separação:', p.separationOk ? 'OK' : `PENDENTE (${p.missingSeparation.join(', ')})`);
+        console.log('Pix Santander:', p.pixOk ? 'OK' : `PENDENTE (${p.missingPix.join(', ')})`);
         console.log('Tabelas:', p.tables.join(', ') || '(nenhuma finance)');
     }
 
