@@ -119,7 +119,15 @@ body.totem-kiosk {
 }
 
 .totem-header__title .lig-brand__wordmark {
-    font-size: clamp(0.9rem, 2.2dvh, 1.05rem);
+    font-size: clamp(1.2rem, 3.2dvh, 1.45rem);
+}
+
+.totem-header__title .lig-brand__text {
+    font-size: 1em;
+}
+
+.totem-header__title .lig-brand__app {
+    font-size: 1.08em;
 }
 
 .totem-header__sub {
@@ -1110,8 +1118,16 @@ html.totem--phone .totem-btn--promos__icon {
 }
 
 .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(2.35rem, 7dvh, 3.35rem);
+    font-size: clamp(2.85rem, 8.5dvh, 4.15rem);
     justify-content: center;
+}
+
+.totem-welcome__wordmark .lig-brand__text {
+    font-size: 1em;
+}
+
+.totem-welcome__wordmark .lig-brand__app {
+    font-size: 1.08em;
 }
 
 .totem-welcome__lead {
