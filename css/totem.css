@@ -1169,15 +1169,19 @@ html.totem--phone .totem-btn--promos__icon {
     flex-shrink: 0;
 }
 
+body.totem-keyboard-customer {
+    --totem-vk-lift: clamp(3rem, 11dvh, 5.5rem);
+}
+
 body.totem-keyboard-customer .totem-customer {
     justify-content: center;
-    padding-bottom: calc(var(--totem-vk-height, 16.5rem) + 0.5rem);
+    padding-bottom: calc(var(--totem-vk-height, 16.5rem) + var(--totem-vk-lift) + 0.5rem);
 }
 
 body.totem-keyboard-customer .totem-customer__content {
     flex: 0 1 auto;
     margin: 0 auto;
-    max-height: calc(100dvh - var(--totem-vk-height, 16.5rem) - 5.5rem);
+    max-height: calc(100dvh - var(--totem-vk-height, 16.5rem) - var(--totem-vk-lift) - 5.5rem);
     justify-content: center;
 }
 
@@ -1203,6 +1207,7 @@ body.totem-keyboard-open .totem-vk {
 }
 
 body.totem-keyboard-customer .totem-vk {
+    bottom: var(--totem-vk-lift);
     box-shadow: 0 -14px 42px rgba(20, 18, 15, 0.18);
 }
 
