@@ -60,7 +60,7 @@ ${renderSummary(order)}
 </button>
 </div>
 <div class="totem-pay-actions">
-<a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-cancel>Cancelar</a>
+<a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-back-cart>Cancelar</a>
 </div>
 </div>`;
 

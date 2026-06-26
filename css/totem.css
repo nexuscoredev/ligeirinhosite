@@ -1431,8 +1431,17 @@ html.totem--phone .totem-btn--promos__icon {
 }
 
 .totem-categories-btn__icon {
-    font-size: 1.15rem;
-    color: var(--lig-yellow-text);
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 0.55rem;
+    background: var(--totem-cat-icon-bg, transparent);
+    color: var(--totem-cat-icon-fg, var(--lig-yellow-text));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem !important;
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    flex-shrink: 0;
 }
 
 .totem-categories-btn__label {
@@ -3183,13 +3192,55 @@ html.totem-has-float-cart .totem-idle-hint {
 
 .totem-categories-modal__pills .ze-filter-pill {
     min-height: 2.75rem;
-    padding: 0.55rem 1rem;
+    padding: 0.5rem 0.95rem 0.5rem 0.5rem;
     font-size: 0.875rem;
+}
+
+.totem-cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: left;
+}
+
+.totem-cat-pill__icon {
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 0.7rem;
+    background: var(--totem-cat-icon-bg, #f3f1ec);
+    color: var(--totem-cat-icon-fg, #5c574f);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.totem-cat-pill__icon .material-symbols-outlined {
+    font-size: 1.2rem;
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+.totem-cat-pill__text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.totem-cat-pill__label {
+    font-weight: 700;
 }
 
 .totem-cat-pill__count {
     opacity: 0.65;
     font-weight: 700;
+}
+
+.ze-filter-pill.totem-cat-pill[aria-pressed='true'] .totem-cat-pill__icon {
+    background: rgba(20, 18, 15, 0.08);
+    color: #14120f;
+    box-shadow: none;
 }
 
 html.totem--kiosk .totem-categories-modal {
@@ -4444,29 +4495,31 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     min-height: 3rem;
     border: 0;
     border-radius: 999px;
-    background: #dcfce7;
-    color: #166534;
+    background: #22c55e;
+    color: #fff;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    font-size: 1.5rem;
+    padding: 0 1.15rem;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.875rem;
     font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    line-height: 1.2;
+    text-align: center;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
+    touch-action: manipulation;
 }
 
 .totem-detail__add:hover {
-    background: #bbf7d0;
+    background: #16a34a;
 }
 
 .totem-detail__add:active {
     transform: scale(0.98);
-}
-
-.totem-detail__add--active {
-    background: #22c55e;
-    color: #fff;
+    background: #15803d;
 }
 
 .totem-detail__vendor {

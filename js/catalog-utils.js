@@ -97,8 +97,70 @@
         'drinks-prontos': 'nightlife',
         vinhos: 'wine_bar',
         salgadinho: 'fastfood',
+        salgadinhos: 'fastfood',
         tabacaria: 'smoking_rooms',
         cigarros: 'smoking_rooms',
+        outros: 'category',
+        bebidas: 'local_bar',
+    };
+
+    const TOTEM_CATEGORY_META = {
+        '': { icon: 'grid_view', bg: '#f3f1ec', fg: '#5c574f' },
+        todos: { icon: 'grid_view', bg: '#f3f1ec', fg: '#5c574f' },
+        cerveja: { icon: 'sports_bar', bg: '#fff3cc', fg: '#a67c00' },
+        cervejas: { icon: 'sports_bar', bg: '#fff3cc', fg: '#a67c00' },
+        whisky: { icon: 'wine_bar', bg: '#fde8d8', fg: '#9a3412' },
+        whiskys: { icon: 'wine_bar', bg: '#fde8d8', fg: '#9a3412' },
+        vodka: { icon: 'water_full', bg: '#e8f4fd', fg: '#1d4ed8' },
+        vodkas: { icon: 'water_full', bg: '#e8f4fd', fg: '#1d4ed8' },
+        gin: { icon: 'local_bar', bg: '#e8f5e9', fg: '#166534' },
+        gins: { icon: 'local_bar', bg: '#e8f5e9', fg: '#166534' },
+        'gin-s': { icon: 'local_bar', bg: '#e8f5e9', fg: '#166534' },
+        licores: { icon: 'liquor', bg: '#f3e8fd', fg: '#7c3aed' },
+        destilados: { icon: 'science', bg: '#fce4ec', fg: '#be185d' },
+        destilado: { icon: 'science', bg: '#fce4ec', fg: '#be185d' },
+        refrigerante: { icon: 'local_cafe', bg: '#fef9e7', fg: '#ca8a04' },
+        refrigerantes: { icon: 'local_cafe', bg: '#fef9e7', fg: '#ca8a04' },
+        'refrigerantes-sucos': { icon: 'local_cafe', bg: '#fef9e7', fg: '#ca8a04' },
+        'drinks-prontos': { icon: 'nightlife', bg: '#fce7f3', fg: '#db2777' },
+        agua: { icon: 'water_drop', bg: '#e0f7fa', fg: '#0e7490' },
+        aguas: { icon: 'water_drop', bg: '#e0f7fa', fg: '#0e7490' },
+        gelos: { icon: 'ac_unit', bg: '#e3f2fd', fg: '#0284c7' },
+        energetico: { icon: 'bolt', bg: '#fff7ed', fg: '#ea580c' },
+        energeticos: { icon: 'bolt', bg: '#fff7ed', fg: '#ea580c' },
+        vinhos: { icon: 'wine_bar', bg: '#fde8ef', fg: '#9f1239' },
+        vinho: { icon: 'wine_bar', bg: '#fde8ef', fg: '#9f1239' },
+        espumantes: { icon: 'celebration', bg: '#fdf2f8', fg: '#be185d' },
+        salgadinho: { icon: 'fastfood', bg: '#fff3e0', fg: '#c2410c' },
+        salgadinhos: { icon: 'fastfood', bg: '#fff3e0', fg: '#c2410c' },
+        tabacaria: { icon: 'smoking_rooms', bg: '#f5f5f4', fg: '#57534e' },
+        cigarros: { icon: 'smoking_rooms', bg: '#f5f5f4', fg: '#44403c' },
+        insumos: { icon: 'inventory_2', bg: '#faf8f4', fg: '#78716c' },
+        combos: { icon: 'local_fire_department', bg: '#fff7ed', fg: '#ea580c' },
+        bebidas: { icon: 'local_bar', bg: '#f0f9ff', fg: '#0369a1' },
+        outros: { icon: 'category', bg: '#f3f1ec', fg: '#5c574f' },
+    };
+
+    const resolveTotemCategoryMeta = (categoryId) => {
+        const key = String(categoryId || '').toLowerCase();
+        const alias = CATALOG_CATEGORY_ALIASES[key] || key;
+        const meta = TOTEM_CATEGORY_META[alias] || TOTEM_CATEGORY_META[key];
+        if (meta) return { ...meta };
+        const icon = categoryIcons[alias] || categoryIcons[key] || 'category';
+        const hash = [...(alias || 'outros')].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+        const palettes = [
+            { bg: '#f3f1ec', fg: '#5c574f' },
+            { bg: '#e8f4fd', fg: '#1d4ed8' },
+            { bg: '#e8f5e9', fg: '#166534' },
+            { bg: '#fde8ef', fg: '#9f1239' },
+            { bg: '#fef9e7', fg: '#ca8a04' },
+        ];
+        return { icon, ...palettes[hash % palettes.length] };
+    };
+
+    const categoryTotemIconHtml = (categoryId) => {
+        const meta = resolveTotemCategoryMeta(categoryId);
+        return `<span class="totem-cat-pill__icon" style="--totem-cat-icon-bg:${meta.bg};--totem-cat-icon-fg:${meta.fg}" aria-hidden="true"><span class="material-symbols-outlined">${meta.icon}</span></span>`;
     };
 
     const CATALOG_CATEGORY_ALIASES = {
@@ -888,6 +950,10 @@ ${imageBlock}
         categoryTileHtml,
 
         categoryCoverMedia,
+
+        resolveTotemCategoryMeta,
+
+        categoryTotemIconHtml,
 
         resolveCatalogCategory,
 

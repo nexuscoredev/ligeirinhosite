@@ -200,6 +200,18 @@
     };
 
     document.addEventListener('click', (e) => {
+        const backCart = e.target.closest('[data-totem-back-cart]');
+        if (backCart) {
+            e.preventDefault();
+            if (!cartItemCount(loadCart())) {
+                restoreLastOrder();
+            }
+            const href = backCart.getAttribute('href') || 'totem.html';
+            const url = new URL(href, window.location.href);
+            url.searchParams.set('cart', 'open');
+            window.location.replace(`${url.pathname}${url.search}`);
+            return;
+        }
         const el = e.target.closest('[data-totem-cancel]');
         if (!el) return;
         e.preventDefault();

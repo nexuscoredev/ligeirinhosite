@@ -79,6 +79,7 @@
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
     let detailItemKey = null;
+    let detailDraftQty = 1;
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
     const GRID_DENSITY_CLASSES = ['totem-grid--grid-s', 'totem-grid--grid-m', 'totem-grid--grid-l'];
@@ -239,6 +240,7 @@
             detailPanel.classList.remove('totem-detail--closing');
             detailPanel.setAttribute('aria-hidden', 'true');
             detailItemKey = null;
+            detailDraftQty = 1;
             if (detailSheet) detailSheet.innerHTML = '';
         }, 280);
     };
@@ -251,7 +253,7 @@
             return;
         }
 
-        const { group, tier, variant, product, cartKey, qty, img, displayName } = ctx;
+        const { group, tier, variant, product, cartKey, img, displayName } = ctx;
         const price = (variant || product).price;
         const subtitle = productDetailSubtitle(group, variant, tier);
         const returnable = isReturnable(group?.baseName || displayName);
@@ -281,12 +283,12 @@ ${img ? `<img src="${esc(img)}" alt="">` : '<span class="material-symbols-outlin
 ${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
 <div class="totem-detail__actions">
 <div class="totem-detail__qty">
-<button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
-<span class="totem-detail__qty-value" id="totem-detail-qty">${qty}</span>
-<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(detailItemKey)}" aria-label="Aumentar">+</button>
+<button type="button" class="totem-qty-btn totem-detail-minus" id="totem-detail-minus" aria-label="Diminuir quantidade" ${detailDraftQty <= 1 ? 'disabled' : ''}>−</button>
+<span class="totem-detail__qty-value" id="totem-detail-qty">${detailDraftQty}</span>
+<button type="button" class="totem-qty-btn totem-detail-plus" id="totem-detail-plus" aria-label="Aumentar quantidade">+</button>
 </div>
-<button type="button" class="totem-detail__add${qty ? ' totem-detail__add--active' : ''}" id="totem-detail-add" data-cart-key="${esc(cartKey)}" data-item-key="${esc(detailItemKey)}" aria-label="${qty ? 'Adicionado ao carrinho' : 'Adicionar ao carrinho'}">
-<span class="material-symbols-outlined" aria-hidden="true">${qty ? 'check' : 'add'}</span>
+<button type="button" class="totem-detail__add" id="totem-detail-add" data-cart-key="${esc(cartKey)}" data-item-key="${esc(detailItemKey)}" aria-label="Adicionar ao pedido">
+adicionar ao pedido
 </button>
 </div>
 </div>`;
@@ -296,6 +298,7 @@ ${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
         if (!detailPanel || !detailSheet || !itemKey) return;
         totemKeyboard?.hide?.();
         detailItemKey = itemKey;
+        detailDraftQty = 1;
         renderProductDetail();
         detailPanel.setAttribute('aria-hidden', 'false');
         detailPanel.classList.add('totem-detail--open');
@@ -686,9 +689,28 @@ ${unitHtml}
         bumpIdle();
     };
 
-    const categoryIcon = (cat) => {
-        const cover = catalog.categoryCoverMedia(cat, catalogData?.categories || []);
-        return cover.icon || 'liquor';
+    const categoryPillHtml = (catId, label, count, active) => {
+        const iconHtml = catalog.categoryTotemIconHtml(catId);
+        return `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="${esc(catId)}" aria-pressed="${active ? 'true' : 'false'}">${iconHtml}<span class="totem-cat-pill__text"><span class="totem-cat-pill__label">${esc(label)}</span><span class="totem-cat-pill__count">${count}</span></span></button>`;
+    };
+
+    const renderCategories = () => {
+        if (!categoriesEl) return;
+        const totalCount = displayItems.length;
+        const pills =
+            categoryPillHtml('', 'Todos', totalCount, !activeCategory) +
+            totemCategories
+                .map((cat) => {
+                    const active = cat.id === activeCategory;
+                    const label = catalog.formatCategoryLabel(cat.name);
+                    return categoryPillHtml(cat.id, label, cat.count, active);
+                })
+                .join('');
+        categoriesEl.innerHTML = pills;
+        if (categoriesStats) {
+            categoriesStats.textContent = `${totemCategories.length} categorias · ${totalCount} produtos`;
+        }
+        updateCategoriesBtnLabel();
     };
 
     const setView = (name) => {
@@ -797,28 +819,17 @@ ${unitHtml}
         }, hintMs);
     };
 
-    const renderCategories = () => {
-        if (!categoriesEl) return;
-        const totalCount = displayItems.length;
-        const pills =
-            `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="" aria-pressed="${!activeCategory ? 'true' : 'false'}">Todos <span class="totem-cat-pill__count">${totalCount}</span></button>` +
-            totemCategories
-                .map((cat) => {
-                    const active = cat.id === activeCategory;
-                    const label = catalog.formatCategoryLabel(cat.name);
-                    return `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="${esc(cat.id)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)} <span class="totem-cat-pill__count">${cat.count}</span></button>`;
-                })
-                .join('');
-        categoriesEl.innerHTML = pills;
-        if (categoriesStats) {
-            categoriesStats.textContent = `${totemCategories.length} categorias · ${totalCount} produtos`;
-        }
-        updateCategoriesBtnLabel();
-    };
-
     const updateCategoriesBtnLabel = () => {
-        if (!categoriesBtnLabel) return;
         const catMeta = activeCategoryMeta();
+        const catId = catMeta?.id || '';
+        const meta = catalog.resolveTotemCategoryMeta(catId);
+        const categoriesBtnIcon = categoriesBtn?.querySelector('.totem-categories-btn__icon');
+        if (categoriesBtnIcon) {
+            categoriesBtnIcon.textContent = meta.icon;
+            categoriesBtnIcon.style.setProperty('--totem-cat-icon-bg', meta.bg);
+            categoriesBtnIcon.style.setProperty('--totem-cat-icon-fg', meta.fg);
+        }
+        if (!categoriesBtnLabel) return;
         categoriesBtnLabel.textContent = catMeta
             ? catalog.formatCategoryLabel(catMeta.name)
             : 'Todas as categorias';
@@ -1031,9 +1042,7 @@ ${bodyHtml}
         if (!item) return;
         const group = item.group;
         const card = itemKey ? productsGrid?.querySelector(`[data-item-key="${itemKey}"]`) : null;
-        const tier = opts.fromDetail && group
-            ? activeTierFor(group)
-            : card?.dataset?.priceTier || (group ? activeTierFor(group) : 'caixa');
+        const tier = card?.dataset?.priceTier || (group ? activeTierFor(group) : 'caixa');
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
@@ -1066,20 +1075,52 @@ ${bodyHtml}
         renderProducts();
         refreshPromosIfOpen();
         pulseProduct(key);
-        if (opts.fromDetail) {
-            refreshDetailIfOpen();
-        } else {
-            showCartAddedToast(name, cartLineImage(cart[key]));
-        }
+        showCartAddedToast(name, cartLineImage(cart[key]));
         bumpIdle();
     };
 
-    const changeQty = (cartKey, delta, opts = {}) => {
+    const addDetailToCart = (cartKey, itemKey) => {
+        const qtyToAdd = Math.max(1, detailDraftQty);
+        const item = findDisplayItem(cartKey, itemKey);
+        if (!item) return;
+        const group = item.group;
+        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
+        const variant = group ? pricing.getVariant(group, tier) : null;
+        const product = item.product;
+        const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
+        const packType = variant?.tier || tier || 'caixa';
+        const name = group
+            ? pricing.cartItemName({ ...variant, tier: packType }, group)
+            : product.name;
+        const price = (variant || product).price;
+        const cart = cartApi.loadCart();
+        if (!cart[key]) {
+            cart[key] = {
+                id: (variant || product).id,
+                cartKey: key,
+                name,
+                price,
+                qty: 0,
+                packType,
+            };
+        }
+        cart[key].qty += qtyToAdd;
+        cartApi.saveCart(cart);
+        renderCart();
+        renderProducts();
+        refreshPromosIfOpen();
+        pulseProduct(key);
+        showCartAddedToast(name, cartLineImage(cart[key]));
+        detailDraftQty = 1;
+        refreshDetailIfOpen();
+        bumpIdle();
+    };
+
+    const changeQty = (cartKey, delta) => {
         const cart = cartApi.loadCart();
         if (!cart[cartKey]) return;
         const line = cart[cartKey];
         const itemName = line.name;
-        const unitPrice = line.price;
         cart[cartKey].qty += delta;
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
         cartApi.saveCart(cart);
@@ -1088,13 +1129,7 @@ ${bodyHtml}
         refreshPromosIfOpen();
         if (delta > 0) {
             pulseProduct(cartKey);
-            if (opts.fromDetail) {
-                refreshDetailIfOpen();
-            } else {
-                showCartAddedToast(itemName, cartLineImage(line));
-            }
-        } else if (opts.fromDetail) {
-            refreshDetailIfOpen();
+            showCartAddedToast(itemName, cartLineImage(line));
         }
         bumpIdle();
     };
@@ -1334,17 +1369,30 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 const ctx = getDetailContext();
                 if (!ctx?.group?.key) return;
                 tierByGroup.set(ctx.group.key, tierBtn.dataset.priceTier);
+                detailDraftQty = 1;
                 renderProductDetail();
                 renderProducts();
                 bumpIdle();
                 return;
             }
-            const plus = e.target.closest('.totem-plus');
-            const minus = e.target.closest('.totem-minus');
+            const plus = e.target.closest('.totem-detail-plus');
+            const minus = e.target.closest('.totem-detail-minus');
             const addBtn = e.target.closest('#totem-detail-add');
-            if (plus) addItem(plus.dataset.cartKey, plus.dataset.itemKey, { fromDetail: true });
-            if (minus) changeQty(minus.dataset.cartKey, -1, { fromDetail: true });
-            if (addBtn) addItem(addBtn.dataset.cartKey, addBtn.dataset.itemKey, { fromDetail: true });
+            if (plus) {
+                detailDraftQty += 1;
+                renderProductDetail();
+                bumpIdle();
+                return;
+            }
+            if (minus && detailDraftQty > 1) {
+                detailDraftQty -= 1;
+                renderProductDetail();
+                bumpIdle();
+                return;
+            }
+            if (addBtn) {
+                addDetailToCart(addBtn.dataset.cartKey, addBtn.dataset.itemKey);
+            }
         });
 
         cartList?.addEventListener('click', (e) => {
@@ -1472,6 +1520,23 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         });
         if (promosBtn) promosBtn.hidden = false;
         resetIdleTimer();
+
+        const returnParams = new URLSearchParams(window.location.search);
+        if (returnParams.get('cart') === 'open') {
+            if (!cartApi.cartItemCount(cartApi.loadCart())) {
+                cartApi.restoreLastOrder?.();
+            }
+            renderCart();
+            setView('catalog');
+            openCart();
+            returnParams.delete('cart');
+            const qs = returnParams.toString();
+            window.history.replaceState(
+                null,
+                '',
+                `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`
+            );
+        }
     };
 
     init();
