@@ -65,6 +65,9 @@ body.totem-kiosk {
     height: 100svh;
     max-height: 100svh;
     overflow: hidden;
+    position: relative;
+    z-index: 10;
+    isolation: isolate;
     --totem-welcome-scale: min(1.08, calc((100svh - 7.5rem) / 430));
     --totem-welcome-shift: clamp(-1.75rem, -4dvh, -1rem);
     --totem-sidebar-w: clamp(10.5rem, 14vw, 13.5rem);
@@ -199,13 +202,13 @@ body.totem-kiosk {
 #totem-kiosk-shields {
     position: fixed;
     inset: 0;
-    z-index: 4;
+    z-index: 1;
     pointer-events: none;
 }
 
 .totem-kiosk-edge-shield {
     position: fixed;
-    pointer-events: auto;
+    pointer-events: none;
     touch-action: none;
     background: transparent;
     -webkit-user-select: none;
@@ -216,28 +219,33 @@ body.totem-kiosk {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 18px;
+    width: 12px;
 }
 
 .totem-kiosk-edge-shield--right {
     right: 0;
     top: 0;
     bottom: 0;
-    width: 18px;
+    width: 12px;
 }
 
 .totem-kiosk-edge-shield--top {
     left: 0;
     right: 0;
     top: 0;
-    height: 14px;
+    height: 10px;
 }
 
 .totem-kiosk-edge-shield--corner {
     left: 0;
     top: 0;
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
+}
+
+body.totem-kiosk > main {
+    position: relative;
+    z-index: 10;
 }
 
 .totem-header__actions {

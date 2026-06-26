@@ -9,8 +9,38 @@
     if (!root.classList.contains('totem-kiosk')) return;
 
     const TOTEM_PAGE_RE = /totem(?:-[a-z]+)?\.html/i;
-    const EDGE_ZONE = 56;
+    const EDGE_SIDE = 14;
+    const EDGE_TOP = 12;
     const CAPTURE_OPTS = { capture: true, passive: false };
+    const INTERACTIVE_SEL = [
+        'button',
+        'a',
+        'input',
+        'textarea',
+        'select',
+        'label',
+        '[role="button"]',
+        '[role="link"]',
+        '[role="tab"]',
+        '.totem-btn',
+        '.totem-product',
+        '.totem-vk',
+        '.totem-vk__key',
+        '.totem-float-cart',
+        '.totem-cart-sheet',
+        '.totem-detail',
+        '.totem-categories-modal',
+        '.totem-search',
+        '.totem-customer__form',
+        '.lig-payment-card',
+        '.ze-filter-pill',
+        '.totem-categories-btn',
+    ].join(', ');
+
+    const isInteractiveTarget = (e) => {
+        const t = e.target;
+        return t instanceof Element && Boolean(t.closest(INTERACTIVE_SEL));
+    };
 
     const isAllowedNav = (href) => {
         if (!href || href.startsWith('#') || href.startsWith('javascript:')) return true;
@@ -26,8 +56,7 @@
 
     const isNearEdge = (x, y) => {
         const w = window.innerWidth;
-        const h = window.innerHeight;
-        return x <= EDGE_ZONE || x >= w - EDGE_ZONE || y <= EDGE_ZONE || y >= h - EDGE_ZONE;
+        return x <= EDGE_SIDE || x >= w - EDGE_SIDE || y <= EDGE_TOP;
     };
 
     const stopEdgeEvent = (e) => {
@@ -68,6 +97,7 @@
 
         const onPointerDown = (e) => {
             if (e.pointerType === 'mouse') return;
+            if (isInteractiveTarget(e)) return;
             if (!isNearEdge(e.clientX, e.clientY)) return;
             edgePointers.add(e.pointerId);
             stopEdgeEvent(e);
@@ -88,6 +118,7 @@
         window.addEventListener('pointercancel', onPointerEnd, CAPTURE_OPTS);
 
         const onTouchStart = (e) => {
+            if (isInteractiveTarget(e)) return;
             let hit = false;
             for (const touch of e.changedTouches) {
                 if (isNearEdge(touch.clientX, touch.clientY)) {
@@ -131,13 +162,6 @@
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--top"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--corner"></div>`;
         host.appendChild(wrap);
-
-        const shieldEvents = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'touchstart', 'touchmove', 'touchend', 'touchcancel'];
-        wrap.querySelectorAll('.totem-kiosk-edge-shield').forEach((el) => {
-            shieldEvents.forEach((type) => {
-                el.addEventListener(type, stopEdgeEvent, { passive: false });
-            });
-        });
     };
 
     let wakeLock = null;
