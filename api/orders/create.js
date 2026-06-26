@@ -26,6 +26,8 @@ const normalizeItems = (raw) => {
                 price,
                 qty,
                 packType: item.packType || null,
+                categoryId: String(item.categoryId || '').trim().slice(0, 80) || null,
+                categoryName: String(item.categoryName || '').trim().slice(0, 120) || null,
             };
         })
         .filter(Boolean);

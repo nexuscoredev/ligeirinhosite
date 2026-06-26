@@ -9,10 +9,17 @@
 
     const views = {
         welcome: document.getElementById('totem-view-welcome'),
+        customer: document.getElementById('totem-view-customer'),
         catalog: document.getElementById('totem-view-catalog'),
         promos: document.getElementById('totem-view-promos'),
     };
     const startBtn = document.getElementById('totem-start-btn');
+    const customerForm = document.getElementById('totem-customer-form');
+    const customerNameInput = document.getElementById('totem-customer-name');
+    const customerPhoneInput = document.getElementById('totem-customer-phone');
+    const customerError = document.getElementById('totem-customer-error');
+    const customerBackBtn = document.getElementById('totem-customer-back');
+    const customerContinueBtn = document.getElementById('totem-customer-continue');
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
     const cartBtn = document.getElementById('totem-cart-btn');
@@ -80,6 +87,7 @@
     let cachedQueryInfo = null;
     let detailItemKey = null;
     let detailDraftQty = 1;
+    let totemCustomer = { name: '', phone: '' };
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
     const GRID_DENSITY_CLASSES = ['totem-grid--grid-s', 'totem-grid--grid-m', 'totem-grid--grid-l'];
@@ -694,6 +702,76 @@ ${unitHtml}
         return `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="${esc(catId)}" aria-pressed="${active ? 'true' : 'false'}">${iconHtml}<span class="totem-cat-pill__text"><span class="totem-cat-pill__label">${esc(label)}</span><span class="totem-cat-pill__count">${count}</span></span></button>`;
     };
 
+    const resetCustomerForm = () => {
+        totemCustomer = { name: '', phone: '' };
+        if (customerNameInput) customerNameInput.value = '';
+        if (customerPhoneInput) customerPhoneInput.value = '';
+        if (customerError) {
+            customerError.textContent = '';
+            customerError.hidden = true;
+        }
+        customerNameInput?.classList.remove('totem-customer__input--error');
+    };
+
+    const showCustomerError = (message) => {
+        if (!customerError) return;
+        customerError.textContent = message;
+        customerError.hidden = !message;
+    };
+
+    const initSearchKeyboard = () => {
+        if (!searchInput) return;
+        totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
+            input: searchInput,
+            onInput: (value) => {
+                if (searchTimer) clearTimeout(searchTimer);
+                searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+            },
+            onSubmit: (value) => setSearchQuery(value),
+            onClose: bumpIdle,
+        });
+    };
+
+    const bindCustomerKeyboard = (field) => {
+        if (!field) return;
+        totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
+            input: field,
+            onSubmit: () => totemKeyboard?.hide?.(),
+            onClose: bumpIdle,
+        });
+        totemKeyboard?.show?.();
+    };
+
+    const enterCatalog = () => {
+        resetCart();
+        clearSearch();
+        if (!activeCategory && totemCategories[0]) {
+            activeCategory = totemCategories[0].id;
+        }
+        renderCategories();
+        renderProducts();
+        setView('catalog');
+        initSearchKeyboard();
+        bumpIdle();
+    };
+
+    const submitCustomerAndStart = () => {
+        const name = String(customerNameInput?.value || '').trim().replace(/\s+/g, ' ');
+        const phone = String(customerPhoneInput?.value || '').trim();
+        if (!name) {
+            customerNameInput?.classList.add('totem-customer__input--error');
+            showCustomerError('Informe seu nome para continuar.');
+            customerNameInput?.focus();
+            bindCustomerKeyboard(customerNameInput);
+            return;
+        }
+        customerNameInput?.classList.remove('totem-customer__input--error');
+        showCustomerError('');
+        totemCustomer = { name, phone };
+        totemKeyboard?.hide?.();
+        enterCatalog();
+    };
+
     const renderCategories = () => {
         if (!categoriesEl) return;
         const totalCount = displayItems.length;
@@ -746,6 +824,12 @@ ${unitHtml}
             totemKeyboard?.hide?.();
             closeCategoriesModal();
         }
+        if (name === 'customer') {
+            window.setTimeout(() => {
+                customerNameInput?.focus();
+                bindCustomerKeyboard(customerNameInput);
+            }, 120);
+        }
         if (inPromos) window.LigeirinhoTotemPromos?.refresh?.();
         updateFloatCart(cartApi.loadCart());
     };
@@ -795,6 +879,7 @@ ${unitHtml}
         closeProductDetail();
         closeCart();
         resetCart();
+        resetCustomerForm();
         clearSearch();
         idleHint?.classList.remove('totem-idle-hint--visible');
         setView('welcome');
@@ -1037,6 +1122,11 @@ ${bodyHtml}
         return `${count} itens`;
     };
 
+    const cartCategoryFields = (item) => ({
+        categoryId: item.categoryId || '',
+        categoryName: item.categoryName || '',
+    });
+
     const addItem = (cartKey, itemKey, opts = {}) => {
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
@@ -1063,6 +1153,7 @@ ${bodyHtml}
                 price,
                 qty: 0,
                 packType,
+                ...cartCategoryFields(item),
                 ...(opts.promoId ? { promoId: opts.promoId } : {}),
             };
         } else if (opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))) {
@@ -1102,6 +1193,7 @@ ${bodyHtml}
                 price,
                 qty: 0,
                 packType,
+                ...cartCategoryFields(item),
             };
         }
         cart[key].qty += qtyToAdd;
@@ -1234,6 +1326,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             price: item.price,
             qty: item.qty,
             packType: item.packType,
+            categoryId: item.categoryId || '',
+            categoryName: item.categoryName || '',
         }));
 
         try {
@@ -1249,8 +1343,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                     totemLabel: s?.totemLabel || s?.name || s?.login || 'Totem',
                     unitId: s?.totemUnitId || 'default',
                     customer: {
-                        name: s?.totemLabel || s?.name || 'Cliente Totem',
-                        phone: s?.phone || '',
+                        name: totemCustomer.name || s?.totemLabel || s?.name || 'Cliente Totem',
+                        phone: totemCustomer.phone || s?.phone || '',
                         email: s?.email || '',
                     },
                 }),
@@ -1293,16 +1387,30 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
     const bindEvents = () => {
         startBtn?.addEventListener('click', () => {
-            resetCart();
-            clearSearch();
-            if (!activeCategory && totemCategories[0]) {
-                activeCategory = totemCategories[0].id;
-            }
-            renderCategories();
-            renderProducts();
-            setView('catalog');
+            totemKeyboard?.hide?.();
+            resetCustomerForm();
+            setView('customer');
             bumpIdle();
         });
+
+        customerBackBtn?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            setView('welcome');
+            bumpIdle();
+        });
+
+        customerForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitCustomerAndStart();
+        });
+
+        customerNameInput?.addEventListener('input', () => {
+            customerNameInput.classList.remove('totem-customer__input--error');
+            if (customerError?.textContent) showCustomerError('');
+        });
+
+        customerNameInput?.addEventListener('focus', () => bindCustomerKeyboard(customerNameInput));
+        customerPhoneInput?.addEventListener('focus', () => bindCustomerKeyboard(customerPhoneInput));
 
         promosBtn?.addEventListener('click', () => {
             setView('promos');
@@ -1459,15 +1567,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             bumpIdle();
         });
 
-        totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
-            input: searchInput,
-            onInput: (value) => {
-                if (searchTimer) clearTimeout(searchTimer);
-                searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
-            },
-            onSubmit: (value) => setSearchQuery(value),
-            onClose: bumpIdle,
-        });
+        initSearchKeyboard();
 
         document.getElementById('totem-admin-cancel')?.addEventListener('click', closeAdminModal);
         document.getElementById('totem-admin-confirm')?.addEventListener('click', confirmAdminLogout);

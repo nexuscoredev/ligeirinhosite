@@ -64,6 +64,34 @@
 </div>
 </section>
 
+<section id="totem-view-customer" class="totem-view totem-customer" aria-label="Identificação do cliente" hidden>
+<div class="totem-customer__content">
+<button type="button" class="totem-customer__back" id="totem-customer-back" aria-label="Voltar">
+<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+<span>Voltar</span>
+</button>
+<div class="totem-customer__hero">
+<h2 class="totem-customer__title">Seus dados</h2>
+<p class="totem-customer__lead">Informe seu nome para identificarmos o pedido no caixa.</p>
+</div>
+<form class="totem-customer__form" id="totem-customer-form" novalidate>
+<label class="totem-customer__field" for="totem-customer-name">
+<span class="totem-customer__label">Nome <span class="totem-customer__required" aria-hidden="true">*</span></span>
+<input type="text" id="totem-customer-name" class="totem-customer__input" placeholder="Como podemos te chamar?" autocomplete="name" maxlength="80" required readonly inputmode="none">
+</label>
+<label class="totem-customer__field" for="totem-customer-phone">
+<span class="totem-customer__label">Telefone <span class="totem-customer__optional">(opcional)</span></span>
+<input type="tel" id="totem-customer-phone" class="totem-customer__input" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="tel" maxlength="20" readonly>
+</label>
+<p class="totem-customer__error" id="totem-customer-error" role="alert" hidden></p>
+<button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-continue">
+<span>Continuar para o cardápio</span>
+<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+</button>
+</form>
+</div>
+</section>
+
 <section id="totem-view-catalog" class="totem-view totem-catalog" aria-label="Catálogo" hidden>
 <div class="totem-products">
 <div class="totem-catalog-toolbar">

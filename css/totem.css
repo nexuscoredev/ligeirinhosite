@@ -73,7 +73,8 @@ body.totem-kiosk {
 }
 
 /* Boas-vindas: conteúdo centralizado na área útil */
-.totem-app:has(#totem-view-welcome.totem-view--active) .totem-main {
+.totem-app:has(#totem-view-welcome.totem-view--active) .totem-main,
+.totem-app:has(#totem-view-customer.totem-view--active) .totem-main {
     overflow: visible;
     display: flex;
     flex-direction: column;
@@ -82,7 +83,8 @@ body.totem-kiosk {
     padding-bottom: clamp(2.25rem, 8dvh, 4rem);
 }
 
-.totem-app:has(#totem-view-welcome.totem-view--active) .totem-welcome.totem-view--active {
+.totem-app:has(#totem-view-welcome.totem-view--active) .totem-welcome.totem-view--active,
+.totem-app:has(#totem-view-customer.totem-view--active) .totem-customer.totem-view--active {
     position: relative;
     inset: auto;
     width: 100%;
@@ -977,6 +979,149 @@ html.totem--phone .totem-btn--promos__icon {
 .totem-view--active.totem-welcome {
     display: flex !important;
     flex-direction: column;
+}
+
+.totem-view--active.totem-customer {
+    display: flex !important;
+    flex-direction: column;
+}
+
+.totem-customer {
+    align-items: center;
+    justify-content: flex-start;
+    padding: clamp(0.75rem, 2dvh, 1.25rem) clamp(0.85rem, 2.5vw, 1.35rem)
+        clamp(1rem, 2dvh, 1.5rem);
+    background: var(--lig-bg);
+    overflow-y: auto;
+}
+
+.totem-customer__content {
+    width: min(100%, 26rem);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.totem-customer__back {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.65rem;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--lig-text-muted);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.totem-customer__back .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+
+.totem-customer__hero {
+    text-align: center;
+    padding: 0 0.25rem;
+}
+
+.totem-customer__title {
+    margin: 0 0 0.4rem;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: clamp(1.35rem, 3dvh, 1.65rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--lig-text);
+}
+
+.totem-customer__lead {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: var(--lig-text-muted);
+}
+
+.totem-customer__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 1.1rem 1rem 1.15rem;
+    border-radius: 1.15rem;
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--lig-border);
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-customer__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: left;
+}
+
+.totem-customer__label {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--lig-text-muted);
+}
+
+.totem-customer__required {
+    color: #dc2626;
+}
+
+.totem-customer__optional {
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--lig-text-subtle);
+}
+
+.totem-customer__input {
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.75rem 0.95rem;
+    border: 1px solid var(--lig-border-strong);
+    border-radius: 0.85rem;
+    background: #fff;
+    color: var(--lig-text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    touch-action: manipulation;
+}
+
+.totem-customer__input:focus {
+    outline: none;
+    border-color: var(--lig-yellow-text);
+    box-shadow: 0 0 0 3px rgba(240, 201, 41, 0.22);
+}
+
+.totem-customer__input--error {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.totem-customer__error {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #dc2626;
+}
+
+.totem-customer__submit {
+    width: 100%;
+    margin-top: 0.25rem;
+    min-height: 3.1rem;
+    border-radius: 1rem;
+}
+
+body.totem-keyboard-open .totem-customer__submit {
+    margin-bottom: min(42dvh, 17rem);
 }
 
 .totem-view--active.totem-catalog {
@@ -2733,17 +2878,17 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 
 .totem-cart-line__qty {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.4rem;
     flex-shrink: 0;
 }
 
 .totem-cart-line__actions {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.5rem;
     flex-shrink: 0;
 }
 
@@ -3379,6 +3524,11 @@ body.totem-kiosk .lig-payment-page {
     overflow: hidden;
 }
 
+body.totem-kiosk[data-page='totem-pagamento'] .lig-payment-page {
+    padding-block: 0;
+    max-width: 100%;
+}
+
 body.totem-kiosk .lig-payment-card {
     background: var(--lig-surface);
     border: 1px solid var(--lig-border);
@@ -3468,8 +3618,92 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     overflow: hidden;
 }
 
+.totem-pay-card--picker {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: clamp(0.85rem, 2dvh, 1.25rem);
+}
+
+.totem-pay-card__head {
+    flex-shrink: 0;
+}
+
+.totem-pay-card__head .lig-payment-lead {
+    margin-bottom: 0.85rem;
+}
+
+.totem-pay-card__footer {
+    flex-shrink: 0;
+    padding-top: 0.35rem;
+}
+
 .totem-pay-summary {
-    margin-bottom: 1rem;
+    margin-bottom: 0.85rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0.85rem 0.9rem 0.75rem;
+}
+
+.totem-pay-summary__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(38dvh, 20rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 0.2rem;
+    margin-right: -0.1rem;
+}
+
+.totem-pay-summary__group + .totem-pay-summary__group {
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed rgba(20, 18, 15, 0.1);
+}
+
+.totem-pay-summary__cat {
+    margin: 0 0 0.45rem;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lig-yellow-text);
+}
+
+.totem-pay-summary__list {
+    gap: 0.35rem;
+}
+
+.totem-pay-summary__list li {
+    align-items: flex-start;
+    gap: 0.65rem;
+    line-height: 1.3;
+}
+
+.totem-pay-summary__item-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8125rem;
+}
+
+.totem-pay-summary__item-price {
+    flex-shrink: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--lig-text);
+}
+
+.totem-pay-summary__total {
+    flex-shrink: 0;
+    margin-top: 0.65rem;
+    padding-top: 0.75rem;
 }
 
 .totem-pay-methods__title {
@@ -3722,21 +3956,24 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 /* ——— Scrollbars ——— */
 .totem-categories::-webkit-scrollbar,
 .totem-products__body::-webkit-scrollbar,
-.totem-cart-list::-webkit-scrollbar {
+.totem-cart-list::-webkit-scrollbar,
+.totem-pay-summary__scroll::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
 
 .totem-categories::-webkit-scrollbar-track,
 .totem-products__body::-webkit-scrollbar-track,
-.totem-cart-list::-webkit-scrollbar-track {
+.totem-cart-list::-webkit-scrollbar-track,
+.totem-pay-summary__scroll::-webkit-scrollbar-track {
     background: rgba(20, 18, 15, 0.04);
     border-radius: 999px;
 }
 
 .totem-categories::-webkit-scrollbar-thumb,
 .totem-products__body::-webkit-scrollbar-thumb,
-.totem-cart-list::-webkit-scrollbar-thumb {
+.totem-cart-list::-webkit-scrollbar-thumb,
+.totem-pay-summary__scroll::-webkit-scrollbar-thumb {
     background: rgba(20, 18, 15, 0.22);
     border-radius: 999px;
     border: 2px solid transparent;
@@ -3891,6 +4128,30 @@ body.totem-kiosk[data-page='totem-pagamento'],
 body.totem-kiosk[data-page='totem-caixa'],
 body.totem-kiosk[data-page='totem-sucesso'] {
     overflow-x: hidden;
+}
+
+body.totem-kiosk[data-page='totem-pagamento'] {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+body.totem-kiosk[data-page='totem-pagamento'] > main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-block: clamp(0.5rem, 1.5dvh, 1rem);
+}
+
+body.totem-kiosk[data-page='totem-pagamento'] .lig-payment-page {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
 }
 
 body.totem-kiosk.min-h-screen > main {

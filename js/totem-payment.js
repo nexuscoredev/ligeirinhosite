@@ -25,25 +25,89 @@
 </div>`;
     };
 
+    const formatCategoryLabel = (id, name) => {
+        if (name) return String(name);
+        const raw = String(id || '')
+            .replace(/[-_]+/g, ' ')
+            .trim();
+        if (!raw || raw === 'outros') return 'Outros';
+        return raw
+            .toLowerCase()
+            .split(/\s+/)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
+    const inferCategoryFromName = (name) => {
+        const n = String(name || '').toUpperCase();
+        if (/\bCERVEJA\b|\bCHOPP\b|\bCHOP\b|\bLAGER\b|\bPILSEN\b/.test(n)) {
+            return { id: 'cervejas', label: 'Cervejas' };
+        }
+        if (/\bGIN\b/.test(n)) return { id: 'gins', label: 'Gins' };
+        if (/\bVODKA\b/.test(n)) return { id: 'vodkas', label: 'Vodkas' };
+        if (/\bWHISKY\b|\bWHISKEY\b/.test(n)) return { id: 'whiskys', label: 'Whiskys' };
+        if (/\bVINHO\b|\bWINE\b/.test(n)) return { id: 'vinhos', label: 'Vinhos' };
+        if (/\bREFRIG\b|\bSUCO\b|\bAGUA\b|\bÁGUA\b/.test(n)) return { id: 'refrigerantes', label: 'Refrigerantes' };
+        if (/\bDESTILAD/.test(n) || /\bRUM\b|\bTEQUILA\b|\bCACHACA\b|\bCACHAÇA\b/.test(n)) {
+            return { id: 'destilados', label: 'Destilados' };
+        }
+        return { id: 'outros', label: 'Outros' };
+    };
+
+    const resolveItemCategory = (item) => {
+        if (item.categoryId || item.categoryName) {
+            const id = String(item.categoryId || item.categoryName).toLowerCase();
+            return {
+                id,
+                label: formatCategoryLabel(item.categoryId, item.categoryName),
+            };
+        }
+        return inferCategoryFromName(item.name);
+    };
+
+    const groupItemsByCategory = (items) => {
+        const groups = new Map();
+        (items || []).forEach((item) => {
+            const { id, label } = resolveItemCategory(item);
+            if (!groups.has(id)) {
+                groups.set(id, { id, label, items: [] });
+            }
+            groups.get(id).items.push(item);
+        });
+        return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
+    };
+
     const renderSummary = (order) => {
-        const itemsHtml = (order.items || [])
-            .map(
-                (item) =>
-                    `<li><span>${item.qty}x ${esc(item.name)}</span><span>${formatPrice(item.price * item.qty)}</span></li>`
-            )
+        const groups = groupItemsByCategory(order.items || []);
+        const groupsHtml = groups
+            .map((group) => {
+                const lines = group.items
+                    .map(
+                        (item) =>
+                            `<li><span class="totem-pay-summary__item-name">${item.qty}x ${esc(item.name)}</span><span class="totem-pay-summary__item-price">${formatPrice(item.price * item.qty)}</span></li>`
+                    )
+                    .join('');
+                return `<section class="totem-pay-summary__group">
+<h3 class="totem-pay-summary__cat">${esc(group.label)}</h3>
+<ul class="lig-payment-summary__list totem-pay-summary__list">${lines}</ul>
+</section>`;
+            })
             .join('');
         return `<div class="lig-payment-summary totem-pay-summary">
 <h2 class="lig-payment-summary__title">Resumo do pedido</h2>
-<ul class="lig-payment-summary__list">${itemsHtml}</ul>
-<p class="lig-payment-summary__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></p>
+<div class="totem-pay-summary__scroll" tabindex="0" aria-label="Itens do pedido">${groupsHtml}</div>
+<p class="lig-payment-summary__total totem-pay-summary__total"><span>Total</span><strong>${formatPrice(order.total)}</strong></p>
 </div>`;
     };
 
     const renderMethodPicker = (order) => {
-        root.innerHTML = `<div class="lig-payment-card totem-pay-card">
+        root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-pay-card--picker">
+<div class="totem-pay-card__head">
 <h1 class="lig-payment-title">Formas de pagamento</h1>
 <p class="lig-payment-lead">Selecione a forma de pagamento</p>
+</div>
 ${renderSummary(order)}
+<div class="totem-pay-card__footer">
 <h2 class="totem-pay-methods__title">Escolha uma forma</h2>
 <div class="totem-pay-methods" role="group" aria-label="Formas de pagamento">
 <button type="button" class="totem-pay-method" data-method="pix" aria-label="Pix">
@@ -61,6 +125,7 @@ ${renderSummary(order)}
 </div>
 <div class="totem-pay-actions">
 <a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-back-cart>Cancelar</a>
+</div>
 </div>
 </div>`;
 
