@@ -1751,12 +1751,6 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     max-height: var(--totem-grid-media-max);
 }
 
-html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media img {
-    max-width: 88%;
-    max-height: 88%;
-    padding: 0.35rem;
-}
-
 html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__body {
     padding: 0.35rem 0.25rem 0.2rem;
     gap: 0.32rem;
@@ -1823,30 +1817,17 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     min-height: 5.25rem;
     border-radius: 0.75rem;
     border: 1px solid rgba(20, 18, 15, 0.08);
-    background: #fff;
+    background: var(--lig-media-bg);
     box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.95),
         0 1px 2px rgba(20, 18, 15, 0.04);
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.4rem;
     position: relative;
+    padding: 0;
 }
 
 .totem-grid--list .totem-product__media::after {
     display: none;
-}
-
-.totem-grid--list .totem-product__media img {
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    object-position: center;
-    padding: 0;
 }
 
 .totem-grid--list .totem-product__placeholder {
@@ -1957,13 +1938,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     width: 100%;
     border-radius: 0.55rem;
     border: 1px solid rgba(20, 18, 15, 0.06);
-    background: rgba(255, 255, 255, 0.92);
-}
-
-:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media img {
-    max-width: 86%;
-    max-height: 86%;
-    object-fit: contain;
+    background: var(--lig-media-bg);
 }
 
 :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__body {
@@ -2095,9 +2070,6 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     flex-shrink: 0;
     height: clamp(4.25rem, 14dvh, 6.25rem);
     background: var(--lig-media-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     overflow: hidden;
     border-radius: 0.9rem 0.9rem 0 0;
 }
@@ -2148,22 +2120,30 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 }
 
 .totem-product__media img {
-    width: auto;
-    height: auto;
-    max-width: 88%;
-    max-height: 88%;
-    object-fit: contain;
-    padding: 0.35rem;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    object-fit: cover;
+    object-position: center;
     transition: transform 0.32s var(--lig-ease);
 }
 
-.totem-product--selected .totem-product__media img {
-    transform: scale(1.04);
-}
-
 .totem-product__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 2.75rem;
     color: #d4cfc4;
+}
+
+.totem-product--selected .totem-product__media img {
+    transform: none;
 }
 
 .totem-product__body {
@@ -3728,7 +3708,7 @@ html.totem--phone.totem--portrait .totem-grid--list .totem-product__media {
     height: 4.5rem;
     min-width: 4.5rem;
     min-height: 4.5rem;
-    padding: 0.32rem;
+    padding: 0;
 }
 
 html.totem--phone.totem--portrait .totem-products__head {
@@ -4053,30 +4033,6 @@ html.totem--kiosk.totem--portrait .totem-welcome__wordmark .lig-brand__wordmark 
 
 html.totem--tablet.totem--portrait .totem-product {
     min-height: 0;
-}
-
-/* Tablet: imagem em modo cheio (sem laterais) */
-html.totem--tablet .totem-product__media,
-html.totem--kiosk.totem--portrait .totem-product__media {
-    height: auto;
-    aspect-ratio: 1 / 1;
-    min-height: clamp(5.5rem, 22vw, 11rem);
-}
-
-html.totem--tablet .totem-product__media img,
-html.totem--kiosk.totem--portrait .totem-product__media img {
-    width: 100%;
-    height: 100%;
-    max-width: none;
-    max-height: none;
-    padding: 0;
-    object-fit: cover;
-    object-position: center;
-}
-
-html.totem--tablet .totem-product--selected .totem-product__media img,
-html.totem--kiosk.totem--portrait .totem-product--selected .totem-product__media img {
-    transform: none;
 }
 
 /* —— Tablet landscape —— */
