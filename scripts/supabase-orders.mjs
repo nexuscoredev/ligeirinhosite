@@ -119,6 +119,7 @@ export function publicOrderView(order) {
         address: order.address,
         notes: order.notes,
         customerName: order.customer_name,
+        customerPhone: order.customer_phone,
         paymentMethod: order.payment_method,
         paymentChosen: order.financial_status === 'aguardando_caixa',
         dueDate: order.due_date,

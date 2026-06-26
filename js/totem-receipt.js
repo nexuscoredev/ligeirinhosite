@@ -166,6 +166,21 @@
         return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     };
 
+    const buildCustomerReceiptBlock = (order, forPrint = false) => {
+        const rows = [];
+        const name = String(order.customerName || '').trim();
+        const phone = String(order.customerPhone || '').trim();
+        if (name) {
+            const label = forPrint ? truncateName(name, 28) : esc(name);
+            rows.push(`<div class="totem-receipt__row"><span>Cliente</span><strong>${label}</strong></div>`);
+        }
+        if (phone) {
+            rows.push(`<div class="totem-receipt__row"><span>Telefone</span><strong>${esc(phone)}</strong></div>`);
+        }
+        if (!rows.length) return '';
+        return `${rows.join('')}<div class="totem-receipt__divider" aria-hidden="true"></div>`;
+    };
+
     const buildReceiptHtml = (order, opts = {}) => {
         const forPrint = Boolean(opts.forPrint);
         const code = forPrint ? compactCode(order.id) : formatCode(order.id);
@@ -206,6 +221,7 @@
 <p class="totem-receipt__code-label">Código do pedido</p>
 <p class="${codeClass}">${esc(code)}</p>
 <p class="totem-receipt__meta">${esc(formatDateTime(order.createdAt))}</p>
+${buildCustomerReceiptBlock(order, forPrint)}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 ${itemsBlock}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
@@ -544,6 +560,18 @@ body{display:flex;justify-content:center;align-items:flex-start}
         lines.push(center(code));
         lines.push(center(formatDateTime(order.createdAt)));
         lines.push(divider());
+
+        const customerName = String(order.customerName || '').trim();
+        const customerPhone = String(order.customerPhone || '').trim();
+        if (customerName) {
+            lines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
+        }
+        if (customerPhone) {
+            lines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
+        }
+        if (customerName || customerPhone) {
+            lines.push(divider());
+        }
 
         (order.items || []).forEach((item) => {
             const qty = Number(item.qty) || 1;

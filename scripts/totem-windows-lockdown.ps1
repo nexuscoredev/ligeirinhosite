@@ -10,7 +10,8 @@
     Depois de aplicar: reinicie o PC ou execute "Stop-Process -Name explorer -Force; Start-Process explorer".
 
 .NOTES
-    Alt+Tab, Ctrl+Alt+Del e Win+Tab podem exigir "Acesso Atribuído" (Assigned Access) no Windows Pro/Enterprise.
+    Windows 11 23H2+: desativa Left_Edgy_Enabled / Right_Edgy_Enabled (gesto da borda esquerda = Task View).
+    Alt+Tab e Win+Tab podem exigir "Acesso Atribuído" (Assigned Access) no Windows Pro/Enterprise.
 #>
 $ErrorActionPreference = 'Stop'
 
@@ -24,10 +25,15 @@ function Set-DwordReg($Path, $Name, $Value) {
     Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type DWord -Force
 }
 
-# Gestos de borda (Task View, Action Center, etc.)
+# Gestos de borda legado (Task View, Action Center, etc.)
 Set-DwordReg 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\EdgeUI' 'AllowEdgeSwipe' 0
 Set-DwordReg 'HKLM:\SOFTWARE\Microsoft\PolicyManager\default\LockDown\AllowEdgeSwipe' 'value' 0
 Set-DwordReg 'HKCU:\SOFTWARE\Policies\Microsoft\Windows\EdgeUI' 'AllowEdgeSwipe' 0
+
+# Windows 11 23H2+ — gestos por borda (Wisp/Touch)
+Set-DwordReg 'HKCU:\Software\Microsoft\Wisp\Touch' 'Left_Edgy_Enabled' 0
+Set-DwordReg 'HKCU:\Software\Microsoft\Wisp\Touch' 'Right_Edgy_Enabled' 0
+Set-DwordReg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Touch' 'EnableC2DEdgyGesture' 0
 
 # Tecla Windows e atalhos do Explorer (Win+R, Win+E, etc.)
 Set-DwordReg 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoWinKeys' 1
@@ -43,8 +49,8 @@ Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer
 
 Write-Host '[OK] Registro aplicado.' -ForegroundColor Green
 Write-Host ''
-Write-Host 'Passos manuais recomendados (Windows 11 23H2+):' -ForegroundColor Yellow
-Write-Host '  Configuracoes > Bluetooth e dispositivos > Tela sensivel ao toque'
+Write-Host 'Windows 11 (23H2+): confira tambem em Configuracoes' -ForegroundColor Yellow
+Write-Host '  Bluetooth e dispositivos > Tela sensivel ao toque'
 Write-Host '  Desative gestos da borda esquerda e direita.'
 Write-Host ''
 Write-Host 'Para bloqueio maximo: use Acesso Atribuido com Chrome como app unico.'

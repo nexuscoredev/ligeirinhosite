@@ -1,6 +1,6 @@
 /**
  * Proteções do totem no navegador (complementa totem-kiosk.bat + lockdown do Windows).
- * Não bloqueia atalhos do sistema (Win, Alt+Tab, gestos de borda) — use scripts/totem-windows-lockdown.ps1.
+ * Gestos de borda (Task View / Win+Tab) exigem também scripts/totem-windows-lockdown.ps1 no PC.
  */
 (function () {
     'use strict';
@@ -9,6 +9,8 @@
     if (!root.classList.contains('totem-kiosk')) return;
 
     const TOTEM_PAGE_RE = /totem(?:-[a-z]+)?\.html/i;
+    const EDGE_ZONE = 56;
+    const CAPTURE_OPTS = { capture: true, passive: false };
 
     const isAllowedNav = (href) => {
         if (!href || href.startsWith('#') || href.startsWith('javascript:')) return true;
@@ -20,6 +22,18 @@
         } catch {
             return TOTEM_PAGE_RE.test(href);
         }
+    };
+
+    const isNearEdge = (x, y) => {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        return x <= EDGE_ZONE || x >= w - EDGE_ZONE || y <= EDGE_ZONE || y >= h - EDGE_ZONE;
+    };
+
+    const stopEdgeEvent = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
     };
 
     const blockKey = (e) => {
@@ -48,6 +62,63 @@
         e.stopImmediatePropagation();
     };
 
+    const bindEdgeGestureGuard = () => {
+        const edgePointers = new Set();
+        const edgeTouches = new Set();
+
+        const onPointerDown = (e) => {
+            if (e.pointerType === 'mouse') return;
+            if (!isNearEdge(e.clientX, e.clientY)) return;
+            edgePointers.add(e.pointerId);
+            stopEdgeEvent(e);
+        };
+
+        const onPointerMove = (e) => {
+            if (!edgePointers.has(e.pointerId)) return;
+            stopEdgeEvent(e);
+        };
+
+        const onPointerEnd = (e) => {
+            edgePointers.delete(e.pointerId);
+        };
+
+        window.addEventListener('pointerdown', onPointerDown, CAPTURE_OPTS);
+        window.addEventListener('pointermove', onPointerMove, CAPTURE_OPTS);
+        window.addEventListener('pointerup', onPointerEnd, CAPTURE_OPTS);
+        window.addEventListener('pointercancel', onPointerEnd, CAPTURE_OPTS);
+
+        const onTouchStart = (e) => {
+            let hit = false;
+            for (const touch of e.changedTouches) {
+                if (isNearEdge(touch.clientX, touch.clientY)) {
+                    edgeTouches.add(touch.identifier);
+                    hit = true;
+                }
+            }
+            if (hit) stopEdgeEvent(e);
+        };
+
+        const onTouchMove = (e) => {
+            for (const touch of e.changedTouches) {
+                if (edgeTouches.has(touch.identifier)) {
+                    stopEdgeEvent(e);
+                    return;
+                }
+            }
+        };
+
+        const onTouchEnd = (e) => {
+            for (const touch of e.changedTouches) {
+                edgeTouches.delete(touch.identifier);
+            }
+        };
+
+        window.addEventListener('touchstart', onTouchStart, CAPTURE_OPTS);
+        window.addEventListener('touchmove', onTouchMove, CAPTURE_OPTS);
+        window.addEventListener('touchend', onTouchEnd, CAPTURE_OPTS);
+        window.addEventListener('touchcancel', onTouchEnd, CAPTURE_OPTS);
+    };
+
     const mountEdgeShields = () => {
         if (document.getElementById('totem-kiosk-shields')) return;
         const host = document.body || document.documentElement;
@@ -58,17 +129,15 @@
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--left"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--right"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--top"></div>
+<div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--bottom"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--corner"></div>`;
         host.appendChild(wrap);
 
+        const shieldEvents = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'touchstart', 'touchmove', 'touchend', 'touchcancel'];
         wrap.querySelectorAll('.totem-kiosk-edge-shield').forEach((el) => {
-            const stop = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            };
-            el.addEventListener('pointerdown', stop, { passive: false });
-            el.addEventListener('touchstart', stop, { passive: false });
-            el.addEventListener('touchmove', stop, { passive: false });
+            shieldEvents.forEach((type) => {
+                el.addEventListener(type, stopEdgeEvent, { passive: false });
+            });
         });
     };
 
@@ -186,6 +255,7 @@
 
     const boot = () => {
         mountEdgeShields();
+        bindEdgeGestureGuard();
         mountLockOverlay();
         tryFullscreen();
     };

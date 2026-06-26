@@ -736,9 +736,11 @@ ${unitHtml}
         if (!field) return;
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: field,
+            submitLabel: 'OK',
             onSubmit: () => totemKeyboard?.hide?.(),
             onClose: bumpIdle,
         });
+        field.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
         totemKeyboard?.show?.();
     };
 

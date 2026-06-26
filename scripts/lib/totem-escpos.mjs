@@ -55,6 +55,18 @@ export function buildEscPosReceipt(order, opts = {}) {
     lines.push(center(formatDateTime(order.createdAt)));
     lines.push(divider());
 
+    const customerName = String(order.customerName || '').trim();
+    const customerPhone = String(order.customerPhone || '').trim();
+    if (customerName) {
+        lines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
+    }
+    if (customerPhone) {
+        lines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
+    }
+    if (customerName || customerPhone) {
+        lines.push(divider());
+    }
+
     (order.items || []).forEach((item) => {
         const qty = Number(item.qty) || 1;
         const lineTotal = formatPrice(Number(item.price) * qty);

@@ -80,7 +80,7 @@
         } else if (action === 'close') hide();
     };
 
-    const buildKeyboard = () => {
+    const buildKeyboard = (submitLabel = 'Buscar') => {
         root = document.createElement('div');
         root.id = 'totem-vk';
         root.className = 'totem-vk';
@@ -114,7 +114,7 @@
 <span class="material-symbols-outlined" aria-hidden="true">backspace</span>
 </button>
 <button type="button" class="totem-vk__key totem-vk__key--ghost" data-action="clear">Limpar</button>
-<button type="button" class="totem-vk__key totem-vk__key--primary" data-action="submit">Buscar</button>
+<button type="button" class="totem-vk__key totem-vk__key--primary totem-vk__key--submit" data-action="submit">${submitLabel}</button>
 <button type="button" class="totem-vk__key totem-vk__key--icon totem-vk__key--ghost" data-action="close" aria-label="Fechar teclado">
 <span class="material-symbols-outlined" aria-hidden="true">keyboard_hide</span>
 </button>`;
@@ -134,6 +134,10 @@
         });
     };
 
+    const setSubmitLabel = (label) => {
+        root?.querySelector('.totem-vk__key--submit')?.replaceChildren(document.createTextNode(label || 'Buscar'));
+    };
+
     const init = (opts = {}) => {
         input = opts.input || null;
         onInput = typeof opts.onInput === 'function' ? opts.onInput : null;
@@ -141,11 +145,19 @@
         onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
         if (!input) return;
 
-        if (!root) buildKeyboard();
+        const submitLabel = String(opts.submitLabel || 'Buscar');
+        if (!root) buildKeyboard(submitLabel);
+        else setSubmitLabel(submitLabel);
 
-        input.setAttribute('readonly', 'readonly');
-        input.setAttribute('inputmode', 'none');
-        input.setAttribute('autocomplete', 'off');
+        if (!input.hasAttribute('readonly')) {
+            input.setAttribute('readonly', 'readonly');
+        }
+        if (!input.getAttribute('inputmode')) {
+            input.setAttribute('inputmode', 'none');
+        }
+        if (input.getAttribute('autocomplete') == null) {
+            input.setAttribute('autocomplete', 'off');
+        }
 
         input.addEventListener('focus', () => show());
         input.addEventListener('click', () => show());

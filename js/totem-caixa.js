@@ -110,6 +110,23 @@
 </div>`;
     };
 
+    const renderCustomerMeta = (order) => {
+        const rows = [];
+        const name = String(order.customerName || '').trim();
+        const phone = String(order.customerPhone || '').trim();
+        if (name) {
+            rows.push(
+                `<p class="totem-caixa-card__row"><span>Cliente</span><strong class="totem-caixa-card__value">${esc(name)}</strong></p>`
+            );
+        }
+        if (phone) {
+            rows.push(
+                `<p class="totem-caixa-card__row"><span>Telefone</span><span class="totem-caixa-card__value">${esc(phone)}</span></p>`
+            );
+        }
+        return rows.join('');
+    };
+
     const renderWaiting = (order) => {
         currentOrder = order;
         const code = formatDisplayCode(order.id);
@@ -127,6 +144,7 @@ Comprovante enviado para a impressora padrão
 <button type="button" class="totem-success-code totem-caixa-card__code" data-totem-copy-code data-copy-text="${esc(copyCode)}" aria-label="Copiar código do pedido">${esc(code)}</button>
 ${printNoteHtml}
 <div class="totem-caixa-card__meta">
+${renderCustomerMeta(order)}
 <p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order.paymentMethod)}</span></p>
 <p class="totem-caixa-card__row"><span>Total</span><strong class="totem-caixa-card__value">${formatPrice(order.total)}</strong></p>
 </div>
