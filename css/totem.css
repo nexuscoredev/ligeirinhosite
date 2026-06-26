@@ -463,7 +463,7 @@ body.totem-kiosk {
 }
 
 .totem-welcome__logo {
-    width: clamp(5.5rem, 16dvh, 8rem);
+    width: clamp(7.5rem, 24dvh, 11rem);
     display: block;
     border-radius: 1.2rem;
     padding: clamp(0.35rem, 1dvh, 0.55rem);
@@ -2721,7 +2721,7 @@ html.totem--tablet.totem--landscape .totem-welcome__lead {
 }
 
 html.totem--phone.totem--landscape .totem-welcome__logo {
-    width: clamp(4rem, 22dvh, 5.5rem);
+    width: clamp(5.5rem, 28dvh, 7.5rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
