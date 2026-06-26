@@ -1,0 +1,11 @@
+{
+  "weekdays": [2],
+  "cutoffHour": 14,
+  "timezone": "America/Sao_Paulo",
+  "horizonWeeks": 12,
+  "maxDates": 8,
+  "slotLabel": "Regular",
+  "fee": 0,
+  "feeLabel": "Grátis",
+  "source": "fallback"
+}

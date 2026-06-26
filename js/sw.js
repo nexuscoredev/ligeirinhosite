@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v132';
+const CACHE_NAME = 'ligeirinho-app-v133';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
@@ -9,6 +9,11 @@ const NETWORK_FIRST_JS = new Set([
     '/js/totem-success.js',
     '/js/totem-viewport.js',
     '/js/resumo-pedido.js',
+    '/js/delivery-schedule.js',
+    '/js/data-entrega.js',
+    '/js/resumo.js',
+    '/js/metodo-pagamento.js',
+    '/js/payment-methods.js',
 ]);
 
 const APP_SHELL = [
@@ -27,6 +32,9 @@ const APP_SHELL = [
     '/totem-sucesso',
     '/pagamento',
     '/pedido-confirmado',
+    '/data-entrega',
+    '/resumo',
+    '/metodo-pagamento',
     '/versao',
     '/manifest.webmanifest',
     '/css/site.css',
@@ -52,6 +60,12 @@ const APP_SHELL = [
     '/js/caminhao.js',
     '/js/parceiro-delivery.js',
     '/js/resumo-pedido.js',
+    '/js/delivery-schedule.js',
+    '/js/data-entrega.js',
+    '/js/resumo.js',
+    '/js/metodo-pagamento.js',
+    '/js/payment-methods.js',
+    '/data/delivery-schedule.json',
     '/data/ofertas-config.json',
     '/data/client-notifications.json',
     '/data/home-stories.json',
@@ -100,6 +114,12 @@ const APP_SHELL = [
     '/img/icon-apple.svg',
     '/img/mercado-pago-logo-white-horizontal.svg',
     '/img/mercado-pago-wallet-logo.svg',
+    '/img/mercado-pago-btn.png',
+    '/img/mercado-pago-logo-color.png',
+    '/img/mercado-pago-logo-white-full.png',
+    '/img/mercado-pago-logo-white.svg',
+    '/img/mercado-pago-logo.svg',
+    '/img/mp-checkout-btn.png',
 ];
 
 function cacheShellUrls(cache, urls) {
