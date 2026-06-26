@@ -1134,6 +1134,18 @@ ${bodyHtml}
         bumpIdle();
     };
 
+    const removeFromCart = (cartKey) => {
+        const cart = cartApi.loadCart();
+        if (!cart[cartKey]) return;
+        delete cart[cartKey];
+        cartApi.saveCart(cart);
+        renderCart();
+        renderProducts();
+        refreshPromosIfOpen();
+        refreshDetailIfOpen();
+        bumpIdle();
+    };
+
     const renderCart = () => {
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
@@ -1169,10 +1181,15 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 </div>
 <div class="totem-cart-line__subtotal">${formatPrice(lineTotal)}</div>
 </div>
+<div class="totem-cart-line__actions">
 <div class="totem-cart-line__qty" role="group" aria-label="Quantidade">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(key)}" aria-label="Diminuir">−</button>
 <span class="totem-cart-line__qty-val">${item.qty}</span>
 <button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(key)}" aria-label="Aumentar">+</button>
+</div>
+<button type="button" class="totem-cart-line__remove totem-remove" data-cart-key="${esc(key)}" aria-label="Remover item do carrinho">
+<span class="material-symbols-outlined" aria-hidden="true">delete</span>
+</button>
 </div>
 </article>`;
                   })
@@ -1396,8 +1413,13 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         });
 
         cartList?.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.totem-remove');
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
+            if (removeBtn) {
+                removeFromCart(removeBtn.dataset.cartKey);
+                return;
+            }
             if (plus) changeQty(plus.dataset.cartKey, 1);
             if (minus) changeQty(minus.dataset.cartKey, -1);
         });
