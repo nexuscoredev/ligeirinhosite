@@ -70,6 +70,7 @@
     let cartToastTimer = null;
     let searchQuery = '';
     let searchTimer = null;
+    let totemKeyboard = null;
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
     let detailItemKey = null;
@@ -288,6 +289,7 @@ ${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
 
     const openProductDetail = (itemKey) => {
         if (!detailPanel || !detailSheet || !itemKey) return;
+        totemKeyboard?.hide?.();
         detailItemKey = itemKey;
         renderProductDetail();
         detailPanel.setAttribute('aria-hidden', 'false');
@@ -727,6 +729,7 @@ ${unitHtml}
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
         if (!inShopping) idleHint?.classList.remove('totem-idle-hint--visible');
+        if (!inCatalog) totemKeyboard?.hide?.();
         if (inPromos) window.LigeirinhoTotemPromos?.refresh?.();
         updateFloatCart(cartApi.loadCart());
     };
@@ -1347,7 +1350,18 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             clearSearch();
             renderProducts();
             searchInput?.focus();
+            totemKeyboard?.show?.();
             bumpIdle();
+        });
+
+        totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
+            input: searchInput,
+            onInput: (value) => {
+                if (searchTimer) clearTimeout(searchTimer);
+                searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+            },
+            onSubmit: (value) => setSearchQuery(value),
+            onClose: bumpIdle,
         });
 
         document.getElementById('totem-admin-cancel')?.addEventListener('click', closeAdminModal);

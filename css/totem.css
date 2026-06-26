@@ -1531,9 +1531,10 @@ html.totem--phone .totem-btn--promos__icon {
     font-weight: 600;
     line-height: 1.2;
     outline: none;
-    touch-action: auto;
-    user-select: text;
-    -webkit-user-select: text;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
 }
 
 .totem-search__input::placeholder {
@@ -4694,7 +4695,8 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     .totem-detail--closing,
     .totem-detail--closing .totem-detail__sheet,
     .totem-admin-modal--open,
-    .totem-admin-modal--open .totem-admin-card {
+    .totem-admin-modal--open .totem-admin-card,
+    .totem-vk {
         animation: none !important;
         transition: none !important;
     }
@@ -4716,5 +4718,133 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 
     .totem-app {
         --totem-welcome-scale: min(0.92, calc((100svh - 10rem) / 500));
+    }
+}
+
+/* ——— Teclado virtual (busca) ——— */
+.totem-vk {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 72;
+    padding: 0.45rem 0.5rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+    background: linear-gradient(180deg, rgba(250, 249, 246, 0.94) 0%, #f3f1ec 100%);
+    border-top: 1px solid rgba(20, 18, 15, 0.08);
+    box-shadow: 0 -10px 32px rgba(20, 18, 15, 0.12);
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    animation: totem-vk-in 0.22s var(--totem-ease-out) both;
+}
+
+@keyframes totem-vk-in {
+    from {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.totem-vk__inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-width: 52rem;
+    margin: 0 auto;
+}
+
+.totem-vk__row {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.totem-vk__row:nth-child(3) {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    width: min(100%, 28rem);
+    margin-inline: auto;
+}
+
+.totem-vk__row--actions {
+    grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 0.8fr);
+    margin-top: 0.1rem;
+}
+
+.totem-vk__key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.65rem;
+    padding: 0.35rem 0.25rem;
+    border: 1px solid rgba(20, 18, 15, 0.08);
+    border-radius: 0.55rem;
+    background: #fff;
+    color: var(--lig-text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.totem-vk__key:active {
+    transform: scale(0.96);
+    background: rgba(240, 201, 41, 0.16);
+    border-color: rgba(240, 201, 41, 0.35);
+}
+
+.totem-vk__key--wide {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.totem-vk__key--primary {
+    background: linear-gradient(165deg, #fde047 0%, var(--lig-yellow) 50%, #d4a81a 100%);
+    color: #14120f;
+    border-color: rgba(212, 168, 26, 0.45);
+}
+
+.totem-vk__key--ghost {
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--lig-text-muted);
+    font-weight: 700;
+    font-size: 0.72rem;
+}
+
+.totem-vk__key--icon .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+body.totem-keyboard-open .totem-products__body {
+    padding-bottom: min(42dvh, 17rem);
+}
+
+body.totem-keyboard-open .totem-float-cart--visible {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(calc(100% + 4rem));
+}
+
+html.totem--phone .totem-vk__key {
+    min-height: 2.35rem;
+    font-size: 0.78rem;
+}
+
+html.totem--phone .totem-vk__row--actions {
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 0.9fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.75fr);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .totem-vk {
+        animation: none;
     }
 }
