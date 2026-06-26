@@ -278,7 +278,7 @@ ${unitPriceSuffix(variant, tier) ? `<span class="totem-detail__price-unit">${esc
 <div class="totem-detail__media">
 ${returnable ? '<span class="totem-detail__badge totem-detail__badge--return">Retornável</span>' : ''}
 ${vol ? `<span class="totem-detail__badge totem-detail__badge--vol">${esc(vol)}</span>` : ''}
-${packBadge ? `<span class="totem-detail__badge totem-detail__badge--pack">${esc(packBadge)}</span>` : ''}
+${packBadge && !tiersHtml ? `<span class="totem-detail__badge totem-detail__badge--pack">${esc(packBadge)}</span>` : ''}
 ${img ? `<img src="${esc(img)}" alt="">` : '<span class="material-symbols-outlined totem-detail__placeholder" aria-hidden="true">liquor</span>'}
 </div>
 ${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
@@ -373,7 +373,7 @@ ${pointsMsg}
         return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Embalagem">${buttons}</div></div>`;
     };
 
-    const priceBlockHtml = (variant) => {
+    const priceBlockHtml = (variant, opts = {}) => {
         if (!variant) return '';
         const meta = pricing.pricePackMeta(variant);
         const packPrice = meta.packagePrice ?? variant.price;
@@ -382,6 +382,9 @@ ${pointsMsg}
         const packLabel =
             meta.tierLabel ||
             (variant.tier === 'pallet' ? 'Pallet' : variant.tier === 'caixa' ? 'Caixa' : 'Unidade');
+        const packHtml = opts.hidePackLabel
+            ? ''
+            : `<span class="totem-price-card__pack">${esc(packLabel)}</span>`;
 
         const detailHtml = `<p class="totem-price-card__detail">${units > 1 && meta.detail ? esc(meta.detail) : ''}</p>`;
         const unitHtml = `<p class="totem-price-card__unit">${
@@ -391,19 +394,19 @@ ${pointsMsg}
         return `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
 <div class="totem-price-card__main">
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
-<span class="totem-price-card__pack">${esc(packLabel)}</span>
+${packHtml}
 </div>
 ${detailHtml}
 ${unitHtml}
 </div>`;
     };
 
-    const updatePriceBlock = (card, variant) => {
+    const updatePriceBlock = (card, variant, opts = {}) => {
         if (!variant) return;
         const priceBlock = card.querySelector('[data-price-display]');
         if (!priceBlock) return;
         const next = document.createElement('div');
-        next.innerHTML = priceBlockHtml(variant);
+        next.innerHTML = priceBlockHtml(variant, opts);
         const replacement = next.firstElementChild;
         if (replacement) priceBlock.replaceWith(replacement);
     };
@@ -451,7 +454,8 @@ ${unitHtml}
         if (priceEl && !card.querySelector('[data-price-display]')) {
             priceEl.textContent = formatPrice(variant.price);
         } else {
-            updatePriceBlock(card, variant);
+            const tiers = pricing.getAvailableTiers(group);
+            updatePriceBlock(card, variant, { hidePackLabel: tiers.length > 1 });
         }
 
         const minus = card.querySelector('.totem-minus');
@@ -844,12 +848,12 @@ ${unitHtml}
         const name = group?.baseName || product.name;
         const itemKey = group?.key || product.id;
         const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+        const tierCount = group ? pricing.getAvailableTiers(group).length : 0;
         const priceHtml = variant
-            ? priceBlockHtml(variant)
+            ? priceBlockHtml(variant, { hidePackLabel: tierCount > 1 })
             : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
 <div class="totem-price-card__main">
 <span class="totem-product__price totem-price-card__value">${formatPrice(product.price)}</span>
-<span class="totem-price-card__pack">Unidade</span>
 </div>
 <p class="totem-price-card__detail"></p>
 <p class="totem-price-card__unit"></p>

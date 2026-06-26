@@ -2243,7 +2243,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 .totem-price-card__main {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0.35rem;
     min-width: 0;
     width: 100%;
