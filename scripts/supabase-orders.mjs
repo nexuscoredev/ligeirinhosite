@@ -135,6 +135,9 @@ export function publicOrderView(order) {
         pixTxid: order.pix_txid || null,
         pixProvider: order.pix_provider || null,
         createdAt: order.created_at,
+        wantsInvoice: Boolean(order.wants_invoice),
+        nfQueueStatus: order.nf_queue_status || null,
+        hubPedidoId: order.hub_pedido_id || null,
     };
 }
 

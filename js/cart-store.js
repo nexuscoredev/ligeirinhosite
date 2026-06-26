@@ -25,6 +25,7 @@
         condicaoPagamento: '',
         deliveryDate: '',
         notes: '',
+        wantsInvoice: null,
     });
 
     const loadCheckout = () => {

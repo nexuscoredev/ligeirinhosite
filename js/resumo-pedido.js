@@ -182,6 +182,9 @@
         else if (checkout.paymentMethod === 'cartao') {
             errors.paymentMethod = 'Cartão não está disponível. Escolha Pix ou dinheiro.';
         }
+        if (checkout.wantsInvoice !== true && checkout.wantsInvoice !== false) {
+            errors.wantsInvoice = 'Informe se deseja nota fiscal (NF/DANFE).';
+        }
         return errors;
     };
 
@@ -253,6 +256,21 @@ ${cardHtml(
 <button type="button" class="resumo-select-btn resumo-select-btn--payment${errors.paymentMethod ? ' resumo-select-btn--error' : ''}" data-open-picker="payment">${payLabel}</button>
 ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</p>` : ''}`
 )}
+${cardHtml(
+    'Nota fiscal (NF/DANFE)',
+    `<p class="resumo-field-hint">Deseja receber NF ou DANFE deste pedido?</p>
+<div class="resumo-invoice-options">
+<button type="button" class="resumo-option resumo-option--invoice${checkout.wantsInvoice === true ? ' resumo-option--active' : ''}" data-pick-invoice="yes">
+<span class="material-symbols-outlined resumo-option__icon" aria-hidden="true">receipt_long</span>
+<div class="resumo-option__body"><strong>Sim, quero NF/DANFE</strong><span>Entra na fila de emissão após confirmar</span></div>
+</button>
+<button type="button" class="resumo-option resumo-option--invoice${checkout.wantsInvoice === false ? ' resumo-option--active' : ''}" data-pick-invoice="no">
+<span class="material-symbols-outlined resumo-option__icon" aria-hidden="true">block</span>
+<div class="resumo-option__body"><strong>Não preciso</strong><span>Seguir sem documento fiscal</span></div>
+</button>
+</div>
+${errors.wantsInvoice ? `<p class="resumo-error">${esc(errors.wantsInvoice)}</p>` : ''}`
+)}
 ${cardHtml('Produtos', `${productsBody}${items.length > 3 ? `<p class="resumo-more">+ ${items.length - 3} itens</p>` : ''}`, String(units))}
 ${cardHtml(
     'Resumo do pedido',
@@ -277,6 +295,12 @@ ${cardHtml(
             });
         });
         root.querySelector('#resumo-confirm')?.addEventListener('click', () => confirmOrder());
+        root.querySelectorAll('[data-pick-invoice]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                cartApi.saveCheckout({ wantsInvoice: btn.dataset.pickInvoice === 'yes' });
+                render();
+            });
+        });
     };
 
     const renderPicker = () => {
@@ -405,6 +429,7 @@ ${headerHtml(title)}
                         hubUserId: s?.hubUserId || '',
                         cnpj: s?.cnpj || '',
                     },
+                    wantsInvoice: checkout.wantsInvoice === true,
                 }),
             });
             const data = await res.json();

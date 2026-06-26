@@ -6,6 +6,7 @@ import {
     reserveCredit,
     getFinanceSettings,
 } from '../../scripts/supabase-finance.mjs';
+import { initialNfQueueStatus, maybeEnqueueParceiroNf } from '../../scripts/parceiro-nf-queue.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -85,6 +86,14 @@ export default async function handler(req, res) {
         let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
         if (!paymentMethod && !isTotem) paymentMethod = 'pix';
         const isCreditOrder = paymentMethod && CREDIT_METHODS.has(paymentMethod);
+        const wantsInvoice = Boolean(body.wantsInvoice ?? body.wants_invoice);
+        const nfQueueStatus = initialNfQueueStatus({
+            wants_invoice: wantsInvoice,
+            payment_method: paymentMethod,
+            financial_status: financialStatus,
+            status: 'pending',
+            channel,
+        });
 
         const db = dbFromPaymentConfig(config);
 
@@ -154,6 +163,8 @@ export default async function handler(req, res) {
             payment_method: paymentMethod || null,
             due_date: isCreditOrder || financialStatus === 'pendente' ? addDays(new Date(), dueDays) : null,
             financial_status: financialStatus,
+            wants_invoice: wantsInvoice,
+            nf_queue_status: nfQueueStatus,
         };
 
         let order;
@@ -169,6 +180,9 @@ export default async function handler(req, res) {
                     due_date: _d,
                     financial_status: _e,
                     delivery_date: _f,
+                    wants_invoice: _g,
+                    nf_queue_status: _h,
+                    hub_pedido_id: _i,
                     ...legacyRow
                 } = row;
                 if (channel === 'totem') {
@@ -185,12 +199,22 @@ export default async function handler(req, res) {
             }
         }
 
+        const hubPedido = await maybeEnqueueParceiroNf(order, process.env, db);
+        if (hubPedido?.id) {
+            order.hub_pedido_id = hubPedido.id;
+            order.nf_queue_status = 'queued';
+        }
+
         return res.status(201).json({
             orderId: order.id,
             total: Number(order.total),
             order: publicOrderView(order),
             financialStatus: order.financial_status || financialStatus,
             dueDate: order.due_date || row.due_date,
+            wantsInvoice: Boolean(order.wants_invoice),
+            nfQueueStatus: order.nf_queue_status || null,
+            nfQueued: order.nf_queue_status === 'queued',
+            hubPedidoNumero: hubPedido?.numero ?? null,
         });
     } catch (err) {
         console.error('orders/create', err);

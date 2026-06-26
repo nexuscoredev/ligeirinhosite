@@ -33,6 +33,8 @@ async function applyParceiros() {
         await runSqlFile(client, 'santander-pix-migration.sql');
         console.log('[parceiros] Aplicando totem-code-4chars-migration.sql…');
         await runSqlFile(client, 'totem-code-4chars-migration.sql');
+        console.log('[parceiros] Aplicando invoice-schema-migration.sql…');
+        await runSqlFile(client, 'invoice-schema-migration.sql');
 
         const tables = await client.query(
             `select table_name from information_schema.tables
@@ -69,6 +71,8 @@ async function applyHub() {
     try {
         console.log('[hub] Aplicando hub-parceiros-auth-migration.sql…');
         await runSqlFile(client, 'hub-parceiros-auth-migration.sql');
+        console.log('[hub] Aplicando hub-parceiros-nf-migration.sql…');
+        await runSqlFile(client, 'hub-parceiros-nf-migration.sql');
         return true;
     } finally {
         await client.end();

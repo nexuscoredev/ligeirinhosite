@@ -7106,6 +7106,43 @@ html.lig-login-modal-open {
     margin: 0 0 1.25rem;
 }
 
+.lig-nf-notice {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin: 0 0 1rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 0.95rem;
+    border: 1px solid rgba(240, 201, 41, 0.35);
+    background: rgba(240, 201, 41, 0.12);
+    text-align: left;
+}
+
+.lig-nf-notice--muted {
+    border-color: var(--lig-border);
+    background: rgba(20, 18, 15, 0.03);
+}
+
+.lig-nf-notice__icon {
+    font-size: 1.5rem;
+    color: var(--lig-yellow-text);
+    flex-shrink: 0;
+}
+
+.lig-nf-notice__title {
+    margin: 0 0 0.2rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--lig-text);
+}
+
+.lig-nf-notice__lead {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+    line-height: 1.45;
+}
+
 .lig-payment-summary {
     text-align: left;
     border: 1px solid var(--lig-border);
@@ -8111,6 +8148,15 @@ body.lig-install-open {
 .resumo-options {
     display: grid;
     gap: 0.65rem;
+}
+
+.resumo-invoice-options {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.resumo-option--invoice {
+    grid-template-columns: auto 1fr;
 }
 
 .resumo-option {
