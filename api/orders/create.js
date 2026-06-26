@@ -87,6 +87,14 @@ export default async function handler(req, res) {
         if (!paymentMethod && !isTotem) paymentMethod = 'pix';
         const isCreditOrder = paymentMethod && CREDIT_METHODS.has(paymentMethod);
         const wantsInvoice = Boolean(body.wantsInvoice ?? body.wants_invoice);
+        const financialStatus =
+            isTotem && !paymentMethod
+                ? 'pendente'
+                : isCreditOrder
+                  ? 'pendente'
+                  : ['pix', 'cartao', 'mercado_pago'].includes(paymentMethod)
+                    ? 'em_cobranca'
+                    : 'pendente';
         const nfQueueStatus = initialNfQueueStatus({
             wants_invoice: wantsInvoice,
             payment_method: paymentMethod,
@@ -134,14 +142,6 @@ export default async function handler(req, res) {
         }
 
         const dueDays = Number(settings?.default_due_days) || 30;
-        const financialStatus =
-            isTotem && !paymentMethod
-                ? 'pendente'
-                : isCreditOrder
-                  ? 'pendente'
-                  : ['pix', 'cartao', 'mercado_pago'].includes(paymentMethod)
-                    ? 'em_cobranca'
-                    : 'pendente';
 
         const row = {
             status: 'pending',

@@ -90,13 +90,13 @@ body.totem-kiosk {
     flex: 0 0 auto;
 }
 
-/* Identificação do cliente: topo + rolagem quando o teclado virtual abre */
+/* Identificação do cliente: formulário centralizado na área útil */
 .totem-app:has(#totem-view-customer.totem-view--active) .totem-main {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
+    justify-content: center;
+    align-items: center;
     min-height: 0;
     padding-bottom: 0;
 }
@@ -108,7 +108,12 @@ body.totem-kiosk {
     min-height: 0;
     width: 100%;
     height: auto;
+    max-height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ——— Header ——— */
@@ -1009,8 +1014,9 @@ html.totem--phone .totem-btn--promos__icon {
 }
 
 .totem-customer {
-    align-items: stretch;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
     padding: clamp(0.45rem, 1.25dvh, 0.75rem) clamp(0.85rem, 2.5vw, 1.35rem)
         clamp(0.5rem, 1dvh, 0.75rem);
     background: var(--lig-bg);
@@ -1018,19 +1024,21 @@ html.totem--phone .totem-btn--promos__icon {
 }
 
 .totem-customer__content {
-    width: min(100%, 26rem);
+    width: min(100%, 24rem);
     max-width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 0.75rem;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-height: 0;
+    max-height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 0.35rem;
+    padding: 0 0.15rem 0.35rem;
 }
 
 .totem-customer__back {
@@ -1162,13 +1170,23 @@ html.totem--phone .totem-btn--promos__icon {
 }
 
 body.totem-keyboard-customer .totem-customer {
-    justify-content: flex-end;
+    justify-content: center;
+    padding-bottom: calc(var(--totem-vk-height, 16.5rem) + 0.5rem);
 }
 
 body.totem-keyboard-customer .totem-customer__content {
     flex: 0 1 auto;
-    margin-bottom: calc(var(--totem-vk-height, 16.5rem) + 0.35rem);
-    padding-bottom: 0;
+    margin: 0 auto;
+    max-height: calc(100dvh - var(--totem-vk-height, 16.5rem) - 5.5rem);
+    justify-content: center;
+}
+
+body.totem-keyboard-customer .totem-customer__hero {
+    text-align: center;
+}
+
+body.totem-keyboard-customer .totem-customer__form {
+    width: 100%;
 }
 
 body.totem-keyboard-customer .totem-customer__lead {
