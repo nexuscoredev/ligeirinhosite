@@ -73,14 +73,22 @@
     let detailPointsFlash = 0;
     let pointsPerReal = 10;
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
-    let catalogView = 'grid';
+    const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
+    const GRID_DENSITY_CLASSES = ['totem-grid--grid-s', 'totem-grid--grid-m', 'totem-grid--grid-l'];
+    const DEFAULT_CATALOG_VIEW = 'grid-m';
+    let catalogView = DEFAULT_CATALOG_VIEW;
+
+    const normalizeCatalogView = (raw) => {
+        const view = String(raw || '').toLowerCase();
+        if (view === 'grid') return 'grid-m';
+        return CATALOG_VIEWS.has(view) ? view : DEFAULT_CATALOG_VIEW;
+    };
 
     const loadCatalogView = () => {
         try {
-            const stored = String(localStorage.getItem(CATALOG_VIEW_KEY) || '').toLowerCase();
-            return stored === 'list' ? 'list' : 'grid';
+            return normalizeCatalogView(localStorage.getItem(CATALOG_VIEW_KEY));
         } catch {
-            return 'grid';
+            return DEFAULT_CATALOG_VIEW;
         }
     };
 
@@ -92,6 +100,16 @@
         }
     };
 
+    const applyCatalogViewClasses = () => {
+        productsGrid?.classList.remove('totem-grid--list', ...GRID_DENSITY_CLASSES);
+        if (catalogView === 'list') {
+            productsGrid?.classList.add('totem-grid--list');
+        } else {
+            productsGrid?.classList.add(`totem-grid--${catalogView}`);
+        }
+        productsBody?.classList.toggle('totem-products__body--list', catalogView === 'list');
+    };
+
     const updateViewSwitcher = () => {
         const switcher = productsHead?.querySelector('.totem-view-switch');
         productsHead?.querySelectorAll('[data-totem-view]').forEach((btn) => {
@@ -99,9 +117,7 @@
             btn.classList.toggle('totem-view-switch__btn--active', active);
             btn.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
-        productsGrid?.classList.toggle('totem-grid--list', catalogView === 'list');
-        productsGrid?.classList.toggle('totem-grid--grid', catalogView !== 'list');
-        productsBody?.classList.toggle('totem-products__body--list', catalogView === 'list');
+        applyCatalogViewClasses();
 
         const indicator = switcher?.querySelector('.totem-view-switch__indicator');
         const activeBtn = switcher?.querySelector(`[data-totem-view="${catalogView}"]`);
@@ -129,7 +145,7 @@
     };
 
     const setCatalogView = (view) => {
-        const next = view === 'list' ? 'list' : 'grid';
+        const next = normalizeCatalogView(view);
         if (catalogView === next) return;
         catalogView = next;
         saveCatalogView(catalogView);
@@ -818,9 +834,9 @@ ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material
 <div class="totem-product__name">${esc(name)}</div>
 <div class="totem-product__pricing">
 ${tiersHtml}
-${catalogView === 'grid' ? `<div class="totem-product__meta">${priceHtml}</div>` : ''}
+${catalogView !== 'list' ? `<div class="totem-product__meta">${priceHtml}</div>` : ''}
 </div>
-${catalogView === 'grid' ? qtyHtml : ''}
+${catalogView !== 'list' ? qtyHtml : ''}
 </div>`;
 
         if (catalogView === 'list') {

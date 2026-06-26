@@ -63,7 +63,7 @@ body.totem-kiosk {
     height: 100svh;
     max-height: 100svh;
     overflow: hidden;
-    --totem-welcome-scale: min(1.05, calc((100svh - 7.5rem) / 480));
+    --totem-welcome-scale: min(1.08, calc((100svh - 7.5rem) / 430));
     --totem-welcome-shift: clamp(-1.75rem, -4dvh, -1rem);
     --totem-sidebar-w: clamp(10.5rem, 14vw, 13.5rem);
     background: var(--lig-bg);
@@ -418,8 +418,8 @@ body.totem-kiosk {
 
 .totem-welcome__logo-wrap {
     display: inline-flex;
-    padding: clamp(0.5rem, 1.4dvh, 0.75rem);
-    border-radius: 2rem;
+    padding: clamp(0.6rem, 1.6dvh, 0.9rem);
+    border-radius: 2.15rem;
     background: #fff;
     box-shadow:
         0 0 0 1px rgba(20, 18, 15, 0.06),
@@ -463,10 +463,10 @@ body.totem-kiosk {
 }
 
 .totem-welcome__logo {
-    width: clamp(9rem, 30dvh, 14rem);
+    width: clamp(11rem, 36dvh, 17.5rem);
     display: block;
-    border-radius: 1.35rem;
-    padding: clamp(0.4rem, 1.1dvh, 0.65rem);
+    border-radius: 1.5rem;
+    padding: clamp(0.45rem, 1.25dvh, 0.75rem);
 }
 
 .totem-welcome__eyebrow {
@@ -484,7 +484,7 @@ body.totem-kiosk {
 }
 
 .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(2.35rem, 7dvh, 3.35rem);
+    font-size: clamp(2.85rem, 8.5dvh, 4.1rem);
     justify-content: center;
 }
 
@@ -1001,11 +1001,18 @@ body.totem-kiosk {
     position: relative;
     display: inline-flex;
     align-items: center;
+    max-width: min(100%, 22rem);
     padding: 0.18rem;
     border-radius: 0.65rem;
     border: 1px solid var(--lig-border);
     background: rgba(20, 18, 15, 0.04);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.totem-view-switch::-webkit-scrollbar {
+    display: none;
 }
 
 .totem-view-switch__indicator {
@@ -1139,7 +1146,7 @@ body.totem-kiosk {
 
 .totem-list-head {
     display: grid;
-    grid-template-columns: 4.75rem minmax(0, 1fr) minmax(6.25rem, 8rem) minmax(7.25rem, 8.75rem);
+    grid-template-columns: 5.25rem minmax(0, 1fr) minmax(6.25rem, 8rem) minmax(7.25rem, 8.75rem);
     gap: 0.75rem;
     align-items: center;
     padding: 0.4rem 0.75rem 0.45rem;
@@ -1169,10 +1176,39 @@ body.totem-kiosk {
     gap: 0.7rem;
 }
 
-.totem-grid--grid {
-    --totem-grid-min: clamp(7.25rem, 13vw, 10.25rem);
+.totem-grid--grid-s,
+.totem-grid--grid-m,
+.totem-grid--grid-l {
+    display: grid;
+    align-content: start;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
     grid-template-columns: repeat(auto-fill, minmax(var(--totem-grid-min), 1fr));
-    gap: clamp(0.55rem, 1.1vw, 0.85rem);
+    gap: var(--totem-grid-gap);
+}
+
+.totem-grid--grid-s {
+    --totem-grid-min: clamp(5.35rem, 9.5vw, 7rem);
+    --totem-grid-gap: clamp(0.4rem, 0.85vw, 0.6rem);
+    --totem-grid-media-max: clamp(3.35rem, 8.5dvh, 4.85rem);
+    --totem-grid-name-size: 0.625rem;
+    --totem-grid-name-lines: 2;
+}
+
+.totem-grid--grid-m {
+    --totem-grid-min: clamp(7.25rem, 13vw, 10.25rem);
+    --totem-grid-gap: clamp(0.55rem, 1.1vw, 0.85rem);
+    --totem-grid-media-max: clamp(4.75rem, 12dvh, 7.25rem);
+    --totem-grid-name-size: 0.7rem;
+    --totem-grid-name-lines: 2;
+}
+
+.totem-grid--grid-l {
+    --totem-grid-min: clamp(9.25rem, 16vw, 13rem);
+    --totem-grid-gap: clamp(0.7rem, 1.35vw, 1rem);
+    --totem-grid-media-max: clamp(6.25rem, 16dvh, 9.5rem);
+    --totem-grid-name-size: 0.78rem;
+    --totem-grid-name-lines: 3;
 }
 
 .totem-grid--view-changing .totem-product {
@@ -1190,40 +1226,50 @@ body.totem-kiosk {
     }
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid {
+html.totem--kiosk.totem--landscape .totem-grid--grid-s {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+html.totem--kiosk.totem--landscape .totem-grid--grid-m {
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 0.8rem;
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__media {
-    aspect-ratio: 1;
-    min-height: clamp(5.25rem, 17dvh, 8.25rem);
-    max-height: clamp(5.5rem, 18dvh, 8.5rem);
+html.totem--kiosk.totem--landscape .totem-grid--grid-l {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.95rem;
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__media img {
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media {
+    aspect-ratio: 1;
+    min-height: clamp(4.5rem, 14dvh, 7rem);
+    max-height: var(--totem-grid-media-max);
+}
+
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media img {
     max-width: 88%;
     max-height: 88%;
     padding: 0.35rem;
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__body {
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__body {
     padding: 0.35rem 0.25rem 0.2rem;
     gap: 0.32rem;
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__name {
-    font-size: 0.78rem;
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__name {
+    font-size: var(--totem-grid-name-size);
     line-height: 1.3;
-    min-height: calc(2 * 1.3 * 0.78rem);
+    min-height: calc(var(--totem-grid-name-lines) * 1.3 * var(--totem-grid-name-size));
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price-block .totem-product__price,
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-price-card__value {
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__price-block .totem-product__price,
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-price-card__value {
     font-size: 1.05rem;
 }
 
-html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
+html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__price {
     font-size: 1rem;
 }
 
@@ -1237,11 +1283,11 @@ html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
 
 .totem-grid--list .totem-product {
     display: grid;
-    grid-template-columns: 4.75rem minmax(0, 1fr) minmax(6.25rem, 8rem) minmax(7.25rem, 8.75rem);
+    grid-template-columns: 5.25rem minmax(0, 1fr) minmax(6.25rem, 8rem) minmax(7.25rem, 8.75rem);
     grid-template-rows: auto;
     align-items: center;
     gap: 0.75rem;
-    min-height: 5.15rem;
+    min-height: 5.5rem;
     height: auto;
     padding: 0.55rem 0.75rem;
     border-radius: 0.65rem;
@@ -1266,10 +1312,41 @@ html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
 }
 
 .totem-grid--list .totem-product__media {
-    width: 4.75rem;
-    height: 4.75rem;
-    border-radius: 0.65rem;
-    border: 1px solid rgba(20, 18, 15, 0.06);
+    flex: 0 0 5.25rem;
+    width: 5.25rem;
+    height: 5.25rem;
+    min-width: 5.25rem;
+    min-height: 5.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(20, 18, 15, 0.08);
+    background: #fff;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 1px 2px rgba(20, 18, 15, 0.04);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    position: relative;
+}
+
+.totem-grid--list .totem-product__media::after {
+    display: none;
+}
+
+.totem-grid--list .totem-product__media img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center;
+    padding: 0;
+}
+
+.totem-grid--list .totem-product__placeholder {
+    font-size: 2.15rem;
 }
 
 .totem-grid--list .totem-product__body {
@@ -1341,7 +1418,7 @@ html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
     min-width: 0;
 }
 
-.totem-grid--grid .totem-product {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product {
     background: rgba(255, 255, 255, 0.35);
     border: 1px solid transparent;
     box-shadow: none;
@@ -1354,13 +1431,13 @@ html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
         transform 0.28s var(--totem-ease-spring);
 }
 
-.totem-grid--grid .totem-product:hover {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product:hover {
     background: rgba(255, 255, 255, 0.92);
     border-color: rgba(20, 18, 15, 0.08);
     box-shadow: var(--lig-shadow-sm);
 }
 
-.totem-grid--grid .totem-product--selected {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product--selected {
     background: rgba(240, 201, 41, 0.14);
     border-color: rgba(240, 201, 41, 0.5);
     box-shadow:
@@ -1368,10 +1445,10 @@ html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
         var(--lig-shadow-sm);
 }
 
-.totem-grid--grid .totem-product__media {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media {
     height: auto;
     aspect-ratio: 1;
-    max-height: clamp(4.75rem, 12dvh, 7.25rem);
+    max-height: var(--totem-grid-media-max);
     margin-inline: auto;
     width: 100%;
     border-radius: 0.55rem;
@@ -1379,44 +1456,68 @@ html.totem--kiosk.totem--landscape .totem-grid--grid .totem-product__price {
     background: rgba(255, 255, 255, 0.92);
 }
 
-.totem-grid--grid .totem-product__media img {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media img {
     max-width: 86%;
     max-height: 86%;
+    object-fit: contain;
 }
 
-.totem-grid--grid .totem-product__body {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__body {
     align-items: center;
     text-align: center;
     padding: 0.3rem 0.2rem 0.15rem;
     gap: 0.28rem;
 }
 
-.totem-grid--grid .totem-product__name {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__name {
     width: 100%;
     text-align: center;
-    font-size: 0.7rem;
-    min-height: calc(2 * 1.25 * 0.7rem);
+    font-size: var(--totem-grid-name-size);
+    min-height: calc(var(--totem-grid-name-lines) * 1.25 * var(--totem-grid-name-size));
+    -webkit-line-clamp: var(--totem-grid-name-lines);
 }
 
-.totem-grid--grid .totem-product .ze-price-tiers-slot {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product .ze-price-tiers-slot {
     width: 100%;
 }
 
-.totem-grid--grid .totem-product__meta .totem-price-card {
+.totem-grid--grid-s .totem-product .ze-price-tier {
+    font-size: 0.5rem;
+    padding: 0.24rem 0.28rem;
+    min-height: 1.45rem;
+}
+
+.totem-grid--grid-l .totem-product .ze-price-tier {
+    font-size: 0.6rem;
+    min-height: 1.75rem;
+}
+
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__meta .totem-price-card {
     padding: 0.25rem 0.15rem 0;
     background: transparent;
     border: none;
     box-shadow: none;
 }
 
-.totem-grid--grid .totem-product__meta .totem-price-card__main {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__meta .totem-price-card__main {
     justify-content: center;
     gap: 0.35rem;
 }
 
-.totem-grid--grid .totem-product__qty {
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__qty {
     width: 100%;
     padding-top: 0.15rem;
+}
+
+.totem-grid--grid-s .totem-qty-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 1.15rem;
+}
+
+.totem-grid--grid-l .totem-qty-btn {
+    width: 44px;
+    height: 44px;
 }
 
 .totem-grid--refresh .totem-product {
@@ -3096,18 +3197,34 @@ html.totem--phone.totem--portrait .totem-btn--icon {
     padding-inline: 0.65rem;
 }
 
-html.totem--phone.totem--portrait .totem-grid--grid {
+html.totem--phone.totem--portrait .totem-grid--grid-s {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+html.totem--phone.totem--portrait .totem-grid--grid-m,
+html.totem--phone.totem--portrait .totem-grid--grid-l {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.55rem;
 }
 
-html.totem--phone.totem--portrait .totem-grid--grid .totem-product {
+html.totem--phone.totem--portrait :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product {
     min-height: 0;
 }
 
-html.totem--phone.totem--portrait .totem-grid--grid .totem-product__name {
+html.totem--phone.totem--portrait .totem-grid--grid-s .totem-product__name {
+    font-size: 0.6rem;
+    min-height: calc(2 * 1.25 * 0.6rem);
+}
+
+html.totem--phone.totem--portrait .totem-grid--grid-m .totem-product__name {
     font-size: 0.7rem;
     min-height: calc(2 * 1.25 * 0.7rem);
+}
+
+html.totem--phone.totem--portrait .totem-grid--grid-l .totem-product__name {
+    font-size: 0.74rem;
+    min-height: calc(2 * 1.25 * 0.74rem);
 }
 
 html.totem--phone .totem-view-switch__label {
@@ -3121,13 +3238,17 @@ html.totem--phone .totem-view-switch__btn {
 
 html.totem--phone.totem--portrait .totem-list-head,
 html.totem--phone.totem--portrait .totem-grid--list .totem-product {
-    grid-template-columns: 3.65rem minmax(0, 1fr) minmax(4.75rem, 5.75rem) minmax(6.25rem, 7rem);
+    grid-template-columns: 4.5rem minmax(0, 1fr) minmax(4.75rem, 5.75rem) minmax(6.25rem, 7rem);
     gap: 0.55rem;
 }
 
 html.totem--phone.totem--portrait .totem-grid--list .totem-product__media {
-    width: 3.65rem;
-    height: 3.65rem;
+    flex-basis: 4.5rem;
+    width: 4.5rem;
+    height: 4.5rem;
+    min-width: 4.5rem;
+    min-height: 4.5rem;
+    padding: 0.32rem;
 }
 
 html.totem--phone.totem--portrait .totem-products__head {
@@ -3184,11 +3305,11 @@ html.totem--tablet.totem--landscape .totem-welcome__lead {
 }
 
 html.totem--phone.totem--landscape .totem-welcome__logo {
-    width: clamp(7rem, 32dvh, 9.5rem);
+    width: clamp(8.5rem, 38dvh, 11.5rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(1.75rem, 8dvh, 2.35rem);
+    font-size: clamp(2.05rem, 9.5dvh, 2.85rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__lead {
@@ -3265,17 +3386,28 @@ html.totem--phone.totem--landscape .totem-products__title {
     font-size: 1rem;
 }
 
-html.totem--phone.totem--landscape .totem-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+html.totem--phone.totem--landscape .totem-grid--grid-s {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+html.totem--phone.totem--landscape .totem-grid--grid-m {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.45rem;
 }
 
-html.totem--phone.totem--landscape .totem-product {
+html.totem--phone.totem--landscape .totem-grid--grid-l {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+html.totem--phone.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product {
     min-height: 0;
 }
 
-html.totem--phone.totem--landscape .totem-product__media {
-    height: clamp(3.25rem, 24dvh, 4.5rem);
+html.totem--phone.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media {
+    height: auto;
+    max-height: clamp(3rem, 22dvh, 4.25rem);
 }
 
 html.totem--phone.totem--landscape .totem-product__body {
@@ -3406,10 +3538,22 @@ html.totem--kiosk.totem--portrait .totem-products__head {
     margin-top: 0.15rem;
 }
 
-html.totem--tablet.totem--portrait .totem-grid,
-html.totem--kiosk.totem--portrait .totem-grid {
+html.totem--tablet.totem--portrait .totem-grid--grid-s,
+html.totem--kiosk.totem--portrait .totem-grid--grid-s {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+html.totem--tablet.totem--portrait .totem-grid--grid-m,
+html.totem--kiosk.totem--portrait .totem-grid--grid-m {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
+}
+
+html.totem--tablet.totem--portrait .totem-grid--grid-l,
+html.totem--kiosk.totem--portrait .totem-grid--grid-l {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
 }
 
 html.totem--tablet.totem--portrait .totem-welcome__content {
@@ -3418,11 +3562,11 @@ html.totem--tablet.totem--portrait .totem-welcome__content {
 }
 
 html.totem--kiosk.totem--portrait .totem-welcome__logo {
-    width: clamp(10rem, 34dvh, 16rem);
+    width: clamp(12rem, 40dvh, 19rem);
 }
 
 html.totem--kiosk.totem--portrait .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(2.5rem, 7.5dvh, 3.5rem);
+    font-size: clamp(3rem, 9dvh, 4.35rem);
 }
 
 html.totem--tablet.totem--portrait .totem-product {
@@ -3502,9 +3646,19 @@ html.totem--tablet.totem--landscape .totem-cat-btn {
     width: 100%;
 }
 
-html.totem--tablet.totem--landscape .totem-grid {
+html.totem--tablet.totem--landscape .totem-grid--grid-s {
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 0.55rem;
+}
+
+html.totem--tablet.totem--landscape .totem-grid--grid-m {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 0.7rem;
+}
+
+html.totem--tablet.totem--landscape .totem-grid--grid-l {
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 0.85rem;
 }
 
 /* Carrinho lateral em landscape (tablet/phone) */
