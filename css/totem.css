@@ -1985,17 +1985,6 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     width: 100%;
 }
 
-.totem-grid--grid-s .totem-product .ze-price-tier {
-    font-size: 0.5rem;
-    padding: 0.24rem 0.28rem;
-    min-height: 1.45rem;
-}
-
-.totem-grid--grid-l .totem-product .ze-price-tier {
-    font-size: 0.6rem;
-    min-height: 1.75rem;
-}
-
 :is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__meta .totem-price-card {
     padding: 0.25rem 0.15rem 0;
     background: transparent;
@@ -2209,17 +2198,8 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 .totem-product .ze-price-tiers-slot {
     min-height: 1.625rem;
     width: 100%;
-    max-width: 100%;
-    min-width: 0;
     margin: 0;
     flex-shrink: 0;
-    overflow: hidden;
-}
-
-.totem-product .ze-price-tiers {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
 }
 
 .totem-product__pricing {
@@ -2228,23 +2208,19 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     gap: 0.125rem;
     width: 100%;
     min-width: 0;
-    max-width: 100%;
     margin-top: 0.1rem;
     flex: 1 1 auto;
-    overflow: hidden;
 }
 
 .totem-product .ze-price-tier {
+    flex: 1;
     min-height: 1.625rem;
-    min-width: 0;
-    padding: 0.3rem 0.35rem;
+    padding: 0.3rem 0.4rem;
     font-size: 0.5625rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1;
 }
 
 .totem-product__meta {
