@@ -911,10 +911,13 @@ ${unitHtml}
         const catId = catMeta?.id || '';
         const meta = catalog.resolveTotemCategoryMeta(catId);
         const categoriesBtnIcon = categoriesBtn?.querySelector('.totem-categories-btn__icon');
+        const categoriesBtnGlyph = categoriesBtn?.querySelector('.totem-categories-btn__glyph');
         if (categoriesBtnIcon) {
-            categoriesBtnIcon.textContent = meta.icon;
             categoriesBtnIcon.style.setProperty('--totem-cat-icon-bg', meta.bg);
             categoriesBtnIcon.style.setProperty('--totem-cat-icon-fg', meta.fg);
+        }
+        if (categoriesBtnGlyph) {
+            categoriesBtnGlyph.textContent = meta.icon;
         }
         if (!categoriesBtnLabel) return;
         categoriesBtnLabel.textContent = catMeta

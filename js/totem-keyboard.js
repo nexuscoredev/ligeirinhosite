@@ -1,9 +1,15 @@
 (function () {
-    const ROWS = [
+    const LETTER_ROWS = [
         ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
         ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ç'],
         ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
-        ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+    ];
+
+    const NUMPAD_ROWS = [
+        ['7', '8', '9'],
+        ['4', '5', '6'],
+        ['1', '2', '3'],
+        ['0'],
     ];
 
     let root = null;
@@ -50,12 +56,20 @@
         syncInput();
     };
 
+    const syncVkHeight = () => {
+        if (!root || !open) return;
+        document.documentElement.style.setProperty('--totem-vk-height', `${root.offsetHeight}px`);
+    };
+
     const show = () => {
         if (!root || open) return;
         open = true;
         root.hidden = false;
         root.setAttribute('aria-hidden', 'false');
         document.body.classList.add('totem-keyboard-open');
+        const inCustomer = document.getElementById('totem-view-customer')?.classList.contains('totem-view--active');
+        document.body.classList.toggle('totem-keyboard-customer', Boolean(inCustomer));
+        window.requestAnimationFrame(syncVkHeight);
     };
 
     const hide = () => {
@@ -63,7 +77,8 @@
         open = false;
         root.hidden = true;
         root.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('totem-keyboard-open');
+        document.body.classList.remove('totem-keyboard-open', 'totem-keyboard-customer');
+        document.documentElement.style.removeProperty('--totem-vk-height');
         input?.blur();
         onClose?.();
     };
@@ -80,6 +95,16 @@
         } else if (action === 'close') hide();
     };
 
+    const createCharKey = (key) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'totem-vk__key';
+        btn.textContent = key;
+        btn.dataset.action = 'char';
+        btn.dataset.value = key;
+        return btn;
+    };
+
     const buildKeyboard = (submitLabel = 'Buscar') => {
         root = document.createElement('div');
         root.id = 'totem-vk';
@@ -90,36 +115,62 @@
         const inner = document.createElement('div');
         inner.className = 'totem-vk__inner';
         inner.setAttribute('role', 'group');
-        inner.setAttribute('aria-label', 'Teclado virtual');
+        inner.setAttribute('aria-label', 'Teclado virtual ABNT');
 
-        ROWS.forEach((row) => {
+        const layout = document.createElement('div');
+        layout.className = 'totem-vk__layout';
+
+        const letters = document.createElement('div');
+        letters.className = 'totem-vk__letters';
+
+        LETTER_ROWS.forEach((row, index) => {
             const rowEl = document.createElement('div');
             rowEl.className = 'totem-vk__row';
-            row.forEach((key) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'totem-vk__key';
-                btn.textContent = key;
-                btn.dataset.action = 'char';
-                btn.dataset.value = key;
-                rowEl.appendChild(btn);
-            });
-            inner.appendChild(rowEl);
+            if (index === 0) rowEl.classList.add('totem-vk__row--top');
+            if (index === 1) rowEl.classList.add('totem-vk__row--mid');
+            if (index === 2) rowEl.classList.add('totem-vk__row--bottom');
+
+            row.forEach((key) => rowEl.appendChild(createCharKey(key)));
+
+            if (index === 0) {
+                const backspaceBtn = document.createElement('button');
+                backspaceBtn.type = 'button';
+                backspaceBtn.className = 'totem-vk__key totem-vk__key--icon totem-vk__key--backspace';
+                backspaceBtn.dataset.action = 'backspace';
+                backspaceBtn.setAttribute('aria-label', 'Apagar');
+                backspaceBtn.innerHTML =
+                    '<span class="material-symbols-outlined" aria-hidden="true">backspace</span>';
+                rowEl.appendChild(backspaceBtn);
+            }
+
+            letters.appendChild(rowEl);
         });
 
         const actions = document.createElement('div');
         actions.className = 'totem-vk__row totem-vk__row--actions';
         actions.innerHTML = `<button type="button" class="totem-vk__key totem-vk__key--wide" data-action="space" aria-label="Espaço">Espaço</button>
-<button type="button" class="totem-vk__key totem-vk__key--icon" data-action="backspace" aria-label="Apagar">
-<span class="material-symbols-outlined" aria-hidden="true">backspace</span>
-</button>
 <button type="button" class="totem-vk__key totem-vk__key--ghost" data-action="clear">Limpar</button>
 <button type="button" class="totem-vk__key totem-vk__key--primary totem-vk__key--submit" data-action="submit">${submitLabel}</button>
 <button type="button" class="totem-vk__key totem-vk__key--icon totem-vk__key--ghost" data-action="close" aria-label="Fechar teclado">
 <span class="material-symbols-outlined" aria-hidden="true">keyboard_hide</span>
 </button>`;
-        inner.appendChild(actions);
+        letters.appendChild(actions);
 
+        const numpad = document.createElement('div');
+        numpad.className = 'totem-vk__numpad';
+        numpad.setAttribute('aria-label', 'Teclado numérico');
+
+        NUMPAD_ROWS.forEach((row, index) => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'totem-vk__numpad-row';
+            if (index === NUMPAD_ROWS.length - 1) rowEl.classList.add('totem-vk__numpad-row--zero');
+            row.forEach((key) => rowEl.appendChild(createCharKey(key)));
+            numpad.appendChild(rowEl);
+        });
+
+        layout.appendChild(letters);
+        layout.appendChild(numpad);
+        inner.appendChild(layout);
         root.appendChild(inner);
         document.body.appendChild(root);
 
