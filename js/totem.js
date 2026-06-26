@@ -290,13 +290,10 @@ ${pointsMsg}
             meta.tierLabel ||
             (variant.tier === 'pallet' ? 'Pallet' : variant.tier === 'caixa' ? 'Caixa' : 'Unidade');
 
-        const detailHtml =
-            units > 1 && meta.detail
-                ? `<p class="totem-price-card__detail">${esc(meta.detail)}</p>`
-                : '';
-        const unitHtml = showUnitBreakdown
-            ? `<p class="totem-price-card__unit">${formatPrice(meta.unitPrice)}<span> / un</span></p>`
-            : '';
+        const detailHtml = `<p class="totem-price-card__detail">${units > 1 && meta.detail ? esc(meta.detail) : ''}</p>`;
+        const unitHtml = `<p class="totem-price-card__unit">${
+            showUnitBreakdown ? `${formatPrice(meta.unitPrice)}<span> / un</span>` : ''
+        }</p>`;
 
         return `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
 <div class="totem-price-card__main">

@@ -484,7 +484,7 @@ body.totem-kiosk {
 }
 
 .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(2rem, 5.5dvh, 2.75rem);
+    font-size: clamp(2.35rem, 7dvh, 3.35rem);
     justify-content: center;
 }
 
@@ -983,7 +983,8 @@ body.totem-kiosk {
     overflow: visible;
     padding: 0.1rem 0.15rem 1.25rem;
     align-content: start;
-    grid-auto-rows: auto;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
 }
 
 .totem-grid {
@@ -1040,9 +1041,9 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     border: 1px solid rgba(20, 18, 15, 0.07);
     border-radius: 0.9rem;
     overflow: visible;
-    min-height: 0;
-    height: auto;
-    align-self: start;
+    min-height: 100%;
+    height: 100%;
+    align-self: stretch;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.8) inset,
         var(--lig-shadow-sm);
@@ -1192,7 +1193,8 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     font-weight: 700;
     font-size: 0.72rem;
     line-height: 1.25;
-    min-height: 0;
+    min-height: calc(2 * 1.25 * 0.72rem);
+    flex-shrink: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -1215,6 +1217,7 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     width: 100%;
     min-width: 0;
     margin-top: 0.1rem;
+    flex: 1 1 auto;
 }
 
 .totem-product .ze-price-tier {
@@ -2721,11 +2724,11 @@ html.totem--tablet.totem--landscape .totem-welcome__lead {
 }
 
 html.totem--phone.totem--landscape .totem-welcome__logo {
-    width: clamp(5.5rem, 28dvh, 7.5rem);
+    width: clamp(7rem, 32dvh, 9.5rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__wordmark .lig-brand__wordmark {
-    font-size: clamp(1.5rem, 7dvh, 2rem);
+    font-size: clamp(1.75rem, 8dvh, 2.35rem);
 }
 
 html.totem--phone.totem--landscape .totem-welcome__lead {
@@ -2950,8 +2953,16 @@ html.totem--kiosk.totem--portrait .totem-grid {
 }
 
 html.totem--tablet.totem--portrait .totem-welcome__content {
-    width: min(100%, 36rem);
+    width: min(100%, 40rem);
     transform: translateY(var(--totem-welcome-shift));
+}
+
+html.totem--kiosk.totem--portrait .totem-welcome__logo {
+    width: clamp(10rem, 34dvh, 16rem);
+}
+
+html.totem--kiosk.totem--portrait .totem-welcome__wordmark .lig-brand__wordmark {
+    font-size: clamp(2.5rem, 7.5dvh, 3.5rem);
 }
 
 html.totem--tablet.totem--portrait .totem-product {
