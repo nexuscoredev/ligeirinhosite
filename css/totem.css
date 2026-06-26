@@ -120,7 +120,8 @@ body.totem-kiosk {
     padding: clamp(0.55rem, 1.25dvh, 0.8rem) clamp(0.85rem, 2vw, 1.35rem);
     background: var(--lig-bg);
     border-bottom: 1px solid rgba(20, 18, 15, 0.06);
-    z-index: 10;
+    position: relative;
+    z-index: 100;
 }
 
 .totem-header__brand {
@@ -193,7 +194,7 @@ body.totem-kiosk {
 #totem-kiosk-shields {
     position: fixed;
     inset: 0;
-    z-index: 9995;
+    z-index: 4;
     pointer-events: none;
 }
 
@@ -210,35 +211,28 @@ body.totem-kiosk {
     left: 0;
     top: 0;
     bottom: 0;
-    width: clamp(48px, 5vw, 80px);
+    width: 18px;
 }
 
 .totem-kiosk-edge-shield--right {
     right: 0;
     top: 0;
     bottom: 0;
-    width: clamp(48px, 5vw, 80px);
+    width: 18px;
 }
 
 .totem-kiosk-edge-shield--top {
     left: 0;
     right: 0;
     top: 0;
-    height: clamp(36px, 4dvh, 56px);
-}
-
-.totem-kiosk-edge-shield--bottom {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: clamp(36px, 4dvh, 56px);
+    height: 14px;
 }
 
 .totem-kiosk-edge-shield--corner {
     left: 0;
     top: 0;
-    width: clamp(72px, 9vw, 104px);
-    height: clamp(72px, 9vh, 104px);
+    width: 44px;
+    height: 44px;
 }
 
 .totem-header__actions {
@@ -283,6 +277,8 @@ body.totem-kiosk {
     font-size: 0.8125rem;
     letter-spacing: 0.01em;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition:
         transform 0.18s var(--lig-ease),
         background 0.2s ease,
@@ -1640,6 +1636,7 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     font-weight: 700;
     cursor: pointer;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease,
@@ -1662,14 +1659,16 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    overflow: hidden;
-    line-height: 0;
 }
 
 .totem-categories-btn__glyph {
     font-size: 1.15rem !important;
     line-height: 1;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15rem;
+    height: 1.15rem;
     font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
@@ -1770,6 +1769,8 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     background: rgba(20, 18, 15, 0.06);
     color: var(--lig-text-muted);
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .totem-search__clear .material-symbols-outlined {
@@ -1904,6 +1905,7 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     justify-content: center;
     gap: 0.28rem;
     min-width: 2.25rem;
+    min-height: 2rem;
     height: 2rem;
     padding: 0 0.55rem;
     border: none;
@@ -1911,6 +1913,8 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     background: transparent;
     color: var(--lig-text-subtle);
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: color 0.15s ease;
 }
 
@@ -2708,15 +2712,23 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 }
 
 .totem-qty-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 40px;
     height: 40px;
+    padding: 0;
     border-radius: 999px;
     border: 1px solid var(--lig-border-strong);
     background: linear-gradient(180deg, #fff 0%, var(--lig-surface-alt) 100%);
     color: var(--lig-yellow-text);
     font-size: 1.35rem;
     font-weight: 700;
+    line-height: 1;
     box-shadow: var(--lig-shadow-sm);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition:
         background 0.15s ease,
         border-color 0.15s ease,
@@ -3215,7 +3227,7 @@ html.totem--landscape .totem-cart-toast {
     left: 0.75rem;
     right: 0.75rem;
     bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
-    z-index: 65;
+    z-index: 90;
     max-width: 28rem;
     margin: 0 auto;
     transform: translateY(calc(100% + 4rem));
@@ -3500,14 +3512,16 @@ html.totem-has-float-cart .totem-idle-hint {
     justify-content: center;
     flex-shrink: 0;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-    line-height: 0;
-    overflow: hidden;
 }
 
 .totem-cat-pill__icon .material-symbols-outlined {
     font-size: 1.2rem;
     line-height: 1;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2rem;
+    height: 1.2rem;
     font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
@@ -3838,6 +3852,8 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: var(--lig-text);
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition:
         transform 0.18s var(--lig-ease),
         border-color 0.2s ease,
@@ -4320,9 +4336,9 @@ html.totem--phone .totem-view-switch__label {
 
 html.totem--phone .totem-view-switch__btn {
     min-width: 2.1rem;
-    width: 2.1rem;
+    min-height: 2.1rem;
     height: 2.1rem;
-    padding: 0;
+    padding: 0 0.35rem;
     justify-content: center;
 }
 
@@ -5100,21 +5116,21 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 }
 
 .totem-vk__row--top {
-    grid-template-columns: repeat(10, minmax(0, 1fr)) minmax(0, 1.2fr);
+    grid-template-columns: repeat(10, minmax(1.35rem, 1fr)) minmax(1.65rem, 1.1fr);
 }
 
 .totem-vk__row--mid {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
+    grid-template-columns: repeat(10, minmax(1.35rem, 1fr));
 }
 
 .totem-vk__row--bottom {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(1.35rem, 1fr));
     width: min(100%, 72%);
     margin-inline: auto;
 }
 
 .totem-vk__row--actions {
-    grid-template-columns: minmax(0, 2.4fr) minmax(0, 0.95fr) minmax(0, 1.1fr) minmax(0, 0.85fr);
+    grid-template-columns: minmax(3.5rem, 2.4fr) minmax(2.5rem, 0.95fr) minmax(2.75rem, 1.1fr) minmax(2.25rem, 0.85fr);
     margin-top: 0.1rem;
 }
 
@@ -5126,19 +5142,25 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     min-height: 2.65rem;
-    padding: 0.35rem 0.25rem;
+    padding: 0.35rem 0.2rem;
     border: 1px solid rgba(20, 18, 15, 0.08);
     border-radius: 0.55rem;
     background: #fff;
     color: var(--lig-text);
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 2.4vw, 0.9rem);
     font-weight: 800;
     letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
     cursor: pointer;
     touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -5189,7 +5211,7 @@ html.totem--phone .totem-vk__key {
 }
 
 html.totem--phone .totem-vk__row--actions {
-    grid-template-columns: minmax(0, 1.85fr) minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 0.75fr);
+    grid-template-columns: minmax(2.75rem, 1.85fr) minmax(2.25rem, 0.9fr) minmax(2.5rem, 1fr) minmax(2rem, 0.75fr);
 }
 
 html.totem--phone .totem-vk__numpad {

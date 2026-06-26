@@ -129,7 +129,6 @@
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--left"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--right"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--top"></div>
-<div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--bottom"></div>
 <div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--corner"></div>`;
         host.appendChild(wrap);
 
