@@ -4628,25 +4628,6 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     color: #fff;
 }
 
-.totem-detail__points {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #16a34a;
-}
-
-.totem-detail__points .material-symbols-outlined {
-    font-size: 1.1rem;
-}
-
-.totem-detail__points[hidden] {
-    display: none !important;
-}
-
 .totem-detail__vendor {
     display: flex;
     align-items: center;

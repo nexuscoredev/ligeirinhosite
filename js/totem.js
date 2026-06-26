@@ -73,8 +73,6 @@
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
     let detailItemKey = null;
-    let detailPointsFlash = 0;
-    let pointsPerReal = 10;
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
     const GRID_DENSITY_CLASSES = ['totem-grid--grid-s', 'totem-grid--grid-m', 'totem-grid--grid-l'];
@@ -209,8 +207,6 @@
         return pricing.TIER_SHORT?.[tier]?.toUpperCase() || '';
     };
 
-    const computePoints = (price, qty) => Math.max(0, Math.round(Number(price) * Number(qty) * pointsPerReal));
-
     const getDetailContext = () => {
         if (!detailItemKey) return null;
         const item = displayItems.find((i) => (i.group?.key || i.product.id) === detailItemKey);
@@ -237,12 +233,11 @@
             detailPanel.classList.remove('totem-detail--closing');
             detailPanel.setAttribute('aria-hidden', 'true');
             detailItemKey = null;
-            detailPointsFlash = 0;
             if (detailSheet) detailSheet.innerHTML = '';
         }, 280);
     };
 
-    const renderProductDetail = (flashPoints = 0) => {
+    const renderProductDetail = () => {
         if (!detailSheet || !detailItemKey) return;
         const ctx = getDetailContext();
         if (!ctx) {
@@ -257,10 +252,6 @@
         const vol = extractVolume(group?.baseName || displayName);
         const packBadge = tierPackBadge(tier, variant);
         const tiersHtml = group ? priceTiersHtml(group, tier) : '';
-        const pointsMsg =
-            flashPoints > 0
-                ? `<p class="totem-detail__points" id="totem-detail-points"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>Você ganhou ${flashPoints} pontos.</p>`
-                : '<p class="totem-detail__points" id="totem-detail-points" hidden></p>';
 
         detailSheet.innerHTML = `<header class="totem-detail__header">
 <button type="button" class="totem-detail__back" id="totem-detail-back" aria-label="Voltar">
@@ -292,14 +283,12 @@ ${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
 <span class="material-symbols-outlined" aria-hidden="true">${qty ? 'check' : 'add'}</span>
 </button>
 </div>
-${pointsMsg}
 </div>`;
     };
 
     const openProductDetail = (itemKey) => {
         if (!detailPanel || !detailSheet || !itemKey) return;
         detailItemKey = itemKey;
-        detailPointsFlash = 0;
         renderProductDetail();
         detailPanel.setAttribute('aria-hidden', 'false');
         detailPanel.classList.add('totem-detail--open');
@@ -307,9 +296,9 @@ ${pointsMsg}
         bumpIdle();
     };
 
-    const refreshDetailIfOpen = (flashPoints = 0) => {
+    const refreshDetailIfOpen = () => {
         if (!detailItemKey || !detailPanel?.classList.contains('totem-detail--open')) return;
-        renderProductDetail(flashPoints);
+        renderProductDetail();
     };
 
     const hideCartToast = () => {
@@ -1050,9 +1039,8 @@ ${bodyHtml}
         renderProducts();
         refreshPromosIfOpen();
         pulseProduct(key);
-        const pointsEarned = computePoints(price, 1);
         if (opts.fromDetail) {
-            refreshDetailIfOpen(pointsEarned);
+            refreshDetailIfOpen();
         } else {
             showCartAddedToast(name, cartLineImage(cart[key]));
         }
@@ -1073,9 +1061,8 @@ ${bodyHtml}
         refreshPromosIfOpen();
         if (delta > 0) {
             pulseProduct(cartKey);
-            const pointsEarned = computePoints(unitPrice, 1);
             if (opts.fromDetail) {
-                refreshDetailIfOpen(pointsEarned);
+                refreshDetailIfOpen();
             } else {
                 showCartAddedToast(itemName, cartLineImage(line));
             }
@@ -1394,14 +1381,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             deviceLabel.textContent = parts.join(' · ') || 'Autoatendimento';
         }
 
-        const [rawCatalog, configRes, packCfg, tierCfg, raiosCfg] = await Promise.all([
+        const [rawCatalog, configRes, packCfg, tierCfg] = await Promise.all([
             window.LigeirinhoCatalogLoader.load(),
             fetch('data/totem-units.json'),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
-            fetch('data/raios-config.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
         ]);
-        pointsPerReal = Number(raiosCfg.pointsPerReal) || 10;
         totemConfig = await configRes.json();
         unitSettings = resolveUnitSettings();
         catalogData = filterCatalog(rawCatalog);
