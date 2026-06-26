@@ -15,7 +15,6 @@
     const startBtn = document.getElementById('totem-start-btn');
     const homeBtn = document.getElementById('totem-home-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
-    const promosBadge = document.getElementById('totem-promos-badge');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
     const floatCart = document.getElementById('totem-float-cart');
@@ -684,19 +683,6 @@ ${unitHtml}
     const categoryIcon = (cat) => {
         const cover = catalog.categoryCoverMedia(cat, catalogData?.categories || []);
         return cover.icon || 'liquor';
-    };
-
-    const updatePromosBadge = (available, total) => {
-        if (!promosBadge) return;
-        const count = available > 0 ? available : total;
-        if (count > 0) {
-            promosBadge.hidden = false;
-            promosBadge.textContent = count > 99 ? '99+' : String(count);
-            promosBtn?.setAttribute('aria-label', `${count} promoção${count === 1 ? '' : 'ões'} disponíve${count === 1 ? 'l' : 'is'}`);
-        } else {
-            promosBadge.hidden = true;
-            promosBtn?.setAttribute('aria-label', 'Ver promoções');
-        }
     };
 
     const setView = (name) => {
@@ -1430,7 +1416,6 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             formatPrice,
             esc,
             canonCategoryId,
-            onPromoCount: updatePromosBadge,
             onAdd: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
             onChangeQty: (cartKey, delta) => changeQty(cartKey, delta),
             onOpenDetail: (itemKey) => openProductDetail(itemKey),

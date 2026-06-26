@@ -283,8 +283,7 @@ body.totem-kiosk {
 }
 
 .totem-btn--promos__icon,
-.totem-btn--promos .totem-btn__label,
-.totem-btn--promos .totem-btn__badge--promos {
+.totem-btn--promos .totem-btn__label {
     position: relative;
     z-index: 1;
 }
@@ -788,28 +787,6 @@ body.totem-kiosk {
     margin: 0 0 0.5rem;
     font-size: 0.875rem;
     color: var(--lig-text-muted);
-}
-
-.totem-btn__badge--promos {
-    background: linear-gradient(135deg, #14120f 0%, #2a2418 100%);
-    color: #fde047;
-    font-weight: 900;
-    min-width: 1.35rem;
-    height: 1.35rem;
-    box-shadow:
-        0 0 0 2px #fde047,
-        0 2px 8px rgba(20, 18, 15, 0.35);
-    animation: totem-promos-badge-pulse 2.2s ease-in-out infinite;
-}
-
-@keyframes totem-promos-badge-pulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.12);
-    }
 }
 
 .totem-cart-line__promo {
