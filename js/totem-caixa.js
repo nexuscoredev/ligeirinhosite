@@ -42,6 +42,7 @@
     let totemLabel = 'Ligeirinho Totem';
     let autoPrintEnabled = false;
     let autoPrintTriggered = false;
+    let printMode = 'kiosk';
     const SCREEN_TIMEOUT_MS = 10000;
 
     const bindActions = () => {
@@ -65,7 +66,11 @@
     const triggerAutoPrint = async (order) => {
         if (!receipt?.printOrderReceipt || autoPrintTriggered || !autoPrintEnabled) return;
         autoPrintTriggered = true;
-        const printed = await receipt.printOrderReceipt(order, { auto: true, totemLabel });
+        const printed = await receipt.printOrderReceipt(order, {
+            auto: true,
+            totemLabel,
+            printMode,
+        });
         if (printed) showPrintNote();
     };
 
@@ -209,6 +214,7 @@ Nova tela em <strong id="totem-caixa-countdown">${Math.round(SCREEN_TIMEOUT_MS /
             if (receiptConfig) {
                 autoPrintEnabled = receiptConfig.autoPrint === true;
                 totemLabel = receiptConfig.totemLabel || totemLabel;
+                printMode = receiptConfig.printMode || printMode;
             }
 
             const order = data.order;

@@ -422,6 +422,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
     /** Impressão na janela principal — funciona com Chrome --kiosk-printing (sem ponte local). */
     const printViaKiosk = (order, opts = {}) =>
         new Promise((resolve) => {
+            endPrintScreen();
             const root = ensurePrintRoot();
             root.innerHTML = buildReceiptHtml(order, { ...opts, forPrint: true });
 
@@ -663,7 +664,13 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
             const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
 
-            const printBrowser = async () => printViaWarmIframe(order, printOpts);
+            const printBrowser = async () => {
+                const kioskOk = await printViaKiosk(order, printOpts);
+                if (kioskOk) return true;
+                const iframeOk = await printViaWarmIframe(order, printOpts);
+                if (iframeOk) return true;
+                return printViaHiddenIframe(order, printOpts);
+            };
 
             const tryBridge = async (attempts = 2) => {
                 if (!printOpts.printBridgeUrl) return false;

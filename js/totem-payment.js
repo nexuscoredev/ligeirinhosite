@@ -171,6 +171,7 @@ ${renderSummary(order)}
             }
 
             const order = orderData.order;
+            void window.LigeirinhoTotemReceipt?.prewarmPrint?.();
 
             if (order.status === 'paid') {
                 window.location.replace(`totem-sucesso.html?order=${encodeURIComponent(order.id)}`);
