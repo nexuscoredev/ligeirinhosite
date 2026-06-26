@@ -922,6 +922,57 @@ body.totem-kiosk {
     }
 }
 
+.totem-products__head-aside {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.45rem;
+    flex-shrink: 0;
+}
+
+.totem-view-switch {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--lig-border);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.totem-view-switch__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: var(--lig-text-subtle);
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.totem-view-switch__btn .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+
+.totem-view-switch__btn:hover {
+    color: var(--lig-text);
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.totem-view-switch__btn--active {
+    color: var(--lig-text);
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(20, 18, 15, 0.1);
+}
+
 .totem-products__count {
     margin: 0;
     padding: 0.35rem 0.75rem;
@@ -1018,6 +1069,7 @@ html.totem--kiosk.totem--landscape .totem-product__body {
 html.totem--kiosk.totem--landscape .totem-product__name {
     font-size: 0.78rem;
     line-height: 1.3;
+    min-height: calc(2 * 1.3 * 0.78rem);
 }
 
 html.totem--kiosk.totem--landscape .totem-product__price-block .totem-product__price,
@@ -1027,6 +1079,68 @@ html.totem--kiosk.totem--landscape .totem-price-card__value {
 
 html.totem--kiosk.totem--landscape .totem-product__price {
     font-size: 1rem;
+}
+
+.totem-grid--list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    grid-auto-rows: auto;
+}
+
+.totem-grid--list .totem-product {
+    display: grid;
+    grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 5.35rem;
+    height: auto;
+    padding: 0.65rem 0.75rem;
+}
+
+.totem-grid--list .totem-product__media {
+    width: 4.75rem;
+    height: 4.75rem;
+    border-radius: 0.7rem;
+}
+
+.totem-grid--list .totem-product__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0;
+    min-width: 0;
+}
+
+.totem-grid--list .totem-product__name {
+    min-height: 0;
+    -webkit-line-clamp: 2;
+}
+
+.totem-grid--list .totem-product__pricing {
+    margin-top: 0;
+    flex: 0 0 auto;
+}
+
+.totem-grid--list .totem-price-card {
+    min-height: 0;
+    grid-template-rows: auto;
+    padding: 0.4rem 0.5rem;
+}
+
+.totem-grid--list .totem-price-card__detail,
+.totem-grid--list .totem-price-card__unit {
+    min-height: 0;
+}
+
+.totem-grid--list .totem-product__qty {
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0;
+    padding-top: 0;
+    min-width: 2.75rem;
 }
 
 .totem-grid--refresh .totem-product {
@@ -1233,6 +1347,7 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     display: block;
     width: 100%;
     min-width: 0;
+    flex: 1 1 auto;
 }
 
 .totem-product__price-block {
@@ -1240,10 +1355,11 @@ html.totem--kiosk.totem--landscape .totem-product__price {
 }
 
 .totem-price-card {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto minmax(1.2rem, auto) minmax(1.15rem, auto);
     gap: 0.28rem;
     width: 100%;
+    min-height: 4.35rem;
     padding: 0.5rem 0.55rem;
     border-radius: 0.8rem;
     background: linear-gradient(145deg, rgba(255, 252, 247, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
@@ -1332,7 +1448,7 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     align-items: center;
     justify-content: space-between;
     gap: 0.35rem;
-    margin-top: 0.15rem;
+    margin-top: auto;
     padding-top: 0.2rem;
     flex-shrink: 0;
 }
@@ -2667,7 +2783,7 @@ html.totem--phone.totem--portrait .totem-product {
 
 html.totem--phone.totem--portrait .totem-product__name {
     font-size: 0.7rem;
-    min-height: 0;
+    min-height: calc(2 * 1.25 * 0.7rem);
 }
 
 html.totem--phone.totem--portrait .totem-products__head {

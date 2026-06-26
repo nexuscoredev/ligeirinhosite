@@ -71,6 +71,47 @@
     let detailItemKey = null;
     let detailPointsFlash = 0;
     let pointsPerReal = 10;
+    const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
+    let catalogView = 'grid';
+
+    const loadCatalogView = () => {
+        try {
+            const stored = String(localStorage.getItem(CATALOG_VIEW_KEY) || '').toLowerCase();
+            return stored === 'list' ? 'list' : 'grid';
+        } catch {
+            return 'grid';
+        }
+    };
+
+    const saveCatalogView = (view) => {
+        try {
+            localStorage.setItem(CATALOG_VIEW_KEY, view);
+        } catch {
+            /* ignore */
+        }
+    };
+
+    const updateViewSwitcher = () => {
+        productsHead?.querySelectorAll('[data-totem-view]').forEach((btn) => {
+            const active = btn.dataset.totemView === catalogView;
+            btn.classList.toggle('totem-view-switch__btn--active', active);
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        productsGrid?.classList.toggle('totem-grid--list', catalogView === 'list');
+        productsGrid?.classList.toggle('totem-grid--grid', catalogView !== 'list');
+    };
+
+    const setCatalogView = (view) => {
+        const next = view === 'list' ? 'list' : 'grid';
+        if (catalogView === next) return;
+        catalogView = next;
+        saveCatalogView(catalogView);
+        updateViewSwitcher();
+        renderProducts();
+        bumpIdle();
+    };
+
+    catalogView = loadCatalogView();
 
     const shortProductName = (name) => {
         const text = String(name || '').trim();
@@ -707,6 +748,62 @@ ${unitHtml}
         }
     };
 
+    const buildProductCardHtml = (item, index) => {
+        const group = item.group || null;
+        const product = item.product;
+        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
+        const variant = group ? pricing.getVariant(group, tier) : null;
+        const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
+        const cart = cartApi.loadCart();
+        const qty = cart[cartKey]?.qty || 0;
+        const img = catalog.productImageUrl(group ? pricing.getTierImage(group, tier) : product.image);
+        const name = group?.baseName || product.name;
+        const itemKey = group?.key || product.id;
+        const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+        const priceHtml = variant
+            ? priceBlockHtml(variant)
+            : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+<div class="totem-price-card__main">
+<span class="totem-product__price totem-price-card__value">${formatPrice(product.price)}</span>
+<span class="totem-price-card__pack">Unidade</span>
+</div>
+<p class="totem-price-card__detail"></p>
+<p class="totem-price-card__unit"></p>
+</div>`;
+        const qtyHtml = `<div class="totem-product__qty">
+<button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
+<span class="totem-qty-value">${qty}</span>
+<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" aria-label="Aumentar">+</button>
+</div>`;
+        const selectedClass = qty ? ' totem-product--selected' : '';
+        const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}"`;
+        const mediaHtml = `<div class="totem-product__media">
+${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
+${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
+</div>`;
+        const bodyHtml = `<div class="totem-product__body">
+<div class="totem-product__name">${esc(name)}</div>
+<div class="totem-product__pricing">
+${tiersHtml}
+<div class="totem-product__meta">${priceHtml}</div>
+</div>
+${catalogView === 'grid' ? qtyHtml : ''}
+</div>`;
+
+        if (catalogView === 'list') {
+            return `<article class="totem-product totem-product--list${selectedClass}" ${attrs}>
+${mediaHtml}
+${bodyHtml}
+${qtyHtml}
+</article>`;
+        }
+
+        return `<article class="totem-product${selectedClass}" ${attrs}>
+${mediaHtml}
+${bodyHtml}
+</article>`;
+    };
+
     const renderProducts = () => {
         if (!productsGrid) return;
         if (activeCategory && !totemCategories.some((c) => c.id === activeCategory)) {
@@ -727,6 +824,7 @@ ${unitHtml}
             productsCount.textContent =
                 items.length === 1 ? '1 produto' : `${items.length} produtos`;
         }
+        updateViewSwitcher();
         if (!searching && catLabel && activeCategory !== lastAnimatedCategory) {
             refreshMotion(categoryTitle, 'totem-products__title--refresh');
             refreshMotion(productsCount, 'totem-products__count--refresh');
@@ -763,46 +861,7 @@ ${unitHtml}
             return;
         }
 
-        productsGrid.innerHTML = items
-            .map((item, index) => {
-                const group = item.group || null;
-                const product = item.product;
-                const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
-                const variant = group ? pricing.getVariant(group, tier) : null;
-                const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
-                const cart = cartApi.loadCart();
-                const qty = cart[cartKey]?.qty || 0;
-                const img = catalog.productImageUrl(
-                    group ? pricing.getTierImage(group, tier) : product.image
-                );
-                const name = group?.baseName || product.name;
-                const itemKey = group?.key || product.id;
-                const tiersHtml = group ? priceTiersHtml(group, tier) : '';
-                const priceHtml = variant
-                    ? priceBlockHtml(variant)
-                    : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
-<span class="totem-product__price totem-price-card__value">${formatPrice(product.price)}</span>
-</div>`;
-                return `<article class="totem-product${qty ? ' totem-product--selected' : ''}" role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}">
-<div class="totem-product__media">
-${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
-${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
-</div>
-<div class="totem-product__body">
-<div class="totem-product__name">${esc(name)}</div>
-<div class="totem-product__pricing">
-${tiersHtml}
-<div class="totem-product__meta">${priceHtml}</div>
-</div>
-<div class="totem-product__qty">
-<button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
-<span class="totem-qty-value">${qty}</span>
-<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" aria-label="Aumentar">+</button>
-</div>
-</div>
-</article>`;
-            })
-            .join('');
+        productsGrid.innerHTML = items.map((item, index) => buildProductCardHtml(item, index)).join('');
         refreshDetailIfOpen();
     };
 
@@ -1087,6 +1146,12 @@ ${cartLineThumbHtml(item)}
             renderCategories();
             renderProducts();
             bumpIdle();
+        });
+
+        productsHead?.addEventListener('click', (e) => {
+            const viewBtn = e.target.closest('[data-totem-view]');
+            if (!viewBtn) return;
+            setCatalogView(viewBtn.dataset.totemView);
         });
 
         productsGrid?.addEventListener('click', (e) => {
