@@ -13,7 +13,7 @@
         promos: document.getElementById('totem-view-promos'),
     };
     const startBtn = document.getElementById('totem-start-btn');
-    const homeBtn = document.getElementById('totem-home-btn');
+    const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
@@ -29,6 +29,12 @@
     const cartCountEl = document.getElementById('totem-cart-count');
     const checkoutBtn = document.getElementById('totem-checkout-btn');
     const categoriesEl = document.getElementById('totem-categories');
+    const categoriesBtn = document.getElementById('totem-categories-btn');
+    const categoriesBtnLabel = document.getElementById('totem-categories-btn-label');
+    const categoriesModal = document.getElementById('totem-categories-modal');
+    const categoriesCloseBtn = document.getElementById('totem-categories-close');
+    const categoriesBackdrop = document.getElementById('totem-categories-backdrop');
+    const categoriesStats = document.getElementById('totem-categories-stats');
     const productsGrid = document.getElementById('totem-products-grid');
     const productsBody = document.getElementById('totem-products-body');
     const productsHead = document.getElementById('totem-products-head');
@@ -705,7 +711,6 @@ ${unitHtml}
         const inCatalog = name === 'catalog';
         const inPromos = name === 'promos';
         const inShopping = inCatalog || inPromos;
-        homeBtn.hidden = !inShopping;
         if (promosBtn) {
             promosBtn.hidden = false;
             promosBtn.classList.toggle('totem-btn--promos-active', inPromos);
@@ -715,7 +720,10 @@ ${unitHtml}
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
         if (!inShopping) idleHint?.classList.remove('totem-idle-hint--visible');
-        if (!inCatalog) totemKeyboard?.hide?.();
+        if (!inCatalog) {
+            totemKeyboard?.hide?.();
+            closeCategoriesModal();
+        }
         if (inPromos) window.LigeirinhoTotemPromos?.refresh?.();
         updateFloatCart(cartApi.loadCart());
     };
@@ -791,27 +799,56 @@ ${unitHtml}
 
     const renderCategories = () => {
         if (!categoriesEl) return;
-        categoriesEl.innerHTML = totemCategories
-            .map((cat, index) => {
-                const active = cat.id === activeCategory;
-                const catForIcon = catalogData?.categories?.find(
-                    (c) => canonCategoryId(c.id) === cat.id
-                ) || { id: cat.id, name: cat.name, products: [] };
-                const icon = categoryIcon(catForIcon);
-                const label = catalog.formatCategoryLabel(cat.name);
-                return `<button type="button" class="totem-cat-btn${active ? ' totem-cat-btn--active' : ''}" data-cat="${esc(cat.id)}" aria-current="${active ? 'true' : 'false'}" style="--totem-cat-i:${index}">
-<span class="totem-cat-btn__icon material-symbols-outlined" aria-hidden="true">${esc(icon)}</span>
-<span class="totem-cat-btn__label">${esc(label)}</span>
-<span class="totem-cat-btn__count">${cat.count}</span>
-</button>`;
-            })
-            .join('');
-        const activeBtn = categoriesEl.querySelector('.totem-cat-btn--active');
-        if (activeBtn) {
-            window.requestAnimationFrame(() => {
-                activeBtn.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-            });
+        const totalCount = displayItems.length;
+        const pills =
+            `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="" aria-pressed="${!activeCategory ? 'true' : 'false'}">Todos <span class="totem-cat-pill__count">${totalCount}</span></button>` +
+            totemCategories
+                .map((cat) => {
+                    const active = cat.id === activeCategory;
+                    const label = catalog.formatCategoryLabel(cat.name);
+                    return `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="${esc(cat.id)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)} <span class="totem-cat-pill__count">${cat.count}</span></button>`;
+                })
+                .join('');
+        categoriesEl.innerHTML = pills;
+        if (categoriesStats) {
+            categoriesStats.textContent = `${totemCategories.length} categorias · ${totalCount} produtos`;
         }
+        updateCategoriesBtnLabel();
+    };
+
+    const updateCategoriesBtnLabel = () => {
+        if (!categoriesBtnLabel) return;
+        const catMeta = activeCategoryMeta();
+        categoriesBtnLabel.textContent = catMeta
+            ? catalog.formatCategoryLabel(catMeta.name)
+            : 'Todas as categorias';
+    };
+
+    const openCategoriesModal = () => {
+        if (!categoriesModal) return;
+        totemKeyboard?.hide?.();
+        renderCategories();
+        categoriesModal.classList.add('totem-categories-modal--open');
+        categoriesModal.setAttribute('aria-hidden', 'false');
+        categoriesCloseBtn?.focus();
+        bumpIdle();
+    };
+
+    const closeCategoriesModal = () => {
+        if (!categoriesModal?.classList.contains('totem-categories-modal--open')) return;
+        categoriesModal.classList.remove('totem-categories-modal--open');
+        categoriesModal.setAttribute('aria-hidden', 'true');
+        categoriesBtn?.focus();
+        bumpIdle();
+    };
+
+    const applyCategory = (categoryId) => {
+        clearSearch();
+        activeCategory = categoryId ? canonCategoryId(categoryId) : '';
+        renderCategories();
+        renderProducts();
+        closeCategoriesModal();
+        bumpIdle();
     };
 
     const buildProductCardHtml = (item, index) => {
@@ -876,6 +913,7 @@ ${bodyHtml}
         if (activeCategory && !totemCategories.some((c) => c.id === activeCategory)) {
             activeCategory = totemCategories[0]?.id || '';
         }
+        updateCategoriesBtnLabel();
         const searching = Boolean(searchQuery);
         const items = getVisibleItems();
         const catMeta = activeCategoryMeta();
@@ -1217,7 +1255,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             bumpIdle();
         });
 
-        homeBtn?.addEventListener('click', resetSession);
+        logoBtn?.addEventListener('click', () => {
+            if (!isInShopping()) return;
+            resetSession();
+        });
         cartBtn?.addEventListener('click', openCart);
         floatCartBtn?.addEventListener('click', openCart);
         document.getElementById('totem-cart-toast-open')?.addEventListener('click', () => {
@@ -1227,14 +1268,20 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         document.getElementById('totem-cart-close')?.addEventListener('click', closeCart);
         checkoutBtn?.addEventListener('click', startCheckout);
 
+        categoriesBtn?.addEventListener('click', openCategoriesModal);
+        categoriesCloseBtn?.addEventListener('click', closeCategoriesModal);
+        categoriesBackdrop?.addEventListener('click', closeCategoriesModal);
+
         categoriesEl?.addEventListener('click', (e) => {
-            const btn = e.target.closest('.totem-cat-btn');
-            if (!btn) return;
-            clearSearch();
-            activeCategory = canonCategoryId(btn.dataset.cat || '');
-            renderCategories();
-            renderProducts();
-            bumpIdle();
+            const pill = e.target.closest('.totem-cat-pill');
+            if (!pill) return;
+            applyCategory(pill.dataset.cat || '');
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && categoriesModal?.classList.contains('totem-categories-modal--open')) {
+                closeCategoriesModal();
+            }
         });
 
         productsHead?.addEventListener('click', (e) => {

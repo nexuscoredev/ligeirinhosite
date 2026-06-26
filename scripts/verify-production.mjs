@@ -90,7 +90,7 @@ async function main() {
 
     const totemCss = await getText('/css/totem.css');
     const totemJs = await getText('/js/totem.js');
-    const cssOk = totemCss.status === 200 && totemCss.text.includes('totem-categories__label');
+    const cssOk = totemCss.status === 200 && totemCss.text.includes('totem-categories-modal');
     const jsOk = totemJs.status === 200 && totemJs.text.includes('getTotemDisplayProducts');
     console.log('Assets totem:', cssOk ? 'CSS premium OK' : 'CSS verificar', jsOk ? 'JS OK' : 'JS erro');
 

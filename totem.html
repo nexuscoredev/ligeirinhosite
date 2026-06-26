@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script src="js/theme.js"></script>
+<script src="js/totem-kiosk-guard.js"></script>
 <script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <link rel="stylesheet" href="css/site.css">
 <link rel="stylesheet" href="css/totem.css">
@@ -19,9 +20,11 @@
 <body data-page="totem" class="totem-kiosk font-body-md antialiased">
 <div id="totem-app" class="totem-app">
 <header class="totem-header">
-<div class="totem-header__brand" id="totem-brand-tap">
-<img class="totem-header__logo" src="img/ligeirinhologo.png" alt="Ligeirinho" width="48" height="48">
-<div>
+<div class="totem-header__brand">
+<button type="button" class="totem-header__logo-btn" id="totem-logo-btn" aria-label="Voltar ao início">
+<img class="totem-header__logo" src="img/ligeirinhologo.png" alt="" width="48" height="48">
+</button>
+<div class="totem-header__brand-text" id="totem-brand-tap">
 <div class="totem-header__title" id="totem-unit-label"><span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Totem</span></span></div>
 <div class="totem-header__sub" id="totem-device-label">Autoatendimento</div>
 </div>
@@ -33,10 +36,6 @@
 <span class="totem-btn--promos__shine" aria-hidden="true"></span>
 <span class="material-symbols-outlined totem-btn--promos__icon">local_offer</span>
 <span class="totem-btn__label">Promoções</span>
-</button>
-<button type="button" class="totem-btn totem-btn--ghost totem-btn--icon" id="totem-home-btn" hidden>
-<span class="material-symbols-outlined">home</span>
-<span class="totem-btn__label">Início</span>
 </button>
 <button type="button" class="totem-btn totem-btn--cart totem-btn--icon" id="totem-cart-btn" hidden>
 <span class="material-symbols-outlined">shopping_cart</span>
@@ -66,12 +65,8 @@
 </section>
 
 <section id="totem-view-catalog" class="totem-view totem-catalog" aria-label="Catálogo" hidden>
-<aside class="totem-categories-wrap">
-<p class="totem-categories__label">Categorias</p>
-<nav class="totem-categories" id="totem-categories" aria-label="Categorias"></nav>
-</aside>
-<div class="totem-catalog__divider" aria-hidden="true"></div>
 <div class="totem-products">
+<div class="totem-catalog-toolbar">
 <form class="totem-search" id="totem-search-form" role="search">
 <span class="material-symbols-outlined totem-search__icon" aria-hidden="true">search</span>
 <input type="search" id="totem-search-input" class="totem-search__input" placeholder="Buscar produtos…" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="search" aria-label="Buscar produtos" readonly inputmode="none">
@@ -79,6 +74,12 @@
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
 </form>
+<button type="button" class="totem-categories-btn" id="totem-categories-btn" aria-haspopup="dialog" aria-controls="totem-categories-modal">
+<span class="material-symbols-outlined totem-categories-btn__icon" aria-hidden="true">category</span>
+<span class="totem-categories-btn__label" id="totem-categories-btn-label">Categorias</span>
+<span class="material-symbols-outlined totem-categories-btn__chevron" aria-hidden="true">expand_more</span>
+</button>
+</div>
 <header class="totem-products__head" id="totem-products-head" hidden>
 <div class="totem-products__head-text">
 <p class="totem-products__eyebrow">Escolha seus produtos</p>
@@ -207,6 +208,22 @@
 
 <div id="totem-product-detail" class="totem-detail" aria-hidden="true">
 <div class="totem-detail__sheet" role="dialog" aria-modal="true" aria-labelledby="totem-detail-heading"></div>
+</div>
+
+<div id="totem-categories-modal" class="totem-categories-modal" aria-hidden="true">
+<button type="button" class="totem-categories-modal__backdrop" id="totem-categories-backdrop" aria-label="Fechar categorias"></button>
+<div class="totem-categories-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="totem-categories-modal-title">
+<header class="totem-categories-modal__head">
+<div>
+<h2 class="totem-categories-modal__title" id="totem-categories-modal-title">Categorias</h2>
+<p class="totem-categories-modal__stats" id="totem-categories-stats"></p>
+</div>
+<button type="button" class="totem-categories-modal__close" id="totem-categories-close" aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</header>
+<nav class="totem-categories-modal__pills ze-filter-pills" id="totem-categories" aria-label="Categorias"></nav>
+</div>
 </div>
 
 <div id="totem-admin-modal" class="totem-admin-modal" aria-hidden="true">
