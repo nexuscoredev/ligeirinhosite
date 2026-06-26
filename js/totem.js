@@ -72,21 +72,6 @@
     let detailPointsFlash = 0;
     let pointsPerReal = 10;
 
-    const AMBEV_BRANDS = [
-        'STELLA ARTOIS',
-        'BRAHMA',
-        'BUDWEISER',
-        'SKOL',
-        'CORONA',
-        'ANTARCTICA',
-        'BECKS',
-        'SPATEN',
-        'COLORADO',
-        'PATAGONIA',
-        'ORIGINAL',
-        'BOHEMIA',
-    ];
-
     const shortProductName = (name) => {
         const text = String(name || '').trim();
         if (text.length <= 42) return text;
@@ -99,15 +84,6 @@
     };
 
     const isReturnable = (name) => /retorn[aá]vel/i.test(String(name || ''));
-
-    const inferVendor = (baseName) => {
-        const upper = String(baseName || '').toUpperCase();
-        const isAmbev = AMBEV_BRANDS.some((brand) => upper.includes(brand));
-        return {
-            name: isAmbev ? 'Ambev' : 'Ligeirinho',
-            logo: 'img/ligeirinhologo.png',
-        };
-    };
 
     const productDetailSubtitle = (group, variant, tier) => {
         const parts = [];
@@ -187,7 +163,6 @@
         const returnable = isReturnable(group?.baseName || displayName);
         const vol = extractVolume(group?.baseName || displayName);
         const packBadge = tierPackBadge(tier, variant);
-        const vendor = inferVendor(group?.baseName || displayName);
         const tiersHtml = group ? priceTiersHtml(group, tier) : '';
         const pointsMsg =
             flashPoints > 0
@@ -225,11 +200,7 @@ ${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
 </button>
 </div>
 ${pointsMsg}
-</div>
-<footer class="totem-detail__vendor">
-<img src="${esc(vendor.logo)}" alt="">
-<span>Vendido e entregue por <strong>${esc(vendor.name)}</strong></span>
-</footer>`;
+</div>`;
     };
 
     const openProductDetail = (itemKey) => {
