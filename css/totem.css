@@ -879,6 +879,8 @@ body.totem-kiosk {
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.9);
     box-shadow: var(--lig-shadow-sm);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .totem-products__head-text {
@@ -1036,6 +1038,7 @@ body.totem-kiosk {
     align-content: start;
     align-items: stretch;
     grid-auto-rows: 1fr;
+    min-width: 0;
 }
 
 .totem-grid {
@@ -1154,10 +1157,13 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     background: rgba(255, 255, 255, 0.92);
     border: 1px solid rgba(20, 18, 15, 0.07);
     border-radius: 0.9rem;
-    overflow: visible;
+    overflow: hidden;
     min-height: 100%;
+    min-width: 0;
+    max-width: 100%;
     height: 100%;
     align-self: stretch;
+    box-sizing: border-box;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.8) inset,
         var(--lig-shadow-sm);
@@ -1300,6 +1306,11 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     gap: 0.3rem;
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .totem-product__name {
@@ -1320,8 +1331,17 @@ html.totem--kiosk.totem--landscape .totem-product__price {
 .totem-product .ze-price-tiers-slot {
     min-height: 1.625rem;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     margin: 0;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+.totem-product .ze-price-tiers {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .totem-product__pricing {
@@ -1330,54 +1350,81 @@ html.totem--kiosk.totem--landscape .totem-product__price {
     gap: 0.125rem;
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     margin-top: 0.1rem;
     flex: 1 1 auto;
+    overflow: hidden;
 }
 
 .totem-product .ze-price-tier {
     min-height: 1.625rem;
-    padding: 0.3rem 0.4rem;
+    min-width: 0;
+    padding: 0.3rem 0.35rem;
     font-size: 0.5625rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .totem-product__meta {
     display: block;
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     flex: 1 1 auto;
+    overflow: hidden;
 }
 
 .totem-product__price-block {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .totem-price-card {
     display: grid;
-    grid-template-rows: auto minmax(1.2rem, auto) minmax(1.15rem, auto);
-    gap: 0.28rem;
+    grid-template-rows: auto;
+    gap: 0.22rem;
     width: 100%;
-    min-height: 4.35rem;
-    padding: 0.5rem 0.55rem;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 0.45rem 0.5rem;
     border-radius: 0.8rem;
     background: linear-gradient(145deg, rgba(255, 252, 247, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
     border: 1px solid rgba(20, 18, 15, 0.07);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.totem-price-card__detail:empty,
+.totem-price-card__unit:empty {
+    display: none;
 }
 
 .totem-price-card__main {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.4rem;
+    gap: 0.35rem;
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
 }
 
 .totem-price-card__value,
 .totem-product__price-block .totem-product__price {
     display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 1.0625rem;
     font-weight: 800;
     color: var(--lig-text);
@@ -1387,12 +1434,16 @@ html.totem--kiosk.totem--landscape .totem-product__price {
 }
 
 .totem-price-card__pack {
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    max-width: 46%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 0.5625rem;
     font-weight: 800;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    padding: 0.22rem 0.5rem;
+    padding: 0.2rem 0.42rem;
     border-radius: 999px;
     background: linear-gradient(165deg, rgba(253, 224, 71, 0.35) 0%, rgba(240, 201, 41, 0.28) 100%);
     color: var(--lig-yellow-text);
