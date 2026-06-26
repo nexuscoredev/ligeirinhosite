@@ -63,7 +63,7 @@ body.totem-kiosk {
     height: 100svh;
     max-height: 100svh;
     overflow: hidden;
-    --totem-welcome-scale: min(1, calc((100svh - 7.5rem) / 520));
+    --totem-welcome-scale: min(1.05, calc((100svh - 7.5rem) / 480));
     --totem-welcome-shift: clamp(-1.75rem, -4dvh, -1rem);
     --totem-sidebar-w: clamp(10.5rem, 14vw, 13.5rem);
     background: var(--lig-bg);
@@ -418,8 +418,8 @@ body.totem-kiosk {
 
 .totem-welcome__logo-wrap {
     display: inline-flex;
-    padding: clamp(0.35rem, 1dvh, 0.55rem);
-    border-radius: 1.75rem;
+    padding: clamp(0.5rem, 1.4dvh, 0.75rem);
+    border-radius: 2rem;
     background: #fff;
     box-shadow:
         0 0 0 1px rgba(20, 18, 15, 0.06),
@@ -463,14 +463,14 @@ body.totem-kiosk {
 }
 
 .totem-welcome__logo {
-    width: clamp(7.5rem, 24dvh, 11rem);
+    width: clamp(9rem, 30dvh, 14rem);
     display: block;
-    border-radius: 1.2rem;
-    padding: clamp(0.35rem, 1dvh, 0.55rem);
+    border-radius: 1.35rem;
+    padding: clamp(0.4rem, 1.1dvh, 0.65rem);
 }
 
 .totem-welcome__eyebrow {
-    font-size: clamp(0.8125rem, 2dvh, 1rem);
+    font-size: clamp(0.875rem, 2.2dvh, 1.0625rem);
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
