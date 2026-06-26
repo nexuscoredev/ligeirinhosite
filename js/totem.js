@@ -28,6 +28,7 @@
     const checkoutBtn = document.getElementById('totem-checkout-btn');
     const categoriesEl = document.getElementById('totem-categories');
     const productsGrid = document.getElementById('totem-products-grid');
+    const productsBody = document.getElementById('totem-products-body');
     const productsHead = document.getElementById('totem-products-head');
     const categoryTitle = document.getElementById('totem-category-title');
     const productsCount = document.getElementById('totem-products-count');
@@ -92,6 +93,7 @@
     };
 
     const updateViewSwitcher = () => {
+        const switcher = productsHead?.querySelector('.totem-view-switch');
         productsHead?.querySelectorAll('[data-totem-view]').forEach((btn) => {
             const active = btn.dataset.totemView === catalogView;
             btn.classList.toggle('totem-view-switch__btn--active', active);
@@ -99,6 +101,31 @@
         });
         productsGrid?.classList.toggle('totem-grid--list', catalogView === 'list');
         productsGrid?.classList.toggle('totem-grid--grid', catalogView !== 'list');
+        productsBody?.classList.toggle('totem-products__body--list', catalogView === 'list');
+
+        const indicator = switcher?.querySelector('.totem-view-switch__indicator');
+        const activeBtn = switcher?.querySelector(`[data-totem-view="${catalogView}"]`);
+        if (indicator && activeBtn) {
+            indicator.style.width = `${activeBtn.offsetWidth}px`;
+            indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+        }
+    };
+
+    const syncListHead = (visible) => {
+        if (!productsBody) return;
+        let listHead = productsBody.querySelector('.totem-list-head');
+        if (!listHead) {
+            listHead = document.createElement('div');
+            listHead.className = 'totem-list-head';
+            listHead.setAttribute('aria-hidden', 'true');
+            listHead.innerHTML = `<span class="totem-list-head__cell totem-list-head__cell--thumb"></span>
+<span class="totem-list-head__cell">Produto</span>
+<span class="totem-list-head__cell totem-list-head__cell--price">Preço</span>
+<span class="totem-list-head__cell totem-list-head__cell--qty">Quantidade</span>`;
+            productsBody.insertBefore(listHead, productsGrid);
+        }
+        listHead.hidden = !visible;
+        listHead.style.display = visible ? '' : 'none';
     };
 
     const setCatalogView = (view) => {
@@ -106,8 +133,14 @@
         if (catalogView === next) return;
         catalogView = next;
         saveCatalogView(catalogView);
+        productsGrid?.classList.add('totem-grid--view-changing');
         updateViewSwitcher();
         renderProducts();
+        refreshProductGrid();
+        window.requestAnimationFrame(() => {
+            productsGrid?.classList.remove('totem-grid--view-changing');
+            updateViewSwitcher();
+        });
         bumpIdle();
     };
 
@@ -785,7 +818,7 @@ ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material
 <div class="totem-product__name">${esc(name)}</div>
 <div class="totem-product__pricing">
 ${tiersHtml}
-<div class="totem-product__meta">${priceHtml}</div>
+${catalogView === 'grid' ? `<div class="totem-product__meta">${priceHtml}</div>` : ''}
 </div>
 ${catalogView === 'grid' ? qtyHtml : ''}
 </div>`;
@@ -794,6 +827,7 @@ ${catalogView === 'grid' ? qtyHtml : ''}
             return `<article class="totem-product totem-product--list${selectedClass}" ${attrs}>
 ${mediaHtml}
 ${bodyHtml}
+<div class="totem-product__list-price">${priceHtml}</div>
 ${qtyHtml}
 </article>`;
         }
@@ -855,6 +889,7 @@ ${bodyHtml}
             productsGrid.hidden = isEmpty;
             productsGrid.style.display = isEmpty ? 'none' : '';
         }
+        syncListHead(!isEmpty && catalogView === 'list');
 
         if (isEmpty) {
             productsGrid.innerHTML = '';
@@ -863,6 +898,7 @@ ${bodyHtml}
 
         productsGrid.innerHTML = items.map((item, index) => buildProductCardHtml(item, index)).join('');
         refreshDetailIfOpen();
+        window.requestAnimationFrame(() => updateViewSwitcher());
     };
 
     const pulseProduct = (cartKey) => {
@@ -1259,6 +1295,8 @@ ${cartLineThumbHtml(item)}
         ['pointerdown', 'keydown', 'touchstart'].forEach((evt) => {
             document.addEventListener(evt, bumpIdle, { passive: true });
         });
+
+        window.addEventListener('resize', () => updateViewSwitcher(), { passive: true });
     };
 
     const init = async () => {
