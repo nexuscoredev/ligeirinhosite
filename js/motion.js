@@ -9,7 +9,6 @@
         '.ofertas-product-row',
         '.conta-menu-row',
         '.conta-user-card',
-        '.conta-aside-link',
         '.caminhao-item',
         '.lig-page-card',
         '.ze-section__head',

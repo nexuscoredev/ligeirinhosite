@@ -37,7 +37,9 @@
 }
 
 .sep-queue__item {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     width: 100%;
     text-align: left;
     padding: 0.875rem 1rem;
@@ -45,6 +47,8 @@
     border-bottom: 1px solid var(--lig-border);
     background: transparent;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.15s;
 }
 

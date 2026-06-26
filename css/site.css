@@ -514,6 +514,9 @@ html.lig-app-standalone .ze-app-header {
 .lig-header-actions {
     padding-left: 0.5rem;
     border-left: 1px solid var(--lig-border);
+    position: relative;
+    z-index: 2;
+    gap: 0.25rem;
 }
 
 .lig-header-cart {
@@ -1458,7 +1461,90 @@ html.lig-app-standalone .ze-app-header {
 
 body[data-page='pedidos'] .ze-filter-pills--sidebar {
     position: sticky;
-    top: var(--ze-header-offset, 10.5rem);
+    top: calc(var(--ze-header-offset, 10.5rem) + 0.35rem);
+    z-index: 18;
+    align-self: start;
+    width: 100%;
+    max-height: calc(100dvh - var(--ze-header-offset, 10.5rem) - 1rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    pointer-events: auto;
+    padding: 0;
+}
+
+body[data-page='pedidos'] .ze-filter-pills--sidebar .ze-filter-pill {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    white-space: normal;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Parceiros: laterais e overlays clicáveis ── */
+#nav-mobile-menu[aria-hidden='true'],
+#nav-mobile-menu.hidden {
+    display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+#cart-mobile-sheet[aria-hidden='true'],
+#cart-mobile-sheet.hidden,
+#cart-panel.hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.ze-location-dropdown.hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+.lig-header-actions a,
+.lig-header-actions button,
+.lig-header-cart,
+.lig-install-nav-btn,
+.lig-theme-toggle-mount--header .lig-theme-toggle {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ze-fulfillment-bar__main,
+.ze-fulfillment-bar__menu-btn {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ze-fulfillment-bar__menu-btn {
+    min-width: 3rem;
+}
+
+#app-bottom-nav {
+    z-index: 60;
+    pointer-events: auto;
+}
+
+.conta-desktop-aside {
+    z-index: 1;
+    pointer-events: auto;
+}
+
+.conta-aside-link {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.conta-aside-link.lig-motion-item {
+    opacity: 1;
+    transform: none;
+}
+
+.ze-filter-pill {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Floating cart bar (estilo sacola) ── */

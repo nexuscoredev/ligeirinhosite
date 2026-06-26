@@ -42,8 +42,8 @@
                 overflow: hidden;
                 overscroll-behavior: none;
             }
-            html.lig-menu-open #lig-page-main,
-            html.lig-menu-open #site-footer {
+            html.lig-menu-open:has(#nav-mobile-menu:not(.hidden)) #lig-page-main,
+            html.lig-menu-open:has(#nav-mobile-menu:not(.hidden)) #site-footer {
                 pointer-events: none;
                 user-select: none;
             }
@@ -54,6 +54,12 @@
             }
             html.lig-menu-open nav.font-nav-bar {
                 background: rgba(255, 255, 255, 0.97) !important;
+            }
+            #nav-mobile-menu[aria-hidden='true'],
+            #nav-mobile-menu.hidden {
+                display: none !important;
+                pointer-events: none !important;
+                visibility: hidden !important;
             }
             #nav-mobile-menu .nav-mobile-panel {
                 transform: translate3d(0, 0, 0);
@@ -400,6 +406,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         if (menuHidden) {
             menuIsOpen = false;
             unlockMenuScroll();
+            menu?.setAttribute('aria-hidden', 'true');
         }
         clearBodyScrollStyles();
     };
@@ -633,7 +640,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             selectRetirada();
         });
 
-        document.addEventListener('mousedown', (e) => {
+        document.addEventListener('pointerdown', (e) => {
             if (!locationWrap?.contains(e.target)) closeLocationMenu();
         });
 
@@ -716,6 +723,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             document.body.insertAdjacentHTML('beforeend', bottomNavHtml);
         }
         bindMobileMenu();
+        resetPageLocks();
         bindBottomNav();
         bindHeaderOffset();
         bindAppChrome();
