@@ -1,6 +1,10 @@
 @echo off
+
 title Ligeirinho Totem
+
 set URL=https://ligeirinhoparceiros.vercel.app/totem.html
+if defined TOTEM_URL set "URL=%TOTEM_URL%"
+
 set PROFILE=%LocalAppData%\LigeirinhoTotem\ChromeProfile
 
 set CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe

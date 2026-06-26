@@ -1217,6 +1217,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     const openAdminModal = () => {
         adminModal?.classList.add('totem-admin-modal--open');
         adminModal?.setAttribute('aria-hidden', 'false');
+        document.dispatchEvent(new CustomEvent('totem-admin-open'));
         adminPin.value = '';
         adminPin?.focus();
     };
@@ -1224,6 +1225,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     const closeAdminModal = () => {
         adminModal?.classList.remove('totem-admin-modal--open');
         adminModal?.setAttribute('aria-hidden', 'true');
+        document.dispatchEvent(new CustomEvent('totem-admin-close'));
     };
 
     const confirmAdminLogout = () => {

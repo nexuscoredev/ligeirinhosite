@@ -36,7 +36,7 @@
             code === 'F1' ||
             (e.ctrlKey && (key === 'r' || key === 'w' || key === 'n' || key === 't' || key === 'p' || key === 'u')) ||
             (e.ctrlKey && e.shiftKey && (key === 'i' || key === 'j' || key === 'c' || key === 'delete')) ||
-            (e.altKey && (key === 'f4' || key === 'home' || key === 'arrowleft')) ||
+            (e.altKey && (key === 'f4' || key === 'home' || key === 'arrowleft' || key === 'tab')) ||
             (e.metaKey && withMod) ||
             key === 'browserback' ||
             key === 'browserforward' ||
@@ -68,20 +68,65 @@
             };
             el.addEventListener('pointerdown', stop, { passive: false });
             el.addEventListener('touchstart', stop, { passive: false });
+            el.addEventListener('touchmove', stop, { passive: false });
         });
     };
 
-    const tryFullscreen = () => {
-        if (!document.fullscreenEnabled || document.fullscreenElement) return;
+    let wakeLock = null;
+    let lockOverlay = null;
+
+    const mountLockOverlay = () => {
+        if (document.getElementById('totem-kiosk-lock')) return;
+        lockOverlay = document.createElement('div');
+        lockOverlay.id = 'totem-kiosk-lock';
+        lockOverlay.className = 'totem-kiosk-lock';
+        lockOverlay.hidden = true;
+        lockOverlay.innerHTML =
+            '<button type="button" class="totem-kiosk-lock__btn">' +
+            '<span class="material-symbols-outlined" aria-hidden="true">lock</span>' +
+            '<span>Toque para voltar ao totem</span>' +
+            '</button>';
+        document.body.appendChild(lockOverlay);
+        lockOverlay.querySelector('button')?.addEventListener('click', () => {
+            tryFullscreen();
+        });
+    };
+
+    const showLock = () => {
+        if (!lockOverlay) return;
+        lockOverlay.hidden = false;
+        lockOverlay.classList.add('totem-kiosk-lock--visible');
+    };
+
+    const hideLock = () => {
+        if (!lockOverlay) return;
+        lockOverlay.hidden = true;
+        lockOverlay.classList.remove('totem-kiosk-lock--visible');
+    };
+
+    const requestWakeLock = async () => {
+        if (!navigator.wakeLock?.request) return;
+        try {
+            wakeLock?.release?.();
+            wakeLock = await navigator.wakeLock.request('screen');
+        } catch {
+            /* policy do kiosk */
+        }
+    };
+
+    const tryFullscreen = async () => {
         const el = document.documentElement;
         const req = el.requestFullscreen || el.webkitRequestFullscreen;
-        if (!req) return;
-        try {
-            const p = req.call(el);
-            if (p && typeof p.catch === 'function') p.catch(() => {});
-        } catch {
-            /* kiosk Chrome já está em tela cheia */
+        if (document.fullscreenEnabled && !document.fullscreenElement && req) {
+            try {
+                await req.call(el, { navigationUI: 'hide' });
+            } catch {
+                /* kiosk Chrome já está em tela cheia */
+            }
         }
+        await requestWakeLock();
+        hideLock();
+        window.focus();
     };
 
     document.addEventListener('contextmenu', (e) => {
@@ -112,16 +157,50 @@
     );
 
     document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') tryFullscreen();
+        if (document.visibilityState === 'visible') {
+            tryFullscreen();
+            return;
+        }
+        showLock();
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) showLock();
+    });
+
+    window.addEventListener('blur', () => {
+        window.setTimeout(() => {
+            if (!document.hasFocus() || document.visibilityState === 'hidden') showLock();
+        }, 250);
     });
 
     window.addEventListener('focus', tryFullscreen);
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', mountEdgeShields, { once: true });
-    } else {
+    document.addEventListener('totem-admin-open', () => {
+        if (lockOverlay) lockOverlay.hidden = true;
+    });
+
+    document.addEventListener('totem-admin-close', () => {
+        tryFullscreen();
+    });
+
+    const boot = () => {
         mountEdgeShields();
+        mountLockOverlay();
+        tryFullscreen();
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+        boot();
     }
 
-    tryFullscreen();
+    document.addEventListener(
+        'pointerdown',
+        () => {
+            tryFullscreen();
+        },
+        { once: true, passive: true }
+    );
 })();

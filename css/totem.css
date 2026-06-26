@@ -4689,3 +4689,49 @@ html.totem--phone .totem-vk__row--actions {
         animation: none;
     }
 }
+
+/* ——— Kiosk lock (retorno ao totem) ——— */
+.totem-kiosk-lock {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(20, 18, 15, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.totem-kiosk-lock[hidden] {
+    display: none !important;
+}
+
+.totem-kiosk-lock__btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: min(100%, 20rem);
+    padding: 1.5rem 1.75rem;
+    border: 2px solid rgba(240, 201, 41, 0.45);
+    border-radius: 1.25rem;
+    background: linear-gradient(165deg, #fffef8 0%, #fff8dc 100%);
+    color: #14120f;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 800;
+    box-shadow: 0 16px 40px rgba(20, 16, 8, 0.2);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.totem-kiosk-lock__btn .material-symbols-outlined {
+    font-size: 2.5rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-kiosk-lock__btn:active {
+    transform: scale(0.98);
+}
