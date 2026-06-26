@@ -27,6 +27,12 @@
 </div>
 </div>
 <div class="totem-header__actions">
+<button type="button" class="totem-btn totem-btn--promos totem-btn--icon" id="totem-promos-btn" aria-label="Ver promoções">
+<span class="totem-btn--promos__aura" aria-hidden="true"></span>
+<span class="material-symbols-outlined">local_offer</span>
+<span class="totem-btn__label">Promoções</span>
+<span class="totem-btn__badge totem-btn__badge--promos" id="totem-promos-badge" hidden>0</span>
+</button>
 <button type="button" class="totem-btn totem-btn--ghost totem-btn--icon" id="totem-home-btn" hidden>
 <span class="material-symbols-outlined">home</span>
 <span class="totem-btn__label">Início</span>
@@ -107,6 +113,37 @@
 <p class="totem-empty__title" id="totem-products-empty-title">Nenhum produto nesta categoria</p>
 <p class="totem-empty__lead" id="totem-products-empty-lead">Selecione outra categoria para continuar.</p>
 </div>
+</div>
+</div>
+</section>
+
+<section id="totem-view-promos" class="totem-view totem-promos" aria-label="Promoções" hidden>
+<header class="totem-promos__hero">
+<div class="totem-promos__hero-aura" aria-hidden="true"></div>
+<p class="totem-promos__eyebrow">Ofertas exclusivas</p>
+<h2 class="totem-promos__title">Promoções</h2>
+<p class="totem-promos__lead">Promoções cadastradas no Ligeirinho Hub, com preço e validade em tempo real</p>
+</header>
+<div class="totem-promos__body">
+<div class="totem-promos__loading" id="totem-promos-loading" hidden aria-live="polite">
+<div class="totem-promos__loading-grid" aria-hidden="true">
+<div class="totem-promo-card totem-promo-card--skeleton"></div>
+<div class="totem-promo-card totem-promo-card--skeleton"></div>
+<div class="totem-promo-card totem-promo-card--skeleton"></div>
+</div>
+<p class="totem-promos__loading-text">Carregando promoções do Hub…</p>
+</div>
+<div class="totem-promos__error" id="totem-promos-error" hidden>
+<span class="material-symbols-outlined totem-promos__error-icon" aria-hidden="true">cloud_off</span>
+<p class="totem-promos__error-title">Não foi possível carregar as promoções</p>
+<p class="totem-promos__error-lead">Verifique a conexão e tente novamente.</p>
+<button type="button" class="totem-btn totem-btn--ghost" id="totem-promos-retry">Tentar novamente</button>
+</div>
+<div class="totem-promos__grid" id="totem-promos-grid" role="list"></div>
+<div class="totem-promos__empty" id="totem-promos-empty" hidden>
+<span class="material-symbols-outlined totem-promos__empty-icon" aria-hidden="true">sell</span>
+<p class="totem-promos__empty-title">Nenhuma promoção no momento</p>
+<p class="totem-promos__empty-lead">Cadastre promoções no Ligeirinho Hub para exibi-las aqui.</p>
 </div>
 </div>
 </section>
@@ -193,6 +230,7 @@
 <script src="js/search-synonyms.js"></script>
 <script src="js/payment-providers.js"></script>
 <script src="js/totem-viewport.js"></script>
+<script src="js/totem-promos.js"></script>
 <script src="js/totem.js"></script>
 </body>
 </html>

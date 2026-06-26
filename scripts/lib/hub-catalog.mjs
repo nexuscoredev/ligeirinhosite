@@ -105,6 +105,7 @@ export function buildCatalog(produtos, categorias, options = {}) {
 
         categoryMap.get(slug).products.push({
             id: uniqueProductId(p),
+            sku: String(p.sku || '').trim() || null,
             name: String(p.nome || '').trim().toUpperCase(),
             price: Number.isFinite(price) ? price : 0,
             priceLabel: formatPriceLabel(Number.isFinite(price) ? price : 0),

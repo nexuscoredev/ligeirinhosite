@@ -216,6 +216,495 @@ body.totem-kiosk {
     background: rgba(20, 18, 15, 0.04);
 }
 
+/* ——— Promoções (nav + página) ——— */
+.totem-btn--promos {
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+    background: linear-gradient(165deg, #fde047 0%, var(--lig-yellow) 48%, #d4a81a 100%);
+    color: #14120f;
+    font-weight: 800;
+    border: 1px solid rgba(212, 168, 26, 0.45);
+    box-shadow:
+        0 2px 10px rgba(240, 201, 41, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    animation: totem-promos-nav-glow 2.8s ease-in-out infinite;
+}
+
+.totem-btn--promos__aura {
+    position: absolute;
+    inset: -5px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 50% 50%, rgba(253, 224, 71, 0.55) 0%, rgba(240, 201, 41, 0.2) 42%, transparent 72%);
+    z-index: -1;
+    pointer-events: none;
+    animation: totem-promos-aura-pulse 2.8s ease-in-out infinite;
+}
+
+.totem-btn--promos .material-symbols-outlined,
+.totem-btn--promos .totem-btn__label {
+    position: relative;
+    z-index: 1;
+}
+
+.totem-btn--promos:hover {
+    background: linear-gradient(165deg, #fde047 0%, #f5d020 50%, #c99a18 100%);
+    color: #14120f;
+}
+
+.totem-btn--promos-active {
+    box-shadow:
+        0 0 0 2px rgba(240, 201, 41, 0.35),
+        0 4px 16px rgba(240, 201, 41, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+@keyframes totem-promos-nav-glow {
+    0%,
+    100% {
+        box-shadow:
+            0 2px 10px rgba(240, 201, 41, 0.32),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 4px 22px rgba(240, 201, 41, 0.55),
+            0 0 0 3px rgba(240, 201, 41, 0.14),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+}
+
+@keyframes totem-promos-aura-pulse {
+    0%,
+    100% {
+        opacity: 0.65;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.12);
+    }
+}
+
+.totem-promos {
+    min-height: 0;
+    background: var(--lig-bg);
+}
+
+.totem-promos__hero {
+    position: relative;
+    flex-shrink: 0;
+    text-align: center;
+    padding: clamp(0.85rem, 2.5dvh, 1.35rem) clamp(1rem, 3vw, 1.5rem) clamp(0.65rem, 1.5dvh, 1rem);
+    overflow: hidden;
+}
+
+.totem-promos__hero-aura {
+    position: absolute;
+    inset: -30% -10%;
+    background:
+        radial-gradient(ellipse 55% 80% at 50% 100%, rgba(240, 201, 41, 0.22) 0%, transparent 68%),
+        radial-gradient(ellipse 40% 50% at 20% 20%, rgba(253, 224, 71, 0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 50% at 80% 25%, rgba(253, 224, 71, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+    animation: totem-promos-hero-glow 4s ease-in-out infinite;
+}
+
+@keyframes totem-promos-hero-glow {
+    0%,
+    100% {
+        opacity: 0.85;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.totem-promos__eyebrow {
+    position: relative;
+    margin: 0 0 0.35rem;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--lig-yellow-text);
+}
+
+.totem-promos__title {
+    position: relative;
+    margin: 0 0 0.35rem;
+    font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: clamp(1.5rem, 4dvh, 2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--lig-text);
+}
+
+.totem-promos__lead {
+    position: relative;
+    margin: 0 auto;
+    max-width: 24rem;
+    font-size: clamp(0.8125rem, 1.8dvh, 0.9375rem);
+    color: var(--lig-text-muted);
+    line-height: 1.45;
+}
+
+.totem-promos__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.35rem clamp(0.65rem, 2vw, 1rem) 1.25rem;
+}
+
+.totem-promos__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 0.75rem;
+    align-content: start;
+}
+
+.totem-promo-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(240, 201, 41, 0.28);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 252, 235, 0.92) 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 8px 24px rgba(240, 201, 41, 0.1);
+    overflow: hidden;
+    cursor: pointer;
+    animation: totem-card-in var(--totem-dur-med) var(--totem-ease-spring) both;
+    animation-delay: calc(var(--totem-promo-i, 0) * 0.03s);
+    transition:
+        transform 0.22s var(--totem-ease-spring),
+        box-shadow 0.22s ease,
+        border-color 0.22s ease;
+}
+
+.totem-promo-card__shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.45) 50%,
+        transparent 60%
+    );
+    transform: translateX(-120%);
+    animation: totem-promo-shine 4.5s ease-in-out calc(var(--totem-promo-i, 0) * 0.15s) infinite;
+    pointer-events: none;
+}
+
+@keyframes totem-promo-shine {
+    0%,
+    72%,
+    100% {
+        transform: translateX(-120%);
+        opacity: 0;
+    }
+    10%,
+    28% {
+        opacity: 1;
+    }
+    32% {
+        transform: translateX(120%);
+    }
+}
+
+.totem-promo-card:hover {
+    border-color: rgba(240, 201, 41, 0.45);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 12px 32px rgba(240, 201, 41, 0.18);
+}
+
+.totem-promo-card--selected {
+    border-color: rgba(240, 201, 41, 0.62);
+    box-shadow:
+        0 0 0 2px rgba(240, 201, 41, 0.2),
+        0 12px 32px rgba(240, 201, 41, 0.16);
+}
+
+.totem-promo-card__pct {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    z-index: 2;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: linear-gradient(165deg, #fde047 0%, var(--lig-yellow) 100%);
+    color: #14120f;
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 8px rgba(240, 201, 41, 0.35);
+}
+
+.totem-promo-card__media {
+    position: relative;
+    flex-shrink: 0;
+    width: 5.5rem;
+    height: 5.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: #fff;
+    border: 1px solid rgba(20, 18, 15, 0.06);
+    overflow: hidden;
+    padding: 0.35rem;
+}
+
+.totem-promo-card__media img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.totem-promo-card__placeholder {
+    font-size: 2.25rem;
+    color: #d4cfc4;
+}
+
+.totem-promo-card__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.totem-promo-card__pack {
+    margin: 0;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--lig-yellow-text);
+}
+
+.totem-promo-card__name {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--lig-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.totem-promo-card__prices {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.totem-promo-card__old {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--lig-text-subtle);
+    text-decoration: line-through;
+}
+
+.totem-promo-card__price {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--lig-yellow-text);
+    letter-spacing: -0.02em;
+}
+
+.totem-promo-card__validity {
+    margin: 0;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
+.totem-promo-card__unavailable {
+    margin: 0.15rem 0 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #b45309;
+}
+
+.totem-promo-card--unavailable {
+    opacity: 0.82;
+    border-style: dashed;
+}
+
+.totem-promo-card--unavailable .totem-promo-card__qty {
+    display: none;
+}
+
+.totem-promo-card__qty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.totem-promos__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0.35rem;
+    min-height: min(100%, 14rem);
+    padding: 2rem 1rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px dashed rgba(240, 201, 41, 0.28);
+}
+
+.totem-promos__empty-icon {
+    font-size: 2.75rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-promos__empty-title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-promos__empty-lead {
+    margin: 0;
+    max-width: 18rem;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+    line-height: 1.5;
+}
+
+.totem-promos__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 0;
+}
+
+.totem-promos__loading-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.totem-promos__loading-text {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--lig-text-muted);
+}
+
+.totem-promo-card--skeleton {
+    min-height: 9rem;
+    border-radius: 1rem;
+    background: linear-gradient(
+        110deg,
+        rgba(255, 255, 255, 0.5) 8%,
+        rgba(240, 201, 41, 0.12) 18%,
+        rgba(255, 255, 255, 0.5) 33%
+    );
+    background-size: 200% 100%;
+    animation: totem-promo-skeleton 1.4s ease-in-out infinite;
+    border: 1px solid rgba(240, 201, 41, 0.15);
+}
+
+@keyframes totem-promo-skeleton {
+    to {
+        background-position-x: -200%;
+    }
+}
+
+.totem-promos__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 2rem 1rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px dashed rgba(220, 38, 38, 0.25);
+}
+
+.totem-promos__error-icon {
+    font-size: 2.5rem;
+    color: #dc2626;
+}
+
+.totem-promos__error-title {
+    margin: 0;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-promos__error-lead {
+    margin: 0 0 0.5rem;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-btn__badge--promos {
+    background: linear-gradient(135deg, #f0c929, #e6a800);
+    color: #1a1200;
+    box-shadow: 0 0 0 2px rgba(240, 201, 41, 0.35);
+}
+
+.totem-cart-line__promo {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #1a1200;
+    background: linear-gradient(135deg, #f0c929, #e6a800);
+}
+
+.totem-cart-line__meta .totem-cart-line__promo + .totem-cart-line__pack::before {
+    content: none;
+}
+
+html.totem--kiosk.totem--landscape .totem-promos__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+html.totem--phone.totem--portrait .totem-promos__grid {
+    grid-template-columns: 1fr;
+}
+
+html.totem--phone .totem-btn--promos .totem-btn__label {
+    display: none;
+}
+
+html.totem--phone .totem-btn--promos {
+    padding-inline: 0.55rem;
+}
+
 .totem-btn--cart {
     background: var(--lig-yellow);
     color: #14120f;
@@ -287,6 +776,20 @@ body.totem-kiosk {
 
 .totem-view--active.totem-catalog {
     display: grid !important;
+}
+
+.totem-view--active.totem-promos {
+    display: flex !important;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.totem-view--entering.totem-promos .totem-promos__hero {
+    animation: totem-fade-up var(--totem-dur-slow) var(--totem-ease-out) both;
+}
+
+.totem-view--entering.totem-promos .totem-promos__grid {
+    animation: totem-fade-up var(--totem-dur-med) var(--totem-ease-out) 0.08s both;
 }
 
 .totem-view--entering {
@@ -4102,6 +4605,11 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     .totem-welcome__cta::after,
     .totem-view-switch__indicator,
     .totem-welcome__cta .material-symbols-outlined,
+    .totem-btn--promos,
+    .totem-btn--promos__aura,
+    .totem-promo-card,
+    .totem-promo-card__shine,
+    .totem-promos__hero-aura,
     .totem-cat-btn,
     .totem-grid--refresh .totem-product,
     .totem-grid--view-changing .totem-product,

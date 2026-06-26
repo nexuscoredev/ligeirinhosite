@@ -10,9 +10,12 @@
     const views = {
         welcome: document.getElementById('totem-view-welcome'),
         catalog: document.getElementById('totem-view-catalog'),
+        promos: document.getElementById('totem-view-promos'),
     };
     const startBtn = document.getElementById('totem-start-btn');
     const homeBtn = document.getElementById('totem-home-btn');
+    const promosBtn = document.getElementById('totem-promos-btn');
+    const promosBadge = document.getElementById('totem-promos-badge');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
     const floatCart = document.getElementById('totem-float-cart');
@@ -688,6 +691,19 @@ ${unitHtml}
         return cover.icon || 'liquor';
     };
 
+    const updatePromosBadge = (available, total) => {
+        if (!promosBadge) return;
+        const count = available > 0 ? available : total;
+        if (count > 0) {
+            promosBadge.hidden = false;
+            promosBadge.textContent = count > 99 ? '99+' : String(count);
+            promosBtn?.setAttribute('aria-label', `${count} promoção${count === 1 ? '' : 'ões'} disponíve${count === 1 ? 'l' : 'is'}`);
+        } else {
+            promosBadge.hidden = true;
+            promosBtn?.setAttribute('aria-label', 'Ver promoções');
+        }
+    };
+
     const setView = (name) => {
         Object.entries(views).forEach(([key, el]) => {
             if (!el) return;
@@ -706,16 +722,35 @@ ${unitHtml}
             }
         });
         const inCatalog = name === 'catalog';
-        homeBtn.hidden = !inCatalog;
+        const inPromos = name === 'promos';
+        const inShopping = inCatalog || inPromos;
+        homeBtn.hidden = !inShopping;
+        if (promosBtn) {
+            promosBtn.hidden = false;
+            promosBtn.classList.toggle('totem-btn--promos-active', inPromos);
+            promosBtn.setAttribute('aria-pressed', inPromos ? 'true' : 'false');
+        }
         if (cartBtn) cartBtn.hidden = true;
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
-        if (!inCatalog) idleHint?.classList.remove('totem-idle-hint--visible');
+        totemHeader?.classList.toggle('totem-header--promos', inPromos);
+        if (!inShopping) idleHint?.classList.remove('totem-idle-hint--visible');
+        if (inPromos) window.LigeirinhoTotemPromos?.refresh?.();
         updateFloatCart(cartApi.loadCart());
     };
 
     const isCartOpen = () => cartPanel?.classList.contains('totem-cart-panel--open');
 
     const isInCatalog = () => views.catalog?.classList.contains('totem-view--active');
+
+    const refreshPromosIfOpen = () => {
+        if (views.promos?.classList.contains('totem-view--active')) {
+            window.LigeirinhoTotemPromos?.refresh?.();
+        }
+    };
+
+    const isInPromos = () => views.promos?.classList.contains('totem-view--active');
+
+    const isInShopping = () => isInCatalog() || isInPromos();
 
     const updateFloatCart = (cart) => {
         const cartData = cart || cartApi.loadCart();
@@ -733,10 +768,10 @@ ${unitHtml}
             );
         }
 
-        const visible = count > 0 && isInCatalog() && !isCartOpen();
+        const visible = count > 0 && isInShopping() && !isCartOpen();
         floatCart?.classList.toggle('totem-float-cart--visible', visible);
         floatCart?.setAttribute('aria-hidden', visible ? 'false' : 'true');
-        document.documentElement.classList.toggle('totem-has-float-cart', count > 0 && isInCatalog());
+        document.documentElement.classList.toggle('totem-has-float-cart', count > 0 && isInShopping());
     };
 
     const resetCart = () => {
@@ -766,7 +801,7 @@ ${unitHtml}
         clearTimeout(idleHintTimer);
         idleTimer = window.setTimeout(resetSession, idleMs);
         idleHintTimer = window.setTimeout(() => {
-            if (views.catalog?.classList.contains('totem-view--active')) {
+            if (views.catalog?.classList.contains('totem-view--active') || views.promos?.classList.contains('totem-view--active')) {
                 idleHint?.classList.add('totem-idle-hint--visible');
             }
         }, hintMs);
@@ -986,15 +1021,30 @@ ${bodyHtml}
         const name = group
             ? pricing.cartItemName({ ...variant, tier: packType }, group)
             : product.name;
-        const price = (variant || product).price;
+        const price =
+            opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))
+                ? Number(opts.promoPrice)
+                : (variant || product).price;
         const cart = cartApi.loadCart();
         if (!cart[key]) {
-            cart[key] = { id: (variant || product).id, cartKey: key, name, price, qty: 0, packType };
+            cart[key] = {
+                id: (variant || product).id,
+                cartKey: key,
+                name,
+                price,
+                qty: 0,
+                packType,
+                ...(opts.promoId ? { promoId: opts.promoId } : {}),
+            };
+        } else if (opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))) {
+            cart[key].price = Number(opts.promoPrice);
+            if (opts.promoId) cart[key].promoId = opts.promoId;
         }
         cart[key].qty += 1;
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
+        refreshPromosIfOpen();
         pulseProduct(key);
         const pointsEarned = computePoints(price, 1);
         if (opts.fromDetail) {
@@ -1016,6 +1066,7 @@ ${bodyHtml}
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
+        refreshPromosIfOpen();
         if (delta > 0) {
             pulseProduct(cartKey);
             const pointsEarned = computePoints(unitPrice, 1);
@@ -1058,6 +1109,7 @@ ${cartLineThumbHtml(item)}
 <div class="totem-cart-line__body">
 <div class="totem-cart-line__name">${esc(item.name)}</div>
 <div class="totem-cart-line__meta">
+${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 <span class="totem-cart-line__pack">${esc(pack)}</span>
 <span class="totem-cart-line__sep" aria-hidden="true">·</span>
 <span>${formatPrice(item.price)}</span>
@@ -1177,6 +1229,11 @@ ${cartLineThumbHtml(item)}
             renderCategories();
             renderProducts();
             setView('catalog');
+            bumpIdle();
+        });
+
+        promosBtn?.addEventListener('click', () => {
+            setView('promos');
             bumpIdle();
         });
 
@@ -1357,6 +1414,26 @@ ${cartLineThumbHtml(item)}
         renderCategories();
         renderProducts();
         renderCart();
+        await window.LigeirinhoTotemPromos?.init?.({
+            gridEl: document.getElementById('totem-promos-grid'),
+            emptyEl: document.getElementById('totem-promos-empty'),
+            loadingEl: document.getElementById('totem-promos-loading'),
+            errorEl: document.getElementById('totem-promos-error'),
+            retryBtn: document.getElementById('totem-promos-retry'),
+            getDisplayItems: () => displayItems,
+            catalog,
+            pricing,
+            cartApi,
+            formatPrice,
+            esc,
+            canonCategoryId,
+            onPromoCount: updatePromosBadge,
+            onAdd: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
+            onChangeQty: (cartKey, delta) => changeQty(cartKey, delta),
+            onOpenDetail: (itemKey) => openProductDetail(itemKey),
+            onBumpIdle: bumpIdle,
+        });
+        if (promosBtn) promosBtn.hidden = false;
         resetIdleTimer();
     };
 
