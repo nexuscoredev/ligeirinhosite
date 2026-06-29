@@ -149,13 +149,11 @@
         const name = promo.name || group?.baseName || product?.name || 'Promoção';
         const itemKey = group?.key || product?.id || promo.id;
         const packLabel =
-            tier === 'pallet' && variant?.boxCount
-                ? `PALLET ${variant.boxCount} CX`
-                : tier === 'caixa' && variant?.packSize
-                  ? `CAIXA × ${variant.packSize}`
-                  : promo.sku
-                    ? `SKU ${promo.sku}`
-                    : 'PROMOÇÃO';
+            tier === 'caixa' && variant?.packSize
+                ? `CAIXA × ${variant.packSize}`
+                : promo.sku
+                  ? `SKU ${promo.sku}`
+                  : 'PROMOÇÃO';
         const validade = formatValidade(promo);
         const selectedClass = qty ? ' totem-promo-card--selected' : '';
         const unavailableClass = matched ? '' : ' totem-promo-card--unavailable';

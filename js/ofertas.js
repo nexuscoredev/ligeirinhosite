@@ -86,17 +86,13 @@
                 ? p.getUnitPrice({ ...variant, price: disc.sale, tier: activeTier })
                 : disc.sale;
         const imgSrc = catalog.productImageUrl(group && p ? p.getTierImage(group, activeTier) : product.image);
-        const packLabel = activeTier === 'pallet' ? 'PALLET' : 'CAIXA';
+        const packLabel = 'CAIXA';
         const groupAttr = group ? ` data-group-key="${esc(group.key)}" data-price-tier="${esc(activeTier)}"` : '';
         const sub =
             variant && p
                 ? [
                       'por unidade',
-                      activeTier === 'pallet'
-                          ? variant.boxCount
-                              ? `Pallet · ${variant.boxCount} cx`
-                              : 'Pallet'
-                          : `Caixa c/ ${variant.packSize || '?'} un`,
+                      `Caixa c/ ${variant.packSize || '?'} un`,
                       `total ${catalog.formatPrice(disc.sale)}`,
                   ].join(' · ')
                 : '';

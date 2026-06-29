@@ -749,7 +749,7 @@ ${imageBlock}
 
         if (!group) return;
 
-        const tier = card.dataset.priceTier || p.getDefaultTier(group);
+        const tier = p.resolveActiveTier?.(group, card.dataset.priceTier) || p.getDefaultTier(group);
 
         const variant = p.getVariant(group, tier);
 

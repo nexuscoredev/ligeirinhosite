@@ -358,12 +358,12 @@ adicionar ao pedido
 
     const activeTierFor = (group) => {
         if (!group?.key) return 'caixa';
-        return (
+        const preferred =
             tierByGroup.get(group.key) ||
             pricing.getTotemDefaultTier(group) ||
             pricing.getDefaultTier(group) ||
-            'caixa'
-        );
+            'caixa';
+        return pricing.resolveActiveTier?.(group, preferred) || preferred;
     };
 
     const priceTiersHtml = (group, activeTier) => {
