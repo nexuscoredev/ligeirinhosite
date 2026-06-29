@@ -1,3 +1,5 @@
+import { compactTotemCode, scannerTotemCode } from '../totem-order-code.mjs';
+
 const methodLabel = (m) => {
     const key = String(m || '').toLowerCase();
     if (key === 'pix') return 'Pix';
@@ -8,14 +10,16 @@ const methodLabel = (m) => {
 const formatPrice = (value) =>
     Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const TOTEM_CODE_HEX_LENGTH = 4;
+const compactCode = compactTotemCode;
 
-const compactCode = (id) => {
-    const raw = String(id || '')
-        .replace(/[^a-fA-F0-9]/gi, '')
-        .slice(0, TOTEM_CODE_HEX_LENGTH)
-        .toUpperCase();
-    return raw ? `PED ${raw}` : '';
+const appendEscPosCode128 = (out, text) => {
+    const data = `{B${String(text || '')}`;
+    const GS = '\x1D';
+    out += GS + 'h' + '\x50';
+    out += GS + 'w' + '\x02';
+    out += GS + 'H' + '\x02';
+    out += GS + 'k' + '\x49' + String.fromCharCode(data.length) + data;
+    return out;
 };
 
 const formatDateTime = (iso) => {
@@ -35,7 +39,8 @@ export function buildEscPosReceipt(order, opts = {}) {
     const width = Number(opts.escposLineChars) || 42;
     const unitLabel = order.totemLabel || opts.totemLabel || 'Ligeirinho Totem';
     const code = compactCode(order.id);
-    const lines = [];
+    const headLines = [];
+    const tailLines = [];
 
     const center = (s) => {
         const t = String(s);
@@ -46,48 +51,58 @@ export function buildEscPosReceipt(order, opts = {}) {
 
     const divider = () => '-'.repeat(width);
 
-    lines.push(center(unitLabel.toUpperCase()));
-    lines.push(center('COMPROVANTE DE PEDIDO'));
-    lines.push(center('Apresente no caixa'));
-    lines.push(divider());
-    lines.push(center('CODIGO DO PEDIDO'));
-    lines.push(center(code));
-    lines.push(center(formatDateTime(order.createdAt)));
-    lines.push(divider());
+    headLines.push(center(unitLabel.toUpperCase()));
+    headLines.push(center('COMPROVANTE DE PEDIDO'));
+    headLines.push(center('Apresente no caixa'));
+    headLines.push(divider());
+    headLines.push(center('CODIGO DO PEDIDO'));
+    headLines.push(center(code));
+
+    tailLines.push(center(formatDateTime(order.createdAt)));
+    tailLines.push(divider());
 
     const customerName = String(order.customerName || '').trim();
     const customerPhone = String(order.customerPhone || '').trim();
     if (customerName) {
-        lines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
+        tailLines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
     }
     if (customerPhone) {
-        lines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
+        tailLines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
     }
     if (customerName || customerPhone) {
-        lines.push(divider());
+        tailLines.push(divider());
     }
 
     (order.items || []).forEach((item) => {
         const qty = Number(item.qty) || 1;
         const lineTotal = formatPrice(Number(item.price) * qty);
         const name = String(item.name || '').trim();
-        lines.push(`${qty}x ${name}`.slice(0, width));
-        lines.push(padLine('', lineTotal, width));
+        tailLines.push(`${qty}x ${name}`.slice(0, width));
+        tailLines.push(padLine('', lineTotal, width));
     });
 
-    lines.push(divider());
-    lines.push(padLine('Pagamento', methodLabel(order.paymentMethod), width));
-    lines.push(padLine('TOTAL', formatPrice(order.total), width));
-    lines.push(divider());
-    lines.push(center('Ligeirinho Parceiros'));
-    lines.push('');
+    tailLines.push(divider());
+    tailLines.push(padLine('Pagamento', methodLabel(order.paymentMethod), width));
+    tailLines.push(padLine('TOTAL', formatPrice(order.total), width));
+    tailLines.push(divider());
+    tailLines.push(center('Ligeirinho Parceiros'));
+    tailLines.push('');
 
+    const scannerCode = scannerTotemCode(order.id);
     const ESC = '\x1B';
     const GS = '\x1D';
     let out = ESC + '@';
     out += ESC + 'E' + '\x01';
     out += ESC + 'a' + '\x01';
-    lines.forEach((line) => {
+    headLines.forEach((line) => {
+        out += line + '\n';
+    });
+    if (scannerCode) {
+        out += '\n';
+        out = appendEscPosCode128(out, scannerCode);
+        out += '\n';
+    }
+    tailLines.forEach((line) => {
         out += line + '\n';
     });
     out += ESC + 'a' + '\x00';

@@ -28,6 +28,15 @@ export function formatTotemCode(orderId) {
     return `${TOTEM_PEDIDO_PREFIX} ${hex.split('').join(' ')}`;
 }
 
+/** Leitor PDV / Code 128: PED4F4F (sem espaço). */
+export function scannerTotemCode(orderId) {
+    const hex = String(orderId || '')
+        .replace(/[^a-fA-F0-9]/gi, '')
+        .slice(0, TOTEM_CODE_HEX_LENGTH)
+        .toUpperCase();
+    return hex ? `${TOTEM_PEDIDO_PREFIX}${hex}` : '';
+}
+
 /** Compacto: PED 4F4F */
 export function compactTotemCode(orderId) {
     const hex = String(orderId || '')

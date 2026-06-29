@@ -114,6 +114,28 @@ body.totem-is-printing .totem-receipt-print {
     word-break: break-all;
 }
 
+.totem-receipt__barcode {
+    margin: 2mm auto 0;
+    max-width: 100%;
+    text-align: center;
+    line-height: 0;
+}
+
+.totem-receipt__barcode svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 68mm;
+    height: auto;
+}
+
+.totem-receipt__barcode-hint {
+    margin: 1mm 0 0;
+    font-size: 10px;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 0.08em;
+}
+
 .totem-receipt__meta {
     margin: 1mm 0 0;
     font-size: 11px;

@@ -181,6 +181,15 @@
         return `${rows.join('')}<div class="totem-receipt__divider" aria-hidden="true"></div>`;
     };
 
+    const buildBarcodeHtml = (orderId, forPrint = false) => {
+        const bc = window.LigeirinhoTotemBarcode;
+        const payload = bc?.scannerTotemCode?.(orderId) || '';
+        if (!payload || !bc?.code128Svg) return '';
+        const height = forPrint ? 52 : 56;
+        const svg = bc.code128Svg(payload, { height, barWidth: forPrint ? 1.25 : 1.35 });
+        return `<div class="totem-receipt__barcode" aria-hidden="true">${svg}</div><p class="totem-receipt__barcode-hint">${esc(payload)}</p>`;
+    };
+
     const buildReceiptHtml = (order, opts = {}) => {
         const forPrint = Boolean(opts.forPrint);
         const code = forPrint ? compactCode(order.id) : formatCode(order.id);
@@ -220,6 +229,7 @@
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 <p class="totem-receipt__code-label">Código do pedido</p>
 <p class="${codeClass}">${esc(code)}</p>
+${buildBarcodeHtml(order.id, forPrint)}
 <p class="totem-receipt__meta">${esc(formatDateTime(order.createdAt))}</p>
 ${buildCustomerReceiptBlock(order, forPrint)}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
@@ -228,7 +238,7 @@ ${itemsBlock}
 <div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(methodLabel(order.paymentMethod))}</strong></div>
 <div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
 <div class="totem-receipt__divider" aria-hidden="true"></div>
-<p class="totem-receipt__foot">Dirija-se ao caixa com este comprovante. O operador finalizará o pagamento no PDV.</p>
+<p class="totem-receipt__foot">Dirija-se ao caixa e passe o código de barras no leitor do PDV.</p>
 <p class="totem-receipt__foot totem-receipt__foot--muted">Ligeirinho Parceiros</p>
 </div>`;
     };
@@ -248,7 +258,10 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .totem-receipt__code-label{margin:0;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;text-align:center}
 .totem-receipt__code{margin:1.5mm 0 0;font-size:16px;font-weight:900;text-align:center;letter-spacing:.06em;word-break:break-all}
 .totem-receipt__code--compact{letter-spacing:.06em;font-size:16px;font-weight:900}
-.totem-receipt__meta{margin:1mm 0 0;font-size:11px;font-weight:700;text-align:center}
+.totem-receipt__barcode{margin:2mm auto 0;max-width:100%;text-align:center;line-height:0}
+.totem-receipt__barcode svg{display:block;margin:0 auto;max-width:68mm;height:auto}
+.totem-receipt__barcode-hint{margin:1mm 0 0;font-size:10px;font-weight:900;text-align:center;letter-spacing:.08em}
+.totem-receipt__meta{margin:1.5mm 0 0;font-size:11px;font-weight:700;text-align:center}
 .totem-receipt__items{display:flex;flex-direction:column;gap:2mm;width:100%}
 .totem-receipt__item{width:100%}
 .totem-receipt__item-head{display:flex;align-items:flex-start;gap:1.5mm;width:100%}
@@ -559,6 +572,10 @@ body{display:flex;justify-content:center;align-items:flex-start}
         lines.push(divider());
         lines.push(center('CODIGO DO PEDIDO'));
         lines.push(center(code));
+
+        const scannerCode = window.LigeirinhoTotemBarcode?.scannerTotemCode?.(order.id) || '';
+        const tailStart = lines.length;
+
         lines.push(center(formatDateTime(order.createdAt)));
         lines.push(divider());
 
@@ -594,9 +611,14 @@ body{display:flex;justify-content:center;align-items:flex-start}
         let out = ESC + '@';
         out += ESC + 'E' + '\x01';
         out += ESC + 'a' + '\x01';
-        lines.forEach((line) => {
-            out += line + '\n';
-        });
+        for (let i = 0; i < lines.length; i += 1) {
+            out += lines[i] + '\n';
+            if (scannerCode && i === tailStart - 1) {
+                out += '\n';
+                out = window.LigeirinhoTotemBarcode.appendEscPosCode128(out, scannerCode);
+                out += '\n';
+            }
+        }
         out += ESC + 'a' + '\x00';
         out += ESC + 'E' + '\x00';
         out += '\n\n';
