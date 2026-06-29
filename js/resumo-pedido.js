@@ -119,11 +119,6 @@
         return `<span class="resumo-select-btn__payment">${paymentMethodIconHtml(opt)}<span>${esc(opt.label)}</span></span>`;
     };
 
-    const isOnlinePayment = (method) => {
-        const key = String(method || '').toLowerCase();
-        return key === 'pix' || key === 'mercado_pago';
-    };
-
     const deliveryApi = window.LigeirinhoParceiroDelivery;
 
     const deliveryOptions = () => {
@@ -411,12 +406,6 @@ ${headerHtml(title)}
             if (!res.ok) throw new Error(data.error || 'Não foi possível criar o pedido.');
 
             cartApi.saveLastOrder(cart, checkout);
-
-            if (isOnlinePayment(paymentMethod)) {
-                window.location.href = `pagamento.html?order=${encodeURIComponent(data.orderId)}`;
-                return;
-            }
-
             cartApi.saveCart({});
             window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(data.orderId)}`;
         } catch (err) {

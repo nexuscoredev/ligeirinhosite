@@ -1,5 +1,11 @@
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
-import { insertOrder, publicOrderView, dbFromPaymentConfig } from '../../scripts/supabase-orders.mjs';
+import {
+    insertOrder,
+    patchOrder,
+    publicOrderView,
+    dbFromPaymentConfig,
+} from '../../scripts/supabase-orders.mjs';
+import { ensureHubPedidoForParceiros } from '../../scripts/hub-parceiro-pedido.mjs';
 import {
     upsertCustomer,
     fetchCustomerByHubUserId,
@@ -82,17 +88,20 @@ export default async function handler(req, res) {
         const hubUserId = String(body.hubUserId || customer.hubUserId || '').trim() || null;
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
         const isTotem = channel === 'totem';
+        const isParceiros = !isTotem;
         let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
         if (!paymentMethod && !isTotem) paymentMethod = 'pix';
         const isCreditOrder = paymentMethod && CREDIT_METHODS.has(paymentMethod);
         const financialStatus =
             isTotem && !paymentMethod
                 ? 'pendente'
-                : isCreditOrder
+                : isParceiros
                   ? 'pendente'
-                  : ['pix', 'cartao', 'mercado_pago'].includes(paymentMethod)
-                    ? 'em_cobranca'
-                    : 'pendente';
+                  : isCreditOrder
+                    ? 'pendente'
+                    : ['pix', 'cartao', 'mercado_pago'].includes(paymentMethod)
+                      ? 'em_cobranca'
+                      : 'pendente';
 
         const db = dbFromPaymentConfig(config);
 
@@ -188,12 +197,32 @@ export default async function handler(req, res) {
             }
         }
 
+        let hubPedido = null;
+        if (isParceiros) {
+            try {
+                hubPedido = await ensureHubPedidoForParceiros(order, process.env);
+                if (hubPedido?.id && order.hub_pedido_id !== hubPedido.id) {
+                    order = await patchOrder(
+                        db.url,
+                        db.key,
+                        order.id,
+                        { hub_pedido_id: hubPedido.id },
+                        { useRpc: db.useRpc },
+                    );
+                }
+            } catch (hubErr) {
+                console.error('orders/create hub sync', hubErr);
+            }
+        }
+
         return res.status(201).json({
             orderId: order.id,
             total: Number(order.total),
             order: publicOrderView(order),
             financialStatus: order.financial_status || financialStatus,
             dueDate: order.due_date || row.due_date,
+            hubPedidoNumero: hubPedido?.numero ?? null,
+            hubPedidoId: hubPedido?.id ?? null,
         });
     } catch (err) {
         console.error('orders/create', err);

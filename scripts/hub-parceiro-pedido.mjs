@@ -2,6 +2,7 @@ import { hubConfig } from './hub-auth.mjs';
 import { normalizeDocDigits } from './hub-parceiro.mjs';
 
 export const PARCEIROS_NF_TAG = 'Ligeirinho Parceiros';
+export const PARCEIROS_TAG = PARCEIROS_NF_TAG;
 
 function hubHeaders(config, extra = {}) {
     return {
@@ -89,10 +90,21 @@ function formatDeliveryDate(value) {
     return `${d}/${m}/${y}`;
 }
 
+function paymentMethodLabel(method) {
+    const m = String(method || '').toLowerCase();
+    if (m === 'pix') return 'Pix';
+    if (m === 'mercado_pago') return 'Mercado Pago';
+    if (m === 'dinheiro') return 'Dinheiro';
+    if (m === 'cartao') return 'Cartão';
+    if (m === 'prazo' || m === 'boleto' || m === 'fiado' || m === 'credito') return 'A prazo';
+    return method ? String(method).trim() : '';
+}
+
 function buildObservacoes(order) {
-    const parts = [PARCEIROS_NF_TAG];
+    const parts = [PARCEIROS_TAG];
     parts.push(`Pedido ${String(order.id || '').slice(0, 8).toUpperCase()}`);
     if (order.customer_name) parts.push(String(order.customer_name).trim());
+    if (order.payment_method) parts.push(`Pagamento: ${paymentMethodLabel(order.payment_method)}`);
     if (order.delivery_date) parts.push(`Entrega: ${formatDeliveryDate(order.delivery_date)}`);
     if (order.delivery_type === 'entrega' && order.address) {
         parts.push(`Endereço: ${String(order.address).trim()}`);
@@ -129,15 +141,7 @@ async function fetchClienteParceiro(config, order) {
     return { clienteId: cliente.id, pessoaId: pessoa.id, clienteNome: cliente.nome || pessoa.nome || user.nome };
 }
 
-export async function ensureHubPedidoNfParceiros(order, env = process.env) {
-    const hub = hubConfig(env);
-    if (!hub.serviceKey) return null;
-    if (!order?.id || !order?.wants_invoice) return null;
-    if (String(order.channel || 'parceiros').toLowerCase() === 'totem') return null;
-
-    const existing = await buscarHubPedidoPorParceirosId(hub, order.id);
-    if (existing) return existing;
-
+async function createHubPedidoFromParceirosOrder(hub, order, { status }) {
     const cliente = await fetchClienteParceiro(hub, order);
     if (!cliente?.clienteId) {
         console.warn('hub-parceiro-pedido: cliente parceiro não encontrado no Hub', order.hub_user_id);
@@ -150,7 +154,7 @@ export async function ensureHubPedidoNfParceiros(order, env = process.env) {
 
     const pedidoBody = {
         cliente_id: cliente.clienteId,
-        status: 'aguardando_emissao_nf',
+        status,
         modalidade: order.delivery_type === 'retirada' ? 'retirada' : 'entrega',
         valor_pedido: total,
         pagamento_split: buildPagamentoSplit(order),
@@ -210,4 +214,28 @@ export async function ensureHubPedidoNfParceiros(order, env = process.env) {
     }
 
     return pedido;
+}
+
+export async function ensureHubPedidoForParceiros(order, env = process.env) {
+    const hub = hubConfig(env);
+    if (!hub.serviceKey) return null;
+    if (!order?.id) return null;
+    if (String(order.channel || 'parceiros').toLowerCase() === 'totem') return null;
+
+    const existing = await buscarHubPedidoPorParceirosId(hub, order.id);
+    if (existing) return existing;
+
+    return createHubPedidoFromParceirosOrder(hub, order, { status: 'pendente' });
+}
+
+export async function ensureHubPedidoNfParceiros(order, env = process.env) {
+    const hub = hubConfig(env);
+    if (!hub.serviceKey) return null;
+    if (!order?.id || !order?.wants_invoice) return null;
+    if (String(order.channel || 'parceiros').toLowerCase() === 'totem') return null;
+
+    const existing = await buscarHubPedidoPorParceirosId(hub, order.id);
+    if (existing) return existing;
+
+    return createHubPedidoFromParceirosOrder(hub, order, { status: 'aguardando_emissao_nf' });
 }

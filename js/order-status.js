@@ -16,14 +16,25 @@
 
     const render = (order) => {
         const paid = order.status === 'paid';
-        const pending = order.status === 'pending_payment';
-        const icon = paid ? 'check_circle' : pending ? 'schedule' : 'info';
-        const title = paid ? 'Pedido confirmado!' : pending ? 'Aguardando pagamento' : 'Status do pedido';
+        const pendingPayment = order.status === 'pending_payment';
+        const isParceiros = (order.channel || 'parceiros') === 'parceiros';
+        const awaitingAcceptance =
+            isParceiros && order.status === 'pending' && order.financialStatus === 'pendente';
+        const icon = paid ? 'check_circle' : pendingPayment || awaitingAcceptance ? 'schedule' : 'info';
+        const title = paid
+            ? 'Pedido confirmado!'
+            : pendingPayment
+              ? 'Aguardando pagamento'
+              : awaitingAcceptance
+                ? 'Pedido enviado!'
+                : 'Status do pedido';
         const lead = paid
             ? 'Recebemos seu pagamento. Em breve entraremos em contato para confirmar a entrega.'
-            : pending
+            : pendingPayment
               ? 'Assim que o Pix for compensado, confirmaremos automaticamente.'
-              : 'Acompanhe o status abaixo.';
+              : awaitingAcceptance
+                ? 'Seu pedido foi recebido e está aguardando aceite no Ligeirinho Hub. A equipe confirmará em breve.'
+                : 'Acompanhe o status abaixo.';
 
         const itemsHtml = (order.items || [])
             .map((item) => `<li>${item.qty}x ${esc(item.name)}</li>`)
