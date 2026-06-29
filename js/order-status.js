@@ -25,35 +25,6 @@
               ? 'Assim que o Pix for compensado, confirmaremos automaticamente.'
               : 'Acompanhe o status abaixo.';
 
-        const nfQueued = order.wantsInvoice && order.nfQueueStatus === 'queued';
-        const nfWaitingPay = order.wantsInvoice && order.nfQueueStatus === 'pending_payment';
-        let nfHtml = '';
-        if (nfQueued) {
-            nfHtml = `<div class="lig-nf-notice" role="status">
-<span class="material-symbols-outlined lig-nf-notice__icon" aria-hidden="true">receipt_long</span>
-<div>
-<p class="lig-nf-notice__title">NF/DANFE em emissão</p>
-<p class="lig-nf-notice__lead">Sua nota fiscal foi solicitada e está em processo de emissão no Ligeirinho Hub. Você será avisado quando estiver pronta.</p>
-</div>
-</div>`;
-        } else if (nfWaitingPay && pending) {
-            nfHtml = `<div class="lig-nf-notice lig-nf-notice--muted" role="status">
-<span class="material-symbols-outlined lig-nf-notice__icon" aria-hidden="true">receipt_long</span>
-<div>
-<p class="lig-nf-notice__title">NF/DANFE solicitada</p>
-<p class="lig-nf-notice__lead">Após a confirmação do pagamento, sua nota entrará na fila de emissão.</p>
-</div>
-</div>`;
-        } else if (order.wantsInvoice && !pending && !nfQueued) {
-            nfHtml = `<div class="lig-nf-notice" role="status">
-<span class="material-symbols-outlined lig-nf-notice__icon" aria-hidden="true">receipt_long</span>
-<div>
-<p class="lig-nf-notice__title">NF/DANFE em emissão</p>
-<p class="lig-nf-notice__lead">Sua nota fiscal foi solicitada e está em processo de emissão no Ligeirinho Hub.</p>
-</div>
-</div>`;
-        }
-
         const itemsHtml = (order.items || [])
             .map((item) => `<li>${item.qty}x ${esc(item.name)}</li>`)
             .join('');
@@ -62,7 +33,6 @@
 <span class="material-symbols-outlined lig-payment-icon ${paid ? 'lig-payment-icon--ok' : ''}">${icon}</span>
 <h1 class="lig-payment-title">${title}</h1>
 <p class="lig-payment-lead">${lead}</p>
-${nfHtml}
 <div class="lig-payment-summary">
 <p class="lig-payment-summary__meta">Pedido <code>${esc(String(order.id).slice(0, 8))}</code> · ${formatPrice(order.total)}</p>
 <ul class="lig-payment-summary__list lig-payment-summary__list--compact">${itemsHtml}</ul>

@@ -19,7 +19,6 @@ import {
     insertPaymentEvent,
 } from '../../scripts/supabase-finance.mjs';
 import { maybeInitSeparation } from '../../scripts/separation-init.mjs';
-import { maybeEnqueueParceiroNf } from '../../scripts/parceiro-nf-queue.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -103,12 +102,6 @@ async function markOrderPaid(config, order, { txid, payload, eventType = 'paid' 
         { useRpc: db.useRpc }
     );
 
-    await maybeEnqueueParceiroNf(
-        { ...order, status: 'paid', financial_status: 'pago', paid_at: paidAt },
-        process.env,
-        db,
-    );
-
     if (order.customer_id) {
         await releaseCredit(config.supabaseUrl, config.supabaseServiceKey, order.customer_id, Number(order.total));
         await applyCashback(config, order);
@@ -169,11 +162,6 @@ async function syncByTxid(config, txid, reqBody) {
                 { ...order, status: orderStatus, paid_at: paidAt },
                 process.env,
                 { useRpc: db.useRpc }
-            );
-            await maybeEnqueueParceiroNf(
-                { ...order, status: orderStatus, financial_status: financialStatus, paid_at: paidAt },
-                process.env,
-                db,
             );
             if (order.customer_id) {
                 await releaseCredit(
