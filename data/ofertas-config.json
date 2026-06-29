@@ -1,4 +1,5 @@
 {
+  "_deprecated": "Ofertas Parceiros usa /api/promocoes (tabela promocoes do Hub). Este arquivo não é mais lido pelo app.",
   "discountPercentMin": 5,
   "discountPercentMax": 18,
   "discountCategories": ["cervejas", "refrigerantes-sucos", "destilados", "energeticos"]

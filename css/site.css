@@ -4554,9 +4554,35 @@ html.lig-story-open {
     color: var(--lig-text);
 }
 
+.ofertas-header__lead {
+    margin: 0.35rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted, var(--lig-text-secondary, #64748b));
+}
+
+.ofertas-status {
+    margin: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+    color: var(--lig-text-muted, var(--lig-text-secondary, #64748b));
+    background: var(--lig-surface-2, #f8fafc);
+    border-radius: 0.75rem;
+}
+
+.ofertas-status__retry {
+    margin-left: 0.35rem;
+    font-weight: 600;
+    color: var(--lig-primary, #0d9488);
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
 .ofertas-toolbar {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr auto;
     gap: 0.625rem;
     padding: 0.75rem 1rem;
     background: var(--lig-surface);
@@ -4734,6 +4760,12 @@ html.lig-story-open {
 .ofertas-product-row__badge--pack {
     top: 0.25rem;
     right: 0.25rem;
+}
+
+.ofertas-product-row__badge--pct {
+    bottom: 0.25rem;
+    left: 0.25rem;
+    background: #c62828;
 }
 
 .ofertas-product-row__body {

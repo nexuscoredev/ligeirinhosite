@@ -1,111 +1,10 @@
 (function () {
     let deps = null;
-    let hubPromos = [];
-    let promosLoadedAt = 0;
     let bound = false;
     let loading = false;
-    let fetchError = false;
-    const CACHE_MS = 60_000;
 
-    const normalizeName = (value) =>
-        String(value || '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/\s+C\/\d+\s*$/i, '')
-            .replace(/\s+CX\s*$/i, '')
-            .replace(/^CAIXA\s+/i, '')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .toUpperCase();
-
-    const normalizeSku = (value) => String(value || '').trim().toLowerCase();
-
-    const loadHubPromos = async (force = false) => {
-        const now = Date.now();
-        if (!force && hubPromos.length && now - promosLoadedAt < CACHE_MS) {
-            fetchError = false;
-            return hubPromos;
-        }
-        try {
-            const res = await fetch('/api/totem/promocoes', { credentials: 'same-origin' });
-            if (!res.ok) throw new Error('fetch failed');
-            const data = await res.json();
-            hubPromos = Array.isArray(data?.promocoes) ? data.promocoes : [];
-            promosLoadedAt = now;
-            fetchError = false;
-        } catch {
-            fetchError = true;
-            if (!hubPromos.length) hubPromos = [];
-        }
-        return hubPromos;
-    };
-
-    const productSku = (product) => normalizeSku(product?.sku);
-
-    const resolveDisplayItem = (promo) => {
-        const items = deps?.getDisplayItems?.() || [];
-        const sku = normalizeSku(promo.sku);
-        const catalogId = String(promo.catalogProductId || '').trim().toLowerCase();
-        const promoName = normalizeName(promo.name || promo.hubProductName);
-
-        for (const item of items) {
-            const group = item.group || null;
-            const product = item.product;
-
-            if (catalogId) {
-                if (product.id === catalogId || group?.primaryId === catalogId) return item;
-                if (group?.variants) {
-                    for (const variant of Object.values(group.variants)) {
-                        if (variant?.id === catalogId) return item;
-                    }
-                }
-            }
-
-            if (sku) {
-                if (productSku(product) === sku) return item;
-                if (group?.variants) {
-                    for (const variant of Object.values(group.variants)) {
-                        if (productSku(variant) === sku) return item;
-                    }
-                }
-                if (product.id === sku || product.id.includes(sku)) return item;
-            }
-
-            const base = normalizeName(group?.baseName || product.name);
-            if (promoName && base && (base === promoName || base.includes(promoName) || promoName.includes(base))) {
-                return item;
-            }
-        }
-        return null;
-    };
-
-    const sortEntries = (entries) =>
-        entries.sort((a, b) => {
-            const aMatch = a.item ? 1 : 0;
-            const bMatch = b.item ? 1 : 0;
-            if (bMatch !== aMatch) return bMatch - aMatch;
-            return (b.promo.discountPct || 0) - (a.promo.discountPct || 0);
-        });
-
-    const buildEntries = async () => {
-        await loadHubPromos();
-        return sortEntries(
-            hubPromos.map((promo) => ({
-                promo,
-                item: resolveDisplayItem(promo),
-            }))
-        );
-    };
-
-    const formatValidade = (promo) => {
-        if (!promo?.validTo) return '';
-        try {
-            const d = new Date(`${promo.validTo}T12:00:00`);
-            return `Até ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`;
-        } catch {
-            return '';
-        }
-    };
+    const promoCatalog = window.LigeirinhoPromoCatalog;
+    const promoLoader = promoCatalog?.createHubPromoLoader('/api/promocoes');
 
     const setPanelVisibility = ({ showLoading = false, showError = false, showGrid = false, showEmpty = false } = {}) => {
         const { loadingEl, errorEl, gridEl, emptyEl } = deps || {};
@@ -125,6 +24,12 @@
             emptyEl.hidden = !showEmpty;
             emptyEl.style.display = showEmpty ? '' : 'none';
         }
+    };
+
+    const buildEntries = async () => {
+        if (!promoLoader || !promoCatalog) return [];
+        const promos = await promoLoader.load();
+        return promoCatalog.buildPromoEntries(promos, deps?.getDisplayItems?.() || []);
     };
 
     const buildCardHtml = (entry, index) => {
@@ -154,7 +59,7 @@
                 : promo.sku
                   ? `SKU ${promo.sku}`
                   : 'PROMOÇÃO';
-        const validade = formatValidade(promo);
+        const validade = promoCatalog.formatValidade(promo);
         const selectedClass = qty ? ' totem-promo-card--selected' : '';
         const unavailableClass = matched ? '' : ' totem-promo-card--unavailable';
         const attrs = matched
@@ -191,28 +96,24 @@ ${
     };
 
     const render = async () => {
-        if (!deps?.gridEl) return;
+        if (!deps?.gridEl || !promoLoader) return;
         loading = true;
         setPanelVisibility({ showLoading: true });
         const entries = await buildEntries();
         loading = false;
 
-        if (fetchError && !entries.length) {
+        if (promoLoader.hadError() && !entries.length) {
             setPanelVisibility({ showError: true });
             return;
         }
 
-        const { emptyEl, gridEl } = deps;
         if (!entries.length) {
             setPanelVisibility({ showEmpty: true });
-            if (emptyEl) emptyEl.hidden = false;
             return;
         }
 
         setPanelVisibility({ showGrid: true });
-        if (gridEl) {
-            gridEl.innerHTML = entries.map((entry, i) => buildCardHtml(entry, i)).join('');
-        }
+        deps.gridEl.innerHTML = entries.map((entry, i) => buildCardHtml(entry, i)).join('');
     };
 
     const bindGrid = () => {
@@ -252,10 +153,10 @@ ${
     };
 
     const refresh = async () => {
-        await loadHubPromos(true);
+        promoLoader?.clear();
+        await promoLoader?.load(true);
         await render();
     };
 
     window.LigeirinhoTotemPromos = { init, render, refresh };
 })();
-
