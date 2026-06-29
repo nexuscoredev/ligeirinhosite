@@ -193,15 +193,72 @@
         return errors;
     };
 
-    const headerHtml = (title, backAction) => `<header class="resumo-header">
+    const headerHtml = (title, subtitle) => {
+        const sub =
+            subtitle ||
+            String(session()?.razaoSocial || session()?.name || 'Ligeirinho Parceiros').toUpperCase();
+        return `<header class="resumo-header">
 <button type="button" class="resumo-header__back" id="resumo-back" aria-label="Voltar">
 <span class="material-symbols-outlined">arrow_back</span>
 </button>
 <div class="resumo-header__main">
 <h1 class="resumo-header__title">${esc(title)}</h1>
-<p class="resumo-header__sub">Ligeirinho Parceiros</p>
+<p class="resumo-header__sub">${esc(sub)}</p>
 </div>
 </header>`;
+    };
+
+    const productThumbHtml = (item) => {
+        const src = item.image ? assetUrl(item.image) : '';
+        if (src) {
+            return `<img src="${esc(src)}" alt="" class="resumo-product__thumb" loading="lazy" width="56" height="56" decoding="async">`;
+        }
+        return `<span class="resumo-product__thumb resumo-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
+    };
+
+    const productPackDetail = (item) => {
+        const pack = cartApi.packTypeLabel(item.packType);
+        const boxMatch = String(item.name || '').match(/\(Caixa c\/\s*(\d+)\)/i);
+        if (boxMatch) return `1 Unidade · Caixa contém ${boxMatch[1]} unidades`;
+        if (item.packType === 'caixa') return `1 Caixa · preço por embalagem`;
+        return `1 ${pack} · ${formatPrice(item.price)}`;
+    };
+
+    const vendorCardHtml = () => {
+        const s = session();
+        const vendorName = s?.razaoSocial || s?.name || 'Parceiro';
+        const initials = vendorName
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((w) => w[0])
+            .join('')
+            .toUpperCase();
+        return `<section class="resumo-vendor-card" aria-label="Distribuidor">
+<span class="resumo-vendor-card__logo" aria-hidden="true">${esc(initials || 'LG')}</span>
+<div class="resumo-vendor-card__body">
+<p class="resumo-vendor-card__name">${esc(vendorName)}</p>
+<p class="resumo-vendor-card__meta">Ligeirinho Distribuição</p>
+</div>
+</section>`;
+    };
+
+    const productLineHtml = (item) => {
+        const lineTotal = formatPrice((item.price || 0) * item.qty);
+        const unitPrice = formatPrice(item.price || 0);
+        return `<article class="resumo-product resumo-product--rich">
+${productThumbHtml(item)}
+<div class="resumo-product__main">
+<p class="resumo-product__name">${esc(item.name)}</p>
+<p class="resumo-product__detail">${esc(productPackDetail(item))}</p>
+<p class="resumo-product__unit-price">${unitPrice}</p>
+</div>
+<div class="resumo-product__side">
+<span class="resumo-product__qty">x${item.qty}</span>
+<strong class="resumo-product__total">${lineTotal}</strong>
+</div>
+</article>`;
+    };
 
     const cardHtml = (title, body, badge = '') => `<section class="resumo-card">
 <div class="resumo-card__head">
@@ -233,22 +290,12 @@ ${body}
             : '';
         const payLabel = paymentMethodSelectHtml(checkout.paymentMethod);
 
-        const productsBody = items
-            .slice(0, 3)
-            .map(
-                (item) => `<div class="resumo-product">
-<div>
-<p class="resumo-product__name">${esc(item.name)}</p>
-<p class="resumo-product__meta">${item.qty}x · ${formatPrice(item.price)}</p>
-</div>
-<strong class="resumo-product__total">${formatPrice((item.price || 0) * item.qty)}</strong>
-</div>`
-            )
-            .join('');
+        const productsBody = `<div class="resumo-products-list">${items.map(productLineHtml).join('')}</div>`;
 
         root.innerHTML = `<div class="resumo-shell">
-${headerHtml('Resumo do pedido')}
+${headerHtml('Resumo do pedido', 'LIGEIRINHO DISTRIBUI')}
 <div class="resumo-content">
+${vendorCardHtml()}
 ${cardHtml(
     'Data de entrega',
     `${diasLabel ? `<p class="resumo-field-hint">Dias de entrega: ${esc(diasLabel)}</p>` : '<p class="resumo-field-hint">Campo obrigatório</p>'}
@@ -261,7 +308,7 @@ ${cardHtml(
 <button type="button" class="resumo-select-btn resumo-select-btn--payment${errors.paymentMethod ? ' resumo-select-btn--error' : ''}" data-open-picker="payment">${payLabel}</button>
 ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</p>` : ''}`
 )}
-${cardHtml('Produtos', `${productsBody}${items.length > 3 ? `<p class="resumo-more">+ ${items.length - 3} itens</p>` : ''}`, String(units))}
+${cardHtml('Produtos', productsBody, String(units))}
 ${cardHtml(
     'Resumo do pedido',
     `<div class="resumo-total-row resumo-total-row--final"><span>Subtotal (${units} produtos)</span><strong>${formatPrice(subtotal)}</strong></div>
@@ -418,7 +465,7 @@ ${headerHtml(title)}
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Não foi possível criar o pedido.');
 
-            cartApi.saveLastOrder(cart, checkout);
+            cartApi.saveLastOrder(cart, checkout, data.orderId);
             cartApi.saveCart({});
             window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(data.orderId)}`;
         } catch (err) {

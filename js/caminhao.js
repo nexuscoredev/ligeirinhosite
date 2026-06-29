@@ -14,7 +14,7 @@
     const cartUi = window.LigeirinhoCartUI;
     if (!cartApi) return;
 
-    const PAY_LABEL = 'Escolher data de entrega';
+    const PAY_LABEL = 'Continuar';
     let checkoutBound = false;
 
     const esc = (v) =>
@@ -80,35 +80,63 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
 </div>`;
     };
 
-    const itemRowHtml = (item) => {
+    const productPackDetail = (item) => {
+        const pack = cartApi.packTypeLabel(item.packType);
+        const boxMatch = String(item.name || '').match(/\(Caixa c\/\s*(\d+)\)/i);
+        if (boxMatch) return `1 Unidade · Caixa contém ${boxMatch[1]} unidades`;
+        if (item.packType === 'caixa') return `1 Caixa · preço por embalagem`;
+        return `1 ${pack} · ${formatPrice(item.price)}`;
+    };
+
+    const productCardHtml = (item) => {
         const lineKey = item.cartKey || item.id;
-        const meta = cartApi.itemMetaText(item);
+        const lineTotal = formatPrice((item.price || 0) * item.qty);
+        const listPrice = Number(item.listPrice) || 0;
+        const hasDiscount = listPrice > Number(item.price);
         const thumb =
-            cartUi?.lineThumbHtml?.(item, 'caminhao-item__thumb') ||
-            '<span class="caminhao-item__thumb caminhao-item__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
-        return `<article class="caminhao-item" data-cart-line="${esc(lineKey)}">
-${thumb}
-<div class="caminhao-item__main">
-<p class="caminhao-item__name">${esc(item.name)}</p>
-<p class="caminhao-item__meta">${esc(meta)}</p>
-</div>
-<div class="caminhao-item__actions">
-<button type="button" class="caminhao-item__qty caminhao-item__qty--minus cart-qty-minus" data-id="${esc(lineKey)}" aria-label="Diminuir">−</button>
-<span class="caminhao-item__qty-val">${item.qty}</span>
-<button type="button" class="caminhao-item__qty caminhao-item__qty--plus cart-qty-plus" data-id="${esc(lineKey)}" aria-label="Aumentar">+</button>
-<button type="button" class="caminhao-item__remove cart-remove" data-id="${esc(lineKey)}" aria-label="Remover">
-<span class="material-symbols-outlined">delete</span>
+            cartUi?.lineThumbHtml?.(item, 'caminhao-product__thumb') ||
+            '<span class="caminhao-product__thumb caminhao-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
+        return `<article class="caminhao-product" data-cart-line="${esc(lineKey)}">
+<button type="button" class="caminhao-product__remove cart-remove" data-id="${esc(lineKey)}" aria-label="Remover">
+<span class="material-symbols-outlined">close</span>
 </button>
+<div class="caminhao-product__top">
+${thumb}
+<div class="caminhao-product__info">
+<p class="caminhao-product__name">${esc(item.name)}</p>
+<p class="caminhao-product__detail">${esc(productPackDetail(item))}</p>
+${hasDiscount ? '<p class="caminhao-product__discount">Desconto aplicado</p>' : ''}
+<p class="caminhao-product__prices">
+${hasDiscount ? `<span class="caminhao-product__was">${formatPrice(listPrice)}</span>` : ''}
+<span class="caminhao-product__price">${formatPrice(item.price)}</span>
+</p>
+</div>
+</div>
+<div class="caminhao-product__bottom">
+<div class="caminhao-product__stepper" aria-label="Quantidade">
+<button type="button" class="caminhao-product__qty caminhao-product__qty--minus cart-qty-minus" data-id="${esc(lineKey)}" aria-label="Diminuir">−</button>
+<span class="caminhao-product__qty-val">${item.qty}</span>
+<button type="button" class="caminhao-product__qty caminhao-product__qty--plus cart-qty-plus" data-id="${esc(lineKey)}" aria-label="Aumentar">+</button>
+</div>
+<strong class="caminhao-product__line-total">${lineTotal}</strong>
 </div>
 </article>`;
     };
 
-    const summaryBlockHtml = (cart) => {
-        const { units, subtotal } = cartApi.cartSummary(cart);
-        const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
-        return `<div class="caminhao-summary">
-<div class="caminhao-summary__row caminhao-summary__row--total"><span>Subtotal (${unitsLabel})</span><strong>${formatPrice(subtotal)}</strong></div>
-</div>`;
+    const productsSectionHtml = (cart) => {
+        const items = cartApi.cartEntries(cart);
+        const { units } = cartApi.cartSummary(cart);
+        return `<section class="caminhao-products" aria-label="Produtos no caminhão">
+<div class="caminhao-products__head">
+<h2 class="caminhao-products__title">Produtos</h2>
+<span class="caminhao-products__badge">${units}</span>
+</div>
+<div class="caminhao-products__list">${items.map(productCardHtml).join('')}</div>
+<button type="button" class="caminhao-clear-all" id="caminhao-clear-btn">
+<span class="caminhao-clear-all__icon" aria-hidden="true">×</span>
+<span>Excluir todos</span>
+</button>
+</section>`;
     };
 
     const checkoutHtml = () => {
@@ -120,7 +148,7 @@ ${thumb}
 <p class="caminhao-checkout__condicao-value">${esc(condicao)}</p>
 </div>`
             : '';
-        return `<a href="pedidos.html" class="caminhao-continue">Continuar comprando</a>
+        return `<a href="pedidos.html" class="caminhao-continue-link">Continuar comprando</a>
 <section class="caminhao-checkout cart-checkout" id="caminhao-checkout" aria-label="Detalhes do pedido">
 <p class="caminhao-checkout__label">Detalhes do pedido</p>
 ${condicaoBlock}
@@ -136,14 +164,33 @@ ${condicaoBlock}
 <p class="caminhao-checkout__error hidden" data-checkout-error="address" role="alert"></p>
 <textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="caminhao-input caminhao-input--area"></textarea>
 <p class="caminhao-checkout__hint">Na próxima etapa você escolhe data de entrega e forma de pagamento.</p>
-</section>
-<div class="caminhao-footer">
-<div id="caminhao-summary"></div>
-<button type="button" id="caminhao-pay-btn" class="caminhao-pay-btn caminhao-pay-btn--continue" disabled aria-label="${PAY_LABEL}">
-<span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+</section>`;
+    };
+
+    const stickyFooterHtml = (cart) => {
+        const { subtotal } = cartApi.cartSummary(cart);
+        const savings = cartApi.cartEntries(cart).reduce((sum, item) => {
+            const list = Number(item.listPrice) || 0;
+            const price = Number(item.price) || 0;
+            if (list > price) return sum + (list - price) * item.qty;
+            return sum;
+        }, 0);
+        return `<div class="caminhao-sticky-foot">
+${
+    savings > 0
+        ? `<p class="caminhao-savings"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>Você está economizando ${formatPrice(savings)}</p>`
+        : ''
+}
+<div class="caminhao-sticky-foot__bar">
+<div class="caminhao-sticky-foot__total">
+<span class="caminhao-sticky-foot__label">Total estimado</span>
+<strong class="caminhao-sticky-foot__value" id="caminhao-total-value">${formatPrice(subtotal)}</strong>
+</div>
+<button type="button" id="caminhao-pay-btn" class="caminhao-continue-btn caminhao-pay-btn--continue" disabled aria-label="${PAY_LABEL}">
 <span>${PAY_LABEL}</span>
-<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+<span class="caminhao-continue-btn__icon" aria-hidden="true"><span class="material-symbols-outlined">arrow_forward</span></span>
 </button>
+</div>
 </div>`;
     };
 
@@ -237,7 +284,6 @@ ${condicaoBlock}
     const render = () => {
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
-        const count = cartApi.cartItemCount(cart);
 
         root.innerHTML = `<div class="caminhao-shell">
 <header class="caminhao-header">
@@ -246,17 +292,18 @@ ${condicaoBlock}
 </button>
 <div class="caminhao-header__main">
 <h1 class="caminhao-header__title">Caminhão</h1>
-${count > 0 ? `<p class="caminhao-header__count">${count === 1 ? '1 item no caminhão' : `${count} itens no caminhão`}</p>` : '<p class="caminhao-header__count caminhao-header__count--empty">Seu pedido em um só lugar</p>'}
+<p class="caminhao-header__store-line">
+<span>LIGEIRINHO DISTRIBUI</span>
+<span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+</p>
 </div>
 </header>
 <div class="caminhao-content">
-${items.length ? `<div class="caminhao-items">${items.map(itemRowHtml).join('')}</div>` : emptyStateHtml()}
-</div>
+${items.length ? productsSectionHtml(cart) : emptyStateHtml()}
 ${items.length ? checkoutHtml() : ''}
+</div>
+${items.length ? stickyFooterHtml(cart) : ''}
 </div>`;
-
-        const summaryEl = document.getElementById('caminhao-summary');
-        if (summaryEl) summaryEl.innerHTML = summaryBlockHtml(cart);
 
         setPayButton(cart);
         renderCheckoutFields();
@@ -267,6 +314,12 @@ ${items.length ? checkoutHtml() : ''}
     };
 
     const bindActions = () => {
+        root.querySelector('#caminhao-clear-btn')?.addEventListener('click', () => {
+            if (!window.confirm('Remover todos os produtos do caminhão?')) return;
+            cartApi.saveCart({});
+            render();
+        });
+
         root.querySelector('#caminhao-back-btn')?.addEventListener('click', () => {
             if (window.history.length > 1) window.history.back();
             else window.location.href = 'pedidos.html';

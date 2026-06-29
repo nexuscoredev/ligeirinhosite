@@ -73,13 +73,14 @@
         return { items, units, subtotal, total: subtotal };
     };
 
-    const saveLastOrder = (cart, checkout) => {
+    const saveLastOrder = (cart, checkout, orderId = null) => {
         const items = cartEntries(cart);
         if (!items.length) return;
         try {
             localStorage.setItem(
                 LAST_ORDER_KEY,
                 JSON.stringify({
+                    orderId: orderId ? String(orderId) : null,
                     items: items.map((item) => ({
                         id: item.id,
                         cartKey: item.cartKey || item.id,
@@ -126,7 +127,7 @@
         if (!data) return null;
         const count = data.items.reduce((sum, item) => sum + item.qty, 0);
         const total = data.items.reduce((sum, item) => sum + (item.price ?? 0) * item.qty, 0);
-        return { count, total, items: data.items, savedAt: data.savedAt };
+        return { orderId: data.orderId || null, count, total, items: data.items, savedAt: data.savedAt, checkout: data.checkout || null };
     };
 
     const defaultPrefs = () => ({

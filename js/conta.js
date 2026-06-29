@@ -248,38 +248,208 @@ ${menuItems.map(menuRow).join('')}
         }
     };
 
-    const renderPedidos = () => {
-        const summary = cart?.lastOrderSummary?.();
-        const body = `<div class="conta-sub-body">
-${
-    summary
-        ? `<div class="conta-order-card">
-<p class="conta-order-card__label">Último pedido</p>
-<p class="conta-order-card__meta">${summary.count} item(ns) · ${formatPrice(summary.total)}</p>
-<ul class="conta-order-card__items">${summary.items
-              .slice(0, 5)
-              .map((i) => `<li>${i.qty}x ${esc(i.name)}</li>`)
-              .join('')}${summary.items.length > 5 ? '<li>…</li>' : ''}</ul>
-<button type="button" class="conta-btn conta-btn--primary" id="conta-reorder-btn">Repetir pedido</button>
-<button type="button" class="conta-btn conta-btn--outline" data-conta-open-cart>Ir ao caminhão</button>
-</div>`
-        : `<div class="conta-empty">
-<span class="material-symbols-outlined conta-empty__icon">inventory_2</span>
-<p class="conta-empty__title">Nenhum pedido recente</p>
-<p class="conta-empty__sub">Faça seu primeiro pedido pelo catálogo.</p>
-<a href="pedidos.html" class="conta-btn conta-btn--primary">Ver catálogo</a>
-</div>`
-}
-<p class="conta-hint">Histórico completo de pedidos em breve nesta área.</p>
-</div>`;
-        wrapPage('Pedidos', isDesktop() ? '' : '', body, 'pedidos');
+    const formatDateTime = (value) => {
+        if (!value) return '—';
+        const d = new Date(String(value).includes('T') ? value : `${value}T12:00:00`);
+        if (Number.isNaN(d.getTime())) return '—';
+        return d.toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
 
+    const formatDateOnly = (value) => {
+        if (!value) return '—';
+        return new Date(String(value).includes('T') ? value : `${value}T12:00:00`).toLocaleDateString(
+            'pt-BR',
+        );
+    };
+
+    const paymentMethodLabel = (id) => {
+        const methods = window.LigeirinhoPaymentMethods;
+        if (methods?.label?.(id)) return methods.label(id);
+        const key = String(id || '').toLowerCase();
+        if (key === 'pix') return 'Pix';
+        if (key === 'mercado_pago') return 'Mercado Pago';
+        if (key === 'dinheiro') return 'Dinheiro';
+        if (key === 'boleto' || key === 'prazo') return 'A prazo';
+        return id || '—';
+    };
+
+    const orderStatusMeta = (order) => {
+        if (!order) return { label: '—', tone: 'muted' };
+        if (order.status === 'paid') return { label: 'Confirmado', tone: 'ok' };
+        if (order.status === 'cancelled') return { label: 'Cancelado', tone: 'muted' };
+        if (order.status === 'pending_payment') return { label: 'Aguardando pagamento', tone: 'wait' };
+        if ((order.channel || 'parceiros') === 'parceiros' && order.status === 'pending') {
+            return { label: 'Aguardando aceite', tone: 'wait' };
+        }
+        return { label: 'Em andamento', tone: 'wait' };
+    };
+
+    const orderItemsHtml = (items = []) =>
+        items
+            .map((item) => {
+                const qty = Number(item.qty) || 1;
+                const lineTotal = formatPrice((Number(item.price) || 0) * qty);
+                return `<li class="conta-order-detail__item">
+<span class="conta-order-detail__item-name">${qty}x ${esc(item.name)}</span>
+<span class="conta-order-detail__item-price">${lineTotal}</span>
+</li>`;
+            })
+            .join('');
+
+    const orderFact = (label, value) =>
+        value && value !== '—'
+            ? `<div class="conta-order-detail__fact">
+<dt>${esc(label)}</dt>
+<dd>${esc(value)}</dd>
+</div>`
+            : '';
+
+    const orderCardHtml = (order, { showReorder = false } = {}) => {
+        const status = orderStatusMeta(order);
+        const shortId = String(order.id || '').slice(0, 8).toUpperCase();
+        const deliveryLabel =
+            order.deliveryType === 'retirada'
+                ? 'Retirada na loja'
+                : order.deliveryDate
+                  ? `Entrega · ${formatDateOnly(order.deliveryDate)}`
+                  : 'Entrega';
+        const createdAt = order.createdAt || order.savedAt || null;
+
+        return `<article class="conta-order-detail" data-order-id="${esc(order.id || '')}">
+<header class="conta-order-detail__head">
+<div class="conta-order-detail__head-main">
+<p class="conta-order-detail__code">Pedido <code>${esc(shortId)}</code></p>
+<p class="conta-order-detail__date">${esc(formatDateTime(createdAt))}</p>
+</div>
+<span class="conta-order-detail__badge conta-order-detail__badge--${status.tone}">${esc(status.label)}</span>
+</header>
+<dl class="conta-order-detail__facts">
+${orderFact('Modalidade', deliveryLabel)}
+${orderFact('Endereço', order.deliveryType === 'entrega' ? order.address : '')}
+${orderFact('Pagamento', paymentMethodLabel(order.paymentMethod))}
+${orderFact('Cliente', order.customerName)}
+</dl>
+<ul class="conta-order-detail__items" aria-label="Itens do pedido">${orderItemsHtml(order.items || [])}</ul>
+<footer class="conta-order-detail__foot">
+<span class="conta-order-detail__total-label">Total do pedido</span>
+<strong class="conta-order-detail__total">${formatPrice(order.total)}</strong>
+</footer>
+<div class="conta-order-detail__actions">
+${
+    showReorder
+        ? `<button type="button" class="conta-btn conta-btn--primary" id="conta-reorder-btn">Repetir pedido</button>`
+        : ''
+}
+${
+    order.id
+        ? `<a href="pedido-confirmado.html?order=${encodeURIComponent(order.id)}" class="conta-btn conta-btn--outline">Ver confirmação</a>`
+        : ''
+}
+<button type="button" class="conta-btn conta-btn--outline" data-conta-open-cart>Ir ao caminhão</button>
+</div>
+</article>`;
+    };
+
+    const orderCardFromLocal = (last) => {
+        const checkout = last.checkout || {};
+        const total = last.items.reduce((sum, item) => sum + (item.price ?? 0) * item.qty, 0);
+        const order = {
+            id: last.orderId || '',
+            status: 'pending',
+            channel: 'parceiros',
+            total,
+            items: last.items,
+            deliveryType: checkout.deliveryType,
+            deliveryDate: checkout.deliveryDate,
+            address: checkout.address,
+            paymentMethod: checkout.paymentMethod || checkout.payment,
+            createdAt: last.savedAt ? new Date(last.savedAt).toISOString() : null,
+            savedAt: last.savedAt,
+        };
+        return orderCardHtml(order, { showReorder: true });
+    };
+
+    const bindPedidosActions = () => {
         root.querySelector('#conta-reorder-btn')?.addEventListener('click', () => {
             if (cart?.restoreLastOrder?.()) {
                 window.LigeirinhoCartUI?.render?.();
                 openCaminhao();
             }
         });
+        root.querySelectorAll('[data-conta-open-cart]').forEach((btn) => {
+            btn.addEventListener('click', openCaminhao);
+        });
+    };
+
+    const renderPedidos = () => {
+        wrapPage(
+            'Pedidos',
+            isDesktop() ? '' : '',
+            '<div class="conta-sub-body" id="conta-pedidos-root"><p class="conta-hint">Carregando pedidos…</p></div>',
+            'pedidos',
+        );
+        loadPedidosView();
+    };
+
+    const loadPedidosView = async () => {
+        const mount = root.querySelector('#conta-pedidos-root');
+        if (!mount) return;
+
+        const lastLocal = cart?.loadLastOrder?.();
+        let orders = [];
+
+        const token = await auth?.getHubAccessToken?.();
+        if (token) {
+            try {
+                const res = await fetch('/api/orders/mine?limit=15', {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                const data = await res.json();
+                if (res.ok && Array.isArray(data.orders)) orders = data.orders;
+            } catch {
+                /* fallback abaixo */
+            }
+        }
+
+        if (!orders.length && lastLocal?.orderId) {
+            try {
+                const res = await fetch(`/api/orders/get?id=${encodeURIComponent(lastLocal.orderId)}`);
+                const data = await res.json();
+                if (res.ok && data.order) orders = [data.order];
+            } catch {
+                /* fallback local */
+            }
+        }
+
+        if (!orders.length && lastLocal?.items?.length) {
+            mount.innerHTML = orderCardFromLocal(lastLocal);
+            bindPedidosActions();
+            return;
+        }
+
+        if (!orders.length) {
+            mount.innerHTML = `<div class="conta-empty">
+<span class="material-symbols-outlined conta-empty__icon">inventory_2</span>
+<p class="conta-empty__title">Nenhum pedido recente</p>
+<p class="conta-empty__sub">Faça seu primeiro pedido pelo catálogo.</p>
+<a href="pedidos.html" class="conta-btn conta-btn--primary">Ver catálogo</a>
+</div>`;
+            return;
+        }
+
+        const reorderId = lastLocal?.orderId || orders[0]?.id || '';
+        mount.innerHTML = orders
+            .map((order) =>
+                orderCardHtml(order, { showReorder: Boolean(reorderId && order.id === reorderId) }),
+            )
+            .join('');
+        bindPedidosActions();
     };
 
     const renderDados = () => {

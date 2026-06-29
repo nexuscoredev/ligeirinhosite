@@ -4,6 +4,8 @@
 
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
+    let pollTimer = null;
+    let summaryExpanded = false;
 
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -14,74 +16,254 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
-    const render = (order) => {
-        const paid = order.status === 'paid';
-        const pendingPayment = order.status === 'pending_payment';
-        const isParceiros = (order.channel || 'parceiros') === 'parceiros';
-        const awaitingAcceptance =
-            isParceiros && order.status === 'pending' && order.financialStatus === 'pendente';
-        const icon = paid ? 'check_circle' : pendingPayment || awaitingAcceptance ? 'schedule' : 'info';
-        const title = paid
-            ? 'Pedido confirmado!'
-            : pendingPayment
-              ? 'Aguardando pagamento'
-              : awaitingAcceptance
-                ? 'Pedido enviado!'
-                : 'Status do pedido';
-        const lead = paid
-            ? 'Recebemos seu pagamento. Em breve entraremos em contato para confirmar a entrega.'
-            : pendingPayment
-              ? 'Assim que o Pix for compensado, confirmaremos automaticamente.'
-              : awaitingAcceptance
-                ? 'Seu pedido foi recebido e está aguardando aceite no Ligeirinho Hub. A equipe confirmará em breve.'
-                : 'Acompanhe o status abaixo.';
+    const formatDate = (value) => {
+        if (!value) return '';
+        return new Date(String(value).includes('T') ? value : `${value}T12:00:00`).toLocaleDateString(
+            'pt-BR',
+            { weekday: 'short', day: '2-digit', month: 'short' },
+        );
+    };
 
-        const itemsHtml = (order.items || [])
-            .map((item) => `<li>${item.qty}x ${esc(item.name)}</li>`)
-            .join('');
+    const paymentLabel = (id) => {
+        const methods = window.LigeirinhoPaymentMethods;
+        if (methods?.label?.(id)) return methods.label(id);
+        const key = String(id || '').toLowerCase();
+        if (key === 'pix') return 'Pix';
+        if (key === 'mercado_pago') return 'Mercado Pago';
+        if (key === 'dinheiro') return 'Dinheiro';
+        return id || '—';
+    };
 
-        root.innerHTML = `<div class="lig-payment-card ${paid ? 'lig-payment-card--success' : ''}">
-<span class="material-symbols-outlined lig-payment-icon ${paid ? 'lig-payment-icon--ok' : ''}">${icon}</span>
-<h1 class="lig-payment-title">${title}</h1>
-<p class="lig-payment-lead">${lead}</p>
-<div class="lig-payment-summary">
-<p class="lig-payment-summary__meta">Pedido <code>${esc(String(order.id).slice(0, 8))}</code> · ${formatPrice(order.total)}</p>
-<ul class="lig-payment-summary__list lig-payment-summary__list--compact">${itemsHtml}</ul>
-</div>
-<div class="lig-payment-actions">
-<a href="inicio.html" class="lig-btn-primary w-full text-center">Voltar ao início</a>
-<a href="pedidos.html" class="lig-btn-secondary w-full text-center mt-3">Fazer novo pedido</a>
-</div>
+    const itemDetailLine = (item) => {
+        const pack = item.packType === 'caixa' ? 'Caixa' : 'Unidade';
+        const boxMatch = String(item.name || '').match(/\(Caixa c\/\s*(\d+)\)/i);
+        if (boxMatch) return `1 ${pack} · Caixa contém ${boxMatch[1]} unidades`;
+        const unitPrice = formatPrice(item.price || 0);
+        return `1 ${pack} · ${unitPrice}`;
+    };
+
+    const itemDisplayName = (item) => {
+        const name = String(item.name || '');
+        return name.replace(/\s*\(Caixa c\/\s*\d+\)/i, '').trim() || name;
+    };
+
+    const timelineHtml = (tracking) => {
+        const active = Number(tracking?.step) || 0;
+        const steps = tracking?.steps || [];
+        const segments = steps.length - 1;
+        const progress = segments > 0 ? Math.min(100, (active / segments) * 100) : 0;
+        return `<div class="order-track__timeline" aria-label="Progresso do pedido">
+<div class="order-track__timeline-bar" style="--order-track-progress:${progress}%"></div>
+<ol class="order-track__steps">
+${steps
+    .map((step, index) => {
+        const state = index < active ? 'done' : index === active ? 'active' : 'pending';
+        return `<li class="order-track__step order-track__step--${state}">
+<span class="material-symbols-outlined order-track__step-icon" aria-hidden="true">${esc(step.icon)}</span>
+<span class="order-track__step-label">${esc(step.label)}</span>
+</li>`;
+    })
+    .join('')}
+</ol>
 </div>`;
     };
 
+    const notifyBannerHtml = () => {
+        if (!('Notification' in window) || Notification.permission !== 'default') return '';
+        return `<div class="order-track__notify" id="order-track-notify">
+<p>Ative as notificações para receber atualizações do pedido.</p>
+<button type="button" class="order-track__notify-btn" id="order-track-notify-btn">Habilitar</button>
+<button type="button" class="order-track__notify-close" id="order-track-notify-close" aria-label="Fechar">×</button>
+</div>`;
+    };
+
+    const receiptItemsHtml = (order) =>
+        (order.items || [])
+            .map(
+                (item) => `<li class="order-track__receipt-item">
+<p class="order-track__receipt-item-title">${item.qty} × ${esc(itemDisplayName(item))}</p>
+<p class="order-track__receipt-item-meta">${esc(itemDetailLine(item))}</p>
+</li>`,
+            )
+            .join('');
+
+    const render = (order, tracking) => {
+        const shortId = String(order.id || '').slice(0, 8).toUpperCase();
+        const eta = order.deliveryDate ? formatDate(order.deliveryDate) : '';
+        const headerTitle = tracking?.headerTitle || tracking?.stepLabel || 'Acompanhar pedido';
+        const deliveryHeading =
+            order.deliveryType === 'retirada'
+                ? 'Retirada: Loja'
+                : order.customerName
+                  ? `Entrega: ${order.customerName}`
+                  : 'Entrega';
+
+        root.innerHTML = `<div class="order-track">
+<header class="order-track__top">
+<button type="button" class="order-track__back" id="order-track-back" aria-label="Voltar">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="order-track__top-title">${esc(headerTitle)}</h1>
+<a href="conta.html#ajuda" class="order-track__help">
+<span class="material-symbols-outlined" aria-hidden="true">headset_mic</span>
+<span>Ajuda</span>
+</a>
+</header>
+
+<div class="order-track__card order-track__card--compact">
+${
+    eta
+        ? `<div class="order-track__eta">
+<span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+<div>
+<p class="order-track__eta-label">Entrega prevista</p>
+<p class="order-track__eta-value">${esc(eta)}</p>
+</div>
+</div>`
+        : ''
+}
+${timelineHtml(tracking)}
+<p class="order-track__message">${esc(tracking?.message || 'Acompanhe o status do seu pedido.')}</p>
+<p class="order-track__code">Pedido #${esc(shortId)}${tracking?.hubNumero ? ` · Nº Hub ${esc(String(tracking.hubNumero))}` : ''}</p>
+</div>
+
+${notifyBannerHtml()}
+
+<section class="order-track__section order-track__section--flat">
+<div class="order-track__section-head">
+<span class="material-symbols-outlined order-track__section-icon" aria-hidden="true">home</span>
+<div>
+<p class="order-track__section-label">${esc(deliveryHeading)}</p>
+<p class="order-track__section-value">${esc(order.deliveryType === 'retirada' ? 'Retirada no ponto Ligeirinho' : order.address || '—')}</p>
+</div>
+</div>
+</section>
+
+<a href="inicio.html" class="order-track__merchant">
+<span class="order-track__merchant-logo" aria-hidden="true">LG</span>
+<span class="order-track__merchant-name">Ligeirinho Distribuição</span>
+<span class="material-symbols-outlined order-track__merchant-chev" aria-hidden="true">chevron_right</span>
+</a>
+
+<article class="order-track__receipt" id="order-track-receipt">
+<div class="order-track__receipt-edge order-track__receipt-edge--top" aria-hidden="true"></div>
+<div class="order-track__receipt-body">
+<div class="order-track__receipt-total">
+<span>Total</span>
+<strong>${formatPrice(order.total)}</strong>
+</div>
+<ul class="order-track__receipt-items${summaryExpanded ? '' : ' order-track__receipt-items--collapsed'}">${receiptItemsHtml(order)}</ul>
+${
+    (order.items || []).length > 2
+        ? `<button type="button" class="order-track__receipt-more" id="order-track-summary-toggle" aria-expanded="${summaryExpanded ? 'true' : 'false'}">
+Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+</button>`
+        : ''
+}
+</div>
+<div class="order-track__receipt-edge order-track__receipt-edge--bottom" aria-hidden="true"></div>
+</article>
+
+<section class="order-track__meta-strip">
+<div class="order-track__meta-row">
+<span class="order-track__meta-label">Pagamento</span>
+<span class="order-track__meta-value">${esc(paymentLabel(order.paymentMethod))}</span>
+</div>
+</section>
+
+<div class="order-track__support">
+<a href="conta.html#ajuda" class="order-track__support-link">
+<span class="material-symbols-outlined order-track__support-icon" aria-hidden="true">verified_user</span>
+<div class="order-track__support-copy">
+<strong>Entrega combinada</strong>
+<span>Data prevista conforme seleção no pedido</span>
+</div>
+<span class="material-symbols-outlined order-track__support-chev" aria-hidden="true">chevron_right</span>
+</a>
+<a href="contato.html" class="order-track__support-link">
+<span class="material-symbols-outlined order-track__support-icon" aria-hidden="true">headset_mic</span>
+<div class="order-track__support-copy">
+<strong>Suporte</strong>
+<span>Fale com a equipe Ligeirinho</span>
+</div>
+<span class="material-symbols-outlined order-track__support-chev" aria-hidden="true">chevron_right</span>
+</a>
+</div>
+
+<div class="order-track__actions">
+<a href="conta.html#pedidos" class="lig-btn-primary w-full text-center">Ir para pedidos</a>
+<a href="pedidos.html" class="lig-btn-secondary w-full text-center mt-3">Fazer novo pedido</a>
+</div>
+</div>`;
+
+        root.querySelector('#order-track-back')?.addEventListener('click', () => {
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = 'conta.html#pedidos';
+        });
+
+        root.querySelector('#order-track-summary-toggle')?.addEventListener('click', () => {
+            summaryExpanded = !summaryExpanded;
+            const list = root.querySelector('.order-track__receipt-items');
+            const btn = root.querySelector('#order-track-summary-toggle');
+            list?.classList.toggle('order-track__receipt-items--collapsed', !summaryExpanded);
+            if (btn) btn.setAttribute('aria-expanded', summaryExpanded ? 'true' : 'false');
+            if (summaryExpanded) {
+                root.querySelector('#order-track-receipt')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+
+        root.querySelector('#order-track-notify-btn')?.addEventListener('click', async () => {
+            try {
+                await Notification.requestPermission();
+            } catch {
+                /* ignore */
+            }
+            root.querySelector('#order-track-notify')?.remove();
+        });
+        root.querySelector('#order-track-notify-close')?.addEventListener('click', () => {
+            root.querySelector('#order-track-notify')?.remove();
+        });
+    };
+
+    const loadOrder = async () => {
+        const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        return data;
+    };
+
     const init = async () => {
+        root.classList.add('order-track-page');
         if (!orderId) {
             root.innerHTML = '<p class="lig-payment-lead">Pedido não encontrado.</p>';
             return;
         }
         try {
-            const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`);
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            render(data.order);
+            const data = await loadOrder();
+            render(data.order, data.tracking);
             if (data.order.status === 'paid') {
                 window.LigeirinhoClientNotifications?.push?.({
                     id: `order-${data.order.id}-paid`,
                     title: 'Pagamento confirmado',
-                    body: `Pedido ${String(data.order.id).slice(0, 8)} recebido. Em breve confirmamos a entrega.`,
+                    body: `Pedido ${String(data.order.id).slice(0, 8)} recebido.`,
                     href: `pedido-confirmado.html?order=${encodeURIComponent(data.order.id)}`,
                     source: 'order',
                 });
             }
-            if (data.order.status === 'pending_payment') {
-                window.setInterval(async () => {
-                    const r = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`);
-                    const d = await r.json();
-                    if (d.order?.status === 'paid') {
-                        render(d.order);
+            const done = (data.tracking?.step || 0) >= 4;
+            if (!done && !pollTimer) {
+                pollTimer = window.setInterval(async () => {
+                    try {
+                        const fresh = await loadOrder();
+                        render(fresh.order, fresh.tracking);
+                        if ((fresh.tracking?.step || 0) >= 4) {
+                            window.clearInterval(pollTimer);
+                            pollTimer = null;
+                        }
+                    } catch {
+                        /* keep last render */
                     }
-                }, 5000);
+                }, 30000);
             }
         } catch (err) {
             root.innerHTML = `<p class="lig-payment-lead">${esc(err.message)}</p>`;

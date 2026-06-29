@@ -52,6 +52,26 @@ export async function fetchOrderById(supabaseUrl, apiKey, id, { useRpc = false }
     return Array.isArray(data) ? data[0] : null;
 }
 
+export async function listOrdersByHubUserId(
+    supabaseUrl,
+    apiKey,
+    hubUserId,
+    { limit = 10, channel } = {},
+) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
+    const params = new URLSearchParams({
+        hub_user_id: `eq.${hubUserId}`,
+        select: '*',
+        order: 'created_at.desc',
+        limit: String(safeLimit),
+    });
+    if (channel) params.set('channel', `eq.${channel}`);
+    const url = `${supabaseUrl}/rest/v1/orders?${params}`;
+    const res = await fetch(url, { headers: headers(apiKey) });
+    const data = await parseJson(res);
+    return Array.isArray(data) ? data : [];
+}
+
 export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
     if (useRpc) {
         const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {

@@ -1,5 +1,10 @@
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import { fetchOrderById, publicOrderView, dbFromPaymentConfig } from '../../scripts/supabase-orders.mjs';
+import {
+    fetchHubPedidoById,
+    fetchHubPedidoByParceirosOrderId,
+    buildOrderTracking,
+} from '../../scripts/hub-order-tracking.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -32,7 +37,16 @@ export default async function handler(req, res) {
         if (!order) {
             return res.status(404).json({ error: 'Pedido não encontrado' });
         }
-        return res.status(200).json({ order: publicOrderView(order) });
+        const view = publicOrderView(order);
+        let hubPedido = null;
+        if (view.hubPedidoId) {
+            hubPedido = await fetchHubPedidoById(view.hubPedidoId, process.env);
+        }
+        if (!hubPedido) {
+            hubPedido = await fetchHubPedidoByParceirosOrderId(view.id, process.env);
+        }
+        const tracking = buildOrderTracking(view, hubPedido);
+        return res.status(200).json({ order: view, tracking });
     } catch (err) {
         console.error('orders/get', err);
         return res.status(500).json({ error: 'Erro ao buscar pedido' });
