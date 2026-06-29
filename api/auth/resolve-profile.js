@@ -26,7 +26,7 @@ function publicProfile(profile) {
         login: profile.login || '',
         role: profile.role || 'PARCEIRO',
         cargo: profile.cargo || '',
-        hubUserId: profile.hubUserId || profile.sub,
+        hubUserId: profile.hubUserId || '',
         provider: profile.provider || 'hub',
         totemUnitId: profile.totemUnitId || null,
         totemLabel: profile.totemLabel || null,

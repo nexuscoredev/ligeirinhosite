@@ -213,6 +213,13 @@ export default async function handler(req, res) {
             } catch (hubErr) {
                 console.error('orders/create hub sync', hubErr);
             }
+            if (!hubPedido) {
+                console.warn('orders/create hub sync skipped', {
+                    orderId: order.id,
+                    hubUserId: order.hub_user_id || null,
+                    customerEmail: order.customer_email || null,
+                });
+            }
         }
 
         return res.status(201).json({

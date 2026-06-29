@@ -10,6 +10,7 @@
     "deploy": "npx vercel --prod",
     "preview": "vite preview",
     "sync:catalogo": "node scripts/sync-catalogo-from-hub.mjs",
+    "sync:hub-orders": "node scripts/sync-parceiros-hub-orders.mjs",
     "create:totem-user": "node scripts/create-totem-user.mjs",
     "compare:catalogo": "node scripts/compare-catalogo-hub.mjs",
     "migrate:finance": "node scripts/apply-finance-migration.mjs",

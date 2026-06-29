@@ -43,10 +43,8 @@
             });
             setStatus('Entrada realizada! Redirecionando…', false);
             window.setTimeout(() => redirect(session.role), 400);
-        } catch {
-            const session = auth.saveFromGoogleCredential(response.credential);
-            setStatus('Entrada realizada! Redirecionando…', false);
-            window.setTimeout(() => redirect(session?.role || 'PARCEIRO'), 400);
+        } catch (err) {
+            setStatus(err.message || 'Não foi possível validar o perfil no Hub. Use CNPJ e senha ou contate o comercial.', true);
         }
     };
 

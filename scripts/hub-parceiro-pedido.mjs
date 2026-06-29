@@ -1,5 +1,5 @@
 import { hubConfig } from './hub-auth.mjs';
-import { normalizeDocDigits } from './hub-parceiro.mjs';
+import { resolveClienteParceiroForOrder } from './hub-parceiro.mjs';
 
 export const PARCEIROS_NF_TAG = 'Ligeirinho Parceiros';
 export const PARCEIROS_TAG = PARCEIROS_NF_TAG;
@@ -113,32 +113,8 @@ function buildObservacoes(order) {
     return parts.filter(Boolean).join(' · ').slice(0, 2000);
 }
 
-async function fetchClienteParceiro(config, order) {
-    const hubUserId = String(order.hub_user_id || '').trim();
-    if (!hubUserId) return null;
-
-    const users = await hubRest(
-        config,
-        `usuarios?select=id,login,email,nome&id=eq.${encodeURIComponent(hubUserId)}&limit=1`,
-    );
-    const user = Array.isArray(users) ? users[0] : null;
-    if (!user) return null;
-
-    const digits = normalizeDocDigits(user.login);
-    if (digits.length < 11) return null;
-
-    const pessoas = await hubRest(
-        config,
-        `pessoas?select=id,nome,clientes(id,nome,canal_cliente,ativo)&cpf_cnpj_digits=eq.${encodeURIComponent(digits)}&limit=1`,
-    );
-    const pessoa = Array.isArray(pessoas) ? pessoas[0] : null;
-    if (!pessoa?.id) return null;
-
-    const clientes = Array.isArray(pessoa.clientes) ? pessoa.clientes : pessoa.clientes ? [pessoa.clientes] : [];
-    const cliente = clientes.find((c) => c?.canal_cliente === 'parceiros' && c?.ativo !== false);
-    if (!cliente?.id) return null;
-
-    return { clienteId: cliente.id, pessoaId: pessoa.id, clienteNome: cliente.nome || pessoa.nome || user.nome };
+async function fetchClienteParceiro(hub, order) {
+    return resolveClienteParceiroForOrder(hub, order);
 }
 
 async function createHubPedidoFromParceirosOrder(hub, order, { status }) {

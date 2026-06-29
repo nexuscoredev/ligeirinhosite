@@ -1,12 +1,16 @@
 import { hubConfig } from './hub-auth.mjs';
 import {
+    clienteParceirosFromPessoa,
     deliveryDateOptions,
     resolveParceiroClienteFields,
     rotuloDiasEntrega,
 } from './parceiro-delivery.mjs';
 
 const CLIENTE_PARCEIROS_SELECT =
-    'canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids';
+    'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids';
+
+const PESSOA_CLIENTE_LOOKUP_SELECT =
+    'id,nome,nome_fantasia,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
 
 export function normalizeDocDigits(value) {
     return String(value || '').replace(/\D/g, '');
@@ -119,6 +123,102 @@ export async function fetchUsuarioById(config, userId, token) {
         { token: token || config.serviceKey }
     );
     return Array.isArray(rows) ? rows[0] : null;
+}
+
+export function isHubUsuarioUuid(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        String(value || ''),
+    );
+}
+
+function clienteFromPessoa(pessoa) {
+    const cliente = clienteParceirosFromPessoa(pessoa);
+    if (!cliente?.id) return null;
+    return {
+        clienteId: cliente.id,
+        pessoaId: pessoa.id,
+        clienteNome: cliente.nome || pessoa.nome_fantasia || pessoa.nome || '',
+    };
+}
+
+async function fetchUsuarioByPhoneDigits(config, digits) {
+    if (!digits || digits.length < 10 || !config.serviceKey) return null;
+    const local = digits.slice(-11);
+    const rows = await hubRest(
+        config,
+        `usuarios?select=id,email,login,nome,telefone&telefone=ilike.*${encodeURIComponent(local)}*&limit=3`,
+    );
+    return Array.isArray(rows) ? rows[0] : null;
+}
+
+async function findPessoaParceiroByContact(config, { email, phoneDigits }) {
+    if (email) {
+        const rows = await hubRest(
+            config,
+            `pessoas?select=${PESSOA_CLIENTE_LOOKUP_SELECT}&email=ilike.${encodeURIComponent(email)}&limit=5`,
+        );
+        const list = Array.isArray(rows) ? rows : [];
+        for (const pessoa of list) {
+            const hit = clienteFromPessoa(pessoa);
+            if (hit) return hit;
+        }
+    }
+    if (phoneDigits && phoneDigits.length >= 10) {
+        const local = phoneDigits.slice(-11);
+        const rows = await hubRest(
+            config,
+            `pessoas?select=${PESSOA_CLIENTE_LOOKUP_SELECT}&telefone=ilike.*${encodeURIComponent(local)}*&limit=5`,
+        );
+        const list = Array.isArray(rows) ? rows : [];
+        for (const pessoa of list) {
+            const hit = clienteFromPessoa(pessoa);
+            if (hit) return hit;
+        }
+    }
+    return null;
+}
+
+/** Resolve cliente parceiros no Hub a partir de um pedido do app Parceiros. */
+export async function resolveClienteParceiroForOrder(config, order) {
+    if (!config.serviceKey || !order) return null;
+
+    const hubUserId = String(order.hub_user_id || '').trim();
+    if (isHubUsuarioUuid(hubUserId)) {
+        const usuario = await fetchUsuarioById(config, hubUserId);
+        if (usuario) {
+            const pessoa = await findPessoaForUsuario(config, usuario);
+            const hit = pessoa ? clienteFromPessoa(pessoa) : null;
+            if (hit) return hit;
+        }
+    }
+
+    const orderEmail = String(order.customer_email || '').trim();
+    if (orderEmail) {
+        const usuario = await fetchUsuarioByEmail(config, orderEmail);
+        if (usuario) {
+            const pessoa = await findPessoaForUsuario(config, usuario);
+            const hit = pessoa ? clienteFromPessoa(pessoa) : null;
+            if (hit) return hit;
+        }
+    }
+
+    const phoneDigits = normalizeDocDigits(order.customer_phone);
+    if (phoneDigits.length >= 10) {
+        const usuario = await fetchUsuarioByPhoneDigits(config, phoneDigits);
+        if (usuario) {
+            const pessoa = await findPessoaForUsuario(config, usuario);
+            const hit = pessoa ? clienteFromPessoa(pessoa) : null;
+            if (hit) return hit;
+        }
+    }
+
+    const byContact = await findPessoaParceiroByContact(config, {
+        email: orderEmail,
+        phoneDigits,
+    });
+    if (byContact) return byContact;
+
+    return null;
 }
 
 export async function fetchPessoaParceiroByCnpj(config, digits) {
