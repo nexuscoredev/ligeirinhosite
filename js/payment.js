@@ -115,7 +115,7 @@ ${renderSummary(order)}
 
     const mountBrick = async (order, publicKey) => {
         root.innerHTML = `${renderSummary(order)}<div id="payment-brick" class="lig-payment-brick"></div>
-<p class="lig-payment-hint">Pagamento seguro via Mercado Pago · Pix</p>`;
+<p class="lig-payment-hint">Pagamento via Pix</p>`;
 
         const mp = new MercadoPago(publicKey, { locale: 'pt-BR' });
         const bricks = mp.bricks();
@@ -253,7 +253,7 @@ ${renderSummary(order)}
             }
 
             const method = String(order.paymentMethod || '').toLowerCase();
-            if (method === 'pix') {
+            if (method === 'pix' || method === 'mercado_pago') {
                 if (!pixOk) {
                     showError('Pix indisponível no momento.');
                     return;
@@ -267,7 +267,7 @@ ${renderSummary(order)}
             }
 
             if (!configData.publicKey) {
-                showError('Mercado Pago não configurado para este pedido.');
+                showError('Pix não configurado para este pedido.');
                 return;
             }
             await mountBrick(order, configData.publicKey);

@@ -26,18 +26,32 @@
 
     const PAYMENT_MARKS = {
         pix: { logo: '/img/icon-pix.svg' },
-        mercado_pago: { logo: '/img/mercado-pago-wallet-logo.svg' },
+        mercado_pago: { logo: '/img/icon-pix.svg' },
         dinheiro: { icon: 'payments' },
         prazo: { icon: 'calendar_month' },
         boleto: { icon: 'description' },
     };
 
+    const normalizePaymentUi = (method) => {
+        const id = String(method?.id || '').toLowerCase();
+        if (id === 'mercado_pago') {
+            return {
+                ...method,
+                id: 'pix',
+                label: 'Pix',
+                hint: 'Pagamento instantâneo',
+            };
+        }
+        return method;
+    };
+
     const enrichPaymentMethod = (method) => {
-        const mark = PAYMENT_MARKS[method.id] || {};
-        const rawLogo = mark.logo || method.logo || '';
+        const normalized = normalizePaymentUi(method);
+        const mark = PAYMENT_MARKS[normalized.id] || {};
+        const rawLogo = mark.logo || normalized.logo || '';
         return {
-            ...method,
-            icon: method.icon || mark.icon,
+            ...normalized,
+            icon: normalized.icon || mark.icon,
             logo: rawLogo ? assetUrl(rawLogo) : '',
         };
     };
@@ -58,24 +72,21 @@
     const paymentMethods = () => {
         const caps = paymentConfigCache?.capabilities;
         const base = [];
-        if (caps?.pix) {
+        if (caps?.pix || paymentConfigCache?.enabled) {
             base.push(
                 enrichPaymentMethod({
                     id: 'pix',
                     label: 'Pix',
-                    hint:
-                        paymentConfigCache?.pixProvider === 'santander'
-                            ? 'Pagamento instantâneo · Santander'
-                            : 'Pagamento instantâneo',
+                    hint: 'Pagamento instantâneo',
                 })
             );
         }
         if (!base.length) {
             base.push(
                 enrichPaymentMethod({
-                    id: 'mercado_pago',
-                    label: 'Mercado Pago',
-                    hint: 'Pix',
+                    id: 'pix',
+                    label: 'Pix',
+                    hint: 'Pagamento instantâneo',
                 })
             );
         }
@@ -98,12 +109,7 @@
         const enriched = enrichPaymentMethod(opt);
         const logo = enriched.logo;
         if (logo) {
-            const logoMod =
-                enriched.id === 'pix'
-                    ? ' resumo-option__logo--pix'
-                    : enriched.id === 'mercado_pago'
-                      ? ' resumo-option__logo--mp'
-                      : '';
+            const logoMod = enriched.id === 'pix' ? ' resumo-option__logo--pix' : '';
             return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
         }
         const icon =
@@ -112,9 +118,16 @@
         return `<span class="material-symbols-outlined resumo-option__icon" aria-hidden="true">${icon}</span>`;
     };
 
+    const resolvePaymentMethodForOrder = (method) => {
+        const key = String(method || '').toLowerCase();
+        if (!key || key === 'mercado_pago') return 'pix';
+        return method;
+    };
+
     const paymentMethodSelectHtml = (methodId) => {
         if (!methodId) return esc('Selecionar método');
-        const opt = paymentMethods().find((m) => m.id === methodId);
+        const resolvedId = resolvePaymentMethodForOrder(methodId);
+        const opt = paymentMethods().find((m) => m.id === resolvedId);
         if (!opt) return esc('Selecionar método');
         return `<span class="resumo-select-btn__payment">${paymentMethodIconHtml(opt)}<span>${esc(opt.label)}</span></span>`;
     };
@@ -174,7 +187,7 @@
             errors.deliveryDate = 'Selecione uma data de entrega válida.';
         }
         if (!checkout.paymentMethod) errors.paymentMethod = 'Selecione o método de pagamento.';
-        else if (checkout.paymentMethod === 'cartao') {
+        else if (resolvePaymentMethodForOrder(checkout.paymentMethod) === 'cartao') {
             errors.paymentMethod = 'Cartão não está disponível. Escolha Pix ou dinheiro.';
         }
         return errors;
@@ -293,7 +306,7 @@ ${cardHtml(
         } else {
             body = paymentMethods()
                 .map(
-                    (opt) => `<button type="button" class="resumo-option resumo-option--payment${checkout.paymentMethod === opt.id ? ' resumo-option--active' : ''}" data-pick-payment="${esc(opt.id)}">
+                    (opt) => `<button type="button" class="resumo-option resumo-option--payment${resolvePaymentMethodForOrder(checkout.paymentMethod) === opt.id ? ' resumo-option--active' : ''}" data-pick-payment="${esc(opt.id)}">
 ${paymentMethodIconHtml(opt)}
 <div class="resumo-option__body">
 <strong>${esc(opt.label)}</strong>
@@ -371,7 +384,7 @@ ${headerHtml(title)}
             packType: item.packType,
         }));
 
-        const paymentMethod = checkout.paymentMethod || 'mercado_pago';
+        const paymentMethod = resolvePaymentMethodForOrder(checkout.paymentMethod);
         const notes = [
             checkout.notes,
             checkout.deliveryDate ? `Entrega: ${checkout.deliveryDate}` : '',
