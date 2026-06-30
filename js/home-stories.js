@@ -264,19 +264,21 @@ ${
         });
     };
 
-    const loadStaticConfig = () =>
-        fetch('data/home-stories.json')
-            .then((r) => (r.ok ? r.json() : { stories: [] }))
-            .catch(() => ({ stories: [] }));
+    const loadConfig = () => {
+        const fetchStories = () =>
+            fetch('/api/marketing-stories', { cache: 'no-store' }).then((r) => {
+                if (!r.ok) throw new Error(`marketing-stories HTTP ${r.status}`);
+                return r.json();
+            });
 
-    const loadConfig = () =>
-        fetch('/api/marketing-stories')
-            .then((r) => (r.ok ? r.json() : null))
+        return fetchStories()
+            .catch(() => fetchStories())
             .then((payload) => {
                 if (payload?.stories?.length) return payload;
-                return loadStaticConfig();
+                return { stories: [], source: payload?.source || 'hub:marketing-drive:vertical-parceiros' };
             })
-            .catch(() => loadStaticConfig());
+            .catch(() => ({ stories: [], source: 'hub:marketing-drive:vertical-parceiros' }));
+    };
 
     window.LigeirinhoHomeStories = {
         loadConfig,

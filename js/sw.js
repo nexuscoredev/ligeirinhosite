@@ -1,6 +1,8 @@
-const CACHE_NAME = 'ligeirinho-app-v210';
+const CACHE_NAME = 'ligeirinho-app-v211';
 
 const NETWORK_FIRST_JS = new Set([
+    '/js/home-stories.js',
+    '/js/home.js',
     '/js/totem.js',
     '/js/totem-promos.js',
     '/js/promo-catalog-match.js',
@@ -76,7 +78,6 @@ const APP_SHELL = [
     '/data/delivery-schedule.json',
     '/data/ofertas-config.json',
     '/data/client-notifications.json',
-    '/data/home-stories.json',
     '/js/onboarding.js',
     '/js/conta.js',
     '/js/conta-cnpj-modal.js',
@@ -183,6 +184,11 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
 
     if (url.origin !== self.location.origin) return;
+
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(fetch(request));
+        return;
+    }
 
     const isNavigate = request.mode === 'navigate';
     const canonicalPath = shellPath(url.pathname);

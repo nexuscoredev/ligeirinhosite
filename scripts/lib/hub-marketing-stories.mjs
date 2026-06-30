@@ -71,14 +71,6 @@ function ctaForFolder(nome) {
     return CTA_BY_FOLDER[key] || { label: 'Ver promoções', href: 'ofertas.html' };
 }
 
-function labelFromArquivo(arquivo, index) {
-    const base = stripExtension(arquivo?.nome);
-    if (!base) return `Promo ${index + 1}`;
-    if (/^encartes-/i.test(base)) return `Promo ${index + 1}`;
-    if (/^whatsapp image/i.test(base)) return `Promo ${index + 1}`;
-    return base.length > 28 ? `${base.slice(0, 25)}…` : base;
-}
-
 async function hubFetch(config, token, path) {
     const res = await fetch(`${config.url}/rest/v1/${path}`, { headers: hubHeaders(config, token) });
     const text = await res.text();
@@ -198,19 +190,25 @@ function buildStoriesFromDriveData(_raiz, pastaList, arquivoList) {
         return [];
     }
 
-    return directImages.map((arquivo, index) => ({
-        id: `mkt-${arquivo.id}`,
-        label: labelFromArquivo(arquivo, index),
-        ringColor: ringColorForFolder('', index),
-        thumbImage: arquivo.imagem_url,
-        slides: [
-            {
+    const storyLabel =
+        verticalRoot.nome && !isVerticalParceirosPasta({ nome: verticalRoot.nome, caminho: verticalRoot.caminho })
+            ? verticalRoot.nome
+            : 'Promoções do dia';
+
+    return [
+        {
+            id: `mkt-${verticalRoot.id}`,
+            label: storyLabel,
+            ringColor: ringColorForFolder(storyLabel, 0),
+            thumbImage: directImages[0].imagem_url,
+            slides: directImages.map((arquivo) => ({
                 image: arquivo.imagem_url,
-                cta: ctaForFolder(''),
+                title: stripExtension(arquivo.nome) || storyLabel,
+                cta: ctaForFolder(storyLabel),
                 theme: 'yellow',
-            },
-        ],
-    }));
+            })),
+        },
+    ];
 }
 
 async function fetchDriveDataViaRpc(config, token) {
