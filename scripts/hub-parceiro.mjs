@@ -143,12 +143,140 @@ function clienteFromPessoa(pessoa) {
 
 async function fetchUsuarioByPhoneDigits(config, digits) {
     if (!digits || digits.length < 10 || !config.serviceKey) return null;
-    const local = digits.slice(-11);
+    const suffixes = [
+        ...new Set(
+            [digits.slice(-11), digits.slice(-10), digits.slice(-9), digits.slice(-8)].filter(
+                (s) => s.length >= 8,
+            ),
+        ),
+    ];
+    for (const local of suffixes) {
+        const rows = await hubRest(
+            config,
+            `usuarios?select=id,email,login,nome,telefone,cargo,ativo,must_change_password&telefone=ilike.*${encodeURIComponent(local)}*&ativo=eq.true&limit=5`,
+        );
+        const list = Array.isArray(rows) ? rows : [];
+        for (const row of list) {
+            const pessoa = await findPessoaForUsuario(config, row);
+            if (pessoa && clienteFromPessoa(pessoa)) return row;
+        }
+        if (list[0]) return list[0];
+    }
+    return null;
+}
+
+async function findUsuarioForPessoa(config, pessoa) {
+    if (!pessoa) return null;
+    const digits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj);
+    if (digits.length >= 11) {
+        const byLogin = await fetchUsuarioByLoginDigits(config, digits);
+        if (byLogin) return byLogin;
+    }
+    const email = String(pessoa.email || '').trim().toLowerCase();
+    if (email) return fetchUsuarioByEmail(config, email);
+    const phoneDigits = normalizeDocDigits(pessoa.telefone);
+    if (phoneDigits.length >= 10) return fetchUsuarioByPhoneDigits(config, phoneDigits);
+    return null;
+}
+
+async function fetchPessoaById(config, pessoaId) {
+    if (!pessoaId || !config.serviceKey) return null;
     const rows = await hubRest(
         config,
-        `usuarios?select=id,email,login,nome,telefone&telefone=ilike.*${encodeURIComponent(local)}*&limit=3`,
+        `pessoas?select=${PESSOA_CLIENTE_LOOKUP_SELECT}&id=eq.${encodeURIComponent(pessoaId)}&limit=1`,
     );
-    return Array.isArray(rows) ? rows[0] : null;
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+
+/** Busca parceiro no Hub por e-mail e/ou telefone (pessoa ou usuário). */
+export async function resolveParceiroHubContact(config, { email, phone } = {}) {
+    if (!config.serviceKey) return null;
+
+    const emailNorm = String(email || '').trim().toLowerCase();
+    const phoneDigits = normalizeDocDigits(phone);
+
+    if (emailNorm) {
+        const usuario = await fetchUsuarioByEmail(config, emailNorm);
+        if (usuario) {
+            const pessoa = await findPessoaForUsuario(config, usuario);
+            const cliente = pessoa ? clienteFromPessoa(pessoa) : null;
+            if (cliente) return { usuario, pessoa, cliente };
+        }
+    }
+
+    if (phoneDigits.length >= 10) {
+        const usuario = await fetchUsuarioByPhoneDigits(config, phoneDigits);
+        if (usuario) {
+            const pessoa = await findPessoaForUsuario(config, usuario);
+            const cliente = pessoa ? clienteFromPessoa(pessoa) : null;
+            if (cliente) return { usuario, pessoa, cliente };
+        }
+    }
+
+    const cliente = await findPessoaParceiroByContact(config, {
+        email: emailNorm,
+        phoneDigits,
+    });
+    if (!cliente) return null;
+
+    const pessoa = await fetchPessoaById(config, cliente.pessoaId);
+    const usuario = pessoa ? await findUsuarioForPessoa(config, pessoa) : null;
+    return { usuario, pessoa, cliente };
+}
+
+/** Grava e-mail/telefone do app no cadastro Hub quando ainda estão vazios. */
+export async function syncParceiroContactLink(config, { usuario, pessoa, email, phone } = {}) {
+    if (!config.serviceKey) return;
+
+    const emailNorm = String(email || '').trim().toLowerCase();
+    const phoneDigits = normalizeDocDigits(phone);
+    const phoneLocal = phoneDigits.length >= 10 ? phoneDigits.slice(-11) : '';
+
+    if (pessoa?.id) {
+        const patch = {};
+        if (emailNorm && !String(pessoa.email || '').trim()) patch.email = emailNorm;
+        if (phoneLocal && !normalizeDocDigits(pessoa.telefone)) patch.telefone = phoneLocal;
+        if (Object.keys(patch).length) {
+            await hubRest(config, `pessoas?id=eq.${encodeURIComponent(pessoa.id)}`, {
+                method: 'PATCH',
+                body: patch,
+            });
+        }
+    }
+
+    if (usuario?.id) {
+        const patch = {};
+        if (phoneLocal && !normalizeDocDigits(usuario.telefone)) patch.telefone = phoneLocal;
+        if (Object.keys(patch).length) {
+            await hubRest(config, `usuarios?id=eq.${encodeURIComponent(usuario.id)}`, {
+                method: 'PATCH',
+                body: patch,
+            });
+        }
+    }
+}
+
+export async function buildParceiroExtrasFromPessoa(config, pessoa) {
+    if (!pessoa?.id) return {};
+    const clienteFields = resolveParceiroClienteFields(pessoa);
+    const formas = await fetchFormasPagamento(config, clienteFields.formasPagamentoIds);
+    const cnpjDigits = pessoa.cpf_cnpj_digits || normalizeDocDigits(pessoa.cpf_cnpj);
+    const datasEntrega = clienteFields.datasEntrega;
+
+    return {
+        pessoaId: pessoa.id,
+        cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
+        cnpjDigits,
+        condicaoPagamento: clienteFields.condicaoPagamento,
+        parcelasVencimento: clienteFields.parcelasVencimento,
+        datasEntrega,
+        diasEntregaLabel: rotuloDiasEntrega(datasEntrega),
+        bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
+        inadimplente: Boolean(pessoa.inadimplente),
+        paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
+        deliveryDateOptions: deliveryDateOptions(datasEntrega),
+        razaoSocial: pessoa.nome_fantasia || pessoa.nome || '',
+    };
 }
 
 async function findPessoaParceiroByContact(config, { email, phoneDigits }) {
@@ -206,43 +334,11 @@ export async function resolveClienteParceiroForOrder(config, order) {
         if (hit) return hit;
     }
 
-    const hubUserId = String(order.hub_user_id || '').trim();
-    if (isHubUsuarioUuid(hubUserId)) {
-        const usuario = await fetchUsuarioById(config, hubUserId);
-        if (usuario) {
-            const pessoa = await findPessoaForUsuario(config, usuario);
-            const hit = pessoa ? clienteFromPessoa(pessoa) : null;
-            if (hit) return hit;
-        }
-    }
-
-    const orderEmail = String(order.customer_email || '').trim();
-    if (orderEmail) {
-        const usuario = await fetchUsuarioByEmail(config, orderEmail);
-        if (usuario) {
-            const pessoa = await findPessoaForUsuario(config, usuario);
-            const hit = pessoa ? clienteFromPessoa(pessoa) : null;
-            if (hit) return hit;
-        }
-    }
-
-    const phoneDigits = normalizeDocDigits(order.customer_phone);
-    if (phoneDigits.length >= 10) {
-        const usuario = await fetchUsuarioByPhoneDigits(config, phoneDigits);
-        if (usuario) {
-            const pessoa = await findPessoaForUsuario(config, usuario);
-            const hit = pessoa ? clienteFromPessoa(pessoa) : null;
-            if (hit) return hit;
-        }
-    }
-
-    const byContact = await findPessoaParceiroByContact(config, {
-        email: orderEmail,
-        phoneDigits,
+    const hit = await resolveParceiroHubContact(config, {
+        email: order.customer_email,
+        phone: order.customer_phone,
     });
-    if (byContact) return byContact;
-
-    return null;
+    return hit?.cliente ?? null;
 }
 
 export async function fetchPessoaParceiroByCnpj(config, digits) {
@@ -385,7 +481,22 @@ export async function updateUsuarioFields(config, userId, patch) {
             body: allowed,
         }
     );
-    return Array.isArray(rows) ? rows[0] : rows;
+    const usuario = Array.isArray(rows) ? rows[0] : rows;
+
+    if (usuario && allowed.telefone) {
+        const pessoa = await findPessoaForUsuario(config, usuario);
+        if (pessoa?.id) {
+            const phoneDigits = normalizeDocDigits(allowed.telefone);
+            if (phoneDigits.length >= 10) {
+                await hubRest(config, `pessoas?id=eq.${encodeURIComponent(pessoa.id)}`, {
+                    method: 'PATCH',
+                    body: { telefone: phoneDigits.slice(-11) },
+                });
+            }
+        }
+    }
+
+    return usuario;
 }
 
 export async function clearMustChangePassword(config, userId) {

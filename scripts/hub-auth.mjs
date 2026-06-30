@@ -1,4 +1,10 @@
-import { buildParceiroExtras, resolveLoginEmailExtended } from './hub-parceiro.mjs';
+import {
+    buildParceiroExtras,
+    buildParceiroExtrasFromPessoa,
+    resolveLoginEmailExtended,
+    resolveParceiroHubContact,
+    syncParceiroContactLink,
+} from './hub-parceiro.mjs';
 
 const DEFAULT_HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
 const DEFAULT_HUB_ANON_KEY =
@@ -151,30 +157,65 @@ export async function resolveHubLogin(config, login, password) {
 }
 
 export async function resolveProfileByEmail(config, email, extras = {}) {
-    const usuario = await fetchUsuarioByEmail(config, email);
-    if (!usuario) {
+    const emailNorm = String(email || '').trim().toLowerCase();
+    const contact = await resolveParceiroHubContact(config, {
+        email: emailNorm,
+        phone: extras.phone,
+    });
+
+    if (!contact?.cliente) {
         return {
-            sub: extras.sub || email,
-            email,
+            sub: extras.sub || emailNorm,
+            email: emailNorm,
             name: extras.name || '',
             phone: extras.phone || '',
             role: 'PARCEIRO',
             provider: extras.provider || 'google',
         };
     }
-    const parceiro = await buildParceiroExtras(config, usuario);
-    return profileFromUsuario(usuario, { ...extras, email, provider: extras.provider || 'google', ...parceiro }) || {
-        sub: extras.sub || email,
-        email,
+
+    await syncParceiroContactLink(config, {
+        usuario: contact.usuario,
+        pessoa: contact.pessoa,
+        email: emailNorm,
+        phone: extras.phone,
+    });
+
+    if (contact.usuario) {
+        const parceiro = await buildParceiroExtras(config, contact.usuario);
+        return (
+            profileFromUsuario(contact.usuario, {
+                ...extras,
+                email: emailNorm,
+                phone: extras.phone || contact.usuario.telefone || '',
+                provider: extras.provider || 'google',
+                ...parceiro,
+            }) || {
+                sub: extras.sub || emailNorm,
+                email: emailNorm,
+                role: 'PARCEIRO',
+                provider: extras.provider || 'google',
+            }
+        );
+    }
+
+    const parceiro = await buildParceiroExtrasFromPessoa(config, contact.pessoa);
+    return {
+        sub: extras.sub || emailNorm,
+        email: emailNorm,
+        name: extras.name || contact.pessoa?.nome || '',
+        phone: extras.phone || contact.pessoa?.telefone || '',
         role: 'PARCEIRO',
         provider: extras.provider || 'google',
+        ...parceiro,
     };
 }
 
 export async function resolveProfileByPhone(config, phone, name) {
-    const usuario = await fetchUsuarioByPhone(config, phone);
     const normalizedPhone = String(phone || '').trim();
-    if (!usuario) {
+    const contact = await resolveParceiroHubContact(config, { phone: normalizedPhone });
+
+    if (!contact?.cliente) {
         return {
             sub: `phone:${normalizedPhone}`,
             email: '',
@@ -184,18 +225,38 @@ export async function resolveProfileByPhone(config, phone, name) {
             provider: 'phone',
         };
     }
-    return (
-        profileFromUsuario(usuario, {
-            phone: normalizedPhone,
-            name: name || usuario.nome,
-            provider: 'phone',
-            ...(await buildParceiroExtras(config, usuario)),
-        }) || {
-            sub: `phone:${normalizedPhone}`,
-            name: name || '',
-            phone: normalizedPhone,
-            role: 'PARCEIRO',
-            provider: 'phone',
-        }
-    );
+
+    await syncParceiroContactLink(config, {
+        usuario: contact.usuario,
+        pessoa: contact.pessoa,
+        phone: normalizedPhone,
+    });
+
+    if (contact.usuario) {
+        return (
+            profileFromUsuario(contact.usuario, {
+                phone: normalizedPhone,
+                name: name || contact.usuario.nome,
+                provider: 'phone',
+                ...(await buildParceiroExtras(config, contact.usuario)),
+            }) || {
+                sub: `phone:${normalizedPhone}`,
+                name: name || '',
+                phone: normalizedPhone,
+                role: 'PARCEIRO',
+                provider: 'phone',
+            }
+        );
+    }
+
+    const parceiro = await buildParceiroExtrasFromPessoa(config, contact.pessoa);
+    return {
+        sub: `phone:${normalizedPhone}`,
+        email: contact.pessoa?.email || '',
+        name: name || contact.pessoa?.nome || '',
+        phone: normalizedPhone,
+        role: 'PARCEIRO',
+        provider: 'phone',
+        ...parceiro,
+    };
 }

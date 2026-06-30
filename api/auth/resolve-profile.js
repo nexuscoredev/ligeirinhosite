@@ -85,6 +85,7 @@ export default async function handler(req, res) {
                 sub: payload.sub,
                 name: payload.name,
                 picture: payload.picture,
+                phone: String(body.phone || '').trim(),
                 provider: 'google',
             });
             return res.status(200).json({ profile: publicProfile(profile) });
