@@ -130,11 +130,11 @@
 }
 
 .fin-stat--warn .fin-stat__value {
-    color: #b45309;
+    color: var(--lig-status-wait-fg);
 }
 
 .fin-stat--ok .fin-stat__value {
-    color: #15803d;
+    color: var(--lig-status-ok-fg);
 }
 
 .fin-tabs {
@@ -207,28 +207,28 @@
 }
 
 .fin-badge--pending {
-    background: rgba(234, 179, 8, 0.15);
-    color: #a16207;
+    background: var(--lig-status-wait-bg);
+    color: var(--lig-status-wait-fg);
 }
 
 .fin-badge--paid {
-    background: rgba(34, 197, 94, 0.15);
-    color: #15803d;
+    background: var(--lig-status-ok-bg);
+    color: var(--lig-status-ok-fg);
 }
 
 .fin-badge--overdue {
     background: rgba(239, 68, 68, 0.12);
-    color: #b91c1c;
+    color: var(--lig-error-fg);
 }
 
 .fin-badge--cancelled {
-    background: rgba(107, 114, 128, 0.15);
-    color: #4b5563;
+    background: var(--lig-surface-muted);
+    color: var(--lig-text-muted);
 }
 
 .fin-badge--billing {
-    background: rgba(59, 130, 246, 0.12);
-    color: #1d4ed8;
+    background: var(--lig-status-info-bg);
+    color: var(--lig-status-info-fg);
 }
 
 .fin-actions {

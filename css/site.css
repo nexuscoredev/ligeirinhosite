@@ -19,6 +19,7 @@
     --lig-brand-logo-bg: #fffbeb;
     --lig-overlay: rgba(0, 0, 0, 0.4);
     --lig-scrollbar: #ccc;
+    --lig-scrollbar-thumb: rgba(166, 124, 0, 0.38);
     --lig-media-bg: var(--lig-surface-alt);
     --lig-cat-circle-bg: var(--lig-surface);
     --lig-motion-duration: 0.4s;
@@ -33,6 +34,20 @@
     --lig-cta-bg: #1a1a1a;
     --lig-cta-fg: #ffffff;
     --lig-cta-hover: #333333;
+    --lig-surface-muted: #f3f4f6;
+    --lig-surface-2: #f8fafc;
+    --lig-status-wait-bg: rgba(234, 179, 8, 0.15);
+    --lig-status-wait-fg: #a16207;
+    --lig-status-ok-bg: rgba(34, 197, 94, 0.15);
+    --lig-status-ok-fg: #15803d;
+    --lig-success-fg: #047857;
+    --lig-error-fg: #dc2626;
+    --lig-warning-bg: #fff7ed;
+    --lig-warning-border: #fed7aa;
+    --lig-warning-fg: #9a3412;
+    --lig-on-media: #1a1a1a;
+    --lig-status-info-bg: rgba(59, 130, 246, 0.12);
+    --lig-status-info-fg: #1d4ed8;
 }
 
 [data-theme="dark"] {
@@ -55,6 +70,7 @@
     --lig-brand-logo-bg: #2a2810;
     --lig-overlay: rgba(0, 0, 0, 0.65);
     --lig-scrollbar: #444;
+    --lig-scrollbar-thumb: rgba(247, 213, 60, 0.48);
     --lig-media-bg: #ffffff;
     --lig-cat-circle-bg: #ffffff;
     --lig-on-yellow: #1a1a1a;
@@ -65,6 +81,20 @@
     --lig-cta-bg: #f0f0f0;
     --lig-cta-fg: #121212;
     --lig-cta-hover: #e0e0e0;
+    --lig-surface-muted: #2a2a2a;
+    --lig-surface-2: #252525;
+    --lig-status-wait-bg: rgba(247, 213, 60, 0.18);
+    --lig-status-wait-fg: #F7D53C;
+    --lig-status-ok-bg: rgba(34, 197, 94, 0.18);
+    --lig-status-ok-fg: #86efac;
+    --lig-success-fg: #6ee7b7;
+    --lig-error-fg: #f87171;
+    --lig-warning-bg: rgba(251, 146, 60, 0.12);
+    --lig-warning-border: rgba(251, 146, 60, 0.35);
+    --lig-warning-fg: #fdba74;
+    --lig-on-media: #1a1a1a;
+    --lig-status-info-bg: rgba(59, 130, 246, 0.18);
+    --lig-status-info-fg: #93c5fd;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -88,6 +118,7 @@
         --lig-brand-logo-bg: #2a2810;
         --lig-overlay: rgba(0, 0, 0, 0.65);
         --lig-scrollbar: #444;
+        --lig-scrollbar-thumb: rgba(247, 213, 60, 0.48);
         --lig-media-bg: #ffffff;
         --lig-cat-circle-bg: #ffffff;
         --lig-on-yellow: #1a1a1a;
@@ -98,6 +129,20 @@
         --lig-cta-bg: #f0f0f0;
         --lig-cta-fg: #121212;
         --lig-cta-hover: #e0e0e0;
+        --lig-surface-muted: #2a2a2a;
+        --lig-surface-2: #252525;
+        --lig-status-wait-bg: rgba(247, 213, 60, 0.18);
+        --lig-status-wait-fg: #F7D53C;
+        --lig-status-ok-bg: rgba(34, 197, 94, 0.18);
+        --lig-status-ok-fg: #86efac;
+        --lig-success-fg: #6ee7b7;
+        --lig-error-fg: #f87171;
+        --lig-warning-bg: rgba(251, 146, 60, 0.12);
+        --lig-warning-border: rgba(251, 146, 60, 0.35);
+        --lig-warning-fg: #fdba74;
+        --lig-on-media: #1a1a1a;
+        --lig-status-info-bg: rgba(59, 130, 246, 0.18);
+        --lig-status-info-fg: #93c5fd;
     }
 }
 
@@ -1617,8 +1662,27 @@ html.lig-app-standalone .ze-app-header {
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-right: 0.15rem;
+    padding-right: 0.25rem;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--lig-scrollbar-thumb) transparent;
+}
+
+.ze-catalog-sidebar__nav::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ze-catalog-sidebar__nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ze-catalog-sidebar__nav::-webkit-scrollbar-thumb {
+    background: var(--lig-scrollbar-thumb);
+    border-radius: 999px;
+}
+
+.ze-catalog-sidebar__nav::-webkit-scrollbar-thumb:hover {
+    background: var(--lig-yellow);
 }
 
 .ze-catalog-sidebar__nav .ze-cat-pill {
@@ -1787,7 +1851,7 @@ html.lig-catalog-modal-open body {
 
 body[data-page='pedidos'] .ze-product-card__media {
     height: 7.5rem;
-    background: #fff;
+    background: var(--lig-media-bg);
 }
 
 body[data-page='pedidos'] .ze-product-card {
@@ -3334,9 +3398,9 @@ html.lig-story-open {
     margin: 0.25rem 1rem 0.75rem;
     padding: 0.75rem 1rem;
     border-radius: 9999px;
-    border: 2px solid #1a1a1a;
-    background: #fff;
-    color: #1a1a1a;
+    border: 2px solid var(--lig-text);
+    background: var(--lig-surface);
+    color: var(--lig-text);
     font-size: 0.875rem;
     font-weight: 700;
     cursor: pointer;
@@ -3345,7 +3409,7 @@ html.lig-story-open {
 }
 
 .home-add-all-btn:hover {
-    background: #f5f5f5;
+    background: var(--lig-surface-alt);
 }
 
 .home-add-all-btn:active {
@@ -3934,17 +3998,17 @@ html.lig-story-open {
 }
 
 .conta-order-detail__badge--wait {
-    background: rgba(234, 179, 8, 0.15);
-    color: #a16207;
+    background: var(--lig-status-wait-bg);
+    color: var(--lig-status-wait-fg);
 }
 
 .conta-order-detail__badge--ok {
-    background: rgba(34, 197, 94, 0.15);
-    color: #15803d;
+    background: var(--lig-status-ok-bg);
+    color: var(--lig-status-ok-fg);
 }
 
 .conta-order-detail__badge--muted {
-    background: var(--lig-surface-muted, #f3f4f6);
+    background: var(--lig-surface-muted);
     color: var(--lig-text-muted);
 }
 
@@ -3954,7 +4018,7 @@ html.lig-story-open {
     margin: 0 0 1rem;
     padding: 0.875rem;
     border-radius: 0.625rem;
-    background: var(--lig-surface-muted, #f9fafb);
+    background: var(--lig-surface-muted);
     border: 1px solid var(--lig-border);
 }
 
@@ -4447,7 +4511,7 @@ html.lig-story-open {
 .raios-summary-card__value {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-text);
     margin: 0;
     line-height: 1.2;
 }
@@ -4462,13 +4526,13 @@ html.lig-story-open {
 }
 
 .raios-summary-card__value .text-muted {
-    color: #999;
+    color: var(--lig-text-subtle);
     font-weight: 600;
 }
 
 .raios-summary-card__sub {
     font-size: 0.6875rem;
-    color: #666;
+    color: var(--lig-text-muted);
     margin: 0.25rem 0 auto;
     flex: 1;
 }
@@ -4500,7 +4564,7 @@ html.lig-story-open {
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 50%;
-    background: #fff;
+    background: var(--lig-media-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4508,8 +4572,8 @@ html.lig-story-open {
 }
 
 .raios-join-card {
-    background: #fff;
-    border: 1px solid #ebebeb;
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
     border-radius: 0.875rem;
     padding: 1.5rem 1.25rem;
     text-align: center;
@@ -5068,7 +5132,7 @@ html.lig-story-open {
     font-size: 0.875rem;
     text-align: center;
     color: var(--lig-text-muted, var(--lig-text-secondary, #64748b));
-    background: var(--lig-surface-2, #f8fafc);
+    background: var(--lig-surface-2);
     border-radius: 0.75rem;
 }
 
@@ -5362,8 +5426,8 @@ html.lig-story-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f0f0;
-    color: #bbb;
+    background: var(--lig-surface-muted);
+    color: var(--lig-text-subtle);
 }
 
 .ofertas-points-row__body {
@@ -5741,7 +5805,7 @@ html.lig-story-open {
     height: 3.5rem;
     border-radius: 0.5rem;
     object-fit: contain;
-    background: #fff;
+    background: var(--lig-media-bg);
     border: 1px solid var(--lig-border);
     flex-shrink: 0;
 }
@@ -5776,7 +5840,7 @@ html.lig-story-open {
     margin: 0 0 0.25rem;
     font-size: 0.6875rem;
     font-weight: 700;
-    color: #047857;
+    color: var(--lig-success-fg);
 }
 
 .caminhao-product__prices {
@@ -5795,7 +5859,7 @@ html.lig-story-open {
 .caminhao-product__price {
     font-size: 0.875rem;
     font-weight: 800;
-    color: #047857;
+    color: var(--lig-success-fg);
 }
 
 .caminhao-product__bottom {
@@ -5837,7 +5901,7 @@ html.lig-story-open {
 .caminhao-product__line-total {
     font-size: 1rem;
     font-weight: 800;
-    color: #047857;
+    color: var(--lig-success-fg);
     white-space: nowrap;
 }
 
@@ -5899,7 +5963,7 @@ html.lig-story-open {
     margin: 0 0 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #047857;
+    color: var(--lig-success-fg);
 }
 
 .caminhao-savings .material-symbols-outlined {
@@ -8063,7 +8127,7 @@ html.lig-login-modal-open {
 
 .lig-nf-notice--muted {
     border-color: var(--lig-border);
-    background: rgba(20, 18, 15, 0.03);
+    background: var(--lig-surface-alt);
 }
 
 .lig-nf-notice__icon {
@@ -8939,14 +9003,14 @@ body.lig-install-open {
     width: 3rem;
     height: 3rem;
     border-radius: 999px;
-    background: #fff;
+    background: var(--lig-media-bg);
     border: 1px solid var(--lig-border);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--lig-on-media);
     flex-shrink: 0;
 }
 
@@ -8989,7 +9053,7 @@ body.lig-install-open {
     height: 3.5rem;
     border-radius: 0.5rem;
     object-fit: contain;
-    background: #fff;
+    background: var(--lig-media-bg);
     border: 1px solid var(--lig-border);
     flex-shrink: 0;
 }
@@ -9017,17 +9081,7 @@ body.lig-install-open {
     margin: 0;
     font-size: 0.875rem;
     font-weight: 700;
-    color: #047857;
-}
-
-[data-theme="dark"] .resumo-product__unit-price {
-    color: #6ee7b7;
-}
-
-@media (prefers-color-scheme: dark) {
-    [data-theme="auto"] .resumo-product__unit-price {
-        color: #6ee7b7;
-    }
+    color: var(--lig-success-fg);
 }
 
 .resumo-product__side {
@@ -9064,18 +9118,8 @@ body.lig-install-open {
 .resumo-product__total {
     font-size: 0.9375rem;
     font-weight: 800;
-    color: #047857;
+    color: var(--lig-success-fg);
     white-space: nowrap;
-}
-
-[data-theme="dark"] .resumo-product__total {
-    color: #6ee7b7;
-}
-
-@media (prefers-color-scheme: dark) {
-    [data-theme="auto"] .resumo-product__total {
-        color: #6ee7b7;
-    }
 }
 
 .resumo-more {
@@ -9106,18 +9150,8 @@ body.lig-install-open {
 }
 
 .resumo-free {
-    color: #047857;
+    color: var(--lig-success-fg);
     font-weight: 600;
-}
-
-[data-theme="dark"] .resumo-free {
-    color: #6ee7b7;
-}
-
-@media (prefers-color-scheme: dark) {
-    [data-theme="auto"] .resumo-free {
-        color: #6ee7b7;
-    }
 }
 
 .resumo-footer {
@@ -9264,18 +9298,8 @@ body.lig-install-open {
 }
 
 .resumo-option__price {
-    color: #047857;
+    color: var(--lig-success-fg);
     font-weight: 700;
-}
-
-[data-theme="dark"] .resumo-option__price {
-    color: #6ee7b7;
-}
-
-@media (prefers-color-scheme: dark) {
-    [data-theme="auto"] .resumo-option__price {
-        color: #6ee7b7;
-    }
 }
 
 .resumo-option__icon {
@@ -9360,22 +9384,22 @@ body.lig-install-open {
 /* ——— Conta: edição de dados ——— */
 .conta-info-row--link { align-items: center; }
 .conta-info-row__edit {
-    border: 0; background: transparent; color: #6b7280; padding: 0.25rem;
+    border: 0; background: transparent; color: var(--lig-text-muted); padding: 0.25rem;
     display: inline-flex; align-items: center; justify-content: center;
 }
 .conta-edit-form { display: grid; gap: 0.65rem; }
-.conta-edit-label { font-size: 0.85rem; font-weight: 600; color: #374151; }
+.conta-edit-label { font-size: 0.85rem; font-weight: 600; color: var(--lig-text); }
 .conta-edit-input {
-    width: 100%; border: 1px solid #e5e7eb; border-radius: 0.85rem; padding: 0.85rem 1rem;
-    background: #fff;
+    width: 100%; border: 1px solid var(--lig-border); border-radius: 0.85rem; padding: 0.85rem 1rem;
+    background: var(--lig-surface); color: var(--lig-text);
 }
 .conta-edit-status { margin: 0; font-size: 0.85rem; }
-.conta-edit-status--ok { color: #059669; }
-.conta-edit-status--error { color: #dc2626; }
+.conta-edit-status--ok { color: var(--lig-success-fg); }
+.conta-edit-status--error { color: var(--lig-error-fg); }
 .conta-alert {
     border-radius: 0.85rem; padding: 0.85rem 1rem; margin-bottom: 0.75rem;
 }
-.conta-alert--warn { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+.conta-alert--warn { background: var(--lig-warning-bg); border: 1px solid var(--lig-warning-border); color: var(--lig-warning-fg); }
 .conta-alert--warn p { margin: 0.35rem 0 0; font-size: 0.9rem; }
 
 /* ——— Acompanhar pedido ——— */
@@ -9544,7 +9568,7 @@ body.lig-install-open {
 .order-track__receipt-total strong {
     font-size: 1.125rem;
     font-weight: 800;
-    color: #047857;
+    color: var(--lig-success-fg);
 }
 
 .order-track__receipt-items {
@@ -9645,7 +9669,7 @@ body.lig-install-open {
 }
 
 .order-track__support-icon {
-    color: #047857;
+    color: var(--lig-success-fg);
     font-size: 1.375rem;
 }
 
@@ -9873,7 +9897,7 @@ body.lig-install-open {
 }
 
 .order-track__section-icon {
-    color: #047857;
+    color: var(--lig-success-fg);
     font-size: 1.25rem;
 }
 
