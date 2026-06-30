@@ -90,6 +90,67 @@ export async function listOrdersByHubUserIds(
     return Array.isArray(data) ? data : [];
 }
 
+async function fetchOrdersByFilter(supabaseUrl, apiKey, filterParams, { limit = 50, channel } = {}) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const params = new URLSearchParams({
+        ...filterParams,
+        select: '*',
+        order: 'created_at.desc',
+        limit: String(safeLimit),
+    });
+    if (channel) params.set('channel', `eq.${channel}`);
+    const url = `${supabaseUrl}/rest/v1/orders?${params}`;
+    const res = await fetch(url, { headers: headers(apiKey) });
+    const data = await parseJson(res);
+    return Array.isArray(data) ? data : [];
+}
+
+/** Lista pedidos Parceiros por contas Hub, e-mail e IDs legados (ex.: sub Google). */
+export async function listParceiroOrders(
+    supabaseUrl,
+    apiKey,
+    { hubUserIds = [], emails = [], legacyHubUserIds = [] } = {},
+    { limit = 50, channel = 'parceiros' } = {},
+) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const seen = new Set();
+    const merged = [];
+
+    const addRows = (rows) => {
+        for (const row of rows || []) {
+            if (!row?.id || seen.has(row.id)) continue;
+            seen.add(row.id);
+            merged.push(row);
+        }
+    };
+
+    const allHubIds = [
+        ...new Set(
+            [...hubUserIds, ...legacyHubUserIds]
+                .map((id) => String(id || '').trim())
+                .filter(Boolean),
+        ),
+    ];
+
+    if (allHubIds.length) {
+        addRows(await listOrdersByHubUserIds(supabaseUrl, apiKey, allHubIds, { limit: safeLimit, channel }));
+    }
+
+    for (const email of [...new Set((emails || []).map((e) => String(e || '').trim().toLowerCase()).filter(Boolean))]) {
+        addRows(
+            await fetchOrdersByFilter(
+                supabaseUrl,
+                apiKey,
+                { customer_email: `ilike.${email}` },
+                { limit: safeLimit, channel },
+            ),
+        );
+    }
+
+    merged.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    return merged.slice(0, safeLimit);
+}
+
 export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
     if (useRpc) {
         const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {

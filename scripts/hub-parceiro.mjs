@@ -321,6 +321,40 @@ export async function collectParceiroHubUserIds(config, usuario) {
     return [...ids];
 }
 
+/** Chaves para listar pedidos Parceiros (Hub UUID, e-mail e IDs legados do Google). */
+export async function collectParceiroOrderLookup(config, usuario, authExtras = {}) {
+    const hubUserIds = await collectParceiroHubUserIds(config, usuario);
+    const emails = new Set();
+    const legacyHubUserIds = new Set();
+
+    const addEmail = (value) => {
+        const email = String(value || '').trim().toLowerCase();
+        if (email && email.includes('@')) emails.add(email);
+    };
+
+    addEmail(usuario?.email);
+    addEmail(authExtras.email);
+
+    const pessoa = await findPessoaForUsuario(config, usuario);
+    if (pessoa) addEmail(pessoa.email);
+
+    const sub = String(authExtras.sub || '').trim();
+    if (sub && !isHubUsuarioUuid(sub) && !hubUserIds.includes(sub)) {
+        legacyHubUserIds.add(sub);
+    }
+
+    const login = String(usuario?.login || '').trim();
+    if (login && !isHubUsuarioUuid(login) && !hubUserIds.includes(login) && !login.includes('@')) {
+        legacyHubUserIds.add(login);
+    }
+
+    return {
+        hubUserIds,
+        emails: [...emails],
+        legacyHubUserIds: [...legacyHubUserIds],
+    };
+}
+
 async function fetchPessoaById(config, pessoaId) {
     if (!pessoaId || !config.serviceKey) return null;
     const rows = await hubRest(

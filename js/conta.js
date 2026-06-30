@@ -412,17 +412,15 @@ ${
         const lastLocal = cart?.loadLastOrder?.();
         let orders = [];
 
-        const token = await auth?.getHubAccessToken?.();
-        if (token) {
-            try {
-                const res = await fetch('/api/orders/mine?limit=50', {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const data = await res.json();
-                if (res.ok && Array.isArray(data.orders)) orders = data.orders;
-            } catch {
-                /* fallback abaixo */
-            }
+        try {
+            const headers = await accountHeaders();
+            const s = session();
+            if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+            const res = await fetch('/api/orders/mine?limit=50', { headers });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && Array.isArray(data.orders)) orders = data.orders;
+        } catch {
+            /* fallback abaixo */
         }
 
         if (!orders.length && lastLocal?.orderId) {

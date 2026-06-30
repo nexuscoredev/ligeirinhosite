@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v206';
+const CACHE_NAME = 'ligeirinho-app-v207';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
@@ -124,7 +124,7 @@ const APP_SHELL = [
     '/img/icon-pix.svg',
     '/img/icon-cartoes.svg',
     '/img/icon-instagram.svg',
-    '/img/icon-google-maps.svg',
+    '/img/icon-google-maps.png',
     '/img/icon-google.svg',
     '/img/icon-apple.svg',
     '/img/mercado-pago-logo-white-horizontal.svg',

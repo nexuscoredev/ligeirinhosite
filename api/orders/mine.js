@@ -1,8 +1,8 @@
-import { requireHubSession } from '../account/_require-hub-session.mjs';
-import { collectParceiroHubUserIds } from '../../scripts/hub-parceiro.mjs';
+import { requireAccountSession } from '../account/_require-hub-session.mjs';
+import { collectParceiroOrderLookup } from '../../scripts/hub-parceiro.mjs';
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import {
-    listOrdersByHubUserIds,
+    listParceiroOrders,
     publicOrderView,
     dbFromPaymentConfig,
 } from '../../scripts/supabase-orders.mjs';
@@ -23,7 +23,13 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const session = await requireHubSession(req);
+    let session;
+    try {
+        session = await requireAccountSession(req);
+    } catch (err) {
+        console.error('orders/mine session', err);
+        return res.status(503).json({ error: 'Falha ao validar sessão. Tente novamente.' });
+    }
     if (session.error) {
         return res.status(session.status).json({ error: session.error });
     }
@@ -36,8 +42,14 @@ export default async function handler(req, res) {
     try {
         const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 50));
         const db = dbFromPaymentConfig(payConfig);
-        const hubUserIds = await collectParceiroHubUserIds(session.config, session.usuario);
-        const rows = await listOrdersByHubUserIds(db.url, db.key, hubUserIds, {
+        const authEmail = String(
+            session.authUser?.email || session.usuario?.email || req.headers['x-account-email'] || '',
+        ).trim();
+        const lookup = await collectParceiroOrderLookup(session.config, session.usuario, {
+            email: authEmail,
+            sub: String(req.headers['x-auth-sub'] || req.query.sub || '').trim(),
+        });
+        const rows = await listParceiroOrders(db.url, db.key, lookup, {
             limit,
             channel: 'parceiros',
         });

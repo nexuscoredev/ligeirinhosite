@@ -16,6 +16,16 @@
 
     const session = () => auth?.loadSession?.() || null;
 
+    const isHubUserUuid = (value) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+            String(value || ''),
+        );
+
+    const resolveOrderHubUserId = (s) => {
+        const id = String(s?.hubUserId || '').trim();
+        return isHubUserUuid(id) ? id : '';
+    };
+
     const loadCheckoutState = () => cartApi.loadCheckout();
 
     const assetUrl = (path) => {
@@ -421,7 +431,9 @@ ${headerHtml(title)}
             btn.textContent = 'Processando…';
         }
 
+        await auth?.ensureAccountSession?.();
         const s = session();
+        const hubUserId = resolveOrderHubUserId(s);
         const items = cartApi.cartEntries(cart).map((item) => ({
             id: item.id,
             hubId: item.hubId || '',
@@ -454,12 +466,12 @@ ${headerHtml(title)}
                     paymentMethod,
                     condicaoPagamento: checkout.condicaoPagamento || s?.condicaoPagamento || '',
                     deliveryDate: checkout.deliveryDate,
-                    hubUserId: s?.hubUserId || '',
+                    hubUserId,
                     customer: {
                         name: s?.name || s?.razaoSocial || '',
                         phone: s?.phone || '',
                         email: s?.email || '',
-                        hubUserId: s?.hubUserId || '',
+                        hubUserId,
                         cnpj: s?.cnpj || '',
                     },
                 }),

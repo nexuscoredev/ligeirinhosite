@@ -260,7 +260,7 @@ ${showAppChrome && page !== 'conta' ? `<div class="ze-app-chrome">
     const brandIcons = {
         whatsapp: 'img/icon-whatsapp.svg',
         instagram: 'img/icon-instagram.svg',
-        maps: 'img/icon-google-maps.svg',
+        maps: 'img/icon-google-maps.png',
     };
 
     const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden" aria-hidden="true">
