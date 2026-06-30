@@ -9,10 +9,12 @@ import { resolveHubLogin } from './hub-auth.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const LOGIN = 'Totem';
-const PASSWORD = 'admin123';
-const NOME = 'Ligeirinho Totem';
-const CARGO = 'Caixa';
+const LOGIN = (process.argv[2] || process.env.TOTEM_LOGIN || 'Totem').trim();
+const PASSWORD = (process.argv[3] || process.env.TOTEM_PASSWORD || 'admin123').trim();
+const NOME =
+    process.env.TOTEM_NOME ||
+    (LOGIN.toLowerCase() === 'totem' ? 'Ligeirinho Totem' : `Ligeirinho ${LOGIN}`);
+const CARGO = process.env.TOTEM_CARGO || 'Caixa';
 
 function loadHubServiceKey() {
     if (process.env.HUB_SUPABASE_SERVICE_ROLE_KEY) return process.env.HUB_SUPABASE_SERVICE_ROLE_KEY;
@@ -170,8 +172,8 @@ async function main() {
 
     console.log('Login test OK.');
     console.log('Use em https://ligeirinhoparceiros.vercel.app/');
-    console.log('  Usuário Hub: Totem');
-    console.log('  Senha: admin123');
+    console.log(`  Usuário Hub: ${LOGIN}`);
+    console.log(`  Senha: ${PASSWORD}`);
 }
 
 main().catch((err) => {
