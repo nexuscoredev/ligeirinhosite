@@ -46,6 +46,21 @@ function stripExtension(name) {
         .trim();
 }
 
+function isVerticalParceirosPasta(pasta) {
+    const key = normalizeKey(`${pasta?.nome || ''} ${pasta?.caminho || ''}`);
+    return key.includes('vertical') && (key.includes('tablet') || key.includes('parceiros'));
+}
+
+function isPastaWithinVerticalScope(pasta, verticalRoots) {
+    return verticalRoots.some((root) => {
+        if (pasta.id === root.id) return true;
+        const rootPath = String(root.caminho || root.nome || '').trim();
+        const pastaPath = String(pasta.caminho || pasta.nome || '').trim();
+        if (!rootPath || !pastaPath) return false;
+        return pastaPath === rootPath || pastaPath.startsWith(`${rootPath}/`);
+    });
+}
+
 function ringColorForFolder(nome, index) {
     const key = normalizeKey(nome);
     return RING_COLORS[key] || DEFAULT_RING_COLORS[index % DEFAULT_RING_COLORS.length];
@@ -54,6 +69,14 @@ function ringColorForFolder(nome, index) {
 function ctaForFolder(nome) {
     const key = normalizeKey(nome);
     return CTA_BY_FOLDER[key] || { label: 'Ver promoções', href: 'ofertas.html' };
+}
+
+function labelFromArquivo(arquivo, index) {
+    const base = stripExtension(arquivo?.nome);
+    if (!base) return `Promo ${index + 1}`;
+    if (/^encartes-/i.test(base)) return `Promo ${index + 1}`;
+    if (/^whatsapp image/i.test(base)) return `Promo ${index + 1}`;
+    return base.length > 28 ? `${base.slice(0, 25)}…` : base;
 }
 
 async function hubFetch(config, token, path) {
@@ -102,51 +125,92 @@ function collectImagesForFolder(pasta, pastas, arquivosByPastaId) {
     return descendants.sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
 }
 
-function buildStoriesFromDriveData(raiz, pastaList, arquivoList) {
-    if (!raiz?.id) {
+function filterVerticalDriveScope(pastaList, arquivoList) {
+    const verticalRoots = pastaList.filter(isVerticalParceirosPasta);
+    if (!verticalRoots.length) {
+        return { verticalRoots: [], pastas: [], arquivos: [] };
+    }
+
+    const pastas = pastaList.filter((pasta) => isPastaWithinVerticalScope(pasta, verticalRoots));
+    const pastaIds = new Set(pastas.map((p) => p.id));
+    const arquivos = arquivoList.filter((arquivo) => pastaIds.has(arquivo.pasta_id));
+
+    return { verticalRoots, pastas, arquivos };
+}
+
+function buildStoryFromImages(pasta, images, index) {
+    const cta = ctaForFolder(pasta.nome);
+    const slides = images.map((arquivo) => ({
+        image: arquivo.imagem_url,
+        title: stripExtension(arquivo.nome) || pasta.nome,
+        cta,
+        theme: 'yellow',
+    }));
+
+    return {
+        id: `mkt-${pasta.id}`,
+        label: pasta.nome,
+        ringColor: ringColorForFolder(pasta.nome, index),
+        thumbImage: images[0].imagem_url,
+        slides,
+    };
+}
+
+function buildStoriesFromDriveData(_raiz, pastaList, arquivoList) {
+    const { verticalRoots, pastas, arquivos } = filterVerticalDriveScope(pastaList, arquivoList);
+    if (!verticalRoots.length || !arquivos.length) {
         return [];
     }
 
     const arquivosByPastaId = new Map();
-    arquivoList.forEach((arquivo) => {
+    arquivos.forEach((arquivo) => {
         if (!arquivo?.pasta_id) return;
         const list = arquivosByPastaId.get(arquivo.pasta_id) || [];
         list.push(arquivo);
         arquivosByPastaId.set(arquivo.pasta_id, list);
     });
 
-    const storyFolders = pastaList.filter((p) => p.parent_drive_folder_id === raiz.drive_folder_id);
+    const verticalRoot = verticalRoots[0];
+    const categoryFolders = pastas.filter(
+        (pasta) =>
+            pasta.id !== verticalRoot.id &&
+            (pasta.parent_drive_folder_id === verticalRoot.drive_folder_id ||
+                String(pasta.caminho || '').startsWith(`${verticalRoot.caminho}/`))
+    );
 
-    const buildStory = (pasta, index) => {
-        const images = collectImagesForFolder(pasta, pastaList, arquivosByPastaId);
-        if (!images.length) return null;
+    const categoryStories = categoryFolders
+        .map((pasta, index) => {
+            const images = collectImagesForFolder(pasta, pastas, arquivosByPastaId);
+            if (!images.length) return null;
+            return buildStoryFromImages(pasta, images, index);
+        })
+        .filter(Boolean);
 
-        const cta = ctaForFolder(pasta.nome);
-        const slides = images.map((arquivo) => ({
-            image: arquivo.imagem_url,
-            title: stripExtension(arquivo.nome) || pasta.nome,
-            cta,
-            theme: 'yellow',
-        }));
-
-        return {
-            id: `mkt-${pasta.id}`,
-            label: pasta.nome,
-            ringColor: ringColorForFolder(pasta.nome, index),
-            thumbImage: images[0].imagem_url,
-            slides,
-        };
-    };
-
-    let stories = storyFolders.map(buildStory).filter(Boolean);
-
-    if (!stories.length && arquivoList.length) {
-        const pastasComImagem = new Set(arquivoList.map((a) => a.pasta_id).filter(Boolean));
-        const fallbackFolders = pastaList.filter((p) => pastasComImagem.has(p.id));
-        stories = fallbackFolders.map(buildStory).filter(Boolean);
+    if (categoryStories.length) {
+        return categoryStories;
     }
 
-    return stories;
+    const directImages = (arquivosByPastaId.get(verticalRoot.id) || []).sort((a, b) =>
+        String(a.nome).localeCompare(String(b.nome), 'pt-BR')
+    );
+
+    if (!directImages.length) {
+        return [];
+    }
+
+    return directImages.map((arquivo, index) => ({
+        id: `mkt-${arquivo.id}`,
+        label: labelFromArquivo(arquivo, index),
+        ringColor: ringColorForFolder('', index),
+        thumbImage: arquivo.imagem_url,
+        slides: [
+            {
+                image: arquivo.imagem_url,
+                cta: ctaForFolder(''),
+                theme: 'yellow',
+            },
+        ],
+    }));
 }
 
 async function fetchDriveDataViaRpc(config, token) {
@@ -215,7 +279,7 @@ export async function getHubMarketingStories(env = process.env) {
 
     if (!driveData) {
         return {
-            source: 'hub:marketing-drive',
+            source: 'hub:marketing-drive:vertical-parceiros',
             fetchedAt: new Date().toISOString(),
             stories: [],
         };
@@ -224,9 +288,10 @@ export async function getHubMarketingStories(env = process.env) {
     const stories = buildStoriesFromDriveData(driveData.raiz, driveData.pastaList, driveData.arquivoList);
 
     return {
-        source: 'hub:marketing-drive',
+        source: 'hub:marketing-drive:vertical-parceiros',
         fetchedAt: new Date().toISOString(),
         raiz: driveData.raiz?.nome || null,
+        canal: 'vertical-tablet-parceiros',
         via: driveData.via,
         stories,
     };
