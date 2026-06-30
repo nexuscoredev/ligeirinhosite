@@ -34,12 +34,12 @@
 
     const normalizePaymentUi = (method) => {
         const id = String(method?.id || '').toLowerCase();
-        if (id === 'mercado_pago') {
+        if (id === 'mercado_pago' || id === 'pix') {
             return {
                 ...method,
                 id: 'pix',
-                label: 'Pix',
-                hint: 'Pagamento instantâneo',
+                label: 'PIX',
+                hint: method.hint || 'Pagamento instantâneo',
             };
         }
         return method;
@@ -76,7 +76,7 @@
             base.push(
                 enrichPaymentMethod({
                     id: 'pix',
-                    label: 'Pix',
+                    label: 'PIX',
                     hint: 'Pagamento instantâneo',
                 })
             );
@@ -85,7 +85,7 @@
             base.push(
                 enrichPaymentMethod({
                     id: 'pix',
-                    label: 'Pix',
+                    label: 'PIX',
                     hint: 'Pagamento instantâneo',
                 })
             );
@@ -188,7 +188,7 @@
         }
         if (!checkout.paymentMethod) errors.paymentMethod = 'Selecione o método de pagamento.';
         else if (resolvePaymentMethodForOrder(checkout.paymentMethod) === 'cartao') {
-            errors.paymentMethod = 'Cartão não está disponível. Escolha Pix ou dinheiro.';
+            errors.paymentMethod = 'Cartão não está disponível. Escolha PIX ou dinheiro.';
         }
         return errors;
     };

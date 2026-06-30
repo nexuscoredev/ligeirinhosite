@@ -9559,10 +9559,28 @@ body.lig-install-open {
 }
 
 /* ——— Conta: edição de dados ——— */
-.conta-info-row--link { align-items: center; }
+.conta-info-row--link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.conta-info-row__main {
+    flex: 1;
+    min-width: 0;
+}
+
 .conta-info-row__edit {
-    border: 0; background: transparent; color: var(--lig-text-muted); padding: 0.25rem;
-    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    align-self: center;
+    border: 0;
+    background: transparent;
+    color: var(--lig-text-muted);
+    padding: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 .conta-edit-form { display: grid; gap: 0.65rem; }
 .conta-edit-label { font-size: 0.85rem; font-weight: 600; color: var(--lig-text); }

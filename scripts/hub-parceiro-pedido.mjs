@@ -153,7 +153,7 @@ function formatDeliveryDate(value) {
 
 function paymentMethodLabel(method) {
     const m = String(method || '').toLowerCase();
-    if (m === 'pix') return 'Pix';
+    if (m === 'pix') return 'PIX';
     if (m === 'mercado_pago') return 'Mercado Pago';
     if (m === 'dinheiro') return 'Dinheiro';
     if (m === 'cartao') return 'Cartão';

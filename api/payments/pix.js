@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     const missing = assertPixBackend(config, process.env);
     if (missing.length) {
-        return res.status(503).json({ error: 'Pix indisponível', missing });
+        return res.status(503).json({ error: 'PIX indisponível', missing });
     }
 
     try {
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
             });
         }
         if (!['pending', 'failed'].includes(order.status)) {
-            return res.status(409).json({ error: 'Pedido não pode receber Pix neste status' });
+            return res.status(409).json({ error: 'Pedido não pode receber PIX neste status' });
         }
 
         const notificationUrl =
@@ -98,7 +98,7 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error('payments/pix', err.details || err);
         return res.status(err.status || 500).json({
-            error: err.message || 'Erro ao gerar Pix',
+            error: err.message || 'Erro ao gerar PIX',
             details: err.details?.cause || err.details || undefined,
         });
     }

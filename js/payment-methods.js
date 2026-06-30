@@ -15,7 +15,7 @@
         {
             id: 'mercado_pago',
             label: 'Mercado Pago',
-            hint: 'Pix, cartão de crédito ou débito',
+            hint: 'PIX, cartão de crédito ou débito',
             icon: 'account_balance_wallet',
         },
     ];

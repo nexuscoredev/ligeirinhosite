@@ -28,7 +28,7 @@
         const methods = window.LigeirinhoPaymentMethods;
         if (methods?.label?.(id)) return methods.label(id);
         const key = String(id || '').toLowerCase();
-        if (key === 'pix') return 'Pix';
+        if (key === 'pix') return 'PIX';
         if (key === 'mercado_pago') return 'Mercado Pago';
         if (key === 'dinheiro') return 'Dinheiro';
         return id || '—';

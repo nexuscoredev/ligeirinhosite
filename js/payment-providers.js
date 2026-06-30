@@ -62,7 +62,7 @@
         },
         santander: {
             id: 'santander',
-            label: 'Santander Pix',
+            label: 'Santander PIX',
             methods: ['pix'],
             async getConfig() {
                 const res = await fetch('/api/payments/config');
@@ -79,14 +79,14 @@
                     body: JSON.stringify({ orderId }),
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Falha ao gerar Pix');
+                if (!res.ok) throw new Error(data.error || 'Falha ao gerar PIX');
                 return data;
             },
             loadSdk() {
                 return Promise.resolve();
             },
             mountBrick() {
-                throw new Error('Santander suporta apenas Pix neste canal.');
+                throw new Error('Santander suporta apenas PIX neste canal.');
             },
         },
     };

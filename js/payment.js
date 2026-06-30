@@ -46,18 +46,18 @@ ${order.deliveryType === 'entrega' && order.address ? `<p class="lig-payment-sum
 
     const renderPixPending = (order) => {
         const qr = order.pixQrBase64
-            ? `<img class="lig-payment-pix__qr" src="data:image/png;base64,${order.pixQrBase64}" alt="QR Code Pix" width="220" height="220">`
+            ? `<img class="lig-payment-pix__qr" src="data:image/png;base64,${order.pixQrBase64}" alt="QR Code PIX" width="220" height="220">`
             : '';
         const copy = order.pixQrCode
             ? `<div class="lig-payment-pix__copy">
-<label class="lig-payment-label">Pix copia e cola</label>
+<label class="lig-payment-label">PIX copia e cola</label>
 <textarea class="lig-payment-pix__code" readonly rows="3">${esc(order.pixQrCode)}</textarea>
-<button type="button" class="lig-btn-secondary w-full" id="pix-copy-btn">Copiar código Pix</button>
+<button type="button" class="lig-btn-secondary w-full" id="pix-copy-btn">Copiar código PIX</button>
 </div>`
             : '';
         root.innerHTML = `<div class="lig-payment-card">
 <span class="material-symbols-outlined lig-payment-icon lig-payment-icon--pending">schedule</span>
-<h1 class="lig-payment-title">Aguardando Pix</h1>
+<h1 class="lig-payment-title">Aguardando PIX</h1>
 <p class="lig-payment-lead">Escaneie o QR Code ou copie o código. Atualizamos automaticamente quando o pagamento for confirmado.</p>
 ${renderSummary(order)}
 <div class="lig-payment-pix">${qr}${copy}</div>
@@ -89,7 +89,7 @@ ${renderSummary(order)}
 
     const mountPixCheckout = async (order) => {
         root.innerHTML = `<div class="lig-payment-card">
-<p class="lig-payment-lead">Gerando código Pix…</p>
+<p class="lig-payment-lead">Gerando código PIX…</p>
 ${renderSummary(order)}
 </div>`;
         try {
@@ -99,7 +99,7 @@ ${renderSummary(order)}
                 body: JSON.stringify({ orderId: order.id }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Erro ao gerar Pix');
+            if (!res.ok) throw new Error(data.error || 'Erro ao gerar PIX');
             const merged = {
                 ...order,
                 ...(data.order || {}),
@@ -115,7 +115,7 @@ ${renderSummary(order)}
 
     const mountBrick = async (order, publicKey) => {
         root.innerHTML = `${renderSummary(order)}<div id="payment-brick" class="lig-payment-brick"></div>
-<p class="lig-payment-hint">Pagamento via Pix</p>`;
+<p class="lig-payment-hint">Pagamento via PIX</p>`;
 
         const mp = new MercadoPago(publicKey, { locale: 'pt-BR' });
         const bricks = mp.bricks();
@@ -255,19 +255,19 @@ ${renderSummary(order)}
             const method = String(order.paymentMethod || '').toLowerCase();
             if (method === 'pix' || method === 'mercado_pago') {
                 if (!pixOk) {
-                    showError('Pix indisponível no momento.');
+                    showError('PIX indisponível no momento.');
                     return;
                 }
                 await mountPixCheckout(order);
                 return;
             }
             if (method === 'cartao') {
-                showError('Pagamento com cartão não está disponível. Volte e escolha Pix ou dinheiro.');
+                showError('Pagamento com cartão não está disponível. Volte e escolha PIX ou dinheiro.');
                 return;
             }
 
             if (!configData.publicKey) {
-                showError('Pix não configurado para este pedido.');
+                showError('PIX não configurado para este pedido.');
                 return;
             }
             await mountBrick(order, configData.publicKey);
