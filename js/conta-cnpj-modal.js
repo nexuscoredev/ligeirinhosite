@@ -2,6 +2,10 @@
     const modal = document.getElementById('conta-cnpj-modal');
     if (!modal) return;
 
+    if (modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+
     const backdrop = modal.querySelector('[data-conta-cnpj-close]');
     const closeBtn = modal.querySelector('.lig-cnpj-modal__close');
     const form = document.getElementById('conta-cnpj-modal-form');
