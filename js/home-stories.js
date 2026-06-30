@@ -35,6 +35,9 @@
     };
 
     const resolveThumb = (story, catalog, catalogData) => {
+        if (story.thumbImage) {
+            return `<img alt="" class="home-promo-story__img" src="${esc(story.thumbImage)}" loading="lazy" decoding="async">`;
+        }
         if (story.thumbCategory && catalog && catalogData) {
             const cat =
                 catalog.resolveCatalogCategory(catalogData, story.thumbCategory) ||
@@ -261,10 +264,19 @@ ${
         });
     };
 
-    const loadConfig = () =>
+    const loadStaticConfig = () =>
         fetch('data/home-stories.json')
             .then((r) => (r.ok ? r.json() : { stories: [] }))
             .catch(() => ({ stories: [] }));
+
+    const loadConfig = () =>
+        fetch('/api/marketing-stories')
+            .then((r) => (r.ok ? r.json() : null))
+            .then((payload) => {
+                if (payload?.stories?.length) return payload;
+                return loadStaticConfig();
+            })
+            .catch(() => loadStaticConfig());
 
     window.LigeirinhoHomeStories = {
         loadConfig,
