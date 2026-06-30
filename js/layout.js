@@ -86,6 +86,12 @@
     }
 
     const page = document.body.dataset.page || '';
+    const navHash = () => (window.location.hash || '').replace(/^#/, '').toLowerCase();
+    const isNavItemActive = (item) => {
+        if (item.id === 'meus-pedidos') return page === 'conta' && navHash() === 'pedidos';
+        if (item.id === 'conta') return page === 'conta' && navHash() !== 'pedidos';
+        return page === item.id;
+    };
     const appSectionPages = new Set([
         'inicio',
         'ofertas',
@@ -120,13 +126,14 @@
         'font-nav block w-full min-h-[48px] px-4 py-3 rounded-lg text-[15px] font-bold text-vibrant-yellow bg-vibrant-yellow/10 border border-vibrant-yellow/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow';
 
     const renderDesktopNavLink = (item) => {
-        const active = page === item.id;
+        const active = isNavItemActive(item);
         return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${item.label}</a>`;
     };
 
     const appNavItems = [
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
+        { id: 'meus-pedidos', href: 'conta.html#pedidos', label: 'Pedidos', icon: 'inventory_2' },
     ];
 
     const institutionalNavItems = [
@@ -177,7 +184,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
     const navMobileLinksHtml = navItems
         .map(
             (item) =>
-                `<a class="${page === item.id ? navMobileActive : navMobileLink}" href="${item.href}">${item.label}</a>`
+                `<a class="${isNavItemActive(item) ? navMobileActive : navMobileLink}" href="${item.href}">${item.label}</a>`
         )
         .join('\n');
 
@@ -287,15 +294,16 @@ ${navMobileLinksHtml}
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
+        { id: 'meus-pedidos', href: 'conta.html#pedidos', label: 'Pedidos', icon: 'inventory_2' },
         { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];
 
     const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Navegação do app">
-<div class="grid grid-cols-5 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--5">
+<div class="grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6">
 ${bottomTabItems
     .map((item) => {
-        const isActive = page === item.id;
+        const isActive = isNavItemActive(item);
         const activeClass = isActive ? 'app-tab-active text-vibrant-yellow' : 'text-[var(--lig-text-subtle)]';
         return `<a href="${item.href}" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow"${item.id === 'caminhao' ? ' id="app-tab-cart"' : ''} ${isActive ? 'aria-current="page"' : ''}${item.id === 'conta' ? ' aria-label="Minha conta"' : ''}${item.id === 'caminhao' ? ' aria-label="Caminhão"' : ''}>
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
@@ -332,6 +340,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <a class="lig-footer-link" href="inicio.html">Início</a>
 <a class="lig-footer-link" href="ofertas.html">Ofertas</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
+<a class="lig-footer-link" href="conta.html#pedidos">Pedidos</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>
 <a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
@@ -675,6 +684,27 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         }
     };
 
+    const syncBottomNavActive = () => {
+        const nav = document.getElementById('app-bottom-nav');
+        if (!nav) return;
+        nav.querySelectorAll('a[href]').forEach((link) => {
+            const href = link.getAttribute('href') || '';
+            let item = null;
+            if (href.includes('conta.html#pedidos')) item = { id: 'meus-pedidos' };
+            else if (href === accountHref) item = { id: 'conta' };
+            else {
+                const match = bottomTabItems.find((entry) => entry.href === href);
+                if (match) item = match;
+            }
+            const active = item ? isNavItemActive(item) : false;
+            link.classList.toggle('app-tab-active', active);
+            link.classList.toggle('text-vibrant-yellow', active);
+            link.classList.toggle('text-[var(--lig-text-subtle)]', !active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    };
+
     const bindBottomNav = () => {
         document.documentElement.classList.add('lig-app-mode');
 
@@ -687,7 +717,11 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         };
 
         window.addEventListener('ligeirinho-cart-changed', syncTabBadge);
+        if (page === 'conta') {
+            window.addEventListener('hashchange', syncBottomNavActive);
+        }
         syncTabBadge();
+        syncBottomNavActive();
     };
 
     const ensureScript = (src) =>

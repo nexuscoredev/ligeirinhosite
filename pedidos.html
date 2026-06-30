@@ -163,37 +163,62 @@
 </head>
 <body data-page="pedidos" class="font-body-md antialiased min-h-screen flex flex-col">
 <div id="site-nav"></div>
-<main id="lig-page-main" class="flex-grow w-full max-w-container-max mx-auto pb-4">
+<main id="lig-page-main" class="flex-grow w-full max-w-container-max mx-auto pb-4 ze-catalog-page">
 <div class="ze-catalog-sticky">
-<div class="flex items-center justify-between gap-3 px-4 py-2.5">
-<h1 class="font-headline-md text-base font-bold text-[var(--lig-text)]">Categorias</h1>
-<p id="catalog-stats" class="text-xs text-[var(--lig-text-subtle)] shrink-0">Carregando…</p>
+<div class="ze-catalog-sticky__head">
+<div class="ze-catalog-sticky__titles">
+<p class="ze-catalog-sticky__eyebrow" id="catalog-category-eyebrow">Escolha seus produtos</p>
+<h1 class="ze-catalog-sticky__title" id="catalog-category-title">Catálogo</h1>
 </div>
-<nav id="catalog-filters-mobile" class="ze-filter-pills" aria-label="Filtrar por categoria">
-<p class="text-xs text-[var(--lig-text-subtle)] px-4 py-2" role="status">Carregando…</p>
-</nav>
-<div class="hidden md:flex items-center gap-2 px-4 pb-2.5">
-<label class="sr-only" for="catalog-sort-desktop">Ordenar</label>
-<select id="catalog-sort-desktop" data-catalog-sort class="bg-surface-gray border border-surface-variant/40 rounded-lg text-on-surface text-sm py-2 px-3 focus:border-vibrant-yellow focus:outline-none">
+<p id="catalog-stats" class="ze-catalog-sticky__stats">Carregando…</p>
+</div>
+<div class="ze-catalog-toolbar">
+<button type="button" class="ze-catalog-categories-btn lg:hidden" id="catalog-categories-open" aria-haspopup="dialog" aria-controls="catalog-categories-modal">
+<span class="ze-catalog-categories-btn__icon" aria-hidden="true"><span class="material-symbols-outlined">category</span></span>
+<span class="ze-catalog-categories-btn__label" id="catalog-categories-btn-label">Categorias</span>
+<span class="material-symbols-outlined ze-catalog-categories-btn__chevron" aria-hidden="true">expand_more</span>
+</button>
+<div class="ze-catalog-toolbar__sort">
+<label class="sr-only" for="catalog-sort">Ordenar</label>
+<select id="catalog-sort" data-catalog-sort class="ze-catalog-sort">
 <option value="name">Nome (A–Z)</option>
 <option value="price-asc">Menor preço</option>
 <option value="price-desc">Maior preço</option>
 </select>
 </div>
 </div>
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 px-4 md:px-margin-desktop pt-3">
-<aside class="hidden lg:block lg:col-span-3">
-<nav id="catalog-filters" class="ze-filter-pills ze-filter-pills--sidebar flex-col !overflow-visible flex-wrap gap-1.5 !px-0" aria-label="Categorias">
+</div>
+<div class="ze-catalog-layout px-4 md:px-margin-desktop">
+<aside class="ze-catalog-sidebar hidden lg:block" aria-label="Categorias">
+<p class="ze-catalog-sidebar__label">Categorias</p>
+<nav id="catalog-filters" class="ze-catalog-sidebar__nav" aria-label="Categorias">
 <p class="text-xs text-on-surface-variant py-2" role="status">Carregando…</p>
 </nav>
 </aside>
-<section class="lg:col-span-9">
+<section class="ze-catalog-main">
 <div id="catalog-grid" class="ze-product-grid">
 <p class="col-span-full text-center text-[var(--lig-text-subtle)] py-8 text-sm">Carregando produtos…</p>
 </div>
 </section>
 </div>
 </main>
+<div id="catalog-categories-modal" class="ze-catalog-categories-modal" aria-hidden="true">
+<button type="button" class="ze-catalog-categories-modal__backdrop" id="catalog-categories-backdrop" aria-label="Fechar categorias"></button>
+<div class="ze-catalog-categories-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="catalog-categories-modal-title">
+<header class="ze-catalog-categories-modal__head">
+<div>
+<h2 class="ze-catalog-categories-modal__title" id="catalog-categories-modal-title">Categorias</h2>
+<p class="ze-catalog-categories-modal__stats" id="catalog-categories-modal-stats"></p>
+</div>
+<button type="button" class="ze-catalog-categories-modal__close" id="catalog-categories-close" aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</header>
+<nav id="catalog-filters-mobile" class="ze-catalog-categories-modal__pills" aria-label="Categorias">
+<p class="text-xs text-[var(--lig-text-subtle)] py-2" role="status">Carregando…</p>
+</nav>
+</div>
+</div>
 <div id="site-footer" class="hidden md:block"></div>
 <script src="js/site-config.js"></script>
 <script src="js/app.js"></script>
