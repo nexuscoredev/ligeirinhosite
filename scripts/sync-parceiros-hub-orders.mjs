@@ -1,5 +1,5 @@
 /**
- * Reenvia ao Hub pedidos Parceiros sem hub_pedido_id.
+ * Reenvia ao Hub pedidos Parceiros sem hub_pedido_id ou sem itens no pedido Hub.
  * Requer SUPABASE_SERVICE_ROLE_KEY e HUB_SUPABASE_SERVICE_ROLE_KEY no ambiente.
  *
  *   node scripts/sync-parceiros-hub-orders.mjs
@@ -12,10 +12,9 @@ import { patchOrder, dbFromPaymentConfig } from './supabase-orders.mjs';
 const limitArg = process.argv.find((a) => a.startsWith('--limit='));
 const limit = Math.min(100, Math.max(1, Number(limitArg?.split('=')[1]) || 50));
 
-async function fetchPendingOrders(db) {
+async function fetchRecentParceirosOrders(db) {
     const params = new URLSearchParams({
         channel: 'eq.parceiros',
-        hub_pedido_id: 'is.null',
         select: '*',
         order: 'created_at.desc',
         limit: String(limit),
@@ -43,13 +42,13 @@ async function main() {
         process.exit(1);
     }
 
-    const orders = await fetchPendingOrders({ url: db.url, apiKey: db.key });
+    const orders = await fetchRecentParceirosOrders({ url: db.url, apiKey: db.key });
     if (!orders.length) {
-        console.log('Nenhum pedido parceiros pendente de sync.');
+        console.log('Nenhum pedido parceiros para sincronizar.');
         return;
     }
 
-    console.log(`Sincronizando até ${orders.length} pedido(s)…`);
+    console.log(`Sincronizando até ${orders.length} pedido(s) recente(s)…`);
     let ok = 0;
     let fail = 0;
 

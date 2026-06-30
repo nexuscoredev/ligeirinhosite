@@ -49,6 +49,87 @@ export function usuarioHasCnpj(usuario, extras = {}) {
     return loginDigits.length === 14 && isValidCnpj(loginDigits);
 }
 
+export const PARCEIRO_EMAIL_DOMAIN = 'ligeirinho.app';
+
+export function parceiroSyntheticEmail(cnpjDigits) {
+    const d = normalizeDocDigits(cnpjDigits);
+    if (d.length !== 14 || !isValidCnpj(d)) return '';
+    return `parceiro${d}@${PARCEIRO_EMAIL_DOMAIN}`;
+}
+
+export function isParceiroSyntheticEmail(email) {
+    const e = String(email || '').trim().toLowerCase();
+    if (!e) return false;
+    const escaped = PARCEIRO_EMAIL_DOMAIN.replace(/\./g, '\\.');
+    return new RegExp(`^parceiro\\d{14}@${escaped}$`).test(e);
+}
+
+export function hubEmailNeedsSynthetic(email) {
+    const e = String(email || '').trim().toLowerCase();
+    if (!e) return true;
+    if (isParceiroSyntheticEmail(e)) return true;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return true;
+    if (/^parceiro[^@]*@/i.test(e)) return true;
+    return false;
+}
+
+export function resolveParceiroEmail({
+    provider = 'hub',
+    authEmail = '',
+    usuario = null,
+    pessoa = null,
+    cnpjDigits = '',
+} = {}) {
+    const auth = String(authEmail || '').trim().toLowerCase();
+    if (provider === 'google' && auth) return auth;
+
+    const hubEmail = String(usuario?.email || pessoa?.email || '').trim().toLowerCase();
+    const digits = normalizeDocDigits(
+        cnpjDigits || usuario?.login || pessoa?.cpf_cnpj_digits || pessoa?.cpf_cnpj,
+    );
+
+    if (hubEmail && !hubEmailNeedsSynthetic(hubEmail)) {
+        return provider === 'google' && auth ? auth : hubEmail;
+    }
+
+    if (digits.length === 14 && isValidCnpj(digits)) {
+        return parceiroSyntheticEmail(digits);
+    }
+
+    return provider === 'google' ? auth : hubEmail;
+}
+
+export function resolveParceiroDisplayName({
+    provider = 'hub',
+    authName = '',
+    usuario = null,
+    pessoa = null,
+    cnpjDigits = '',
+} = {}) {
+    const auth = String(authName || '').trim();
+    const digits = normalizeDocDigits(
+        cnpjDigits || usuario?.login || pessoa?.cpf_cnpj_digits || pessoa?.cpf_cnpj,
+    );
+    const hasCnpj = digits.length === 14 && isValidCnpj(digits);
+
+    if (provider === 'google') {
+        return auth;
+    }
+
+    if (provider === 'phone') {
+        return auth;
+    }
+
+    if (hasCnpj) {
+        return (
+            String(usuario?.nome || '').trim() ||
+            String(pessoa?.nome_fantasia || pessoa?.nome || '').trim()
+        );
+    }
+
+    return String(usuario?.nome || auth || '').trim();
+}
+
 function hubHeaders(config, token, extra = {}) {
     const key = config.anonKey;
     return {

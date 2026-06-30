@@ -909,6 +909,7 @@ ${imageBlock}
         return {
             key,
             id: variant.id,
+            hubId: variant.hubId || '',
             sku: variant.sku || '',
             cartKey: key,
             name,

@@ -27,6 +27,7 @@ const normalizeItems = (raw) => {
             if (!name || price <= 0) return null;
             return {
                 id: String(item.id || item.cartKey || '').slice(0, 120),
+                hubId: String(item.hubId || item.hubProductId || '').trim().slice(0, 36) || null,
                 sku: String(item.sku || '').trim().slice(0, 120) || null,
                 cartKey: String(item.cartKey || item.id || '').slice(0, 120),
                 name,

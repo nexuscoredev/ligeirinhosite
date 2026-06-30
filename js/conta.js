@@ -481,7 +481,7 @@ ${
         const hasCnpj = sessionHasCnpj(s);
         const canRegisterCnpj = Boolean(s?.sub && s?.provider === 'hub' && !hasCnpj);
         const rows = [
-            { label: 'Nome', value: s?.name || s?.razaoSocial || '—', nav: '' },
+            { label: 'Nome', value: s?.name || '—', nav: '' },
             {
                 label: 'CNPJ',
                 value: hasCnpj
@@ -490,9 +490,8 @@ ${
                 nav: canRegisterCnpj ? 'cnpj' : '',
                 editLabel: canRegisterCnpj ? 'Cadastrar CNPJ' : '',
             },
-            { label: 'Telefone celular', value: formatPhoneDisplay(s?.phone) || '—', nav: 'telefone' },
-            { label: 'E-mail', value: s?.email || '—', nav: 'email' },
-            { label: 'Condição de pagamento', value: s?.condicaoPagamento || '—', nav: '' },
+            { label: 'Telefone celular', value: formatPhoneDisplay(s?.phone) || '—', nav: s?.provider === 'hub' ? 'telefone' : '' },
+            { label: 'E-mail', value: s?.email || '—', nav: s?.provider === 'hub' ? 'email' : '' },
         ];
 
         const body = `<div class="conta-sub-body">

@@ -105,6 +105,7 @@ export function buildCatalog(produtos, categorias, options = {}) {
 
         categoryMap.get(slug).products.push({
             id: uniqueProductId(p),
+            hubId: p.id,
             sku: String(p.sku || '').trim() || null,
             name: String(p.nome || '').trim().toUpperCase(),
             price: Number.isFinite(price) ? price : 0,
@@ -143,6 +144,62 @@ export function buildCatalog(produtos, categorias, options = {}) {
         imagesFound,
         categories,
     };
+}
+
+/** Índice catálogo Parceiros (slug/sku/uuid) → produto Hub — mesma ordem que buildCatalog. */
+export function buildHubProductLookup(produtos) {
+    const map = new Map();
+    const usedIds = new Set();
+
+    function uniqueProductId(p) {
+        let base = slugifyId(p.nome) || slugifyId(p.sku) || String(p.id).slice(0, 8);
+        let id = base;
+        let n = 2;
+        while (usedIds.has(id)) {
+            id = `${base}-${n++}`;
+        }
+        usedIds.add(id);
+        return id;
+    }
+
+    for (const p of produtos) {
+        const catalogId = uniqueProductId(p);
+        const row = {
+            id: p.id,
+            sku: String(p.sku || '').trim() || null,
+            ean: String(p.ean || '').trim() || null,
+            nome: p.nome,
+            categorias_produto: p.categorias_produto,
+        };
+        if (row.id) map.set(String(row.id), row);
+        if (row.sku) map.set(row.sku, row);
+        if (row.ean) map.set(row.ean, row);
+        if (catalogId) map.set(catalogId, row);
+        const nameKey = String(p.nome || '').trim().toUpperCase();
+        if (nameKey.length >= 4 && !map.has(nameKey)) map.set(nameKey, row);
+    }
+
+    return map;
+}
+
+export async function fetchHubProdutosForLookup(config) {
+    const token = config.serviceKey || config.accessToken;
+    if (!token) {
+        throw new Error('Credenciais do Hub ausentes (service role ou access token).');
+    }
+
+    const hub = {
+        url: config.url,
+        anonKey: config.anonKey,
+        token,
+    };
+
+    return fetchAll(
+        hub,
+        'produtos',
+        'id,nome,sku,ean,categorias_produto(ordem_separacao)',
+        '&ativo=eq.true'
+    );
 }
 
 export async function fetchHubCatalogData(config) {

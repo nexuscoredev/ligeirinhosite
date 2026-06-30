@@ -2,6 +2,8 @@ import { requireHubSession } from './_require-hub-session.mjs';
 import {
     buildParceiroExtras,
     registerUsuarioCnpj,
+    resolveParceiroDisplayName,
+    resolveParceiroEmail,
     updateUsuarioFields,
     usuarioHasCnpj,
 } from '../../scripts/hub-parceiro.mjs';
@@ -10,7 +12,8 @@ import { isTotemRole } from '../../scripts/hub-auth.mjs';
 export const config = { maxDuration: 15 };
 
 function publicProfile(usuario, extras = {}) {
-    return {
+    const cnpjDigits = extras.cnpjDigits || '';
+    const base = {
         sub: usuario.id,
         email: usuario.email || '',
         name: usuario.nome || '',
@@ -19,7 +22,23 @@ function publicProfile(usuario, extras = {}) {
         role: extras.role || 'PARCEIRO',
         hubUserId: usuario.id,
         mustChangePassword: Boolean(usuario.must_change_password),
+        provider: 'hub',
         ...extras,
+    };
+    return {
+        ...base,
+        email: resolveParceiroEmail({
+            provider: 'hub',
+            authEmail: base.email,
+            usuario,
+            cnpjDigits,
+        }),
+        name: resolveParceiroDisplayName({
+            provider: 'hub',
+            authName: base.name,
+            usuario,
+            cnpjDigits,
+        }),
     };
 }
 
