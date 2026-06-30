@@ -11,7 +11,13 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const session = await requireAccountSession(req);
+    let session;
+    try {
+        session = await requireAccountSession(req);
+    } catch (err) {
+        console.error('[api/cep/consultar] session', err);
+        return res.status(503).json({ error: 'Falha ao validar sessão. Tente novamente.' });
+    }
     if (session.error) {
         return res.status(session.status).json({ error: session.error });
     }

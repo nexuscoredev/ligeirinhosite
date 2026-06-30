@@ -46,7 +46,13 @@ function publicProfile(usuario, extras = {}) {
 export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-    const session = await requireAccountSession(req);
+    let session;
+    try {
+        session = await requireAccountSession(req);
+    } catch (err) {
+        console.error('account/profile session', err);
+        return res.status(503).json({ error: 'Falha ao validar sessão. Tente novamente.' });
+    }
     if (session.error) {
         return res.status(session.status).json({ error: session.error });
     }

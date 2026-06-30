@@ -657,7 +657,7 @@ export async function ensureUsuarioForGoogleParceiro(config, { email, name = '' 
             email: emailNorm,
             login: emailNorm,
             nome: String(name || emailNorm).slice(0, 120),
-            cargo: 'Comercial',
+            cargo: 'Clientes',
             ativo: true,
         },
     });

@@ -309,7 +309,7 @@ ${menuItems.map(menuRow).join('')}
         if (order.status === 'cancelled') return { label: 'Cancelado', tone: 'muted' };
         if (order.status === 'pending_payment') return { label: 'Aguardando pagamento', tone: 'wait' };
         if ((order.channel || 'parceiros') === 'parceiros' && order.status === 'pending') {
-            return { label: 'Aguardando aceite', tone: 'wait' };
+            return { label: 'Aguardando confirmação', tone: 'wait' };
         }
         return { label: 'Em andamento', tone: 'wait' };
     };

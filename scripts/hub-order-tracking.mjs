@@ -53,8 +53,8 @@ const DONE_STATUSES = new Set(['entregue', 'concluido', 'finalizado', 'entrega_c
 export function buildOrderTracking(order, hubPedido = null) {
     const hubStatus = String(hubPedido?.status || '').toLowerCase();
     let step = 1;
-    let stepLabel = 'Aguardando aceite';
-    let message = 'Seu pedido foi recebido e está aguardando aceite no Ligeirinho Hub.';
+    let stepLabel = 'Aguardando confirmação';
+    let message = 'Seu pedido foi recebido e está aguardando confirmação no Ligeirinho Hub.';
 
     if (DONE_STATUSES.has(hubStatus)) {
         step = 4;
@@ -73,8 +73,8 @@ export function buildOrderTracking(order, hubPedido = null) {
         message = 'Seu pedido foi aceito e está sendo preparado.';
     } else if (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus) {
         step = 1;
-        stepLabel = 'Aguardando aceite';
-        message = 'Seu pedido foi recebido e está aguardando aceite no Ligeirinho Hub.';
+        stepLabel = 'Aguardando confirmação';
+        message = 'Seu pedido foi recebido e está aguardando confirmação no Ligeirinho Hub.';
     } else if (order?.status === 'paid') {
         step = 2;
         stepLabel = 'Confirmado';
@@ -89,7 +89,7 @@ export function buildOrderTracking(order, hubPedido = null) {
 
     const headerTitleByStep = [
         'Aguardando pagamento',
-        'Aguardando aceite',
+        'Aguardando confirmação',
         'Preparando pedido',
         'Saiu para entrega',
         'Pedido entregue',
