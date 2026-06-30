@@ -236,14 +236,6 @@ ${s.role ? `<span class="conta-user-card__role">${esc(formatRole(s.role))}</span
             root.innerHTML = `<div class="conta-desktop-layout">
 ${desktopAsideHtml('')}
 <div class="conta-desktop-main conta-desktop-main--menu">
-<header class="conta-hero-header">
-<div class="conta-hero-header__top">
-<h1 class="conta-hero-header__title">Conta</h1>
-<button type="button" class="conta-hero-header__settings" data-conta-nav="ajustes" aria-label="Ajustes">
-<span class="material-symbols-outlined">settings</span>
-</button>
-</div>
-</header>
 <div class="conta-menu-body">
 ${authBlock}
 <nav class="conta-menu-list" aria-label="Menu da conta">
@@ -254,14 +246,6 @@ ${menuItems.map(menuRow).join('')}
 </div>`;
         } else {
             root.innerHTML = `<div class="conta-menu-view">
-<header class="conta-hero-header">
-<div class="conta-hero-header__top">
-<h1 class="conta-hero-header__title">Conta</h1>
-<button type="button" class="conta-hero-header__settings" data-conta-nav="ajustes" aria-label="Ajustes">
-<span class="material-symbols-outlined">settings</span>
-</button>
-</div>
-</header>
 <div class="conta-menu-body">
 ${authBlock}
 <nav class="conta-menu-list" aria-label="Menu da conta">
