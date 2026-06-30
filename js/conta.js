@@ -832,18 +832,6 @@ ${s?.sub ? menuRow({ title: 'Sair da conta', icon: 'logout', nav: 'logout' }) : 
 ${s?.sub && s?.provider === 'hub' ? menuRow({ title: 'Alterar senha', icon: 'lock', nav: 'senha' }) : ''}
 </div>
 </section>
-<section class="conta-settings-group">
-<h2 class="conta-settings-group__title">Sobre</h2>
-<div class="conta-menu-list conta-menu-list--flush">
-<a href="versao.html" class="conta-menu-row">
-<span class="conta-menu-row__icon" aria-hidden="true"><span class="material-symbols-outlined">info</span></span>
-<div class="conta-menu-row__body">
-<p class="conta-menu-row__title">Notas de versão</p>
-</div>
-<span class="material-symbols-outlined conta-menu-row__chev">chevron_right</span>
-</a>
-</div>
-</section>
 ${
     s?.sub
         ? `<button type="button" class="conta-btn conta-btn--dark conta-btn--full" id="conta-logout-btn">Sair</button>`
