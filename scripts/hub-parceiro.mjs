@@ -510,7 +510,7 @@ export async function fetchFormasPagamento(config, ids = []) {
 }
 
 export const DEFAULT_PAYMENT_METHODS = [
-    { id: 'pix', label: 'Pix', hint: 'Pagamento instantâneo', logo: '/img/icon-pix.svg' },
+    { id: 'pix', label: 'PIX', hint: 'Pagamento instantâneo', logo: '/img/icon-pix.svg' },
     {
         id: 'cartao',
         label: 'Cartão débito e crédito',
@@ -657,7 +657,7 @@ export async function ensureUsuarioForGoogleParceiro(config, { email, name = '' 
             email: emailNorm,
             login: emailNorm,
             nome: String(name || emailNorm).slice(0, 120),
-            cargo: 'PARCEIRO',
+            cargo: 'Comercial',
             ativo: true,
         },
     });

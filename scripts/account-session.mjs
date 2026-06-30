@@ -39,9 +39,13 @@ export function verifyAccountSession(token, env = process.env) {
     if (!payloadB64 || !sig) return null;
 
     const expected = crypto.createHmac('sha256', secret).update(payloadB64).digest('base64url');
-    const sigBuf = Buffer.from(sig);
-    const expBuf = Buffer.from(expected);
-    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    try {
+        const sigBuf = Buffer.from(sig);
+        const expBuf = Buffer.from(expected);
+        if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+            return null;
+        }
+    } catch {
         return null;
     }
 

@@ -33,6 +33,17 @@
     let onSaved = null;
     let ultimoCnpjBuscado = '';
 
+    const parseApiResponse = async (res) => {
+        const text = await res.text();
+        if (!text) return { data: {}, ok: res.ok, status: res.status };
+        try {
+            return { data: JSON.parse(text), ok: res.ok, status: res.status };
+        } catch {
+            const snippet = text.replace(/\s+/g, ' ').trim().slice(0, 160);
+            throw new Error(snippet || `Erro ${res.status} no servidor. Tente novamente.`);
+        }
+    };
+
     const apenasDigitos = (v) => String(v || '').replace(/\D/g, '');
 
     const maskCnpj = (value) => {
@@ -146,8 +157,8 @@
                 headers,
                 body: JSON.stringify({ cnpj: digits }),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'CNPJ não encontrado.');
+            const { data, ok } = await parseApiResponse(res);
+            if (!ok) throw new Error(data.error || 'CNPJ não encontrado.');
             aplicarEmpresa(data.empresa || {});
             ultimoCnpjBuscado = digits;
             setStatus('Dados da empresa preenchidos. Confira e ajuste se necessário.', 'ok');
@@ -179,8 +190,8 @@
                 headers,
                 body: JSON.stringify({ cep: digits }),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'CEP não encontrado.');
+            const { data, ok } = await parseApiResponse(res);
+            if (!ok) throw new Error(data.error || 'CEP não encontrado.');
             const end = data.endereco || {};
             if (fields.cep && end.cep) fields.cep.value = end.cep;
             if (fields.logradouro) fields.logradouro.value = end.logradouro || '';
@@ -289,8 +300,8 @@
                     },
                 }),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+            const { data, ok } = await parseApiResponse(res);
+            if (!ok) throw new Error(data.error || 'Erro ao salvar.');
             setStatus('CNPJ cadastrado com sucesso!', 'ok');
             onSaved?.(data.profile);
             window.setTimeout(close, 600);

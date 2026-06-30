@@ -227,7 +227,13 @@
                         name: session.name || '',
                     }),
                 });
-                const data = await res.json();
+                const text = await res.text();
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch {
+                    return null;
+                }
                 if (!res.ok) return null;
                 saveAccountSession(data.accountSession);
                 return data.accountSession?.token || null;
