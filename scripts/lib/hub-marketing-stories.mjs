@@ -65,6 +65,19 @@ async function hubFetch(config, token, path) {
     return text ? JSON.parse(text) : [];
 }
 
+async function hubRpc(config, token, name) {
+    const res = await fetch(`${config.url}/rest/v1/rpc/${name}`, {
+        method: 'POST',
+        headers: hubHeaders(config, token),
+        body: '{}',
+    });
+    const text = await res.text();
+    if (!res.ok) {
+        throw new Error(text || `RPC ${name} HTTP ${res.status}`);
+    }
+    return text ? JSON.parse(text) : null;
+}
+
 function collectImagesForFolder(pasta, pastas, arquivosByPastaId) {
     const direct = arquivosByPastaId.get(pasta.id) || [];
     if (direct.length) return direct;
@@ -89,42 +102,10 @@ function collectImagesForFolder(pasta, pastas, arquivosByPastaId) {
     return descendants.sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
 }
 
-export async function getHubMarketingStories(env = process.env) {
-    const config = hubConfig(env);
-    const token = config.serviceKey || config.anonKey;
-    if (!config.url || !token) {
-        throw new Error('Credenciais do Hub ausentes para carregar stories de promoções.');
-    }
-
-    const raizRows = await hubFetch(
-        config,
-        token,
-        `marketing_drive_raiz?select=id,drive_folder_id,nome&drive_folder_id=eq.${RAIZ_DRIVE_ID}&ativo=eq.true&limit=1`
-    );
-    const raiz = Array.isArray(raizRows) ? raizRows[0] : null;
+function buildStoriesFromDriveData(raiz, pastaList, arquivoList) {
     if (!raiz?.id) {
-        return {
-            source: 'hub:marketing-drive',
-            fetchedAt: new Date().toISOString(),
-            stories: [],
-        };
+        return [];
     }
-
-    const [pastas, arquivos] = await Promise.all([
-        hubFetch(
-            config,
-            token,
-            `marketing_drive_pastas?select=id,drive_folder_id,parent_drive_folder_id,nome,caminho&raiz_id=eq.${raiz.id}&order=caminho.asc`
-        ),
-        hubFetch(
-            config,
-            token,
-            `marketing_drive_arquivos?select=id,pasta_id,nome,imagem_url,drive_modified_at&raiz_id=eq.${raiz.id}&ativo_no_drive=eq.true&order=nome.asc`
-        ),
-    ]);
-
-    const pastaList = Array.isArray(pastas) ? pastas : [];
-    const arquivoList = Array.isArray(arquivos) ? arquivos : [];
 
     const arquivosByPastaId = new Map();
     arquivoList.forEach((arquivo) => {
@@ -165,10 +146,88 @@ export async function getHubMarketingStories(env = process.env) {
         stories = fallbackFolders.map(buildStory).filter(Boolean);
     }
 
+    return stories;
+}
+
+async function fetchDriveDataViaRpc(config, token) {
+    const payload = await hubRpc(config, token, 'rpc_list_marketing_drive_stories');
+    if (!payload || typeof payload !== 'object') {
+        return null;
+    }
+
+    const raiz = payload.raiz || null;
+    const pastaList = Array.isArray(payload.pastas) ? payload.pastas : [];
+    const arquivoList = Array.isArray(payload.arquivos) ? payload.arquivos : [];
+
+    return { raiz, pastaList, arquivoList, via: 'rpc' };
+}
+
+async function fetchDriveDataViaRest(config, token) {
+    const raizRows = await hubFetch(
+        config,
+        token,
+        `marketing_drive_raiz?select=id,drive_folder_id,nome&drive_folder_id=eq.${RAIZ_DRIVE_ID}&ativo=eq.true&limit=1`
+    );
+    const raiz = Array.isArray(raizRows) ? raizRows[0] : null;
+    if (!raiz?.id) {
+        return { raiz: null, pastaList: [], arquivoList: [], via: 'rest' };
+    }
+
+    const [pastas, arquivos] = await Promise.all([
+        hubFetch(
+            config,
+            token,
+            `marketing_drive_pastas?select=id,drive_folder_id,parent_drive_folder_id,nome,caminho&raiz_id=eq.${raiz.id}&order=caminho.asc`
+        ),
+        hubFetch(
+            config,
+            token,
+            `marketing_drive_arquivos?select=id,pasta_id,nome,imagem_url,drive_modified_at&raiz_id=eq.${raiz.id}&ativo_no_drive=eq.true&order=nome.asc`
+        ),
+    ]);
+
+    return {
+        raiz,
+        pastaList: Array.isArray(pastas) ? pastas : [],
+        arquivoList: Array.isArray(arquivos) ? arquivos : [],
+        via: 'rest',
+    };
+}
+
+export async function getHubMarketingStories(env = process.env) {
+    const config = hubConfig(env);
+    const token = config.serviceKey || config.anonKey;
+    if (!config.url || !token) {
+        throw new Error('Credenciais do Hub ausentes para carregar stories de promoções.');
+    }
+
+    let driveData = null;
+
+    try {
+        driveData = await fetchDriveDataViaRpc(config, config.anonKey);
+    } catch {
+        driveData = null;
+    }
+
+    if (!driveData && config.serviceKey) {
+        driveData = await fetchDriveDataViaRest(config, config.serviceKey);
+    }
+
+    if (!driveData) {
+        return {
+            source: 'hub:marketing-drive',
+            fetchedAt: new Date().toISOString(),
+            stories: [],
+        };
+    }
+
+    const stories = buildStoriesFromDriveData(driveData.raiz, driveData.pastaList, driveData.arquivoList);
+
     return {
         source: 'hub:marketing-drive',
         fetchedAt: new Date().toISOString(),
-        raiz: raiz.nome,
+        raiz: driveData.raiz?.nome || null,
+        via: driveData.via,
         stories,
     };
 }
