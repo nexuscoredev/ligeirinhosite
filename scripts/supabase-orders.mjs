@@ -110,9 +110,40 @@ export async function listParceiroOrders(
     supabaseUrl,
     apiKey,
     { hubUserIds = [], emails = [], legacyHubUserIds = [] } = {},
-    { limit = 50, channel = 'parceiros' } = {},
+    { limit = 50, channel = 'parceiros', useRpc = false } = {},
 ) {
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+
+    const allHubIds = [
+        ...new Set(
+            [...hubUserIds, ...legacyHubUserIds]
+                .map((id) => String(id || '').trim())
+                .filter(Boolean),
+        ),
+    ];
+    const emailList = [
+        ...new Set(
+            (emails || [])
+                .map((e) => String(e || '').trim().toLowerCase())
+                .filter(Boolean),
+        ),
+    ];
+
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_list_parceiro_orders`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({
+                p_hub_user_ids: allHubIds,
+                p_emails: emailList,
+                p_limit: safeLimit,
+                p_channel: channel || 'parceiros',
+            }),
+        });
+        const data = await parseJson(res);
+        return Array.isArray(data) ? data : [];
+    }
+
     const seen = new Set();
     const merged = [];
 
@@ -124,19 +155,11 @@ export async function listParceiroOrders(
         }
     };
 
-    const allHubIds = [
-        ...new Set(
-            [...hubUserIds, ...legacyHubUserIds]
-                .map((id) => String(id || '').trim())
-                .filter(Boolean),
-        ),
-    ];
-
     if (allHubIds.length) {
         addRows(await listOrdersByHubUserIds(supabaseUrl, apiKey, allHubIds, { limit: safeLimit, channel }));
     }
 
-    for (const email of [...new Set((emails || []).map((e) => String(e || '').trim().toLowerCase()).filter(Boolean))]) {
+    for (const email of emailList) {
         addRows(
             await fetchOrdersByFilter(
                 supabaseUrl,

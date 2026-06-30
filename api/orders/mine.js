@@ -52,6 +52,7 @@ export default async function handler(req, res) {
         const rows = await listParceiroOrders(db.url, db.key, lookup, {
             limit,
             channel: 'parceiros',
+            useRpc: db.useRpc,
         });
         return res.status(200).json({
             orders: rows.map((row) => publicOrderView(row)).filter(Boolean),

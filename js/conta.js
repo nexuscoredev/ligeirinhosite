@@ -411,19 +411,26 @@ ${
 
         const lastLocal = cart?.loadLastOrder?.();
         let orders = [];
+        let apiLoaded = false;
 
         try {
             const headers = await accountHeaders();
             const s = session();
             if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+            if (s?.email) headers['X-Account-Email'] = s.email;
             const res = await fetch('/api/orders/mine?limit=50', { headers });
             const data = await res.json().catch(() => ({}));
-            if (res.ok && Array.isArray(data.orders)) orders = data.orders;
-        } catch {
-            /* fallback abaixo */
+            if (res.ok && Array.isArray(data.orders)) {
+                orders = data.orders;
+                apiLoaded = true;
+            } else if (!res.ok) {
+                console.warn('[conta] pedidos:', data.error || res.status);
+            }
+        } catch (err) {
+            console.warn('[conta] pedidos:', err?.message || err);
         }
 
-        if (!orders.length && lastLocal?.orderId) {
+        if (!apiLoaded && lastLocal?.orderId) {
             try {
                 const res = await fetch(`/api/orders/get?id=${encodeURIComponent(lastLocal.orderId)}`);
                 const data = await res.json();
