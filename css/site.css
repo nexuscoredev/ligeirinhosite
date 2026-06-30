@@ -3416,41 +3416,53 @@ html.lig-story-open {
     transform: scale(0.98);
 }
 
-/* Home: separação sutil entre blocos de seção */
+/* Home: separação entre blocos de seção */
+.home-page {
+    --home-section-gap: 0.875rem;
+    --home-section-pad-top: 1.625rem;
+    --home-section-pad-bottom: 1.5rem;
+    --home-section-divider: color-mix(in srgb, var(--lig-text-muted) 28%, var(--lig-border));
+}
+
 .home-page .ze-section {
     margin-bottom: 0;
 }
 
 .home-page [data-home-promo-stories] + .ze-section {
-    margin-top: 0.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--lig-border);
+    margin-top: var(--home-section-gap);
+    padding-top: var(--home-section-pad-top);
+    padding-bottom: var(--home-section-pad-bottom);
+    border-top: 1px solid var(--home-section-divider);
+}
+
+.home-page > .home-suggested.ze-section {
+    padding-bottom: var(--home-section-pad-bottom);
 }
 
 .home-page > .home-suggested.ze-section + .home-mobile-sections {
-    margin-top: 0.25rem;
-    padding-top: 0.875rem;
-    border-top: 1px solid var(--lig-border);
+    margin-top: var(--home-section-gap);
+    padding-top: var(--home-section-pad-top);
+    border-top: 1px solid var(--home-section-divider);
 }
 
 .home-page .home-mobile-sections .ze-section {
-    padding-bottom: 1rem;
+    padding-bottom: var(--home-section-pad-bottom);
 }
 
 .home-page .home-mobile-sections .ze-section + .ze-section {
-    margin-top: 0.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--lig-border);
+    margin-top: var(--home-section-gap);
+    padding-top: var(--home-section-pad-top);
+    border-top: 1px solid var(--home-section-divider);
 }
 
 .home-page .home-desktop-only > .ze-section {
-    padding-bottom: 1rem;
+    padding-bottom: var(--home-section-pad-bottom);
 }
 
 .home-page .home-desktop-only > .ze-section + .ze-section {
-    margin-top: 0.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--lig-border);
+    margin-top: var(--home-section-gap);
+    padding-top: var(--home-section-pad-top);
+    border-top: 1px solid var(--home-section-divider);
 }
 
 .home-cat-grid {
