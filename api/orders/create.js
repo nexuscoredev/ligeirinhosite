@@ -27,6 +27,7 @@ const normalizeItems = (raw) => {
             if (!name || price <= 0) return null;
             return {
                 id: String(item.id || item.cartKey || '').slice(0, 120),
+                sku: String(item.sku || '').trim().slice(0, 120) || null,
                 cartKey: String(item.cartKey || item.id || '').slice(0, 120),
                 name,
                 price,
@@ -143,6 +144,13 @@ export default async function handler(req, res) {
 
         const dueDays = Number(settings?.default_due_days) || 30;
 
+        const customerCnpj = String(customer.cnpj || '').trim();
+        const notesBase = String(body.notes || '').trim();
+        const notes = [notesBase, customerCnpj ? `CNPJ: ${customerCnpj}` : '']
+            .filter(Boolean)
+            .join(' · ')
+            .slice(0, 1000) || null;
+
         const row = {
             status: 'pending',
             items,
@@ -150,7 +158,7 @@ export default async function handler(req, res) {
             delivery_type: deliveryType,
             delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,
-            notes: String(body.notes || '').trim().slice(0, 1000) || null,
+            notes,
             customer_name: String(customer.name || '').trim().slice(0, 120) || null,
             customer_phone: String(customer.phone || '').trim().slice(0, 32) || null,
             customer_email: String(customer.email || '').trim().slice(0, 120) || null,
@@ -230,6 +238,7 @@ export default async function handler(req, res) {
             dueDate: order.due_date || row.due_date,
             hubPedidoNumero: hubPedido?.numero ?? null,
             hubPedidoId: hubPedido?.id ?? null,
+            hubSyncOk: Boolean(hubPedido?.id),
         });
     } catch (err) {
         console.error('orders/create', err);

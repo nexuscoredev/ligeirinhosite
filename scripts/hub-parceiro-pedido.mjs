@@ -46,27 +46,62 @@ async function buscarHubPedidoPorParceirosId(config, parceirosOrderId) {
 }
 
 async function resolverProdutosHub(config, items = []) {
-    const skus = [
+    const keys = [
         ...new Set(
             (items || [])
-                .map((item) => String(item.id || item.cartKey || '').trim())
+                .flatMap((item) => [item.sku, item.id, item.cartKey])
+                .map((value) => String(value || '').trim())
                 .filter(Boolean),
         ),
     ];
-    if (!skus.length) return new Map();
+    const map = new Map();
+    if (!keys.length) return map;
 
-    const or = skus
+    const or = keys
         .flatMap((s) => [`sku.eq.${encodeURIComponent(s)}`, `ean.eq.${encodeURIComponent(s)}`])
         .join(',');
     const rows = await hubRest(
         config,
         `produtos?select=id,sku,nome,categorias_produto(ordem_separacao)&or=(${or})&ativo=eq.true`,
     );
-    const map = new Map();
     for (const row of rows || []) {
         if (row.sku) map.set(row.sku, row);
+        if (row.ean) map.set(row.ean, row);
     }
+
+    for (const item of items || []) {
+        const lookupKeys = [item.sku, item.id, item.cartKey]
+            .map((value) => String(value || '').trim())
+            .filter(Boolean);
+        if (lookupKeys.some((key) => map.has(key))) continue;
+
+        const name = String(item.name || '').trim();
+        if (!name || name.length < 4) continue;
+        const byName = await hubRest(
+            config,
+            `produtos?select=id,sku,nome,categorias_produto(ordem_separacao)&nome=ilike.${encodeURIComponent(name)}&ativo=eq.true&limit=3`,
+        );
+        const hit = Array.isArray(byName) ? byName[0] : null;
+        if (!hit?.sku) continue;
+        map.set(hit.sku, hit);
+        for (const key of lookupKeys) map.set(key, hit);
+    }
+
     return map;
+}
+
+function itemLookupKeys(item) {
+    return [item.sku, item.id, item.cartKey]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean);
+}
+
+function resolveProdutoForItem(porSku, item) {
+    for (const key of itemLookupKeys(item)) {
+        const prod = porSku.get(key);
+        if (prod?.id) return prod;
+    }
+    return null;
 }
 
 function parceirosMethodToHubForma(method) {
@@ -117,13 +152,25 @@ async function fetchClienteParceiro(hub, order) {
     return resolveClienteParceiroForOrder(hub, order);
 }
 
+async function fetchClienteHubMeta(hub, clienteId) {
+    const rows = await hubRest(
+        hub,
+        `clientes?select=id,tabela_preco_id,tabela_preco&ativo=eq.true&id=eq.${encodeURIComponent(clienteId)}&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+
 async function createHubPedidoFromParceirosOrder(hub, order, { status }) {
     const cliente = await fetchClienteParceiro(hub, order);
     if (!cliente?.clienteId) {
-        console.warn('hub-parceiro-pedido: cliente parceiro não encontrado no Hub', order.hub_user_id);
+        console.warn('hub-parceiro-pedido: cliente parceiro não encontrado no Hub', {
+            hubUserId: order.hub_user_id,
+            customerEmail: order.customer_email,
+        });
         return null;
     }
 
+    const clienteMeta = await fetchClienteHubMeta(hub, cliente.clienteId);
     const items = Array.isArray(order.items) ? order.items : [];
     const porSku = await resolverProdutosHub(hub, items);
     const total = Number(order.total) || 0;
@@ -131,38 +178,34 @@ async function createHubPedidoFromParceirosOrder(hub, order, { status }) {
     const pedidoBody = {
         cliente_id: cliente.clienteId,
         status,
+        origem: 'app',
+        tipo_documento: 'orcamento',
         modalidade: order.delivery_type === 'retirada' ? 'retirada' : 'entrega',
         valor_pedido: total,
         pagamento_split: buildPagamentoSplit(order),
         parceiros_order_id: order.id,
         observacoes: buildObservacoes(order),
     };
-
-    let pedidoRows;
-    try {
-        pedidoRows = await hubRest(hub, 'pedidos', {
-            method: 'POST',
-            headers: { Prefer: 'return=representation' },
-            body: { ...pedidoBody, origem: 'parceiros' },
-        });
-    } catch (err) {
-        if (!String(err.message || '').toLowerCase().includes('parceiros')) throw err;
-        pedidoRows = await hubRest(hub, 'pedidos', {
-            method: 'POST',
-            headers: { Prefer: 'return=representation' },
-            body: { ...pedidoBody, origem: 'app' },
-        });
+    if (clienteMeta?.tabela_preco_id) {
+        pedidoBody.tabela_preco_id = clienteMeta.tabela_preco_id;
     }
+
+    const pedidoRows = await hubRest(hub, 'pedidos', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: pedidoBody,
+    });
 
     const pedido = Array.isArray(pedidoRows) ? pedidoRows[0] : pedidoRows;
     if (!pedido?.id) return null;
 
     const linhasInsert = [];
     for (const item of items) {
-        const sku = String(item.id || item.cartKey || '').trim();
-        const prod = sku ? porSku.get(sku) : null;
+        const prod = resolveProdutoForItem(porSku, item);
         if (!prod?.id) {
-            console.warn(`hub-parceiro-pedido: SKU "${sku}" não encontrado no Hub — item ignorado`);
+            console.warn(
+                `hub-parceiro-pedido: produto não encontrado no Hub — ${String(item.name || item.id || '').slice(0, 80)}`,
+            );
             continue;
         }
         const cat = prod.categorias_produto;

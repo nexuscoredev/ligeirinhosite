@@ -178,9 +178,33 @@ async function findPessoaParceiroByContact(config, { email, phoneDigits }) {
     return null;
 }
 
+function cnpjDigitsFromOrder(order) {
+    const direct = normalizeDocDigits(order?.customer_cnpj);
+    if (direct.length >= 11) return direct;
+    const notes = String(order?.notes || '');
+    const tagged = notes.match(/CNPJ:\s*([0-9./-]+)/i);
+    if (tagged?.[1]) {
+        const digits = normalizeDocDigits(tagged[1]);
+        if (digits.length >= 11) return digits;
+    }
+    const loose = notes.match(/\b(\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2})\b/);
+    if (loose?.[1]) {
+        const digits = normalizeDocDigits(loose[1]);
+        if (digits.length >= 11) return digits;
+    }
+    return '';
+}
+
 /** Resolve cliente parceiros no Hub a partir de um pedido do app Parceiros. */
 export async function resolveClienteParceiroForOrder(config, order) {
     if (!config.serviceKey || !order) return null;
+
+    const cnpjDigits = cnpjDigitsFromOrder(order);
+    if (cnpjDigits.length >= 11) {
+        const pessoa = await fetchPessoaParceiroByCnpj(config, cnpjDigits);
+        const hit = pessoa ? clienteFromPessoa(pessoa) : null;
+        if (hit) return hit;
+    }
 
     const hubUserId = String(order.hub_user_id || '').trim();
     if (isHubUsuarioUuid(hubUserId)) {

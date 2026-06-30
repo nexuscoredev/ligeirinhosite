@@ -82,6 +82,7 @@
                 const group = groups.get(key);
                 group.variants[pack.type] = {
                     id: product.id,
+                    sku: product.sku || null,
                     name: product.name,
                     price: product.price,
                     packSize: pack.packSize,

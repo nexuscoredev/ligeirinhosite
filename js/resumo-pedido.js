@@ -424,6 +424,7 @@ ${headerHtml(title)}
         const s = session();
         const items = cartApi.cartEntries(cart).map((item) => ({
             id: item.id,
+            sku: item.sku || '',
             cartKey: item.cartKey || item.id,
             name: item.name,
             price: item.price,
