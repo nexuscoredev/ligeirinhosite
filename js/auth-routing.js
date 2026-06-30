@@ -116,6 +116,10 @@
             auth.saveGoogleCredential?.(payload.credential);
         }
 
+        if (data.accountSession?.token) {
+            auth.saveAccountSession?.(data.accountSession);
+        }
+
         const session = auth.applyProfile(data.profile);
         if (!session) throw new Error('Não foi possível iniciar a sessão.');
         return { session, mustChangePassword: Boolean(data.profile?.mustChangePassword) };

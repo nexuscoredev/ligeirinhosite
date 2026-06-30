@@ -33,15 +33,27 @@
         try {
             setStatus('Validando perfil…', false);
             const payload = auth.parseJwt(response.credential);
-            const profile = await routing.resolveProfile({
-                type: 'google',
-                credential: response.credential,
+            const res = await fetch('/api/auth/resolve-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'google',
+                    credential: response.credential,
+                }),
             });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Não foi possível validar o perfil.');
+
+            auth.saveGoogleCredential?.(response.credential);
+            if (data.accountSession?.token) {
+                auth.saveAccountSession?.(data.accountSession);
+            }
+
             const session = auth.applyProfile({
-                ...profile,
+                ...data.profile,
                 picture: payload?.picture || '',
             });
-            auth.saveGoogleCredential?.(response.credential);
+            if (!session) throw new Error('Não foi possível iniciar a sessão.');
             setStatus('Entrada realizada! Redirecionando…', false);
             window.setTimeout(() => redirect(session.role), 400);
         } catch (err) {

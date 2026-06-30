@@ -2,6 +2,7 @@
     const AUTH_KEY = 'ligeirinho-auth-v1';
     const HUB_SESSION_KEY = 'ligeirinho-hub-session-v1';
     const GOOGLE_CREDENTIAL_KEY = 'ligeirinho-google-credential-v1';
+    const ACCOUNT_SESSION_KEY = 'ligeirinho-account-session-v1';
     const HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
     const HUB_ANON_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxpc3pwd29jd3ZreXR6eWF4dml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjczNzUsImV4cCI6MjA5NTMwMzM3NX0.rMfpheVgAKQ4HelKB0ZoNDZXiU_3XQdv7ujLHxgdjEA';
@@ -173,6 +174,73 @@
         localStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
     };
 
+    const saveAccountSession = (session) => {
+        if (!session?.token) {
+            localStorage.removeItem(ACCOUNT_SESSION_KEY);
+            return null;
+        }
+        const data = {
+            token: String(session.token),
+            expiresAt: Number(session.expiresAt) || Date.now() + 30 * 24 * 60 * 60 * 1000,
+        };
+        localStorage.setItem(ACCOUNT_SESSION_KEY, JSON.stringify(data));
+        return data;
+    };
+
+    const getAccountSessionToken = () => {
+        try {
+            const data = JSON.parse(localStorage.getItem(ACCOUNT_SESSION_KEY) || 'null');
+            if (!data?.token || !data?.expiresAt) return null;
+            if (Date.now() >= data.expiresAt - 60_000) {
+                localStorage.removeItem(ACCOUNT_SESSION_KEY);
+                return null;
+            }
+            return data.token;
+        } catch {
+            return null;
+        }
+    };
+
+    const clearAccountSession = () => {
+        localStorage.removeItem(ACCOUNT_SESSION_KEY);
+    };
+
+    let accountSessionInflight = null;
+
+    const ensureAccountSession = async () => {
+        const existing = getAccountSessionToken();
+        if (existing) return existing;
+
+        const session = loadSession();
+        if (!session?.email || session.provider !== 'google') return null;
+        if (accountSessionInflight) return accountSessionInflight;
+
+        accountSessionInflight = (async () => {
+            try {
+                const res = await fetch('/api/auth/account-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: session.email,
+                        hubUserId: session.hubUserId || '',
+                        provider: session.provider || 'google',
+                        name: session.name || '',
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) return null;
+                saveAccountSession(data.accountSession);
+                return data.accountSession?.token || null;
+            } catch {
+                return null;
+            } finally {
+                accountSessionInflight = null;
+            }
+        })();
+
+        return accountSessionInflight;
+    };
+
     let refreshInflight = null;
 
     const refreshHubAccessToken = async () => {
@@ -221,6 +289,7 @@
         localStorage.removeItem(AUTH_KEY);
         clearHubSession();
         clearGoogleCredential();
+        clearAccountSession();
         window.dispatchEvent(new CustomEvent('ligeirinho-auth-changed', { detail: null }));
         if (window.google?.accounts?.id) {
             window.google.accounts.id.disableAutoSelect();
@@ -295,6 +364,7 @@
         AUTH_KEY,
         HUB_SESSION_KEY,
         GOOGLE_CREDENTIAL_KEY,
+        ACCOUNT_SESSION_KEY,
         TOTEM_ROLES,
         loadHubSession,
         saveHubSession,
@@ -302,6 +372,10 @@
         saveGoogleCredential,
         getGoogleCredential,
         clearGoogleCredential,
+        saveAccountSession,
+        getAccountSessionToken,
+        clearAccountSession,
+        ensureAccountSession,
         getHubAccessToken,
         parseJwt,
         loadSession,

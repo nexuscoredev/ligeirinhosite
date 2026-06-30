@@ -5,6 +5,8 @@ import {
     resolveProfileByEmail,
     resolveProfileByPhone,
 } from '../../scripts/hub-auth.mjs';
+import { ensureUsuarioForGoogleParceiro } from '../../scripts/hub-parceiro.mjs';
+import { issueAccountSession } from '../../scripts/account-session.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -81,13 +83,46 @@ export default async function handler(req, res) {
             if (!payload?.sub) {
                 return res.status(400).json({ error: 'Credencial Google inválida.' });
             }
-            const profile = await resolveProfileByEmail(hub, payload.email, {
+            const email = String(payload.email || '').trim().toLowerCase();
+            let profile = await resolveProfileByEmail(hub, email, {
                 sub: payload.sub,
                 name: payload.name,
                 picture: payload.picture,
                 phone: String(body.phone || '').trim(),
                 provider: 'google',
             });
+
+            if (hub.serviceKey && email) {
+                let hubUserId = profile.hubUserId || '';
+                if (!hubUserId) {
+                    try {
+                        const usuario = await ensureUsuarioForGoogleParceiro(hub, {
+                            email,
+                            name: String(payload.name || '').trim(),
+                        });
+                        hubUserId = usuario?.id || '';
+                        if (hubUserId) {
+                            profile = { ...profile, hubUserId, sub: hubUserId };
+                        }
+                    } catch (err) {
+                        console.warn('[resolve-profile] ensureUsuarioForGoogleParceiro', err.message);
+                    }
+                }
+
+                const accountSession = hubUserId
+                    ? issueAccountSession({
+                          userId: hubUserId,
+                          email,
+                          provider: 'google',
+                      })
+                    : null;
+
+                return res.status(200).json({
+                    profile: publicProfile(profile),
+                    accountSession,
+                });
+            }
+
             return res.status(200).json({ profile: publicProfile(profile) });
         }
 

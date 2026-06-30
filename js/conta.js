@@ -479,6 +479,7 @@ ${
     const openCnpjModal = () => {
         const s = session();
         if (sessionHasCnpj(s)) return;
+        void auth?.ensureAccountSession?.();
         window.LigeirinhoContaCnpjModal?.open?.({
             getHeaders: accountHeaders,
             session: s,
@@ -556,6 +557,16 @@ ${
             headers.Authorization = `Bearer ${hubToken}`;
             return headers;
         }
+
+        let accountToken = auth?.getAccountSessionToken?.();
+        if (!accountToken) {
+            accountToken = await auth?.ensureAccountSession?.();
+        }
+        if (accountToken) {
+            headers['X-Account-Session'] = accountToken;
+            return headers;
+        }
+
         const googleCred = auth?.getGoogleCredential?.();
         if (googleCred) {
             headers['X-Google-Credential'] = googleCred;
@@ -563,6 +574,15 @@ ${
             if (s?.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
             return headers;
         }
+
+        const s = session();
+        if (s?.provider === 'google' && s?.email) {
+            headers['X-Auth-Provider'] = 'google';
+            headers['X-Account-Email'] = s.email;
+            if (s.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+
         throw new Error('Sessão expirada. Saia e entre novamente.');
     };
 
@@ -868,6 +888,11 @@ ${
     };
 
     const render = () => {
+        const s = auth?.loadSession?.();
+        if (s?.provider === 'google' && !auth?.getAccountSessionToken?.()) {
+            void auth?.ensureAccountSession?.();
+        }
+
         const view = currentView();
         switch (view) {
             case 'pedidos':
