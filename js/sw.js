@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v193';
+const CACHE_NAME = 'ligeirinho-app-v196';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/totem.js',
@@ -79,6 +79,7 @@ const APP_SHELL = [
     '/data/home-stories.json',
     '/js/onboarding.js',
     '/js/conta.js',
+    '/js/conta-cnpj-modal.js',
     '/js/auth-config-loader.js',
     '/js/phone-auth.js',
     '/js/login-phone.js',

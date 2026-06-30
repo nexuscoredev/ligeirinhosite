@@ -1,6 +1,7 @@
-import { requireHubSession } from './_require-hub-session.mjs';
+import { requireAccountSession } from './_require-hub-session.mjs';
 import {
     buildParceiroExtras,
+    registerParceiroCnpjCadastro,
     registerUsuarioCnpj,
     resolveParceiroDisplayName,
     resolveParceiroEmail,
@@ -45,7 +46,7 @@ function publicProfile(usuario, extras = {}) {
 export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-    const session = await requireHubSession(req);
+    const session = await requireAccountSession(req);
     if (session.error) {
         return res.status(session.status).json({ error: session.error });
     }
@@ -98,12 +99,21 @@ export default async function handler(req, res) {
                 if (usuarioHasCnpj(session.usuario, parceiroAtual)) {
                     return res.status(400).json({ error: 'Esta conta já possui CNPJ cadastrado.' });
                 }
-                const usuario = await registerUsuarioCnpj(
-                    session.config,
-                    session.userId,
-                    session.usuario,
-                    value,
-                );
+
+                const cadastro = body.cadastro && typeof body.cadastro === 'object' ? body.cadastro : null;
+                const usuario = cadastro
+                    ? await registerParceiroCnpjCadastro(
+                          session.config,
+                          session.userId,
+                          session.usuario,
+                          { ...cadastro, cnpj: cadastro.cnpj || value },
+                      )
+                    : await registerUsuarioCnpj(
+                          session.config,
+                          session.userId,
+                          session.usuario,
+                          value,
+                      );
                 const parceiro = await buildParceiroExtras(session.config, usuario);
                 return res.status(200).json({ profile: publicProfile(usuario, parceiro) });
             }

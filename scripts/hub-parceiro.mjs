@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { hubConfig } from './hub-auth.mjs';
 import {
     clienteParceirosFromPessoa,
@@ -614,6 +615,228 @@ export async function updateUsuarioFields(config, userId, patch) {
     }
 
     return usuario;
+}
+
+export async function ensureUsuarioForGoogleParceiro(config, { email, name = '' } = {}) {
+    if (!config.serviceKey) {
+        throw new Error('Hub não configurado para vincular conta Google.');
+    }
+
+    const emailNorm = String(email || '').trim().toLowerCase();
+    if (!emailNorm || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+        throw new Error('E-mail Google inválido.');
+    }
+
+    const existing = await fetchUsuarioByEmail(config, emailNorm);
+    if (existing?.id) return existing;
+
+    const password = crypto.randomUUID();
+    const authRes = await fetch(`${config.url}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: hubHeaders(config, config.serviceKey),
+        body: JSON.stringify({
+            email: emailNorm,
+            email_confirm: true,
+            password,
+            user_metadata: { nome: name || emailNorm, provider: 'google' },
+        }),
+    });
+    const authUser = await authRes.json();
+    if (!authRes.ok) {
+        throw new Error(authUser.msg || authUser.message || 'Não foi possível criar usuário no Hub.');
+    }
+
+    const authId = authUser.id || authUser.user?.id;
+    if (!authId) throw new Error('ID do usuário auth não retornado.');
+
+    const rows = await hubRest(config, 'usuarios', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: {
+            id: authId,
+            email: emailNorm,
+            login: emailNorm,
+            nome: String(name || emailNorm).slice(0, 120),
+            cargo: 'PARCEIRO',
+            ativo: true,
+        },
+    });
+
+    return Array.isArray(rows) ? rows[0] : rows;
+}
+
+function formatCepBr(cep) {
+    const d = normalizeDocDigits(cep);
+    if (d.length !== 8) return String(cep || '').trim();
+    return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+
+function enderecoGfInicial(cnpjFormatado) {
+    return {
+        pais: 'BRASIL',
+        uf: 'SP',
+        indicador_ie: '3',
+        cnpj: cnpjFormatado,
+        cliente: {
+            situacao: 'liberado',
+            ao_exceder_limite: 'permitir',
+            ao_crediario_vencido: 'bloquear_compra',
+        },
+    };
+}
+
+function buildEnderecoFromCadastro(cadastro, cnpjFormatado, existingEndereco = {}) {
+    const base =
+        existingEndereco && typeof existingEndereco === 'object'
+            ? { ...enderecoGfInicial(cnpjFormatado), ...existingEndereco }
+            : enderecoGfInicial(cnpjFormatado);
+    const e = cadastro.endereco || {};
+    return {
+        ...base,
+        cnpj: cnpjFormatado,
+        cep: e.cep ? formatCepBr(e.cep) : base.cep || '',
+        logradouro: String(e.logradouro || '').trim() || base.logradouro || '',
+        numero: String(e.numero || '').trim() || base.numero || '',
+        complemento: String(e.complemento || '').trim() || base.complemento || '',
+        bairro: String(e.bairro || '').trim() || base.bairro || '',
+        cidade: String(e.cidade || '').trim() || base.cidade || '',
+        uf: String(e.uf || '').trim().toUpperCase() || base.uf || 'SP',
+    };
+}
+
+export async function fetchPessoaByCnpjDigits(config, digits) {
+    if (!config.serviceKey || digits.length < 11) return null;
+    const rows = await hubRest(
+        config,
+        `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,endereco,canal_cliente,clientes(${CLIENTE_PARCEIROS_SELECT})&cpf_cnpj_digits=eq.${encodeURIComponent(digits)}&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] : null;
+}
+
+async function syncClienteParceiros(config, pessoa) {
+    const existing = await hubRest(
+        config,
+        `clientes?select=id&pessoa_id=eq.${encodeURIComponent(pessoa.id)}&limit=1`,
+    );
+    const row = {
+        pessoa_id: pessoa.id,
+        nome: pessoa.nome,
+        nome_fantasia: pessoa.nome_fantasia,
+        tabela_preco: 'padrao',
+        canal_cliente: 'parceiros',
+        ativo: true,
+        bloqueado_pedido: false,
+        inadimplente: false,
+    };
+    if (Array.isArray(existing) && existing[0]?.id) {
+        await hubRest(config, `clientes?id=eq.${encodeURIComponent(existing[0].id)}`, {
+            method: 'PATCH',
+            body: row,
+        });
+        return;
+    }
+    await hubRest(config, 'clientes', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: row,
+    });
+}
+
+export async function registerParceiroCnpjCadastro(config, userId, usuario, cadastro = {}) {
+    const digits = normalizeDocDigits(cadastro.cnpj);
+    if (!isValidCnpj(digits)) {
+        throw new Error('Informe um CNPJ válido com 14 dígitos.');
+    }
+
+    const razao = String(cadastro.razao_social || cadastro.nome || '').trim();
+    if (!razao) {
+        throw new Error('Informe a razão social da empresa.');
+    }
+
+    const fantasia = String(cadastro.nome_fantasia || '').trim() || razao;
+    const cnpjFormatted = formatCnpj(digits);
+    const enderecoInput = cadastro.endereco || {};
+    if (!String(enderecoInput.cep || '').replace(/\D/g, '').match(/^\d{8}$/)) {
+        throw new Error('Informe o CEP da empresa.');
+    }
+    if (!String(enderecoInput.logradouro || '').trim()) {
+        throw new Error('Informe o logradouro.');
+    }
+    if (!String(enderecoInput.cidade || '').trim()) {
+        throw new Error('Informe a cidade.');
+    }
+    if (!String(enderecoInput.uf || '').trim()) {
+        throw new Error('Informe o estado (UF).');
+    }
+
+    await registerUsuarioCnpj(config, userId, usuario, digits);
+
+    const emailNorm = String(cadastro.email || usuario.email || '').trim().toLowerCase();
+    const phoneDigits = normalizeDocDigits(cadastro.telefone || usuario.telefone);
+    const telefone = phoneDigits.length >= 10 ? phoneDigits.slice(-11) : null;
+
+    let pessoa = await fetchPessoaByCnpjDigits(config, digits);
+    const endereco = buildEnderecoFromCadastro(cadastro, cnpjFormatted, pessoa?.endereco);
+
+    const pessoaRow = {
+        tipos: ['cliente'],
+        nome: razao,
+        nome_fantasia: fantasia,
+        cpf_cnpj: cnpjFormatted,
+        email: emailNorm || null,
+        telefone,
+        endereco,
+        canal_cliente: 'parceiros',
+        tabela_preco: 'padrao',
+        ativo: true,
+    };
+
+    if (pessoa?.id) {
+        const patch = { ...pessoaRow };
+        if (pessoa.email && emailNorm && pessoa.email.toLowerCase() !== emailNorm) {
+            if (!hubEmailNeedsSynthetic(pessoa.email)) delete patch.email;
+        }
+        if (pessoa.telefone && telefone && normalizeDocDigits(pessoa.telefone) !== telefone) {
+            delete patch.telefone;
+        }
+        const rows = await hubRest(config, `pessoas?id=eq.${encodeURIComponent(pessoa.id)}`, {
+            method: 'PATCH',
+            headers: { Prefer: 'return=representation' },
+            body: patch,
+        });
+        pessoa = Array.isArray(rows) ? rows[0] : rows;
+    } else {
+        const rows = await hubRest(config, 'pessoas', {
+            method: 'POST',
+            headers: { Prefer: 'return=representation' },
+            body: pessoaRow,
+        });
+        pessoa = Array.isArray(rows) ? rows[0] : rows;
+    }
+
+    if (!pessoa?.id) {
+        throw new Error('Não foi possível salvar o cadastro da empresa.');
+    }
+
+    await syncClienteParceiros(config, pessoa);
+
+    const usuarioPatch = { nome: fantasia.slice(0, 120) };
+    if (telefone) usuarioPatch.telefone = telefone;
+    const usuarioRows = await hubRest(config, `usuarios?id=eq.${encodeURIComponent(userId)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: usuarioPatch,
+    });
+    const usuarioUpdated = Array.isArray(usuarioRows) ? usuarioRows[0] : usuarioRows;
+
+    await syncParceiroContactLink(config, {
+        usuario: usuarioUpdated,
+        pessoa,
+        email: emailNorm,
+        phone: telefone,
+    });
+
+    return usuarioUpdated;
 }
 
 export async function registerUsuarioCnpj(config, userId, usuario, cnpjInput) {

@@ -21,6 +21,84 @@
 <div id="conta-app" class="conta-page" role="main"></div>
 </main>
 <div id="site-footer" class="hidden md:block"></div>
+
+<div id="conta-cnpj-modal" class="lig-login-modal" aria-hidden="true">
+<div class="lig-login-modal__backdrop" data-conta-cnpj-close tabindex="-1" aria-hidden="true"></div>
+<div class="lig-login-modal__dialog lig-cnpj-modal" role="dialog" aria-modal="true" aria-labelledby="conta-cnpj-modal-title">
+<button type="button" class="lig-login-modal__close lig-cnpj-modal__close" data-conta-cnpj-close aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+<h2 id="conta-cnpj-modal-title" class="lig-cnpj-modal__title">Cadastrar CNPJ</h2>
+<p class="lig-cnpj-modal__hint">Busque os dados da empresa pelo CNPJ e confira o endereço antes de salvar. Cada CNPJ pode ser vinculado a apenas uma conta.</p>
+<form id="conta-cnpj-modal-form" class="lig-cnpj-modal__form">
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-cnpj">CNPJ</label>
+<div class="lig-cnpj-modal__field-row">
+<input id="conta-cnpj-field-cnpj" class="lig-cnpj-modal__input" type="text" inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00" maxlength="18" required>
+<button type="button" id="conta-cnpj-buscar-empresa" class="lig-cnpj-modal__btn-secondary">Buscar empresa</button>
+</div>
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-razao">Razão social</label>
+<input id="conta-cnpj-field-razao" class="lig-cnpj-modal__input" type="text" autocomplete="organization" required>
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-fantasia">Nome fantasia</label>
+<input id="conta-cnpj-field-fantasia" class="lig-cnpj-modal__input" type="text" autocomplete="organization-title">
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-cep">CEP</label>
+<div class="lig-cnpj-modal__field-row">
+<input id="conta-cnpj-field-cep" class="lig-cnpj-modal__input lig-cnpj-modal__input--cep" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9" required>
+<button type="button" id="conta-cnpj-buscar-cep" class="lig-cnpj-modal__btn-secondary">Buscar endereço</button>
+</div>
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-logradouro">Logradouro</label>
+<input id="conta-cnpj-field-logradouro" class="lig-cnpj-modal__input" type="text" autocomplete="street-address" required>
+</div>
+<div class="lig-cnpj-modal__grid">
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-numero">Número</label>
+<input id="conta-cnpj-field-numero" class="lig-cnpj-modal__input" type="text" inputmode="numeric" autocomplete="off">
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-complemento">Complemento</label>
+<input id="conta-cnpj-field-complemento" class="lig-cnpj-modal__input" type="text" autocomplete="off">
+</div>
+</div>
+<div class="lig-cnpj-modal__grid">
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-bairro">Bairro</label>
+<input id="conta-cnpj-field-bairro" class="lig-cnpj-modal__input" type="text" autocomplete="off">
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-cidade">Cidade</label>
+<input id="conta-cnpj-field-cidade" class="lig-cnpj-modal__input" type="text" autocomplete="address-level2" required>
+</div>
+<div class="lig-cnpj-modal__field lig-cnpj-modal__field--uf">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-uf">UF</label>
+<input id="conta-cnpj-field-uf" class="lig-cnpj-modal__input" type="text" maxlength="2" autocomplete="address-level1" required>
+</div>
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-telefone">Telefone comercial</label>
+<input id="conta-cnpj-field-telefone" class="lig-cnpj-modal__input" type="tel" inputmode="tel" autocomplete="tel">
+</div>
+<div class="lig-cnpj-modal__field">
+<label class="lig-cnpj-modal__label" for="conta-cnpj-field-email">E-mail comercial</label>
+<input id="conta-cnpj-field-email" class="lig-cnpj-modal__input" type="email" autocomplete="email">
+</div>
+<label class="lig-cnpj-modal__check">
+<input id="conta-cnpj-confirm-endereco" type="checkbox" required>
+<span>Confirmo que o endereço informado é o da minha empresa (entrega/comercial).</span>
+</label>
+<p id="conta-cnpj-modal-status" class="lig-cnpj-modal__status" hidden></p>
+<button type="submit" class="lig-cnpj-modal__submit conta-btn conta-btn--primary conta-btn--full">Salvar cadastro</button>
+</form>
+</div>
+</div>
+
 <script src="js/site-config.js"></script>
 <script src="js/app.js"></script>
 <script src="js/theme-ui.js"></script>
@@ -29,5 +107,6 @@
 <script src="js/cart-store.js"></script>
 <script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/conta-cnpj-modal.js"></script>
 <script src="js/conta.js"></script>
 </body></html>

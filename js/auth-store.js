@@ -1,6 +1,7 @@
 (function () {
     const AUTH_KEY = 'ligeirinho-auth-v1';
     const HUB_SESSION_KEY = 'ligeirinho-hub-session-v1';
+    const GOOGLE_CREDENTIAL_KEY = 'ligeirinho-google-credential-v1';
     const HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
     const HUB_ANON_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxpc3pwd29jd3ZreXR6eWF4dml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjczNzUsImV4cCI6MjA5NTMwMzM3NX0.rMfpheVgAKQ4HelKB0ZoNDZXiU_3XQdv7ujLHxgdjEA';
@@ -71,6 +72,7 @@
     const saveFromGoogleCredential = (credential) => {
         const payload = parseJwt(credential);
         if (!payload?.sub) return null;
+        saveGoogleCredential(credential);
         return saveSession({
             sub: payload.sub,
             email: payload.email,
@@ -143,6 +145,34 @@
         localStorage.removeItem(HUB_SESSION_KEY);
     };
 
+    const saveGoogleCredential = (credential) => {
+        const token = String(credential || '').trim();
+        if (!token) return null;
+        const payload = parseJwt(token);
+        if (!payload?.exp) return null;
+        const data = { credential: token, expiresAt: payload.exp * 1000 };
+        localStorage.setItem(GOOGLE_CREDENTIAL_KEY, JSON.stringify(data));
+        return data;
+    };
+
+    const getGoogleCredential = () => {
+        try {
+            const data = JSON.parse(localStorage.getItem(GOOGLE_CREDENTIAL_KEY) || 'null');
+            if (!data?.credential || !data?.expiresAt) return null;
+            if (Date.now() >= data.expiresAt - 60_000) {
+                localStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+                return null;
+            }
+            return data.credential;
+        } catch {
+            return null;
+        }
+    };
+
+    const clearGoogleCredential = () => {
+        localStorage.removeItem(GOOGLE_CREDENTIAL_KEY);
+    };
+
     let refreshInflight = null;
 
     const refreshHubAccessToken = async () => {
@@ -190,6 +220,7 @@
     const logout = () => {
         localStorage.removeItem(AUTH_KEY);
         clearHubSession();
+        clearGoogleCredential();
         window.dispatchEvent(new CustomEvent('ligeirinho-auth-changed', { detail: null }));
         if (window.google?.accounts?.id) {
             window.google.accounts.id.disableAutoSelect();
@@ -263,10 +294,14 @@
     window.LigeirinhoAuth = {
         AUTH_KEY,
         HUB_SESSION_KEY,
+        GOOGLE_CREDENTIAL_KEY,
         TOTEM_ROLES,
         loadHubSession,
         saveHubSession,
         clearHubSession,
+        saveGoogleCredential,
+        getGoogleCredential,
+        clearGoogleCredential,
         getHubAccessToken,
         parseJwt,
         loadSession,

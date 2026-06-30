@@ -4236,10 +4236,6 @@ html.lig-story-open {
     padding-left: 0.25rem;
 }
 
-.conta-settings-theme {
-    padding: 0.5rem 0;
-}
-
 .conta-prefs-chips {
     display: flex;
     flex-wrap: wrap;
@@ -7331,6 +7327,142 @@ html.lig-login-modal-open {
 .lig-login-modal__dialog .lig-login-status {
     margin-top: 0.5rem;
     font-size: 0.75rem;
+}
+
+.lig-login-modal__dialog.lig-cnpj-modal {
+    width: min(calc(100vw - 1.5rem), 26rem);
+    max-width: 26rem;
+    max-height: min(92dvh, 40rem);
+    padding: 1rem 0.875rem 1rem;
+}
+
+.lig-cnpj-modal__title {
+    margin: 0 1.75rem 0.375rem 0;
+    font-family: var(--lig-font-display, inherit);
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--lig-text);
+}
+
+.lig-cnpj-modal__hint {
+    margin: 0 0 0.875rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--lig-text-muted);
+}
+
+.lig-cnpj-modal__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.lig-cnpj-modal__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.lig-cnpj-modal__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--lig-text-muted);
+}
+
+.lig-cnpj-modal__input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 2.375rem;
+    padding: 0.5rem 0.625rem;
+    border: 1px solid var(--lig-border, #e5e7eb);
+    border-radius: 0.5rem;
+    background: var(--lig-surface, #fff);
+    color: var(--lig-text);
+    font-size: 0.875rem;
+}
+
+.lig-cnpj-modal__input--cep {
+    max-width: 8.5rem;
+}
+
+.lig-cnpj-modal__field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.lig-cnpj-modal__field-row .lig-cnpj-modal__input {
+    flex: 1 1 9rem;
+}
+
+.lig-cnpj-modal__btn-secondary {
+    flex: 0 0 auto;
+    min-height: 2.375rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--lig-border, #e5e7eb);
+    border-radius: 0.5rem;
+    background: var(--lig-surface-2, #f9fafb);
+    color: var(--lig-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.lig-cnpj-modal__btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lig-cnpj-modal__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+}
+
+.lig-cnpj-modal__field--uf {
+    grid-column: span 1;
+}
+
+@media (min-width: 24rem) {
+    .lig-cnpj-modal__grid {
+        grid-template-columns: 1.2fr 1.2fr 0.6fr;
+    }
+}
+
+.lig-cnpj-modal__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--lig-text);
+    cursor: pointer;
+}
+
+.lig-cnpj-modal__check input {
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+}
+
+.lig-cnpj-modal__status {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.lig-cnpj-modal__status--error {
+    color: #b91c1c;
+}
+
+.lig-cnpj-modal__status--ok {
+    color: #15803d;
+}
+
+.lig-cnpj-modal__submit {
+    margin-top: 0.25rem;
 }
 
 .lig-login-phone-panel {

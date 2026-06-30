@@ -112,6 +112,10 @@
             auth.clearHubSession?.();
         }
 
+        if (payload.type === 'google' && payload.credential) {
+            auth.saveGoogleCredential?.(payload.credential);
+        }
+
         const session = auth.applyProfile(data.profile);
         if (!session) throw new Error('Não foi possível iniciar a sessão.');
         return { session, mustChangePassword: Boolean(data.profile?.mustChangePassword) };

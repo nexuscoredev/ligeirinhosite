@@ -476,10 +476,24 @@ ${
         bindPedidosActions();
     };
 
+    const openCnpjModal = () => {
+        const s = session();
+        if (sessionHasCnpj(s)) return;
+        window.LigeirinhoContaCnpjModal?.open?.({
+            getHeaders: accountHeaders,
+            session: s,
+            onSaved: (profile) => {
+                auth?.patchSession?.(profile);
+                if (currentView() === 'dados') renderDados();
+                else navigate('dados');
+            },
+        });
+    };
+
     const renderDados = () => {
         const s = session();
         const hasCnpj = sessionHasCnpj(s);
-        const canRegisterCnpj = Boolean(s?.sub && s?.provider === 'hub' && !hasCnpj);
+        const canRegisterCnpj = Boolean(s?.sub && !hasCnpj && !auth?.isTotemSession?.(s));
         const rows = [
             { label: 'Nome', value: s?.name || '—', nav: '' },
             {
@@ -487,7 +501,8 @@ ${
                 value: hasCnpj
                     ? formatCnpjDisplay(s?.cnpj || s?.login)
                     : '—',
-                nav: canRegisterCnpj ? 'cnpj' : '',
+                nav: '',
+                action: canRegisterCnpj ? 'cnpj-modal' : '',
                 editLabel: canRegisterCnpj ? 'Cadastrar CNPJ' : '',
             },
             { label: 'Telefone celular', value: formatPhoneDisplay(s?.phone) || '—', nav: s?.provider === 'hub' ? 'telefone' : '' },
@@ -500,7 +515,9 @@ ${
         ? `<div class="conta-info-card">
 ${rows
     .map((r) => {
-        const editable = Boolean(r.nav);
+        const editable = Boolean(r.nav || r.action);
+        const actionAttr = r.action ? ` data-conta-action="${esc(r.action)}"` : '';
+        const navAttr = r.nav ? ` data-conta-nav="${esc(r.nav)}"` : actionAttr;
         return `<div class="conta-info-row${editable ? ' conta-info-row--link' : ''}">
 <div class="conta-info-row__main">
 <p class="conta-info-row__label">${esc(r.label)}</p>
@@ -508,7 +525,7 @@ ${rows
 </div>
 ${
     editable
-        ? `<button type="button" class="conta-info-row__edit" data-conta-nav="${esc(r.nav)}" aria-label="${esc(r.editLabel || `Alterar ${r.label}`)}">
+        ? `<button type="button" class="conta-info-row__edit"${navAttr} aria-label="${esc(r.editLabel || `Alterar ${r.label}`)}">
 <span class="material-symbols-outlined">${r.editLabel ? 'add_circle' : 'edit'}</span>
 </button>`
         : ''
@@ -517,7 +534,11 @@ ${
     })
     .join('')}
 </div>
-<button type="button" class="conta-btn conta-btn--outline conta-btn--full" data-conta-nav="senha">Alterar senha</button>`
+${
+    s?.sub && s?.provider === 'hub'
+        ? `<button type="button" class="conta-btn conta-btn--outline conta-btn--full" data-conta-nav="senha">Alterar senha</button>`
+        : ''
+}`
         : `<div class="conta-empty">
 <span class="material-symbols-outlined conta-empty__icon">person</span>
 <p class="conta-empty__title">Faça login para ver seus dados</p>
@@ -529,12 +550,20 @@ ${
     };
 
     const accountHeaders = async () => {
-        const token = await auth?.getHubAccessToken?.();
-        if (!token) throw new Error('Faça login com usuário e senha do Hub para alterar dados.');
-        return {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-        };
+        const headers = { 'Content-Type': 'application/json' };
+        const hubToken = await auth?.getHubAccessToken?.();
+        if (hubToken) {
+            headers.Authorization = `Bearer ${hubToken}`;
+            return headers;
+        }
+        const googleCred = auth?.getGoogleCredential?.();
+        if (googleCred) {
+            headers['X-Google-Credential'] = googleCred;
+            const s = session();
+            if (s?.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+        throw new Error('Sessão expirada. Saia e entre novamente.');
     };
 
     const renderTelefone = () => {
@@ -624,61 +653,8 @@ ${
     };
 
     const renderCnpj = () => {
-        const s = session();
-        if (sessionHasCnpj(s)) {
-            navigate('dados');
-            return;
-        }
-        const body = `<div class="conta-sub-body">
-<form class="conta-edit-form" id="conta-cnpj-form">
-<label class="conta-edit-label">CNPJ da empresa</label>
-<input class="conta-edit-input" id="conta-cnpj-input" type="text" inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00" maxlength="18">
-<p class="conta-hint">Cadastre o CNPJ da sua empresa. Cada CNPJ pode ser vinculado a apenas uma conta.</p>
-<p class="conta-edit-status" id="conta-cnpj-status" hidden></p>
-<button type="submit" class="conta-btn conta-btn--primary conta-btn--full">Salvar CNPJ</button>
-</form>
-</div>`;
-        wrapPage('Cadastrar CNPJ', 'dados', body, 'dados');
-
-        const input = root.querySelector('#conta-cnpj-input');
-        input?.addEventListener('input', () => {
-            const pos = input.selectionStart;
-            const before = input.value;
-            input.value = maskCnpjInput(before);
-            if (typeof pos === 'number') {
-                const delta = input.value.length - before.length;
-                input.setSelectionRange(pos + delta, pos + delta);
-            }
-        });
-
-        root.querySelector('#conta-cnpj-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const status = root.querySelector('#conta-cnpj-status');
-            const value = root.querySelector('#conta-cnpj-input')?.value || '';
-            try {
-                const headers = await accountHeaders();
-                const res = await fetch('/api/account/profile', {
-                    method: 'PATCH',
-                    headers,
-                    body: JSON.stringify({ field: 'cnpj', value }),
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
-                auth.patchSession(data.profile);
-                if (status) {
-                    status.hidden = false;
-                    status.textContent = 'CNPJ cadastrado com sucesso.';
-                    status.className = 'conta-edit-status conta-edit-status--ok';
-                }
-                window.setTimeout(() => navigate('dados'), 700);
-            } catch (err) {
-                if (status) {
-                    status.hidden = false;
-                    status.textContent = err.message;
-                    status.className = 'conta-edit-status conta-edit-status--error';
-                }
-            }
-        });
+        navigate('dados');
+        window.setTimeout(openCnpjModal, 50);
     };
 
     const renderSenha = () => {
@@ -848,10 +824,6 @@ ${s?.sub && s?.provider === 'hub' ? menuRow({ title: 'Alterar senha', icon: 'loc
 </div>
 </section>
 <section class="conta-settings-group">
-<h2 class="conta-settings-group__title">Aparência</h2>
-<div class="conta-settings-theme" data-lig-theme-mount></div>
-</section>
-<section class="conta-settings-group">
 <h2 class="conta-settings-group__title">Sobre</h2>
 <div class="conta-menu-list conta-menu-list--flush">
 <a href="versao.html" class="conta-menu-row">
@@ -872,7 +844,6 @@ ${
 </div>`;
         wrapPage('Ajustes', isDesktop() ? '' : '', body, 'ajustes');
 
-        window.LigeirinhoThemeUI?.renderAll?.();
         root.querySelector('#conta-logout-btn')?.addEventListener('click', () => {
             auth?.logout?.();
             navigate('');
@@ -950,6 +921,13 @@ ${
                     return;
                 }
                 navigate(nav);
+            });
+        });
+
+        root.querySelectorAll('[data-conta-action]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const action = el.dataset.contaAction;
+                if (action === 'cnpj-modal') openCnpjModal();
             });
         });
 

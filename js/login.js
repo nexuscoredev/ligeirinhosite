@@ -41,6 +41,7 @@
                 ...profile,
                 picture: payload?.picture || '',
             });
+            auth.saveGoogleCredential?.(response.credential);
             setStatus('Entrada realizada! Redirecionando…', false);
             window.setTimeout(() => redirect(session.role), 400);
         } catch (err) {
