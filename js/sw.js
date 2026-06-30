@@ -1,8 +1,4 @@
-<<<<<<< Updated upstream
-const CACHE_NAME = 'ligeirinho-app-v211';
-=======
-const CACHE_NAME = 'ligeirinho-app-v207';
->>>>>>> Stashed changes
+const CACHE_NAME = 'ligeirinho-app-v212';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/home-stories.js',
