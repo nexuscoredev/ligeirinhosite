@@ -25,6 +25,30 @@
         return phone || '';
     };
 
+    const formatCnpjDisplay = (value) => {
+        const digits = String(value || '').replace(/\D/g, '');
+        if (digits.length !== 14) return value || '';
+        return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+    };
+
+    const maskCnpjInput = (value) => {
+        const digits = String(value || '').replace(/\D/g, '').slice(0, 14);
+        if (digits.length <= 2) return digits;
+        if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+        if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+        if (digits.length <= 12) {
+            return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+        }
+        return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+    };
+
+    const sessionHasCnpj = (s) => {
+        const fromCnpj = String(s?.cnpj || '').replace(/\D/g, '');
+        if (fromCnpj.length === 14) return true;
+        const fromLogin = String(s?.login || '').replace(/\D/g, '');
+        return fromLogin.length === 14;
+    };
+
     const formatRole = (role) => {
         const r = String(role || '').toUpperCase();
         if (r === 'PARCEIRO') return 'Parceiro';
@@ -454,9 +478,18 @@ ${
 
     const renderDados = () => {
         const s = session();
+        const hasCnpj = sessionHasCnpj(s);
+        const canRegisterCnpj = Boolean(s?.sub && s?.provider === 'hub' && !hasCnpj);
         const rows = [
             { label: 'Nome', value: s?.name || s?.razaoSocial || '—', nav: '' },
-            { label: 'CNPJ', value: s?.cnpj || '—', nav: '' },
+            {
+                label: 'CNPJ',
+                value: hasCnpj
+                    ? formatCnpjDisplay(s?.cnpj || s?.login)
+                    : '—',
+                nav: canRegisterCnpj ? 'cnpj' : '',
+                editLabel: canRegisterCnpj ? 'Cadastrar CNPJ' : '',
+            },
             { label: 'Telefone celular', value: formatPhoneDisplay(s?.phone) || '—', nav: 'telefone' },
             { label: 'E-mail', value: s?.email || '—', nav: 'email' },
             { label: 'Condição de pagamento', value: s?.condicaoPagamento || '—', nav: '' },
@@ -476,8 +509,8 @@ ${rows
 </div>
 ${
     editable
-        ? `<button type="button" class="conta-info-row__edit" data-conta-nav="${esc(r.nav)}" aria-label="Alterar ${esc(r.label)}">
-<span class="material-symbols-outlined">edit</span>
+        ? `<button type="button" class="conta-info-row__edit" data-conta-nav="${esc(r.nav)}" aria-label="${esc(r.editLabel || `Alterar ${r.label}`)}">
+<span class="material-symbols-outlined">${r.editLabel ? 'add_circle' : 'edit'}</span>
 </button>`
         : ''
 }
@@ -578,6 +611,64 @@ ${
                 if (status) {
                     status.hidden = false;
                     status.textContent = 'E-mail atualizado.';
+                    status.className = 'conta-edit-status conta-edit-status--ok';
+                }
+                window.setTimeout(() => navigate('dados'), 700);
+            } catch (err) {
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = err.message;
+                    status.className = 'conta-edit-status conta-edit-status--error';
+                }
+            }
+        });
+    };
+
+    const renderCnpj = () => {
+        const s = session();
+        if (sessionHasCnpj(s)) {
+            navigate('dados');
+            return;
+        }
+        const body = `<div class="conta-sub-body">
+<form class="conta-edit-form" id="conta-cnpj-form">
+<label class="conta-edit-label">CNPJ da empresa</label>
+<input class="conta-edit-input" id="conta-cnpj-input" type="text" inputmode="numeric" autocomplete="off" placeholder="00.000.000/0000-00" maxlength="18">
+<p class="conta-hint">Cadastre o CNPJ da sua empresa. Cada CNPJ pode ser vinculado a apenas uma conta.</p>
+<p class="conta-edit-status" id="conta-cnpj-status" hidden></p>
+<button type="submit" class="conta-btn conta-btn--primary conta-btn--full">Salvar CNPJ</button>
+</form>
+</div>`;
+        wrapPage('Cadastrar CNPJ', 'dados', body, 'dados');
+
+        const input = root.querySelector('#conta-cnpj-input');
+        input?.addEventListener('input', () => {
+            const pos = input.selectionStart;
+            const before = input.value;
+            input.value = maskCnpjInput(before);
+            if (typeof pos === 'number') {
+                const delta = input.value.length - before.length;
+                input.setSelectionRange(pos + delta, pos + delta);
+            }
+        });
+
+        root.querySelector('#conta-cnpj-form')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const status = root.querySelector('#conta-cnpj-status');
+            const value = root.querySelector('#conta-cnpj-input')?.value || '';
+            try {
+                const headers = await accountHeaders();
+                const res = await fetch('/api/account/profile', {
+                    method: 'PATCH',
+                    headers,
+                    body: JSON.stringify({ field: 'cnpj', value }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
+                auth.patchSession(data.profile);
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = 'CNPJ cadastrado com sucesso.';
                     status.className = 'conta-edit-status conta-edit-status--ok';
                 }
                 window.setTimeout(() => navigate('dados'), 700);
@@ -820,6 +911,9 @@ ${
                 break;
             case 'email':
                 renderEmail();
+                break;
+            case 'cnpj':
+                renderCnpj();
                 break;
             case 'senha':
                 renderSenha();

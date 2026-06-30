@@ -22,6 +22,33 @@ export function formatCnpj(digits) {
     return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
 }
 
+export function isValidCnpj(value) {
+    const c = normalizeDocDigits(value);
+    if (c.length !== 14) return false;
+    if (/^(\d)\1{13}$/.test(c)) return false;
+
+    const checkDigit = (base) => {
+        let sum = 0;
+        let pos = base.length - 7;
+        for (let i = base.length; i >= 1; i -= 1) {
+            sum += Number(c[base.length - i]) * pos;
+            pos -= 1;
+            if (pos < 2) pos = 9;
+        }
+        const mod = sum % 11;
+        return mod < 2 ? 0 : 11 - mod;
+    };
+
+    return checkDigit(c.slice(0, 12)) === Number(c[12]) && checkDigit(c.slice(0, 13)) === Number(c[13]);
+}
+
+export function usuarioHasCnpj(usuario, extras = {}) {
+    const fromExtras = normalizeDocDigits(extras.cnpjDigits || extras.cnpj);
+    if (fromExtras.length === 14 && isValidCnpj(fromExtras)) return true;
+    const loginDigits = normalizeDocDigits(usuario?.login);
+    return loginDigits.length === 14 && isValidCnpj(loginDigits);
+}
+
 function hubHeaders(config, token, extra = {}) {
     const key = config.anonKey;
     return {
@@ -443,7 +470,16 @@ export { deliveryDateOptions } from './parceiro-delivery.mjs';
 export async function buildParceiroExtras(config, usuario) {
     if (!config.serviceKey || !usuario?.id) return {};
     const pessoa = await findPessoaForUsuario(config, usuario);
-    if (!pessoa) return {};
+    const loginDigits = normalizeDocDigits(usuario?.login);
+    if (!pessoa) {
+        if (loginDigits.length === 14 && isValidCnpj(loginDigits)) {
+            return {
+                cnpj: formatCnpj(loginDigits),
+                cnpjDigits: loginDigits,
+            };
+        }
+        return {};
+    }
 
     const clienteFields = resolveParceiroClienteFields(pessoa);
     const formas = await fetchFormasPagamento(config, clienteFields.formasPagamentoIds);
@@ -497,6 +533,45 @@ export async function updateUsuarioFields(config, userId, patch) {
     }
 
     return usuario;
+}
+
+export async function registerUsuarioCnpj(config, userId, usuario, cnpjInput) {
+    const digits = normalizeDocDigits(cnpjInput);
+    if (!isValidCnpj(digits)) {
+        throw new Error('Informe um CNPJ válido com 14 dígitos.');
+    }
+
+    const currentExtras = await buildParceiroExtras(config, usuario);
+    if (usuarioHasCnpj(usuario, currentExtras)) {
+        throw new Error('Esta conta já possui CNPJ cadastrado.');
+    }
+
+    const otherUsuario = await fetchUsuarioByLoginDigits(config, digits);
+    if (otherUsuario?.id && otherUsuario.id !== userId) {
+        throw new Error('Este CNPJ já está vinculado a outra conta.');
+    }
+
+    const pessoa = await fetchPessoaParceiroByCnpj(config, digits);
+    if (pessoa?.email) {
+        const byEmail = await fetchUsuarioByEmail(config, pessoa.email);
+        if (byEmail?.id && byEmail.id !== userId) {
+            const linked = await buildParceiroExtras(config, byEmail);
+            if (usuarioHasCnpj(byEmail, linked)) {
+                throw new Error('Este CNPJ já está vinculado a outra conta.');
+            }
+        }
+    }
+
+    const rows = await hubRest(
+        config,
+        `usuarios?id=eq.${encodeURIComponent(userId)}`,
+        {
+            method: 'PATCH',
+            headers: { Prefer: 'return=representation' },
+            body: { login: digits },
+        }
+    );
+    return Array.isArray(rows) ? rows[0] : rows;
 }
 
 export async function clearMustChangePassword(config, userId) {

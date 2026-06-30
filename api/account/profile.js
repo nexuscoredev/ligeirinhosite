@@ -1,5 +1,10 @@
 import { requireHubSession } from './_require-hub-session.mjs';
-import { buildParceiroExtras, updateUsuarioFields } from '../../scripts/hub-parceiro.mjs';
+import {
+    buildParceiroExtras,
+    registerUsuarioCnpj,
+    updateUsuarioFields,
+    usuarioHasCnpj,
+} from '../../scripts/hub-parceiro.mjs';
 import { isTotemRole } from '../../scripts/hub-auth.mjs';
 
 export const config = { maxDuration: 15 };
@@ -69,7 +74,22 @@ export default async function handler(req, res) {
                 return res.status(200).json({ profile: publicProfile(usuario, parceiro) });
             }
 
-            return res.status(400).json({ error: 'Campo inválido. Use telefone ou email.' });
+            if (field === 'cnpj') {
+                const parceiroAtual = await buildParceiroExtras(session.config, session.usuario);
+                if (usuarioHasCnpj(session.usuario, parceiroAtual)) {
+                    return res.status(400).json({ error: 'Esta conta já possui CNPJ cadastrado.' });
+                }
+                const usuario = await registerUsuarioCnpj(
+                    session.config,
+                    session.userId,
+                    session.usuario,
+                    value,
+                );
+                const parceiro = await buildParceiroExtras(session.config, usuario);
+                return res.status(200).json({ profile: publicProfile(usuario, parceiro) });
+            }
+
+            return res.status(400).json({ error: 'Campo inválido. Use telefone, email ou cnpj.' });
         } catch (err) {
             console.error('account/profile PATCH', err);
             return res.status(500).json({ error: err.message || 'Erro ao atualizar perfil.' });
