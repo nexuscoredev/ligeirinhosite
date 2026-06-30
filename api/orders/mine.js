@@ -1,7 +1,8 @@
 import { requireHubSession } from '../account/_require-hub-session.mjs';
+import { collectParceiroHubUserIds } from '../../scripts/hub-parceiro.mjs';
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import {
-    listOrdersByHubUserId,
+    listOrdersByHubUserIds,
     publicOrderView,
     dbFromPaymentConfig,
 } from '../../scripts/supabase-orders.mjs';
@@ -33,9 +34,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 15));
+        const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 50));
         const db = dbFromPaymentConfig(payConfig);
-        const rows = await listOrdersByHubUserId(db.url, db.key, session.userId, {
+        const hubUserIds = await collectParceiroHubUserIds(session.config, session.usuario);
+        const rows = await listOrdersByHubUserIds(db.url, db.key, hubUserIds, {
             limit,
             channel: 'parceiros',
         });

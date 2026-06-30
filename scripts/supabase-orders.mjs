@@ -58,9 +58,27 @@ export async function listOrdersByHubUserId(
     hubUserId,
     { limit = 10, channel } = {},
 ) {
+    const ids = Array.isArray(hubUserId) ? hubUserId : [hubUserId];
+    return listOrdersByHubUserIds(supabaseUrl, apiKey, ids, { limit, channel });
+}
+
+export async function listOrdersByHubUserIds(
+    supabaseUrl,
+    apiKey,
+    hubUserIds,
+    { limit = 10, channel } = {},
+) {
+    const uniqueIds = [...new Set((hubUserIds || []).map((id) => String(id || '').trim()).filter(Boolean))];
+    if (!uniqueIds.length) return [];
+
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
+    const hubFilter =
+        uniqueIds.length === 1
+            ? { hub_user_id: `eq.${uniqueIds[0]}` }
+            : { hub_user_id: `in.(${uniqueIds.join(',')})` };
+
     const params = new URLSearchParams({
-        hub_user_id: `eq.${hubUserId}`,
+        ...hubFilter,
         select: '*',
         order: 'created_at.desc',
         limit: String(safeLimit),

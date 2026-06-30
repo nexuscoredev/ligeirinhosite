@@ -431,7 +431,7 @@ ${
         const token = await auth?.getHubAccessToken?.();
         if (token) {
             try {
-                const res = await fetch('/api/orders/mine?limit=15', {
+                const res = await fetch('/api/orders/mine?limit=50', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();

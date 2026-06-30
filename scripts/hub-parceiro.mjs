@@ -288,6 +288,39 @@ async function findUsuarioForPessoa(config, pessoa) {
     return null;
 }
 
+/** IDs Hub de todas as contas (CNPJ, Google, e-mail) do mesmo parceiro comercial. */
+export async function collectParceiroHubUserIds(config, usuario) {
+    const ids = new Set();
+    if (usuario?.id) ids.add(usuario.id);
+    if (!config.serviceKey || !usuario?.id) return [...ids];
+
+    const pessoa = await findPessoaForUsuario(config, usuario);
+    if (!pessoa) return [...ids];
+
+    const cnpjDigits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj);
+    if (cnpjDigits.length >= 11) {
+        const byCnpj = await fetchUsuarioByLoginDigits(config, cnpjDigits);
+        if (byCnpj?.id) ids.add(byCnpj.id);
+    }
+
+    const linked = await findUsuarioForPessoa(config, pessoa);
+    if (linked?.id) ids.add(linked.id);
+
+    const pessoaEmail = String(pessoa.email || '').trim().toLowerCase();
+    if (pessoaEmail) {
+        const byPessoaEmail = await fetchUsuarioByEmail(config, pessoaEmail);
+        if (byPessoaEmail?.id) ids.add(byPessoaEmail.id);
+    }
+
+    const usuarioEmail = String(usuario.email || '').trim().toLowerCase();
+    if (usuarioEmail && usuarioEmail !== pessoaEmail) {
+        const byUsuarioEmail = await fetchUsuarioByEmail(config, usuarioEmail);
+        if (byUsuarioEmail?.id) ids.add(byUsuarioEmail.id);
+    }
+
+    return [...ids];
+}
+
 async function fetchPessoaById(config, pessoaId) {
     if (!pessoaId || !config.serviceKey) return null;
     const rows = await hubRest(
