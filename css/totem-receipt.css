@@ -18,9 +18,12 @@ body.totem-is-printing {
 }
 
 body.totem-is-printing > main,
+body.totem-is-printing #totem-app,
+body.totem-is-printing .totem-app,
 body.totem-is-printing #totem-caixa-root,
 body.totem-is-printing #payment-root,
 body.totem-is-printing #totem-root,
+body.totem-is-printing #totem-success-root,
 body.totem-is-printing .lig-payment-page {
     position: relative;
     z-index: 2147483646;

@@ -48,6 +48,8 @@ body.totem-kiosk {
     max-height: 100svh;
     overflow: hidden;
     overscroll-behavior: none;
+    touch-action: pan-y;
+    -ms-touch-action: pan-y;
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;
     touch-action: manipulation;

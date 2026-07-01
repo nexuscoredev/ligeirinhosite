@@ -1,6 +1,6 @@
 /**
  * Proteções do totem no navegador (complementa totem-kiosk.bat + lockdown do Windows).
- * Gestos de borda (Task View / Win+Tab) exigem também scripts/totem-windows-lockdown.ps1 no PC.
+ * Gestos de borda (Task View) exigem também scripts/totem-windows-lockdown.ps1 no PC.
  */
 (function () {
     'use strict';
@@ -9,8 +9,11 @@
     if (!root.classList.contains('totem-kiosk')) return;
 
     const TOTEM_PAGE_RE = /totem(?:-[a-z]+)?\.html/i;
-    const EDGE_SIDE = 14;
-    const EDGE_TOP = 12;
+    /** Faixa estreita na borda esquerda — bloqueio imediato antes do Windows capturar o gesto. */
+    const LEFT_HARD_EDGE = 10;
+    /** Zona onde só bloqueamos deslize horizontal para a direita (Task View). */
+    const LEFT_SOFT_EDGE = 28;
+    const SWIPE_MIN_DX = 36;
     const CAPTURE_OPTS = { capture: true, passive: false };
     const INTERACTIVE_SEL = [
         'button',
@@ -54,11 +57,6 @@
         }
     };
 
-    const isNearEdge = (x, y) => {
-        const w = window.innerWidth;
-        return x <= EDGE_SIDE || x >= w - EDGE_SIDE || y <= EDGE_TOP;
-    };
-
     const stopEdgeEvent = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -91,77 +89,58 @@
         e.stopImmediatePropagation();
     };
 
-    const bindEdgeGestureGuard = () => {
-        const edgePointers = new Set();
-        const edgeTouches = new Set();
+    /**
+     * Bloqueia só o gesto Task View (borda esquerda → direita).
+     * Não usa barreiras de tela nem bloqueia laterais/direita/topo — evita quebrar cliques no fluxo.
+     */
+    const bindLeftEdgeSwipeGuard = () => {
+        /** @type {Map<number, { x: number, y: number, hard: boolean, block: boolean }>} */
+        const sessions = new Map();
+
+        const isLeftEdgeStart = (x) => x <= LEFT_SOFT_EDGE;
+
+        const isTaskViewSwipe = (start, x, y) => {
+            const dx = x - start.x;
+            const dy = Math.abs(y - start.y);
+            return dx >= SWIPE_MIN_DX && dx > dy * 1.15;
+        };
 
         const onPointerDown = (e) => {
             if (e.pointerType === 'mouse') return;
             if (isInteractiveTarget(e)) return;
-            if (!isNearEdge(e.clientX, e.clientY)) return;
-            edgePointers.add(e.pointerId);
-            stopEdgeEvent(e);
+            if (!isLeftEdgeStart(e.clientX)) return;
+
+            const hard = e.clientX <= LEFT_HARD_EDGE;
+            sessions.set(e.pointerId, {
+                x: e.clientX,
+                y: e.clientY,
+                hard,
+                block: hard,
+            });
+
+            if (hard) stopEdgeEvent(e);
         };
 
         const onPointerMove = (e) => {
-            if (!edgePointers.has(e.pointerId)) return;
-            stopEdgeEvent(e);
+            const session = sessions.get(e.pointerId);
+            if (!session || session.block) {
+                if (session?.block) stopEdgeEvent(e);
+                return;
+            }
+            if (isTaskViewSwipe(session, e.clientX, e.clientY)) {
+                session.block = true;
+                stopEdgeEvent(e);
+            }
         };
 
         const onPointerEnd = (e) => {
-            edgePointers.delete(e.pointerId);
+            sessions.delete(e.pointerId);
         };
 
         window.addEventListener('pointerdown', onPointerDown, CAPTURE_OPTS);
         window.addEventListener('pointermove', onPointerMove, CAPTURE_OPTS);
         window.addEventListener('pointerup', onPointerEnd, CAPTURE_OPTS);
         window.addEventListener('pointercancel', onPointerEnd, CAPTURE_OPTS);
-
-        const onTouchStart = (e) => {
-            if (isInteractiveTarget(e)) return;
-            let hit = false;
-            for (const touch of e.changedTouches) {
-                if (isNearEdge(touch.clientX, touch.clientY)) {
-                    edgeTouches.add(touch.identifier);
-                    hit = true;
-                }
-            }
-            if (hit) stopEdgeEvent(e);
-        };
-
-        const onTouchMove = (e) => {
-            for (const touch of e.changedTouches) {
-                if (edgeTouches.has(touch.identifier)) {
-                    stopEdgeEvent(e);
-                    return;
-                }
-            }
-        };
-
-        const onTouchEnd = (e) => {
-            for (const touch of e.changedTouches) {
-                edgeTouches.delete(touch.identifier);
-            }
-        };
-
-        window.addEventListener('touchstart', onTouchStart, CAPTURE_OPTS);
-        window.addEventListener('touchmove', onTouchMove, CAPTURE_OPTS);
-        window.addEventListener('touchend', onTouchEnd, CAPTURE_OPTS);
-        window.addEventListener('touchcancel', onTouchEnd, CAPTURE_OPTS);
-    };
-
-    const mountEdgeShields = () => {
-        if (document.getElementById('totem-kiosk-shields')) return;
-        const host = document.body || document.documentElement;
-        const wrap = document.createElement('div');
-        wrap.id = 'totem-kiosk-shields';
-        wrap.setAttribute('aria-hidden', 'true');
-        wrap.innerHTML = `
-<div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--left"></div>
-<div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--right"></div>
-<div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--top"></div>
-<div class="totem-kiosk-edge-shield totem-kiosk-edge-shield--corner"></div>`;
-        host.appendChild(wrap);
     };
 
     let wakeLock = null;
@@ -277,8 +256,7 @@
     });
 
     const boot = () => {
-        mountEdgeShields();
-        bindEdgeGestureGuard();
+        bindLeftEdgeSwipeGuard();
         mountLockOverlay();
         tryFullscreen();
     };

@@ -418,8 +418,6 @@ body{display:flex;justify-content:center;align-items:flex-start}
         }
     };
 
-    const RECEIPT_PRINT_CLASS = 'totem-receipt-printing';
-
     const ensurePrintRoot = () => {
         let el = document.getElementById('totem-receipt-print');
         if (!el) {
@@ -432,22 +430,18 @@ body{display:flex;justify-content:center;align-items:flex-start}
         return el;
     };
 
-    /** Impressão na janela principal — funciona com Chrome --kiosk-printing (sem ponte local). */
+    /** Impressão na janela principal — fallback com Chrome --kiosk-printing. */
     const printViaKiosk = (order, opts = {}) =>
         new Promise((resolve) => {
-            endPrintScreen();
+            beginPrintScreen();
             const root = ensurePrintRoot();
             root.innerHTML = buildReceiptHtml(order, { ...opts, forPrint: true });
-
-            const cleanup = () => {
-                document.body.classList.remove(RECEIPT_PRINT_CLASS);
-            };
 
             const finish = (ok) => {
                 if (finish.done) return;
                 finish.done = true;
                 window.setTimeout(() => {
-                    cleanup();
+                    endPrintScreen();
                     resolve(ok);
                 }, 300);
             };
@@ -456,7 +450,6 @@ body{display:flex;justify-content:center;align-items:flex-start}
             window.addEventListener('afterprint', () => finish(true), { once: true });
 
             window.requestAnimationFrame(() => {
-                document.body.classList.add(RECEIPT_PRINT_CLASS);
                 try {
                     window.focus();
                     window.print();
@@ -472,11 +465,14 @@ body{display:flex;justify-content:center;align-items:flex-start}
             const html = buildReceiptHtml(order, { ...opts, forPrint: true });
             const iframe = document.createElement('iframe');
             iframe.setAttribute('aria-hidden', 'true');
-            iframe.style.cssText = 'position:fixed;left:-10000px;top:0;width:0;height:0;border:0;visibility:hidden';
+            iframe.setAttribute('title', 'Comprovante');
+            iframe.style.cssText =
+                'position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;visibility:hidden;pointer-events:none';
             document.body.appendChild(iframe);
 
             const doc = iframe.contentDocument || iframe.contentWindow?.document;
-            if (!doc) {
+            const win = iframe.contentWindow;
+            if (!doc || !win) {
                 iframe.remove();
                 resolve(false);
                 return;
@@ -490,26 +486,32 @@ body{display:flex;justify-content:center;align-items:flex-start}
             );
             doc.close();
 
-            const cleanup = () => {
-                window.setTimeout(() => iframe.remove(), 1000);
+            let settled = false;
+            const finish = (ok) => {
+                if (settled) return;
+                settled = true;
+                endPrintScreen();
+                window.setTimeout(() => iframe.remove(), 800);
+                resolve(ok);
             };
+
+            beginPrintScreen();
+            win.addEventListener('afterprint', () => finish(true), { once: true });
 
             const doPrint = () => {
                 try {
-                    iframe.contentWindow?.focus();
-                    iframe.contentWindow?.print();
-                    cleanup();
-                    resolve(true);
+                    win.focus();
+                    win.print();
+                    window.setTimeout(() => finish(true), 900);
                 } catch {
-                    cleanup();
-                    resolve(false);
+                    finish(false);
                 }
             };
 
-            if (iframe.contentWindow?.document?.readyState === 'complete') {
-                window.setTimeout(doPrint, 50);
+            if (win.document?.readyState === 'complete') {
+                window.setTimeout(doPrint, 40);
             } else {
-                iframe.onload = () => window.setTimeout(doPrint, 50);
+                iframe.onload = () => window.setTimeout(doPrint, 40);
             }
         });
 
@@ -687,11 +689,13 @@ body{display:flex;justify-content:center;align-items:flex-start}
             const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
 
             const printBrowser = async () => {
-                const kioskOk = await printViaKiosk(order, printOpts);
-                if (kioskOk) return true;
+                // Iframe oculto primeiro — o cliente continua vendo o totem (sem diálogo na tela principal)
                 const iframeOk = await printViaWarmIframe(order, printOpts);
                 if (iframeOk) return true;
-                return printViaHiddenIframe(order, printOpts);
+                const hiddenOk = await printViaHiddenIframe(order, printOpts);
+                if (hiddenOk) return true;
+                // Fallback silencioso só com Chrome --kiosk-printing
+                return printViaKiosk(order, printOpts);
             };
 
             const tryBridge = async (attempts = 2) => {
