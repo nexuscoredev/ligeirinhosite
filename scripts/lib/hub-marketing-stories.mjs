@@ -1,6 +1,7 @@
 import { hubConfig } from '../hub-auth.mjs';
 
 const RAIZ_DRIVE_ID = '1XxmOF8ks5AUjMK5sC1y9fJ6f_sAWnhgo';
+const STORY_LABEL_PROMOCOES = 'Promoções';
 
 const RING_COLORS = {
     ofertas: '#F7D53C',
@@ -38,12 +39,6 @@ function normalizeKey(value) {
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '');
-}
-
-function stripExtension(name) {
-    return String(name || '')
-        .replace(/\.[^.]+$/, '')
-        .trim();
 }
 
 function isVerticalParceirosPasta(pasta) {
@@ -134,7 +129,6 @@ function buildStoryFromImages(pasta, images, index) {
     const cta = ctaForFolder(pasta.nome);
     const slides = images.map((arquivo) => ({
         image: arquivo.imagem_url,
-        title: stripExtension(arquivo.nome) || pasta.nome,
         cta,
         theme: 'yellow',
     }));
@@ -193,7 +187,7 @@ function buildStoriesFromDriveData(_raiz, pastaList, arquivoList) {
     const storyLabel =
         verticalRoot.nome && !isVerticalParceirosPasta({ nome: verticalRoot.nome, caminho: verticalRoot.caminho })
             ? verticalRoot.nome
-            : 'Promoções do dia';
+            : STORY_LABEL_PROMOCOES;
 
     return [
         {
@@ -203,7 +197,6 @@ function buildStoriesFromDriveData(_raiz, pastaList, arquivoList) {
             thumbImage: directImages[0].imagem_url,
             slides: directImages.map((arquivo) => ({
                 image: arquivo.imagem_url,
-                title: stripExtension(arquivo.nome) || storyLabel,
                 cta: ctaForFolder(storyLabel),
                 theme: 'yellow',
             })),
