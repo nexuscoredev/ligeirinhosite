@@ -279,6 +279,8 @@
     const resolveCatalogCategory = (catalogData, id) => {
         if (!catalogData?.categories) return null;
         if (id === 'gelos') {
+            const direct = catalogData.categories.find((c) => c.id === 'gelos');
+            if (direct?.products?.length) return direct;
             const products = [];
             catalogData.categories.forEach((c) => {
                 (c.products || []).forEach((p) => {

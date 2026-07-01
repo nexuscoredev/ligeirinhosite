@@ -168,12 +168,8 @@
             itemsByCategory[item.categoryId].push(item);
         });
 
-        const itemsForCategory = (cat, limit = 8) => {
-            if (cat.id === 'gelos') {
-                return displayItems.filter((item) => catalog.isGeloProductName(item.product.name)).slice(0, limit);
-            }
-            return (itemsByCategory[cat.id] || []).slice(0, limit);
-        };
+        const itemsForCategory = (cat, limit = 8) =>
+            (itemsByCategory[cat.id] || []).slice(0, limit);
 
         const sections = sectionOrder()
             .map((id) => catalog.resolveCatalogCategory(data, id))
@@ -181,6 +177,7 @@
             .slice(0, 5)
             .map((cat) => {
                 const items = itemsForCategory(cat, 8);
+                if (!items.length) return '';
                 const cards = items.map((item) => catalog.productCardHorizontal(item)).join('');
                 const title = catalog.formatCategoryLabel(cat.name);
                 return `<section class="ze-section home-desktop-only" aria-labelledby="sec-${cat.id}">
