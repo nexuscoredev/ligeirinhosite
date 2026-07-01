@@ -9,6 +9,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Ligeirinho Parceiros">
+<script>
+if ((location.hash || '').replace(/^#/, '').toLowerCase() === 'pedidos') {
+    location.replace('meus-pedidos.html');
+}
+</script>
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/site.css">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
