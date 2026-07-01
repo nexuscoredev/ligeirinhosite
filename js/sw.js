@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v217';
+const CACHE_NAME = 'ligeirinho-app-v218';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/layout.js',
