@@ -19,18 +19,18 @@ if not exist "%CHROME%" (
 
 if not exist "%PROFILE%" mkdir "%PROFILE%"
 
+rem Primeira vez no PC? Execute totem-configurar-pc.bat (gestos de borda + inicializacao automatica).
+
 echo.
 echo Ligeirinho Totem — modo quiosque
 echo.
-echo Para bloquear gestos do Windows (deslizar da borda / Task View), execute UMA VEZ como Admin:
+echo Configuracao do PC (gestos de borda + iniciar sempre por aqui):
+echo   totem-configurar-pc.bat
+echo.
+echo Bloqueio maximo do Windows (Admin, uma vez):
 echo   scripts\totem-windows-lockdown.ps1
-echo   ou importe scripts\totem-windows-lockdown.reg
 echo.
-echo Windows 11: o .reg desativa Left_Edgy_Enabled (borda esquerda = Task View).
-echo   Configuracoes ^> Bluetooth e dispositivos ^> Tela sensivel ao toque
-echo   ^> desative gestos das bordas esquerda e direita.
-echo.
-timeout /t 4 /nobreak >nul
+timeout /t 3 /nobreak >nul
 
 rem --kiosk-printing + --disable-print-preview = impressao silenciosa na padrao
 rem Reinicia o Chrome automaticamente se a janela for fechada (exceto logout admin com PIN).
