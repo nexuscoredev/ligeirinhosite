@@ -191,14 +191,14 @@ Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chev
 </div>
 
 <div class="order-track__actions">
-<a href="conta.html#pedidos" class="lig-btn-primary w-full text-center">Ir para pedidos</a>
+<a href="meus-pedidos.html" class="lig-btn-primary w-full text-center">Ir para pedidos</a>
 <a href="pedidos.html" class="lig-btn-secondary w-full text-center mt-3">Fazer novo pedido</a>
 </div>
 </div>`;
 
         root.querySelector('#order-track-back')?.addEventListener('click', () => {
             if (window.history.length > 1) window.history.back();
-            else window.location.href = 'conta.html#pedidos';
+            else window.location.href = 'meus-pedidos.html';
         });
 
         root.querySelector('#order-track-summary-toggle')?.addEventListener('click', () => {

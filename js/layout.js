@@ -86,16 +86,15 @@
     }
 
     const page = document.body.dataset.page || '';
-    const navHash = () => (window.location.hash || '').replace(/^#/, '').toLowerCase();
     const isNavItemActive = (item) => {
-        if (item.id === 'meus-pedidos') return page === 'conta' && navHash() === 'pedidos';
-        if (item.id === 'conta') return page === 'conta' && navHash() !== 'pedidos';
+        if (item.id === 'conta') return page === 'conta';
         return page === item.id;
     };
     const appSectionPages = new Set([
         'inicio',
         'ofertas',
         'pedidos',
+        'meus-pedidos',
         'caminhao',
         'conta',
         'pagamento',
@@ -133,7 +132,7 @@
     const appNavItems = [
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
-        { id: 'meus-pedidos', href: 'conta.html#pedidos', label: 'Pedidos', icon: 'inventory_2' },
+        { id: 'meus-pedidos', href: 'meus-pedidos.html', label: 'Pedidos', icon: 'inventory_2' },
     ];
 
     const institutionalNavItems = [
@@ -294,7 +293,7 @@ ${navMobileLinksHtml}
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
-        { id: 'meus-pedidos', href: 'conta.html#pedidos', label: 'Pedidos', icon: 'inventory_2' },
+        { id: 'meus-pedidos', href: 'meus-pedidos.html', label: 'Pedidos', icon: 'inventory_2' },
         { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];
@@ -340,7 +339,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <a class="lig-footer-link" href="inicio.html">Início</a>
 <a class="lig-footer-link" href="ofertas.html">Ofertas</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
-<a class="lig-footer-link" href="conta.html#pedidos">Pedidos</a>
+<a class="lig-footer-link" href="meus-pedidos.html">Pedidos</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>
 <a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
@@ -690,8 +689,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         nav.querySelectorAll('a[href]').forEach((link) => {
             const href = link.getAttribute('href') || '';
             let item = null;
-            if (href.includes('conta.html#pedidos')) item = { id: 'meus-pedidos' };
-            else if (href === accountHref) item = { id: 'conta' };
+            if (href === accountHref) item = { id: 'conta' };
             else {
                 const match = bottomTabItems.find((entry) => entry.href === href);
                 if (match) item = match;
@@ -717,9 +715,6 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         };
 
         window.addEventListener('ligeirinho-cart-changed', syncTabBadge);
-        if (page === 'conta') {
-            window.addEventListener('hashchange', syncBottomNavActive);
-        }
         syncTabBadge();
         syncBottomNavActive();
     };
