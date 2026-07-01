@@ -3220,12 +3220,47 @@ html.lig-story-open {
     background: linear-gradient(160deg, #2a2a2a 0%, #111 100%);
 }
 
+.lig-story-viewer__body--photo .lig-story-viewer__shade {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.45) 100%);
+}
+
 .lig-story-viewer__content {
     position: relative;
     z-index: 2;
     width: 100%;
     padding: 1.5rem 1.25rem 1.75rem;
     color: #fff;
+}
+
+.lig-story-viewer__content--photo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    min-height: 100%;
+    padding: 1rem 1rem 1.25rem;
+}
+
+.lig-story-viewer__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.lig-story-viewer__cta--compact {
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .lig-story-viewer__kicker {
@@ -3250,20 +3285,6 @@ html.lig-story-open {
     line-height: 1.45;
     opacity: 0.92;
     margin: 0 0 1rem;
-}
-
-.lig-story-viewer__cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 2.75rem;
-    padding: 0 1.25rem;
-    border-radius: 999px;
-    background: #fff;
-    color: #1a1a1a;
-    font-size: 0.875rem;
-    font-weight: 700;
-    text-decoration: none;
 }
 
 .lig-story-viewer__tap {
@@ -5329,6 +5350,46 @@ html.lig-story-open {
     text-align: center;
     color: var(--lig-text-muted);
     font-size: 0.875rem;
+}
+
+.ofertas-mkt-gallery {
+    padding: 0 1rem 1rem;
+    background: var(--lig-surface);
+}
+
+.ofertas-mkt-gallery__title {
+    margin: 0 0 0.75rem;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.ofertas-mkt-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.625rem;
+}
+
+.ofertas-mkt-gallery__item {
+    margin: 0;
+    border-radius: 0.625rem;
+    overflow: hidden;
+    background: var(--lig-media-bg);
+    border: 1px solid var(--lig-border);
+}
+
+.ofertas-mkt-gallery__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+@media (min-width: 640px) {
+    .ofertas-mkt-gallery__grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 .ofertas-product-row {

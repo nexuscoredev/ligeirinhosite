@@ -17,6 +17,7 @@
     let filterOpen = false;
     let loading = true;
     let loadError = false;
+    let mktGalleryImages = [];
 
     const promoLoader = promoCatalog.createHubPromoLoader('/api/promocoes');
 
@@ -114,6 +115,41 @@
         return items;
     };
 
+    const loadMktGallery = async () => {
+        try {
+            const res = await fetch('/api/marketing-stories', { cache: 'no-store' });
+            if (!res.ok) {
+                mktGalleryImages = [];
+                return;
+            }
+            const data = await res.json();
+            const urls = [];
+            (data.stories || []).forEach((story) => {
+                (story.slides || []).forEach((slide) => {
+                    if (slide.image && !urls.includes(slide.image)) urls.push(slide.image);
+                });
+            });
+            mktGalleryImages = urls;
+        } catch {
+            mktGalleryImages = [];
+        }
+    };
+
+    const mktGalleryHtml = () => {
+        if (!mktGalleryImages.length) return '';
+        return `<section class="ofertas-mkt-gallery" aria-label="Encartes promocionais">
+<h2 class="ofertas-mkt-gallery__title">Promoções do dia</h2>
+<div class="ofertas-mkt-gallery__grid">
+${mktGalleryImages
+    .map(
+        (url, index) =>
+            `<figure class="ofertas-mkt-gallery__item"><img src="${esc(url)}" alt="Promoção ${index + 1}" class="ofertas-mkt-gallery__img" loading="lazy" decoding="async"></figure>`
+    )
+    .join('')}
+</div>
+</section>`;
+    };
+
     const offerProductRow = (entry) => {
         const ctx = buildCartCtx(entry);
         const { group, product, tier, variant, cartKey, originalPrice, promoPrice, discountPct, promo } = ctx;
@@ -198,6 +234,7 @@ ${(catalogData?.categories || [])
     .join('')}
 </select>
 </div>
+<div id="ofertas-mkt-gallery"></div>
 <div id="ofertas-status" class="ofertas-status" hidden></div>
 <div id="ofertas-list" class="ofertas-list" role="list"></div>
 </div>`;
@@ -206,7 +243,10 @@ ${(catalogData?.categories || [])
     const renderList = () => {
         const list = root.querySelector('#ofertas-list');
         const status = root.querySelector('#ofertas-status');
+        const gallery = root.querySelector('#ofertas-mkt-gallery');
         if (!list) return;
+
+        if (gallery) gallery.innerHTML = mktGalleryHtml();
 
         if (loading) {
             if (status) {
@@ -217,12 +257,12 @@ ${(catalogData?.categories || [])
             return;
         }
 
-        if (loadError && !promoEntries.length) {
+        if (loadError && !promoEntries.length && !mktGalleryImages.length) {
             if (status) {
                 status.hidden = false;
                 status.innerHTML =
                     'Não foi possível carregar as promoções. <button type="button" class="ofertas-status__retry" id="ofertas-retry">Tentar novamente</button>';
-                status.querySelector('#ofertas-retry')?.addEventListener('click', () => void refreshPromos());
+                status.querySelector('#ofertas-retry')?.addEventListener('click', () => void refreshAll());
             }
             list.innerHTML = '';
             return;
@@ -231,9 +271,14 @@ ${(catalogData?.categories || [])
         const items = getFilteredEntries();
         if (status) status.hidden = true;
 
-        list.innerHTML = items.length
-            ? items.map(offerProductRow).join('')
-            : '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre ofertas no Ligeirinho Hub.</p>';
+        if (items.length) {
+            list.innerHTML = items.map(offerProductRow).join('');
+        } else if (!mktGalleryImages.length) {
+            list.innerHTML =
+                '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre ofertas no Ligeirinho Hub.</p>';
+        } else {
+            list.innerHTML = '';
+        }
 
         bindListActions();
     };
@@ -270,7 +315,7 @@ ${(catalogData?.categories || [])
             root.querySelector('#ofertas-filter-btn')?.setAttribute('aria-expanded', filterOpen ? 'true' : 'false');
         });
 
-        root.querySelector('#ofertas-refresh')?.addEventListener('click', () => void refreshPromos());
+        root.querySelector('#ofertas-refresh')?.addEventListener('click', () => void refreshAll());
     };
 
     const render = () => {
@@ -283,16 +328,19 @@ ${(catalogData?.categories || [])
         if (filterEl) filterEl.value = filterCategory;
     };
 
-    const refreshPromos = async () => {
+    const refreshAll = async () => {
         loading = true;
         loadError = false;
         renderList();
+        await loadMktGallery();
         const promos = await promoLoader.load(true);
         loadError = promoLoader.hadError();
         promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });
         loading = false;
         renderList();
     };
+
+    const refreshPromos = refreshAll;
 
     const init = async () => {
         loading = true;
@@ -303,7 +351,7 @@ ${(catalogData?.categories || [])
             catalogData = catalogJson;
             displayItems = pricing.getDisplayProducts(catalogJson);
             window.__ligProductGroups = pricing.buildGroups(catalogJson);
-            await refreshPromos();
+            await refreshAll();
         } catch {
             loadError = true;
             loading = false;

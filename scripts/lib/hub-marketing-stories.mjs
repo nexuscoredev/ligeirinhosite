@@ -130,7 +130,7 @@ function buildStoryFromImages(pasta, images, index) {
     const slides = images.map((arquivo) => ({
         image: arquivo.imagem_url,
         cta,
-        theme: 'yellow',
+        theme: 'photo',
     }));
 
     return {
@@ -198,7 +198,7 @@ function buildStoriesFromDriveData(_raiz, pastaList, arquivoList) {
             slides: directImages.map((arquivo) => ({
                 image: arquivo.imagem_url,
                 cta: ctaForFolder(storyLabel),
-                theme: 'yellow',
+                theme: 'photo',
             })),
         },
     ];

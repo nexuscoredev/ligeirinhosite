@@ -108,6 +108,7 @@
 
         const imgSrc = slide.image || resolveSlideImage(slide, catalog, catalogData);
         const theme = slide.theme || 'yellow';
+        const isPhotoPromo = Boolean(imgSrc && theme === 'photo');
         const progress = slides
             .map((_, i) => {
                 let cls = 'lig-story-viewer__bar';
@@ -126,13 +127,14 @@
                 ? `<img class="lig-story-viewer__bg" src="${esc(imgSrc)}" alt="" decoding="async">`
                 : ''
         }<div class="lig-story-viewer__shade"></div>
-<div class="lig-story-viewer__content">
+<div class="lig-story-viewer__content${isPhotoPromo ? ' lig-story-viewer__content--photo' : ''}">
 ${slide.kicker ? `<p class="lig-story-viewer__kicker">${esc(slide.kicker)}</p>` : ''}
-<h2 class="lig-story-viewer__title">${esc(slide.title || story.label)}</h2>
+${slide.title ? `<h2 class="lig-story-viewer__title">${esc(slide.title)}</h2>` : ''}
+${!slide.title && !isPhotoPromo ? `<h2 class="lig-story-viewer__title">${esc(story.label)}</h2>` : ''}
 ${slide.body ? `<p class="lig-story-viewer__text">${esc(slide.body)}</p>` : ''}
 ${
     slide.cta?.href
-        ? `<a href="${esc(slide.cta.href)}" class="lig-story-viewer__cta">${esc(slide.cta.label || 'Saiba mais')}</a>`
+        ? `<a href="${esc(slide.cta.href)}" class="lig-story-viewer__cta${isPhotoPromo ? ' lig-story-viewer__cta--compact' : ''}">${esc(slide.cta.label || 'Saiba mais')}</a>`
         : ''
 }
 </div>`;
