@@ -1,6 +1,7 @@
 import { fetchOrderById, patchOrder } from './supabase-orders.mjs';
 import { maybeInitSeparation } from './separation-init.mjs';
 import { confirmHubPedidoForTotem } from './hub-totem-pedido.mjs';
+import { resolveOrderSplits } from './lib/payment-splits.mjs';
 
 async function sbFetch(url, key, path, options = {}) {
     const res = await fetch(`${url}/rest/v1/${path}`, {
@@ -132,11 +133,15 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         err.status = 400;
         throw err;
     }
+    const incomingSplits = normalizePaymentSplits(paymentSplits, order.total);
     if (order.financial_status === 'aguardando_caixa' && order.payment_method) {
-        return order;
+        const existingSplits = resolveOrderSplits(order);
+        if (!incomingSplits?.length || existingSplits.length >= 2) {
+            return order;
+        }
     }
 
-    const splits = normalizePaymentSplits(paymentSplits, order.total);
+    const splits = incomingSplits;
     let payment_method;
     let notes;
     if (splits?.length) {
@@ -169,7 +174,7 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         const msg = String(patchErr.message || '');
         if (!/column/i.test(msg)) throw patchErr;
         const { payment_splits: _ps, ...legacyPatch } = patch;
-        return patchOrder(url, key, orderId, legacyPatch, { useRpc });
+        return patchOrder(url, key, orderId, legacyPatch, { useRpc: false });
     }
 }
 

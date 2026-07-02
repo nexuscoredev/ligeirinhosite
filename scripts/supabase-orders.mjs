@@ -177,7 +177,10 @@ export async function listParceiroOrders(
 }
 
 export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
-    if (useRpc) {
+    const needsDirectPatch =
+        Object.prototype.hasOwnProperty.call(patch, 'notes')
+        || Object.prototype.hasOwnProperty.call(patch, 'payment_splits');
+    if (useRpc && !needsDirectPatch) {
         const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {
             method: 'POST',
             headers: headers(apiKey),

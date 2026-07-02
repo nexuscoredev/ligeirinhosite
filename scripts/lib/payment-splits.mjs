@@ -29,8 +29,22 @@ function mapHumanLabelToMethod(label) {
     return normalizeMethodId(text);
 }
 
+function coalesceSplitArray(raw) {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string' && raw.trim()) {
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
 function normalizeSplits(raw) {
-    if (!Array.isArray(raw)) return [];
+    const list = coalesceSplitArray(raw);
+    if (!list.length) return [];
     const seen = new Set();
     const out = [];
     raw.forEach((entry) => {
