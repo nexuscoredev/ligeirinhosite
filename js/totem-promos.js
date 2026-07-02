@@ -4,10 +4,12 @@
     let mktImages = [];
     let fetchError = false;
     let loadedAt = 0;
-    let lightboxEl = null;
-    let lightboxIndex = 0;
+    let slideIndex = 0;
+    let autoTimer = null;
+    let touchStartX = 0;
 
     const CACHE_MS = 60_000;
+    const AUTO_MS = 7000;
 
     const esc = (value) =>
         String(value ?? '')
@@ -65,90 +67,122 @@
         }
     };
 
-    const buildGridHtml = (images) =>
+    const buildDotsHtml = (images, active) =>
         images
             .map(
-                (url, index) => `<button type="button" class="totem-promos__mkt-item" data-mkt-index="${index}" aria-label="Ver promoção ${index + 1} de ${images.length}" style="--totem-promo-i:${Math.min(index, 16)}">
-<figure class="totem-promos__mkt-figure">
-<img src="${esc(url)}" alt="" class="totem-promos__mkt-img" loading="lazy" decoding="async">
-</figure>
-</button>`
+                (_, index) =>
+                    `<button type="button" class="totem-promos__dot${index === active ? ' totem-promos__dot--active' : ''}" data-mkt-dot="${index}" aria-label="Promoção ${index + 1}" ${index === active ? 'aria-current="true"' : ''}></button>`
             )
             .join('');
 
-    const ensureLightbox = () => {
-        if (lightboxEl) return lightboxEl;
-        lightboxEl = document.createElement('div');
-        lightboxEl.id = 'totem-promo-lightbox';
-        lightboxEl.className = 'totem-promo-lightbox';
-        lightboxEl.hidden = true;
-        lightboxEl.setAttribute('aria-hidden', 'true');
-        lightboxEl.innerHTML = `<div class="totem-promo-lightbox__backdrop" data-lightbox-close></div>
-<div class="totem-promo-lightbox__sheet" role="dialog" aria-modal="true" aria-label="Promoção em tela cheia">
-<button type="button" class="totem-promo-lightbox__close" data-lightbox-close aria-label="Fechar">
-<span class="material-symbols-outlined" aria-hidden="true">close</span>
-</button>
-<button type="button" class="totem-promo-lightbox__nav totem-promo-lightbox__nav--prev" data-lightbox-prev aria-label="Promoção anterior">
+    const buildCarouselHtml = (images) => `<div class="totem-promos__carousel" data-totem-promos-carousel>
+<div class="totem-promos__stage" data-totem-promos-stage>
+<button type="button" class="totem-promos__nav totem-promos__nav--prev" data-mkt-prev aria-label="Promoção anterior">
 <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
 </button>
-<img class="totem-promo-lightbox__img" id="totem-promo-lightbox-img" alt="">
-<button type="button" class="totem-promo-lightbox__nav totem-promo-lightbox__nav--next" data-lightbox-next aria-label="Próxima promoção">
+<div class="totem-promos__frame">
+<img class="totem-promos__slide-img" data-mkt-slide-img src="${esc(images[0])}" alt="">
+</div>
+<button type="button" class="totem-promos__nav totem-promos__nav--next" data-mkt-next aria-label="Próxima promoção">
 <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
 </button>
-<p class="totem-promo-lightbox__counter" id="totem-promo-lightbox-counter"></p>
+</div>
+<footer class="totem-promos__footer">
+<p class="totem-promos__counter" data-mkt-counter>1 / ${images.length}</p>
+<div class="totem-promos__dots" data-mkt-dots role="tablist" aria-label="Promoções">
+${buildDotsHtml(images, 0)}
+</div>
+</footer>
 </div>`;
-        document.body.appendChild(lightboxEl);
 
-        lightboxEl.addEventListener('click', (e) => {
-            if (e.target.closest('[data-lightbox-close]')) closeLightbox();
-            if (e.target.closest('[data-lightbox-prev]')) stepLightbox(-1);
-            if (e.target.closest('[data-lightbox-next]')) stepLightbox(1);
+    const getCarouselEl = () => deps?.gridEl?.querySelector('[data-totem-promos-carousel]');
+
+    const updateSlide = () => {
+        const root = getCarouselEl();
+        if (!root || !mktImages.length) return;
+
+        const index = ((slideIndex % mktImages.length) + mktImages.length) % mktImages.length;
+        slideIndex = index;
+
+        const img = root.querySelector('[data-mkt-slide-img]');
+        const counter = root.querySelector('[data-mkt-counter]');
+        const dots = root.querySelector('[data-mkt-dots]');
+        const prev = root.querySelector('[data-mkt-prev]');
+        const next = root.querySelector('[data-mkt-next]');
+
+        if (img) img.src = mktImages[index];
+        if (counter) counter.textContent = `${index + 1} / ${mktImages.length}`;
+        if (dots) dots.innerHTML = buildDotsHtml(mktImages, index);
+        if (prev) prev.disabled = mktImages.length <= 1;
+        if (next) next.disabled = mktImages.length <= 1;
+    };
+
+    const goToSlide = (index) => {
+        if (!mktImages.length) return;
+        slideIndex = index;
+        updateSlide();
+        deps?.onBumpIdle?.();
+        restartAuto();
+    };
+
+    const stepSlide = (delta) => {
+        if (!mktImages.length) return;
+        goToSlide(slideIndex + delta);
+    };
+
+    const stopAuto = () => {
+        if (autoTimer) {
+            clearInterval(autoTimer);
+            autoTimer = null;
+        }
+    };
+
+    const startAuto = () => {
+        stopAuto();
+        if (mktImages.length <= 1) return;
+        autoTimer = window.setInterval(() => stepSlide(1), AUTO_MS);
+    };
+
+    const restartAuto = () => {
+        stopAuto();
+        startAuto();
+    };
+
+    const bindCarousel = () => {
+        const root = getCarouselEl();
+        if (!root || root.dataset.bound === '1') return;
+        root.dataset.bound = '1';
+
+        root.addEventListener('click', (e) => {
+            if (e.target.closest('[data-mkt-prev]')) stepSlide(-1);
+            if (e.target.closest('[data-mkt-next]')) stepSlide(1);
+            const dot = e.target.closest('[data-mkt-dot]');
+            if (dot) goToSlide(Number(dot.dataset.mktDot));
         });
 
-        return lightboxEl;
-    };
-
-    const updateLightbox = () => {
-        const img = lightboxEl?.querySelector('#totem-promo-lightbox-img');
-        const counter = lightboxEl?.querySelector('#totem-promo-lightbox-counter');
-        const url = mktImages[lightboxIndex];
-        if (img) img.src = url || '';
-        if (counter) counter.textContent = mktImages.length ? `${lightboxIndex + 1} / ${mktImages.length}` : '';
-        lightboxEl?.querySelector('[data-lightbox-prev]')?.toggleAttribute('disabled', lightboxIndex <= 0);
-        lightboxEl
-            ?.querySelector('[data-lightbox-next]')
-            ?.toggleAttribute('disabled', lightboxIndex >= mktImages.length - 1);
-    };
-
-    const openLightbox = (index) => {
-        if (!mktImages.length) return;
-        ensureLightbox();
-        lightboxIndex = Math.max(0, Math.min(index, mktImages.length - 1));
-        updateLightbox();
-        lightboxEl.hidden = false;
-        lightboxEl.setAttribute('aria-hidden', 'false');
-        lightboxEl.classList.add('totem-promo-lightbox--open');
-        deps?.onBumpIdle?.();
-    };
-
-    const closeLightbox = () => {
-        if (!lightboxEl) return;
-        lightboxEl.classList.remove('totem-promo-lightbox--open');
-        lightboxEl.hidden = true;
-        lightboxEl.setAttribute('aria-hidden', 'true');
-        deps?.onBumpIdle?.();
-    };
-
-    const stepLightbox = (delta) => {
-        const next = lightboxIndex + delta;
-        if (next < 0 || next >= mktImages.length) return;
-        lightboxIndex = next;
-        updateLightbox();
-        deps?.onBumpIdle?.();
+        const stage = root.querySelector('[data-totem-promos-stage]');
+        stage?.addEventListener(
+            'touchstart',
+            (e) => {
+                touchStartX = e.changedTouches?.[0]?.clientX || 0;
+            },
+            { passive: true }
+        );
+        stage?.addEventListener(
+            'touchend',
+            (e) => {
+                const endX = e.changedTouches?.[0]?.clientX || 0;
+                const delta = endX - touchStartX;
+                if (Math.abs(delta) < 48) return;
+                stepSlide(delta < 0 ? 1 : -1);
+            },
+            { passive: true }
+        );
     };
 
     const render = async () => {
         if (!deps?.gridEl) return;
+        stopAuto();
         setPanelVisibility({ showLoading: true });
         const images = await loadImages();
         if (fetchError && !images.length) {
@@ -159,21 +193,19 @@
             setPanelVisibility({ showEmpty: true });
             return;
         }
+
+        slideIndex = 0;
         setPanelVisibility({ showGrid: true });
-        deps.gridEl.innerHTML = buildGridHtml(images);
-        deps.gridEl.classList.add('totem-promos__grid--mkt');
+        deps.gridEl.innerHTML = buildCarouselHtml(images);
+        deps.gridEl.classList.add('totem-promos__grid--carousel');
+        bindCarousel();
+        updateSlide();
+        startAuto();
     };
 
     const bindGrid = () => {
         if (!deps?.gridEl || bound) return;
         bound = true;
-        deps.gridEl.addEventListener('click', (e) => {
-            const item = e.target.closest('.totem-promos__mkt-item');
-            if (!item) return;
-            const index = Number(item.dataset.mktIndex);
-            if (!Number.isFinite(index)) return;
-            openLightbox(index);
-        });
         deps.retryBtn?.addEventListener('click', () => refresh());
     };
 
@@ -191,5 +223,7 @@
         await render();
     };
 
-    window.LigeirinhoTotemPromos = { init, render, refresh, closeLightbox };
+    const closeLightbox = () => stopAuto();
+
+    window.LigeirinhoTotemPromos = { init, render, refresh, closeLightbox, stopAuto, startAuto };
 })();

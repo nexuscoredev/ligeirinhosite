@@ -540,7 +540,7 @@ body.totem-kiosk > main {
     position: relative;
     flex-shrink: 0;
     text-align: center;
-    padding: clamp(0.85rem, 2.5dvh, 1.35rem) clamp(1rem, 3vw, 1.5rem) clamp(0.65rem, 1.5dvh, 1rem);
+    padding: 0.5rem 1rem 0.35rem;
     overflow: hidden;
 }
 
@@ -577,9 +577,9 @@ body.totem-kiosk > main {
 
 .totem-promos__title {
     position: relative;
-    margin: 0 0 0.35rem;
+    margin: 0;
     font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
-    font-size: clamp(1.5rem, 4dvh, 2rem);
+    font-size: clamp(1.125rem, 2.8dvh, 1.35rem);
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--lig-text);
@@ -597,168 +597,136 @@ body.totem-kiosk > main {
 .totem-promos__body {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding: 0.35rem clamp(0.65rem, 2vw, 1rem) 1.25rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0.25rem 0.75rem 0.75rem;
 }
 
 .totem-promos__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
-    gap: 0.75rem;
-    align-content: start;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-.totem-promos__grid--mkt {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
-    gap: 0.875rem;
-}
-
-.totem-promos__mkt-item {
-    display: block;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border: none;
-    border-radius: 1rem;
-    overflow: hidden;
-    background: var(--lig-surface);
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.85) inset,
-        0 10px 28px rgba(20, 18, 15, 0.08);
-    cursor: pointer;
-    animation: totem-card-in var(--totem-dur-med) var(--totem-ease-spring) both;
-    animation-delay: calc(var(--totem-promo-i, 0) * 0.04s);
-    transition:
-        transform 0.22s var(--totem-ease-spring),
-        box-shadow 0.22s ease;
-}
-
-.totem-promos__mkt-item:active {
-    transform: scale(0.98);
-}
-
-.totem-promos__mkt-figure {
-    margin: 0;
-    aspect-ratio: 9 / 16;
-    background: var(--lig-media-bg);
-}
-
-.totem-promos__mkt-img {
-    display: block;
-    width: 100%;
+.totem-promos__grid--carousel {
     height: 100%;
-    object-fit: cover;
 }
 
-.totem-promos__loading-grid--mkt {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    max-width: 28rem;
-    margin: 0 auto 0.75rem;
+.totem-promos__carousel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.totem-promos__mkt-skeleton {
-    aspect-ratio: 9 / 16;
-    border-radius: 1rem;
-    background: linear-gradient(90deg, rgba(20, 18, 15, 0.06) 0%, rgba(20, 18, 15, 0.1) 50%, rgba(20, 18, 15, 0.06) 100%);
-    background-size: 200% 100%;
-    animation: totem-promo-skeleton 1.2s ease-in-out infinite;
-}
-
-.totem-promo-lightbox {
-    position: fixed;
-    inset: 0;
-    z-index: 120;
-    display: grid;
-    place-items: center;
-    padding: 1rem;
-}
-
-.totem-promo-lightbox__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(10, 9, 8, 0.88);
-}
-
-.totem-promo-lightbox__sheet {
-    position: relative;
-    z-index: 1;
+.totem-promos__stage {
+    flex: 1 1 auto;
+    min-height: 0;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.5rem;
-    width: min(100%, 42rem);
-    max-height: min(92dvh, 56rem);
+    gap: 0.35rem;
 }
 
-.totem-promo-lightbox__img {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    width: 100%;
-    max-height: min(82dvh, 50rem);
-    object-fit: contain;
+.totem-promos__frame {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 1rem;
-    background: #111;
+    background: var(--lig-media-bg);
+    border: 1px solid var(--lig-border);
+    overflow: hidden;
+    box-shadow: var(--lig-shadow-sm);
 }
 
-.totem-promo-lightbox__close,
-.totem-promo-lightbox__nav {
-    z-index: 2;
+.totem-promos__slide-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: min(72dvh, 52rem);
+    object-fit: contain;
+    object-position: center;
+}
+
+.totem-promos__nav {
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--lig-border);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.96);
+    color: var(--lig-text);
+    box-shadow: var(--lig-shadow-sm);
     cursor: pointer;
 }
 
-.totem-promo-lightbox__close {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-}
-
-.totem-promo-lightbox__nav--prev {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: start;
-    margin-left: 0.35rem;
-}
-
-.totem-promo-lightbox__nav--next {
-    grid-column: 3;
-    grid-row: 1;
-    justify-self: end;
-    margin-right: 0.35rem;
-}
-
-.totem-promo-lightbox__nav:disabled {
+.totem-promos__nav:disabled {
     opacity: 0.35;
     cursor: default;
 }
 
-.totem-promo-lightbox__counter {
-    grid-column: 1 / -1;
-    margin: 0.5rem 0 0;
-    text-align: center;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.82);
+.totem-promos__nav .material-symbols-outlined {
+    font-size: 1.5rem;
 }
 
-html.totem--kiosk.totem--landscape .totem-promos__grid--mkt {
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+.totem-promos__footer {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    padding-bottom: 0.15rem;
 }
 
-html.totem--phone.totem--portrait .totem-promos__grid--mkt {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.totem-promos__counter {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--lig-text-muted);
+}
+
+.totem-promos__dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem;
+    max-width: 100%;
+}
+
+.totem-promos__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(20, 18, 15, 0.18);
+    cursor: pointer;
+}
+
+.totem-promos__dot--active {
+    width: 1.25rem;
+    background: var(--lig-yellow);
+}
+
+.totem-promos__stage-skeleton {
+    flex: 1;
+    min-height: 12rem;
+    max-height: 52dvh;
+    margin: 0 auto 0.75rem;
+    width: min(100%, 22rem);
+    border-radius: 1rem;
+    background: linear-gradient(90deg, rgba(20, 18, 15, 0.06) 0%, rgba(20, 18, 15, 0.1) 50%, rgba(20, 18, 15, 0.06) 100%);
+    background-size: 200% 100%;
+    animation: totem-promo-skeleton 1.2s ease-in-out infinite;
 }
 
 .totem-promo-card {
@@ -991,11 +959,14 @@ html.totem--phone.totem--portrait .totem-promos__grid--mkt {
 }
 
 .totem-promos__loading {
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    padding: 1.5rem 0;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0 1rem;
 }
 
 .totem-promos__loading-grid {
@@ -1076,15 +1047,6 @@ html.totem--phone.totem--portrait .totem-promos__grid--mkt {
 
 .totem-cart-line__meta .totem-cart-line__promo + .totem-cart-line__pack::before {
     content: none;
-}
-
-html.totem--kiosk.totem--landscape .totem-promos__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-}
-
-html.totem--phone.totem--portrait .totem-promos__grid {
-    grid-template-columns: 1fr;
 }
 
 html.totem--phone .totem-btn--promos .totem-btn__label {

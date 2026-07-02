@@ -832,7 +832,12 @@ ${unitHtml}
                 bindCustomerKeyboard(customerNameInput);
             }, 120);
         }
-        if (inPromos) window.LigeirinhoTotemPromos?.refresh?.();
+        if (inPromos) {
+            window.LigeirinhoTotemPromos?.refresh?.();
+            window.LigeirinhoTotemPromos?.startAuto?.();
+        } else {
+            window.LigeirinhoTotemPromos?.stopAuto?.();
+        }
         updateFloatCart(cartApi.loadCart());
     };
 

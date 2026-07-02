@@ -149,18 +149,12 @@
 <section id="totem-view-promos" class="totem-view totem-promos" aria-label="Promoções" hidden>
 <header class="totem-promos__hero">
 <div class="totem-promos__hero-aura" aria-hidden="true"></div>
-<p class="totem-promos__eyebrow">Ofertas exclusivas</p>
 <h2 class="totem-promos__title">Promoções</h2>
-<p class="totem-promos__lead">Encartes promocionais do Marketing, atualizados automaticamente pelo Hub</p>
 </header>
 <div class="totem-promos__body">
 <div class="totem-promos__loading" id="totem-promos-loading" hidden aria-live="polite">
-<div class="totem-promos__loading-grid totem-promos__loading-grid--mkt" aria-hidden="true">
-<div class="totem-promos__mkt-skeleton"></div>
-<div class="totem-promos__mkt-skeleton"></div>
-<div class="totem-promos__mkt-skeleton"></div>
-</div>
-<p class="totem-promos__loading-text">Carregando encartes do Marketing…</p>
+<div class="totem-promos__stage-skeleton" aria-hidden="true"></div>
+<p class="totem-promos__loading-text">Carregando encartes…</p>
 </div>
 <div class="totem-promos__error" id="totem-promos-error" hidden>
 <span class="material-symbols-outlined totem-promos__error-icon" aria-hidden="true">cloud_off</span>
@@ -168,7 +162,7 @@
 <p class="totem-promos__error-lead">Verifique a conexão e tente novamente.</p>
 <button type="button" class="totem-btn totem-btn--ghost" id="totem-promos-retry">Tentar novamente</button>
 </div>
-<div class="totem-promos__grid" id="totem-promos-grid" role="list"></div>
+<div class="totem-promos__grid" id="totem-promos-grid" role="region" aria-label="Carrossel de promoções"></div>
 <div class="totem-promos__empty" id="totem-promos-empty" hidden>
 <span class="material-symbols-outlined totem-promos__empty-icon" aria-hidden="true">sell</span>
 <p class="totem-promos__empty-title">Nenhuma promoção no momento</p>
