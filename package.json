@@ -15,6 +15,7 @@
     "compare:catalogo": "node scripts/compare-catalogo-hub.mjs",
     "migrate:finance": "node scripts/apply-finance-migration.mjs",
     "migrate:totem": "node scripts/apply-totem-migration.mjs",
+    "migrate:totem-payment-splits": "node scripts/apply-totem-payment-splits-rpc-migration.mjs",
     "migrate:hub-auth": "node scripts/apply-hub-auth-migration.mjs",
     "migrate:all": "node scripts/apply-pending-migrations.mjs",
     "migrate:check": "node scripts/check-migrations.mjs",

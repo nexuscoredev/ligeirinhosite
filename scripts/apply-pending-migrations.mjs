@@ -35,6 +35,8 @@ async function applyParceiros() {
         await runSqlFile(client, 'totem-code-4chars-migration.sql');
         console.log('[parceiros] Aplicando invoice-schema-migration.sql…');
         await runSqlFile(client, 'invoice-schema-migration.sql');
+        console.log('[parceiros] Aplicando totem-payment-splits-rpc-migration.sql…');
+        await runSqlFile(client, 'totem-payment-splits-rpc-migration.sql');
 
         const tables = await client.query(
             `select table_name from information_schema.tables
