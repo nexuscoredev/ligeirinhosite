@@ -29,7 +29,7 @@
     const buildEntries = async () => {
         if (!promoLoader || !promoCatalog) return [];
         const promos = await promoLoader.load();
-        return promoCatalog.buildPromoEntries(promos, deps?.getDisplayItems?.() || []);
+        return promoCatalog.buildPromoEntries(promos, deps?.getDisplayItems?.() || [], { matchedOnly: true });
     };
 
     const buildCardHtml = (entry, index) => {
