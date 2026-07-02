@@ -1,5 +1,5 @@
 (function () {
-    const STORAGE_KEY = 'ligeirinho-mkt-stories-v1';
+    const STORAGE_KEY = 'ligeirinho-mkt-stories-v2';
     const CACHE_MS = 5 * 60_000;
     const HUB_STORAGE = 'liszpwocwvkytzyaxvit.supabase.co';
 

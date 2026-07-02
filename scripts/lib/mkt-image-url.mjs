@@ -4,7 +4,7 @@
 export function mktImageUrl(url, { width, quality = 80 } = {}) {
     if (!url || typeof url !== 'string') return url;
     if (!url.includes('/storage/v1/object/public/marketing-artes/')) return url;
-    const renderUrl = url.replace('/storage/v1/object/public/', '/render/image/public/');
+    const renderUrl = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
     const params = new URLSearchParams();
     if (width) params.set('width', String(width));
     params.set('quality', String(quality));

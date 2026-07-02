@@ -623,17 +623,18 @@ body.totem-kiosk > main {
 }
 
 .totem-promos__stage {
+    position: relative;
     flex: 1 1 auto;
-    min-height: 0;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.35rem;
+    min-height: min(58dvh, 36rem);
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
 }
 
 .totem-promos__frame {
-    min-height: 0;
-    height: 100%;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: min(58dvh, 36rem);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -646,26 +647,39 @@ body.totem-kiosk > main {
 
 .totem-promos__slide-img {
     display: block;
-    width: 100%;
-    height: 100%;
-    max-height: min(72dvh, 52rem);
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: min(58dvh, 36rem);
     object-fit: contain;
     object-position: center;
 }
 
 .totem-promos__nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    transform: translateY(-50%);
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 2.75rem;
+    height: 2.75rem;
     border: 1px solid var(--lig-border);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.96);
     color: var(--lig-text);
     box-shadow: var(--lig-shadow-sm);
     cursor: pointer;
+}
+
+.totem-promos__nav--prev {
+    left: 0.4rem;
+}
+
+.totem-promos__nav--next {
+    right: 0.4rem;
 }
 
 .totem-promos__nav:disabled {

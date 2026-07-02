@@ -1,7 +1,7 @@
 (function () {
     let deps = null;
     let bound = false;
-    let mktImages = [];
+    let mktSlides = [];
     let fetchError = false;
     let slideIndex = 0;
     let autoTimer = null;
@@ -16,22 +16,34 @@
             .replace(/</g, '&lt;')
             .replace(/"/g, '&quot;');
 
+    const slideUrls = (slides) => slides.map((s) => s.display);
+
     const loadImages = async (force = false) => {
         const api = mkt();
         if (!api?.loadMarketingStories) {
             fetchError = true;
-            mktImages = [];
-            return mktImages;
+            mktSlides = [];
+            return slideUrls(mktSlides);
         }
         try {
             const data = await api.loadMarketingStories({ force });
-            mktImages = api.collectImageUrls(data.stories);
+            const list = [];
+            (data.stories || []).forEach((story) => {
+                (story.slides || []).forEach((slide) => {
+                    const display = api.slideImage(slide);
+                    const full = slide.imageFull || display;
+                    if (display && !list.some((s) => s.display === display)) {
+                        list.push({ display, full });
+                    }
+                });
+            });
+            mktSlides = list;
             fetchError = false;
         } catch {
             fetchError = true;
-            if (!mktImages.length) mktImages = [];
+            if (!mktSlides.length) mktSlides = [];
         }
-        return mktImages;
+        return slideUrls(mktSlides);
     };
 
     const setPanelVisibility = ({ showLoading = false, showError = false, showGrid = false, showEmpty = false } = {}) => {
@@ -68,7 +80,7 @@
 <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
 </button>
 <div class="totem-promos__frame">
-<img class="totem-promos__slide-img" data-mkt-slide-img src="${esc(images[0])}" alt="" decoding="async" fetchpriority="high">
+<img class="totem-promos__slide-img" data-mkt-slide-img src="${esc(images[0]?.display || images[0])}" data-mkt-fallback="${esc(images[0]?.full || images[0]?.display || images[0])}" alt="" decoding="async" fetchpriority="high">
 </div>
 <button type="button" class="totem-promos__nav totem-promos__nav--next" data-mkt-next aria-label="Próxima promoção">
 <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
@@ -86,18 +98,29 @@ ${buildDotsHtml(images, 0)}
 
     const prefetchNeighbors = (index) => {
         const api = mkt();
-        if (!api || mktImages.length < 2) return;
-        const next = mktImages[(index + 1) % mktImages.length];
-        const prev = mktImages[(index - 1 + mktImages.length) % mktImages.length];
-        void api.preloadImage(next);
-        void api.preloadImage(prev);
+        if (!api || mktSlides.length < 2) return;
+        const next = mktSlides[(index + 1) % mktSlides.length];
+        const prev = mktSlides[(index - 1 + mktSlides.length) % mktSlides.length];
+        void api.preloadImage(next?.display);
+        void api.preloadImage(prev?.display);
+    };
+
+    const bindSlideImage = (img, slide) => {
+        if (!img || !slide) return;
+        img.dataset.fallbackUsed = '0';
+        img.onerror = () => {
+            if (img.dataset.fallbackUsed === '1' || !slide.full) return;
+            img.dataset.fallbackUsed = '1';
+            img.src = slide.full;
+        };
+        img.src = slide.display;
     };
 
     const updateSlide = () => {
         const root = getCarouselEl();
-        if (!root || !mktImages.length) return;
+        if (!root || !mktSlides.length) return;
 
-        const index = ((slideIndex % mktImages.length) + mktImages.length) % mktImages.length;
+        const index = ((slideIndex % mktSlides.length) + mktSlides.length) % mktSlides.length;
         slideIndex = index;
 
         const img = root.querySelector('[data-mkt-slide-img]');
@@ -106,16 +129,16 @@ ${buildDotsHtml(images, 0)}
         const prev = root.querySelector('[data-mkt-prev]');
         const next = root.querySelector('[data-mkt-next]');
 
-        if (img) img.src = mktImages[index];
-        if (counter) counter.textContent = `${index + 1} / ${mktImages.length}`;
-        if (dots) dots.innerHTML = buildDotsHtml(mktImages, index);
-        if (prev) prev.disabled = mktImages.length <= 1;
-        if (next) next.disabled = mktImages.length <= 1;
+        bindSlideImage(img, mktSlides[index]);
+        if (counter) counter.textContent = `${index + 1} / ${mktSlides.length}`;
+        if (dots) dots.innerHTML = buildDotsHtml(mktSlides, index);
+        if (prev) prev.disabled = mktSlides.length <= 1;
+        if (next) next.disabled = mktSlides.length <= 1;
         prefetchNeighbors(index);
     };
 
     const goToSlide = (index) => {
-        if (!mktImages.length) return;
+        if (!mktSlides.length) return;
         slideIndex = index;
         updateSlide();
         deps?.onBumpIdle?.();
@@ -123,7 +146,7 @@ ${buildDotsHtml(images, 0)}
     };
 
     const stepSlide = (delta) => {
-        if (!mktImages.length) return;
+        if (!mktSlides.length) return;
         goToSlide(slideIndex + delta);
     };
 
@@ -136,7 +159,7 @@ ${buildDotsHtml(images, 0)}
 
     const startAuto = () => {
         stopAuto();
-        if (mktImages.length <= 1) return;
+        if (mktSlides.length <= 1) return;
         autoTimer = window.setInterval(() => stepSlide(1), AUTO_MS);
     };
 
@@ -181,27 +204,27 @@ ${buildDotsHtml(images, 0)}
         if (!deps?.gridEl) return;
         stopAuto();
         setPanelVisibility({ showLoading: true });
-        const images = await loadImages();
-        if (fetchError && !images.length) {
+        await loadImages();
+        if (fetchError && !mktSlides.length) {
             setPanelVisibility({ showError: true });
             return;
         }
-        if (!images.length) {
+        if (!mktSlides.length) {
             setPanelVisibility({ showEmpty: true });
             return;
         }
 
         const api = mkt();
-        await api?.preloadImage?.(images[0]);
+        await api?.preloadImage?.(mktSlides[0]?.display);
 
         slideIndex = 0;
         setPanelVisibility({ showGrid: true });
-        deps.gridEl.innerHTML = buildCarouselHtml(images);
+        deps.gridEl.innerHTML = buildCarouselHtml(mktSlides);
         deps.gridEl.classList.add('totem-promos__grid--carousel');
         bindCarousel();
         updateSlide();
         startAuto();
-        void api?.preloadImages?.(images.slice(1), 2);
+        void api?.preloadImages?.(mktSlides.slice(1, 3).map((s) => s.display), 2);
     };
 
     const bindGrid = () => {
@@ -218,7 +241,7 @@ ${buildDotsHtml(images, 0)}
 
     const refresh = async () => {
         mkt()?.clearCache?.();
-        mktImages = [];
+        mktSlides = [];
         fetchError = false;
         await loadImages(true);
         await render();
