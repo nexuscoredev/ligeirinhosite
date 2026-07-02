@@ -177,8 +177,7 @@ export async function listParceiroOrders(
 }
 
 export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
-    const needsDirectPatch = Object.prototype.hasOwnProperty.call(patch, 'notes');
-    if (useRpc && !needsDirectPatch) {
+    if (useRpc) {
         const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {
             method: 'POST',
             headers: headers(apiKey),
@@ -186,7 +185,7 @@ export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = fals
         });
         const data = await parseJson(res);
         if (data?.id) return data;
-        return fetchOrderById(supabaseUrl, apiKey, id, { useRpc: false });
+        return fetchOrderById(supabaseUrl, apiKey, id, { useRpc: true });
     }
 
     const res = await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}`, {

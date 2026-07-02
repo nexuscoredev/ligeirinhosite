@@ -4247,6 +4247,14 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: #b91c1c;
 }
 
+.totem-pay-amounts__warn {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #b91c1c;
+    text-align: center;
+}
+
 .totem-pay-error {
     margin: 0.5rem 0 0;
     font-size: 0.875rem;

@@ -67,6 +67,7 @@ begin
     status = coalesce(nullif(p_patch->>'status', ''), status),
     financial_status = coalesce(nullif(p_patch->>'financial_status', ''), financial_status),
     payment_method = coalesce(nullif(p_patch->>'payment_method', ''), payment_method),
+    notes = coalesce(nullif(p_patch->>'notes', ''), notes),
     mp_payment_id = coalesce((p_patch->>'mp_payment_id')::bigint, mp_payment_id),
     mp_status = coalesce(nullif(p_patch->>'mp_status', ''), mp_status),
     mp_status_detail = coalesce(nullif(p_patch->>'mp_status_detail', ''), mp_status_detail),

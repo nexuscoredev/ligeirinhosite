@@ -174,7 +174,10 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         throw patchErr;
     }
     if (!updated?.id) {
-        updated = await fetchOrderById(url, key, orderId, { useRpc: false });
+        updated = await fetchOrderById(url, key, orderId, { useRpc });
+    }
+    if (!updated?.id && order?.id) {
+        updated = { ...order, ...patch };
     }
     if (!updated?.id) {
         const err = new Error('Pedido não retornado após registrar pagamento');

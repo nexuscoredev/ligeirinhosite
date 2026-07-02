@@ -152,16 +152,29 @@
         return Math.min(parsed, maxAmountForField(id, total));
     };
 
+    const SPLIT_AMOUNTS_MSG = 'Preencha o valor das duas ou três formas de pagamento para finalizar.';
+
     const isSplitAmountsValid = (total) => {
         if (selectedIds.length < 2) return true;
+        const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
+        if (!everyFilled) return false;
         const sum = sumSelectedAmounts(null);
         return Math.abs(sum - splitsApi.roundMoney(total)) < 0.01;
+    };
+
+    const splitAmountsHintHtml = (total) => {
+        if (selectedIds.length < 2 || isSplitAmountsValid(total)) return '';
+        const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
+        if (!everyFilled) {
+            return `<p class="totem-pay-amounts__warn">${esc(SPLIT_AMOUNTS_MSG)}</p>`;
+        }
+        return '';
     };
 
     const formatAmountsSumMeta = (total) => {
         const sum = sumSelectedAmounts(null);
         const diff = splitsApi.roundMoney(total - sum);
-        const ok = Math.abs(diff) < 0.01;
+        const ok = isSplitAmountsValid(total);
         const sumClass = ok
             ? ' totem-pay-amounts__sum--ok'
             : diff > 0
@@ -230,6 +243,7 @@ ${selectedIds
     )
     .join('')}
 <p class="totem-pay-amounts__sum${sumClass}">${html}</p>
+${splitAmountsHintHtml(total)}
 </div>`;
     };
 
@@ -248,10 +262,16 @@ ${icon}
     const bindAmountInputs = (total) => {
         const updateAmountsSum = () => {
             const sumEl = root.querySelector('.totem-pay-amounts__sum');
+            const amountsBlock = root.querySelector('.totem-pay-amounts');
             if (!sumEl) return;
             const { sumClass, html } = formatAmountsSumMeta(total);
             sumEl.className = `totem-pay-amounts__sum${sumClass}`;
             sumEl.innerHTML = html;
+            amountsBlock?.querySelector('.totem-pay-amounts__warn')?.remove();
+            const hint = splitAmountsHintHtml(total);
+            if (hint && amountsBlock) {
+                sumEl.insertAdjacentHTML('afterend', hint);
+            }
             syncConfirmButton(total);
         };
 
@@ -344,6 +364,10 @@ Confirmar pagamento
         }));
         if (splits.some((item) => item.amount > total + 0.009)) {
             formError = 'Nenhum valor pode ser maior que o total do pedido.';
+            return null;
+        }
+        if (splits.some((item) => item.amount <= 0)) {
+            formError = SPLIT_AMOUNTS_MSG;
             return null;
         }
         const check = splitsApi.validateSplits(splits, total, methodLabel);

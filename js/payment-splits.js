@@ -60,6 +60,17 @@
     const validateSplits = (splits, total, labelFn = (id) => id) => {
         const normalized = normalizeSplits(splits);
         if (normalized.length < 2) {
+            const methods = new Set(
+                (Array.isArray(splits) ? splits : [])
+                    .map((entry) => normalizeMethodId(entry?.method || entry?.id))
+                    .filter(Boolean),
+            );
+            if (methods.size >= 2) {
+                return {
+                    ok: false,
+                    error: 'Preencha o valor das duas ou três formas de pagamento para finalizar.',
+                };
+            }
             return { ok: false, error: 'Selecione pelo menos duas formas de pagamento.' };
         }
         const sum = roundMoney(normalized.reduce((acc, item) => acc + item.amount, 0));

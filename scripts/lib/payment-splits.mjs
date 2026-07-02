@@ -47,7 +47,7 @@ function normalizeSplits(raw) {
     if (!list.length) return [];
     const seen = new Set();
     const out = [];
-    raw.forEach((entry) => {
+    list.forEach((entry) => {
         const method = normalizeMethodId(entry?.method || entry?.id);
         const amount = roundMoney(entry?.amount);
         if (!method || amount <= 0 || seen.has(method)) return;
