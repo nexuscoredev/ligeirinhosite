@@ -880,6 +880,7 @@ ${unitHtml}
     const resetSession = () => {
         closeProductDetail();
         closeCart();
+        window.LigeirinhoTotemPromos?.closeLightbox?.();
         resetCart();
         resetCustomerForm();
         clearSearch();
@@ -1633,16 +1634,6 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             loadingEl: document.getElementById('totem-promos-loading'),
             errorEl: document.getElementById('totem-promos-error'),
             retryBtn: document.getElementById('totem-promos-retry'),
-            getDisplayItems: () => displayItems,
-            catalog,
-            pricing,
-            cartApi,
-            formatPrice,
-            esc,
-            canonCategoryId,
-            onAdd: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
-            onChangeQty: (cartKey, delta) => changeQty(cartKey, delta),
-            onOpenDetail: (itemKey) => openProductDetail(itemKey),
             onBumpIdle: bumpIdle,
         });
         if (promosBtn) promosBtn.hidden = false;

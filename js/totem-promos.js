@@ -1,10 +1,49 @@
 (function () {
     let deps = null;
     let bound = false;
-    let loading = false;
+    let mktImages = [];
+    let fetchError = false;
+    let loadedAt = 0;
+    let lightboxEl = null;
+    let lightboxIndex = 0;
 
-    const promoCatalog = window.LigeirinhoPromoCatalog;
-    const promoLoader = promoCatalog?.createHubPromoLoader('/api/promocoes');
+    const CACHE_MS = 60_000;
+
+    const esc = (value) =>
+        String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/"/g, '&quot;');
+
+    const collectImages = (stories) => {
+        const urls = [];
+        (stories || []).forEach((story) => {
+            (story.slides || []).forEach((slide) => {
+                if (slide.image && !urls.includes(slide.image)) urls.push(slide.image);
+            });
+        });
+        return urls;
+    };
+
+    const loadImages = async (force = false) => {
+        const now = Date.now();
+        if (!force && mktImages.length && now - loadedAt < CACHE_MS) {
+            fetchError = false;
+            return mktImages;
+        }
+        try {
+            const res = await fetch('/api/marketing-stories', { cache: 'no-store' });
+            if (!res.ok) throw new Error('fetch failed');
+            const data = await res.json();
+            mktImages = collectImages(data.stories);
+            loadedAt = now;
+            fetchError = false;
+        } catch {
+            fetchError = true;
+            if (!mktImages.length) mktImages = [];
+        }
+        return mktImages;
+    };
 
     const setPanelVisibility = ({ showLoading = false, showError = false, showGrid = false, showEmpty = false } = {}) => {
         const { loadingEl, errorEl, gridEl, emptyEl } = deps || {};
@@ -26,122 +65,114 @@
         }
     };
 
-    const buildEntries = async () => {
-        if (!promoLoader || !promoCatalog) return [];
-        const promos = await promoLoader.load();
-        return promoCatalog.buildPromoEntries(promos, deps?.getDisplayItems?.() || [], { matchedOnly: true });
+    const buildGridHtml = (images) =>
+        images
+            .map(
+                (url, index) => `<button type="button" class="totem-promos__mkt-item" data-mkt-index="${index}" aria-label="Ver promoção ${index + 1} de ${images.length}" style="--totem-promo-i:${Math.min(index, 16)}">
+<figure class="totem-promos__mkt-figure">
+<img src="${esc(url)}" alt="" class="totem-promos__mkt-img" loading="lazy" decoding="async">
+</figure>
+</button>`
+            )
+            .join('');
+
+    const ensureLightbox = () => {
+        if (lightboxEl) return lightboxEl;
+        lightboxEl = document.createElement('div');
+        lightboxEl.id = 'totem-promo-lightbox';
+        lightboxEl.className = 'totem-promo-lightbox';
+        lightboxEl.hidden = true;
+        lightboxEl.setAttribute('aria-hidden', 'true');
+        lightboxEl.innerHTML = `<div class="totem-promo-lightbox__backdrop" data-lightbox-close></div>
+<div class="totem-promo-lightbox__sheet" role="dialog" aria-modal="true" aria-label="Promoção em tela cheia">
+<button type="button" class="totem-promo-lightbox__close" data-lightbox-close aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+<button type="button" class="totem-promo-lightbox__nav totem-promo-lightbox__nav--prev" data-lightbox-prev aria-label="Promoção anterior">
+<span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+</button>
+<img class="totem-promo-lightbox__img" id="totem-promo-lightbox-img" alt="">
+<button type="button" class="totem-promo-lightbox__nav totem-promo-lightbox__nav--next" data-lightbox-next aria-label="Próxima promoção">
+<span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+</button>
+<p class="totem-promo-lightbox__counter" id="totem-promo-lightbox-counter"></p>
+</div>`;
+        document.body.appendChild(lightboxEl);
+
+        lightboxEl.addEventListener('click', (e) => {
+            if (e.target.closest('[data-lightbox-close]')) closeLightbox();
+            if (e.target.closest('[data-lightbox-prev]')) stepLightbox(-1);
+            if (e.target.closest('[data-lightbox-next]')) stepLightbox(1);
+        });
+
+        return lightboxEl;
     };
 
-    const buildCardHtml = (entry, index) => {
-        const { catalog, pricing, cartApi, formatPrice, esc } = deps;
-        const { promo, item } = entry;
-        const matched = Boolean(item);
-        const group = item?.group || null;
-        const product = item?.product;
-        const tier = group ? pricing.getDefaultTier(group) : item?.defaultTier || 'caixa';
-        const variant = group ? pricing.getVariant(group, tier) : null;
-        const cartKey = variant ? catalog.cartKeyFor(variant) : product?.id || '';
-        const cart = cartApi.loadCart();
-        const qty = cartKey ? cart[cartKey]?.qty || 0 : 0;
-        const originalPrice = promo.originalPrice ?? variant?.price ?? product?.price ?? 0;
-        const promoPrice = promo.promoPrice ?? originalPrice;
-        const discountPct =
-            promo.discountPct ||
-            (originalPrice > 0 ? Math.max(0, Math.round((1 - promoPrice / originalPrice) * 100)) : 0);
-        const img = promo.imageUrl
-            ? catalog.productImageUrl(promo.imageUrl)
-            : catalog.productImageUrl(group && pricing ? pricing.getTierImage(group, tier) : product?.image);
-        const name = promo.name || group?.baseName || product?.name || 'Promoção';
-        const itemKey = group?.key || product?.id || promo.id;
-        const packLabel =
-            tier === 'caixa' && variant?.packSize
-                ? `CAIXA × ${variant.packSize}`
-                : promo.sku
-                  ? `SKU ${promo.sku}`
-                  : 'PROMOÇÃO';
-        const validade = promoCatalog.formatValidade(promo);
-        const selectedClass = qty ? ' totem-promo-card--selected' : '';
-        const unavailableClass = matched ? '' : ' totem-promo-card--unavailable';
-        const attrs = matched
-            ? `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id)}" data-promo-price="${esc(promoPrice)}" style="--totem-promo-i:${Math.min(index, 16)}"`
-            : `role="listitem" data-promo-id="${esc(promo.id)}" style="--totem-promo-i:${Math.min(index, 16)}"`;
+    const updateLightbox = () => {
+        const img = lightboxEl?.querySelector('#totem-promo-lightbox-img');
+        const counter = lightboxEl?.querySelector('#totem-promo-lightbox-counter');
+        const url = mktImages[lightboxIndex];
+        if (img) img.src = url || '';
+        if (counter) counter.textContent = mktImages.length ? `${lightboxIndex + 1} / ${mktImages.length}` : '';
+        lightboxEl?.querySelector('[data-lightbox-prev]')?.toggleAttribute('disabled', lightboxIndex <= 0);
+        lightboxEl
+            ?.querySelector('[data-lightbox-next]')
+            ?.toggleAttribute('disabled', lightboxIndex >= mktImages.length - 1);
+    };
 
-        return `<article class="totem-promo-card${selectedClass}${unavailableClass}" ${attrs}>
-<div class="totem-promo-card__shine" aria-hidden="true"></div>
-${discountPct > 0 ? `<span class="totem-promo-card__pct">-${discountPct}%</span>` : ''}
-<div class="totem-promo-card__media">
-${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
-${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-promo-card__placeholder" aria-hidden="true">liquor</span>'}
-</div>
-<div class="totem-promo-card__body">
-<p class="totem-promo-card__pack">${esc(packLabel)}</p>
-<h3 class="totem-promo-card__name">${esc(name)}</h3>
-${validade ? `<p class="totem-promo-card__validity">${esc(validade)}</p>` : ''}
-<p class="totem-promo-card__prices">
-<span class="totem-promo-card__old">${formatPrice(originalPrice)}</span>
-<span class="totem-promo-card__price">${formatPrice(promoPrice)}</span>
-</p>
-${!matched ? '<p class="totem-promo-card__unavailable">Produto indisponível nesta unidade</p>' : ''}
-</div>
-${
-    matched
-        ? `<div class="totem-promo-card__qty">
-<button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
-<span class="totem-qty-value">${qty}</span>
-<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id)}" data-promo-price="${esc(promoPrice)}" aria-label="Aumentar">+</button>
-</div>`
-        : ''
-}
-</article>`;
+    const openLightbox = (index) => {
+        if (!mktImages.length) return;
+        ensureLightbox();
+        lightboxIndex = Math.max(0, Math.min(index, mktImages.length - 1));
+        updateLightbox();
+        lightboxEl.hidden = false;
+        lightboxEl.setAttribute('aria-hidden', 'false');
+        lightboxEl.classList.add('totem-promo-lightbox--open');
+        deps?.onBumpIdle?.();
+    };
+
+    const closeLightbox = () => {
+        if (!lightboxEl) return;
+        lightboxEl.classList.remove('totem-promo-lightbox--open');
+        lightboxEl.hidden = true;
+        lightboxEl.setAttribute('aria-hidden', 'true');
+        deps?.onBumpIdle?.();
+    };
+
+    const stepLightbox = (delta) => {
+        const next = lightboxIndex + delta;
+        if (next < 0 || next >= mktImages.length) return;
+        lightboxIndex = next;
+        updateLightbox();
+        deps?.onBumpIdle?.();
     };
 
     const render = async () => {
-        if (!deps?.gridEl || !promoLoader) return;
-        loading = true;
+        if (!deps?.gridEl) return;
         setPanelVisibility({ showLoading: true });
-        const entries = await buildEntries();
-        loading = false;
-
-        if (promoLoader.hadError() && !entries.length) {
+        const images = await loadImages();
+        if (fetchError && !images.length) {
             setPanelVisibility({ showError: true });
             return;
         }
-
-        if (!entries.length) {
+        if (!images.length) {
             setPanelVisibility({ showEmpty: true });
             return;
         }
-
         setPanelVisibility({ showGrid: true });
-        deps.gridEl.innerHTML = entries.map((entry, i) => buildCardHtml(entry, i)).join('');
+        deps.gridEl.innerHTML = buildGridHtml(images);
+        deps.gridEl.classList.add('totem-promos__grid--mkt');
     };
 
     const bindGrid = () => {
         if (!deps?.gridEl || bound) return;
         bound = true;
         deps.gridEl.addEventListener('click', (e) => {
-            const plus = e.target.closest('.totem-plus');
-            const minus = e.target.closest('.totem-minus');
-            if (plus) {
-                const promoPrice = Number(plus.dataset.promoPrice);
-                deps.onAdd?.(plus.dataset.cartKey, plus.dataset.itemKey, {
-                    promoPrice: Number.isFinite(promoPrice) ? promoPrice : undefined,
-                    promoId: plus.dataset.promoId || undefined,
-                });
-                render();
-                return;
-            }
-            if (minus) {
-                deps.onChangeQty?.(minus.dataset.cartKey, -1);
-                render();
-                return;
-            }
-            const card = e.target.closest('.totem-promo-card');
-            if (card?.classList.contains('totem-promo-card--unavailable')) return;
-            if (card?.dataset?.itemKey) {
-                deps.onOpenDetail?.(card.dataset.itemKey);
-                deps.onBumpIdle?.();
-            }
+            const item = e.target.closest('.totem-promos__mkt-item');
+            if (!item) return;
+            const index = Number(item.dataset.mktIndex);
+            if (!Number.isFinite(index)) return;
+            openLightbox(index);
         });
         deps.retryBtn?.addEventListener('click', () => refresh());
     };
@@ -153,10 +184,12 @@ ${
     };
 
     const refresh = async () => {
-        promoLoader?.clear();
-        await promoLoader?.load(true);
+        mktImages = [];
+        loadedAt = 0;
+        fetchError = false;
+        await loadImages(true);
         await render();
     };
 
-    window.LigeirinhoTotemPromos = { init, render, refresh };
+    window.LigeirinhoTotemPromos = { init, render, refresh, closeLightbox };
 })();
