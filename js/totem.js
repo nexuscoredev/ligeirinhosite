@@ -22,6 +22,7 @@
     const customerContinueBtn = document.getElementById('totem-customer-continue');
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
+    const promosBackBtn = document.getElementById('totem-promos-back');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
     const floatCart = document.getElementById('totem-float-cart');
@@ -87,6 +88,7 @@
     let cachedQueryInfo = null;
     let detailItemKey = null;
     let detailDraftQty = 1;
+    let promosReturnView = 'welcome';
     let totemCustomer = { name: '', phone: '' };
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
@@ -1424,7 +1426,18 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         customerPhoneInput?.addEventListener('focus', () => bindCustomerKeyboard(customerPhoneInput));
 
         promosBtn?.addEventListener('click', () => {
+            if (views.catalog?.classList.contains('totem-view--active')) {
+                promosReturnView = 'catalog';
+            } else {
+                promosReturnView = 'welcome';
+            }
             setView('promos');
+            bumpIdle();
+        });
+
+        promosBackBtn?.addEventListener('click', () => {
+            window.LigeirinhoTotemPromos?.stopAuto?.();
+            setView(promosReturnView);
             bumpIdle();
         });
 

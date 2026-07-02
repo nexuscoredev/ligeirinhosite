@@ -539,9 +539,36 @@ body.totem-kiosk > main {
 .totem-promos__hero {
     position: relative;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
     padding: 0.5rem 1rem 0.35rem;
     overflow: hidden;
+}
+
+.totem-promos__back {
+    position: relative;
+    z-index: 2;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+    padding: 0.45rem 0.65rem;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--lig-text-muted);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-promos__back .material-symbols-outlined {
+    font-size: 1.15rem;
 }
 
 .totem-promos__hero-aura {
