@@ -12,12 +12,19 @@
         ['0'],
     ];
 
+    const NUMERIC_ROWS = [
+        ['7', '8', '9'],
+        ['4', '5', '6'],
+        ['1', '2', '3'],
+    ];
+
     let root = null;
     let input = null;
     let onInput = null;
     let onSubmit = null;
     let onClose = null;
     let open = false;
+    let currentMode = null;
 
     const syncInput = () => {
         if (!input) return;
@@ -67,6 +74,11 @@
         root.hidden = false;
         root.setAttribute('aria-hidden', 'false');
         document.body.classList.add('totem-keyboard-open');
+        document.body.classList.toggle('totem-keyboard-numeric', currentMode === 'numeric');
+        document.body.classList.toggle(
+            'totem-keyboard-payment',
+            currentMode === 'numeric' && document.body.getAttribute('data-page') === 'totem-pagamento',
+        );
         const inCustomer = document.getElementById('totem-view-customer')?.classList.contains('totem-view--active');
         document.body.classList.toggle('totem-keyboard-customer', Boolean(inCustomer));
         window.requestAnimationFrame(syncVkHeight);
@@ -77,7 +89,12 @@
         open = false;
         root.hidden = true;
         root.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove('totem-keyboard-open', 'totem-keyboard-customer');
+        document.body.classList.remove(
+            'totem-keyboard-open',
+            'totem-keyboard-customer',
+            'totem-keyboard-numeric',
+            'totem-keyboard-payment',
+        );
         document.documentElement.style.removeProperty('--totem-vk-height');
         input?.blur();
         onClose?.();
@@ -105,7 +122,19 @@
         return btn;
     };
 
-    const buildKeyboard = (submitLabel = 'Buscar') => {
+    const bindKeyboardEvents = () => {
+        root.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+        });
+
+        root.querySelector('.totem-vk__inner')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            handleKey(btn.dataset.action, btn.dataset.value || '');
+        });
+    };
+
+    const buildFullKeyboard = (submitLabel = 'Buscar') => {
         root = document.createElement('div');
         root.id = 'totem-vk';
         root.className = 'totem-vk';
@@ -173,20 +202,73 @@
         inner.appendChild(layout);
         root.appendChild(inner);
         document.body.appendChild(root);
+        bindKeyboardEvents();
+    };
 
-        root.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
+    const buildNumericKeyboard = (submitLabel = 'OK') => {
+        root = document.createElement('div');
+        root.id = 'totem-vk';
+        root.className = 'totem-vk totem-vk--numeric-only';
+        root.hidden = true;
+        root.setAttribute('aria-hidden', 'true');
+
+        const inner = document.createElement('div');
+        inner.className = 'totem-vk__inner';
+        inner.setAttribute('role', 'group');
+        inner.setAttribute('aria-label', 'Teclado numérico');
+
+        const numpad = document.createElement('div');
+        numpad.className = 'totem-vk__numpad totem-vk__numpad--full';
+
+        NUMERIC_ROWS.forEach((row) => {
+            const rowEl = document.createElement('div');
+            rowEl.className = 'totem-vk__numpad-row';
+            row.forEach((key) => rowEl.appendChild(createCharKey(key)));
+            numpad.appendChild(rowEl);
         });
 
-        inner.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (!btn) return;
-            handleKey(btn.dataset.action, btn.dataset.value || '');
-        });
+        const bottomRow = document.createElement('div');
+        bottomRow.className = 'totem-vk__numpad-row totem-vk__numpad-row--bottom';
+        bottomRow.appendChild(createCharKey(','));
+        bottomRow.appendChild(createCharKey('0'));
+        const backspaceBtn = document.createElement('button');
+        backspaceBtn.type = 'button';
+        backspaceBtn.className = 'totem-vk__key totem-vk__key--icon totem-vk__key--backspace';
+        backspaceBtn.dataset.action = 'backspace';
+        backspaceBtn.setAttribute('aria-label', 'Apagar');
+        backspaceBtn.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">backspace</span>';
+        bottomRow.appendChild(backspaceBtn);
+        numpad.appendChild(bottomRow);
+
+        const actions = document.createElement('div');
+        actions.className = 'totem-vk__row totem-vk__row--numeric-actions';
+        actions.innerHTML = `<button type="button" class="totem-vk__key totem-vk__key--ghost" data-action="clear">Limpar</button>
+<button type="button" class="totem-vk__key totem-vk__key--primary totem-vk__key--submit" data-action="submit">${submitLabel}</button>
+<button type="button" class="totem-vk__key totem-vk__key--icon totem-vk__key--ghost" data-action="close" aria-label="Fechar teclado">
+<span class="material-symbols-outlined" aria-hidden="true">keyboard_hide</span>
+</button>`;
+
+        inner.appendChild(numpad);
+        inner.appendChild(actions);
+        root.appendChild(inner);
+        document.body.appendChild(root);
+        bindKeyboardEvents();
     };
 
     const setSubmitLabel = (label) => {
         root?.querySelector('.totem-vk__key--submit')?.replaceChildren(document.createTextNode(label || 'Buscar'));
+    };
+
+    const ensureKeyboard = (mode, submitLabel) => {
+        if (root && currentMode === mode) {
+            setSubmitLabel(submitLabel);
+            return;
+        }
+        root?.remove();
+        root = null;
+        currentMode = mode;
+        if (mode === 'numeric') buildNumericKeyboard(submitLabel);
+        else buildFullKeyboard(submitLabel);
     };
 
     const init = (opts = {}) => {
@@ -196,22 +278,23 @@
         onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
         if (!input) return;
 
-        const submitLabel = String(opts.submitLabel || 'Buscar');
-        if (!root) buildKeyboard(submitLabel);
-        else setSubmitLabel(submitLabel);
+        const mode = opts.mode === 'numeric' ? 'numeric' : 'full';
+        const submitLabel = String(opts.submitLabel || (mode === 'numeric' ? 'OK' : 'Buscar'));
+        ensureKeyboard(mode, submitLabel);
 
         if (!input.hasAttribute('readonly')) {
             input.setAttribute('readonly', 'readonly');
         }
-        if (!input.getAttribute('inputmode')) {
-            input.setAttribute('inputmode', 'none');
-        }
+        input.setAttribute('inputmode', 'none');
         if (input.getAttribute('autocomplete') == null) {
             input.setAttribute('autocomplete', 'off');
         }
 
-        input.addEventListener('focus', () => show());
-        input.addEventListener('click', () => show());
+        if (!input.dataset.totemVkBound) {
+            input.dataset.totemVkBound = '1';
+            input.addEventListener('focus', () => show());
+            input.addEventListener('click', () => show());
+        }
 
         return { show, hide, isOpen: () => open };
     };

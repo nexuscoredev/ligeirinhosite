@@ -4219,6 +4219,11 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     font-weight: 800;
     color: var(--lig-text);
     outline: none;
+    scroll-margin-bottom: min(42dvh, 18rem);
+}
+
+.totem-pay-amounts__input:focus {
+    color: var(--lig-yellow-text, #ca8a04);
 }
 
 .totem-pay-amounts__sum {
@@ -5590,6 +5595,55 @@ html.totem--phone .totem-vk__row--bottom {
     .totem-vk {
         animation: none;
     }
+}
+
+/* Teclado numérico (pagamento dividido) */
+.totem-vk--numeric-only .totem-vk__inner {
+    max-width: min(22rem, 100%);
+}
+
+.totem-vk--numeric-only .totem-vk__numpad--full {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    gap: 0.45rem;
+}
+
+.totem-vk--numeric-only .totem-vk__numpad-row {
+    gap: 0.45rem;
+}
+
+.totem-vk--numeric-only .totem-vk__key {
+    min-height: clamp(3rem, 8.5dvh, 3.75rem);
+    font-size: clamp(1.1rem, 4.2vw, 1.45rem);
+    border-radius: 0.75rem;
+}
+
+.totem-vk--numeric-only .totem-vk__row--numeric-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(2.75rem, 0.85fr);
+    gap: 0.45rem;
+    margin-top: 0.35rem;
+}
+
+.totem-vk--numeric-only .totem-vk__key--submit {
+    min-height: clamp(2.85rem, 7.5dvh, 3.35rem);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+body.totem-keyboard-payment .totem-pay-main {
+    padding-bottom: calc(var(--totem-vk-height, 17rem) + 0.75rem);
+}
+
+body.totem-keyboard-payment .totem-pay-card--picker {
+    max-height: calc(100dvh - var(--totem-vk-height, 17rem) - 1.5rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.totem-keyboard-payment .totem-pay-summary__scroll {
+    max-height: min(22dvh, 10rem);
 }
 
 /* ——— Kiosk lock (retorno ao totem) ——— */

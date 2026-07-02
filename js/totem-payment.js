@@ -195,17 +195,56 @@ ${icon}
     };
 
     const bindAmountInputs = (total) => {
+        const updateAmountsSum = () => {
+            const sumEl = root.querySelector('.totem-pay-amounts__sum');
+            if (!sumEl) return;
+            const sum = splitsApi.roundMoney(
+                selectedIds.reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
+            );
+            const diff = splitsApi.roundMoney(total - sum);
+            const sumClass =
+                Math.abs(diff) < 0.01
+                    ? ' totem-pay-amounts__sum--ok'
+                    : diff > 0
+                      ? ' totem-pay-amounts__sum--low'
+                      : ' totem-pay-amounts__sum--high';
+            sumEl.className = `totem-pay-amounts__sum${sumClass}`;
+            sumEl.innerHTML = `Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}`;
+        };
+
         root.querySelectorAll('[data-payment-amount]').forEach((input) => {
-            input.addEventListener('input', () => {
-                amountInputs[input.dataset.paymentAmount] = input.value;
-                const block = root.querySelector('.totem-pay-amounts');
-                if (block) block.outerHTML = amountsHtml(total);
-                bindAmountInputs(total);
-            });
+            const attachKeyboard = () => {
+                window.LigeirinhoTotemKeyboard?.init?.({
+                    input,
+                    mode: 'numeric',
+                    submitLabel: 'OK',
+                    onInput: (value) => {
+                        amountInputs[input.dataset.paymentAmount] = value;
+                        updateAmountsSum();
+                    },
+                    onSubmit: () => {
+                        const id = input.dataset.paymentAmount;
+                        const formatted = splitsApi.formatMoneyInput(
+                            splitsApi.parseMoneyInput(amountInputs[id] || input.value),
+                        );
+                        amountInputs[id] = formatted;
+                        input.value = formatted;
+                        updateAmountsSum();
+                    },
+                });
+            };
+
+            input.addEventListener('focus', attachKeyboard);
+            input.addEventListener('click', attachKeyboard);
+
             input.addEventListener('blur', () => {
                 const id = input.dataset.paymentAmount;
-                amountInputs[id] = splitsApi.formatMoneyInput(splitsApi.parseMoneyInput(input.value));
-                renderMethodPicker(currentOrder);
+                const formatted = splitsApi.formatMoneyInput(
+                    splitsApi.parseMoneyInput(amountInputs[id] || input.value),
+                );
+                amountInputs[id] = formatted;
+                input.value = formatted;
+                updateAmountsSum();
             });
         });
     };
