@@ -162,20 +162,26 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
 
     const patch = {
         payment_method,
-        payment_splits: splits,
         status: 'pending',
         financial_status: 'aguardando_caixa',
         notes,
     };
 
+    let updated;
     try {
-        return await patchOrder(url, key, orderId, patch, { useRpc });
+        updated = await patchOrder(url, key, orderId, patch, { useRpc });
     } catch (patchErr) {
-        const msg = String(patchErr.message || '');
-        if (!/column/i.test(msg)) throw patchErr;
-        const { payment_splits: _ps, ...legacyPatch } = patch;
-        return patchOrder(url, key, orderId, legacyPatch, { useRpc: false });
+        throw patchErr;
     }
+    if (!updated?.id) {
+        updated = await fetchOrderById(url, key, orderId, { useRpc: false });
+    }
+    if (!updated?.id) {
+        const err = new Error('Pedido não retornado após registrar pagamento');
+        err.status = 500;
+        throw err;
+    }
+    return updated;
 }
 
 export async function confirmCaixaPayment(

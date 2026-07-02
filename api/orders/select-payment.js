@@ -38,6 +38,9 @@ export default async function handler(req, res) {
             useRpc: db.useRpc,
             paymentSplits,
         });
+        if (!order?.id) {
+            return res.status(500).json({ error: 'Pedido não retornado após registrar pagamento' });
+        }
         await ensureHubPedidoForTotem(order, process.env);
 
         return res.status(200).json({

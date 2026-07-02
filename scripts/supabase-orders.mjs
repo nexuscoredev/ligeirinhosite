@@ -177,16 +177,16 @@ export async function listParceiroOrders(
 }
 
 export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
-    const needsDirectPatch =
-        Object.prototype.hasOwnProperty.call(patch, 'notes')
-        || Object.prototype.hasOwnProperty.call(patch, 'payment_splits');
+    const needsDirectPatch = Object.prototype.hasOwnProperty.call(patch, 'notes');
     if (useRpc && !needsDirectPatch) {
         const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {
             method: 'POST',
             headers: headers(apiKey),
             body: JSON.stringify({ p_id: id, p_patch: { ...patch, updated_at: new Date().toISOString() } }),
         });
-        return parseJson(res);
+        const data = await parseJson(res);
+        if (data?.id) return data;
+        return fetchOrderById(supabaseUrl, apiKey, id, { useRpc: false });
     }
 
     const res = await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${encodeURIComponent(id)}`, {
@@ -195,7 +195,9 @@ export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = fals
         body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
     });
     const data = await parseJson(res);
-    return Array.isArray(data) ? data[0] : data;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row?.id) return row;
+    return fetchOrderById(supabaseUrl, apiKey, id, { useRpc: false });
 }
 
 export async function fetchOrderByMpPaymentId(supabaseUrl, apiKey, mpPaymentId, { useRpc = false } = {}) {
