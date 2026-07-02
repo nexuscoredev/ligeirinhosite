@@ -1,11 +1,7 @@
 import { compactTotemCode, scannerTotemCode } from '../totem-order-code.mjs';
+import { resolveOrderSplits, paymentMethodLabelShort } from './payment-splits.mjs';
 
-const methodLabel = (m) => {
-    const key = String(m || '').toLowerCase();
-    if (key === 'pix') return 'Pix';
-    if (key === 'cartao') return 'Cartao debito/credito';
-    return 'Dinheiro';
-};
+const methodLabel = paymentMethodLabelShort;
 
 const formatPrice = (value) =>
     Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -82,7 +78,14 @@ export function buildEscPosReceipt(order, opts = {}) {
     });
 
     tailLines.push(divider());
-    tailLines.push(padLine('Pagamento', methodLabel(order.paymentMethod), width));
+    const splits = resolveOrderSplits(order);
+    if (splits.length >= 2) {
+        splits.forEach((item) => {
+            tailLines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
+        });
+    } else {
+        tailLines.push(padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width));
+    }
     tailLines.push(padLine('TOTAL', formatPrice(order.total), width));
     tailLines.push(divider());
     tailLines.push(center('Ligeirinho Parceiros'));

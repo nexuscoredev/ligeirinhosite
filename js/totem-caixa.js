@@ -57,7 +57,14 @@
         document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
         document.getElementById('totem-caixa-reprint')?.addEventListener('click', async () => {
             if (!currentOrder) return;
-            await receipt?.printOrderReceipt?.(currentOrder, {
+            let orderToPrint = currentOrder;
+            try {
+                orderToPrint = await fetchFreshOrder(currentOrder.id);
+                currentOrder = orderToPrint;
+            } catch {
+                /* usa pedido em cache */
+            }
+            await receipt?.printOrderReceipt?.(orderToPrint, {
                 force: true,
                 totemLabel,
                 printMode: 'kiosk',
@@ -71,10 +78,24 @@
         if (note) note.hidden = false;
     };
 
+    const fetchFreshOrder = async (id) => {
+        const res = await fetch(`/api/orders/get?id=${encodeURIComponent(id)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Pedido não encontrado');
+        return data.order;
+    };
+
     const triggerAutoPrint = async (order) => {
         if (!receipt?.printOrderReceipt || autoPrintTriggered || !autoPrintEnabled) return;
         autoPrintTriggered = true;
-        const printed = await receipt.printOrderReceipt(order, {
+        let orderToPrint = order;
+        try {
+            orderToPrint = await fetchFreshOrder(order.id);
+            currentOrder = orderToPrint;
+        } catch {
+            /* usa pedido em cache */
+        }
+        const printed = await receipt.printOrderReceipt(orderToPrint, {
             auto: true,
             totemLabel,
             printMode,

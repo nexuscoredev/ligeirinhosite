@@ -154,53 +154,93 @@
     }
 
     const methodLabel = (m) => {
-        const key = String(m || '').toLowerCase();
+        const key = String(m || '').toLowerCase().split('+')[0].trim();
         if (key === 'pix') return 'Pix';
-        if (key === 'cartao') return 'Cartão débito/crédito';
+        if (key === 'cartao') return 'Cartão';
         return 'Dinheiro';
+    };
+
+    const parseMoneyBr = (raw) => {
+        const text = String(raw || '').trim();
+        if (!text) return 0;
+        const normalized = text.includes(',')
+            ? text.replace(/\./g, '').replace(',', '.')
+            : text.replace(/[^\d.]/g, '');
+        const n = Number(normalized);
+        return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
+    };
+
+    const mapHumanLabelToMethod = (label) => {
+        const text = String(label || '').toLowerCase().trim();
+        if (text.includes('pix')) return 'pix';
+        if (text.includes('cart') || text.includes('cartao') || text.includes('cartão')) return 'cartao';
+        if (text.includes('dinheiro')) return 'dinheiro';
+        return text;
+    };
+
+    const normalizeSplitEntries = (raw) => {
+        if (!Array.isArray(raw)) return [];
+        const seen = new Set();
+        const out = [];
+        raw.forEach((entry) => {
+            const method = String(entry?.method || entry?.id || '').toLowerCase().trim();
+            const amount = parseMoneyBr(entry?.amount);
+            if (!method || amount <= 0 || seen.has(method)) return;
+            seen.add(method);
+            out.push({ method, amount });
+        });
+        return out;
     };
 
     const SPLIT_MARKER = '[[lig-payment-splits:';
 
+    const parseSplitsFromNotesHuman = (notes) => {
+        const text = String(notes || '');
+        const match = text.match(/Pagamento dividido(?: no totem)?:\s*([^[\n]+)/i);
+        if (!match) return [];
+        const chunks = match[1].split(/\s*\+\s*|\s*;\s*/);
+        const out = [];
+        chunks.forEach((chunk) => {
+            const part = chunk.trim();
+            const m = part.match(/^(.+?)\s+R\$\s*([\d.,]+)$/i);
+            if (!m) return;
+            const method = mapHumanLabelToMethod(m[1]);
+            const amount = parseMoneyBr(m[2]);
+            if (method && amount > 0) out.push({ method, amount });
+        });
+        return out.length >= 2 ? out : [];
+    };
+
     const resolvePaymentSplits = (order) => {
         const splitsApi = window.LigeirinhoPaymentSplits;
         if (splitsApi?.resolveOrderSplits) {
-            const resolved = splitsApi.resolveOrderSplits(order);
-            if (resolved?.length) return resolved;
+            const resolved = normalizeSplitEntries(splitsApi.resolveOrderSplits(order));
+            if (resolved.length >= 2) return resolved;
         }
-        const raw = order?.paymentSplits || order?.payment_splits;
-        if (Array.isArray(raw) && raw.length) {
-            return raw
-                .map((entry) => ({
-                    method: String(entry?.method || entry?.id || '').toLowerCase(),
-                    amount: Number(entry?.amount) || 0,
-                }))
-                .filter((entry) => entry.method && entry.amount > 0);
-        }
+        const fromColumn = normalizeSplitEntries(order?.paymentSplits || order?.payment_splits);
+        if (fromColumn.length >= 2) return fromColumn;
+
         const text = String(order?.notes || '');
         const start = text.indexOf(SPLIT_MARKER);
-        if (start === -1) return [];
-        const end = text.indexOf(']]', start);
-        if (end === -1) return [];
-        try {
-            const parsed = JSON.parse(text.slice(start + SPLIT_MARKER.length, end));
-            if (!Array.isArray(parsed)) return [];
-            return parsed
-                .map((entry) => ({
-                    method: String(entry?.method || entry?.id || '').toLowerCase(),
-                    amount: Number(entry?.amount) || 0,
-                }))
-                .filter((entry) => entry.method && entry.amount > 0);
-        } catch {
-            return [];
+        if (start !== -1) {
+            const end = text.indexOf(']]', start);
+            if (end !== -1) {
+                try {
+                    const parsed = normalizeSplitEntries(JSON.parse(text.slice(start + SPLIT_MARKER.length, end)));
+                    if (parsed.length >= 2) return parsed;
+                } catch {
+                    /* ignore */
+                }
+            }
         }
+
+        return parseSplitsFromNotesHuman(order?.notes);
     };
 
     const buildPaymentReceiptBlock = (order, forPrint = false) => {
         const splits = resolvePaymentSplits(order);
         if (splits.length >= 2) {
-            const title = forPrint ? 'Pagamento dividido' : esc('Pagamento dividido');
-            const rows = splits
+            return splits
                 .map((item) => {
                     const label = methodLabel(item.method);
                     const amount = formatPrice(item.amount);
@@ -210,26 +250,24 @@
                     return `<div class="totem-receipt__row totem-receipt__row--split"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`;
                 })
                 .join('');
-            return `<p class="totem-receipt__split-title">${title}</p>${rows}`;
         }
-        const paymentLabel = forPrint ? 'Pagamento' : 'Forma de pagamento';
-        const value = methodLabel(order.paymentMethod);
+        const label = methodLabel(order.paymentMethod);
+        const amount = formatPrice(order.total);
         if (forPrint) {
-            return `<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${value}</strong></div>`;
+            return `<div class="totem-receipt__row"><span>${label}</span><strong>${amount}</strong></div>`;
         }
-        return `<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(value)}</strong></div>`;
+        return `<div class="totem-receipt__row"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`;
     };
 
     const appendEscPosPaymentLines = (lines, order, width, padLine) => {
         const splits = resolvePaymentSplits(order);
         if (splits.length >= 2) {
-            lines.push('Pagamento dividido'.slice(0, width));
             splits.forEach((item) => {
                 lines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
             });
             return;
         }
-        lines.push(padLine('Pagamento', methodLabel(order.paymentMethod), width));
+        lines.push(padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width));
     };
 
     const formatDateTime = (iso) => {
