@@ -18,7 +18,7 @@ function applySlideImageVariants(slide) {
     return {
         ...slide,
         imageFull: full,
-        image: mktImageUrl(full, { width: 1080, quality: 82 }),
+        image: mktImageUrl(full, { width: 1440, quality: 85 }),
         thumb: mktImageUrl(full, { width: 360, quality: 75 }),
     };
 }
