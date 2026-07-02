@@ -134,6 +134,65 @@
         }
     };
 
+    const sumSelectedAmounts = (excludeId = null) =>
+        splitsApi.roundMoney(
+            selectedIds
+                .filter((id) => id !== excludeId)
+                .reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
+        );
+
+    const maxAmountForField = (id, total) => {
+        const remaining = splitsApi.roundMoney(total - sumSelectedAmounts(id));
+        return splitsApi.roundMoney(Math.max(0, Math.min(total, remaining)));
+    };
+
+    const clampFieldAmount = (id, rawValue, total) => {
+        const parsed = splitsApi.parseMoneyInput(rawValue);
+        if (!parsed) return 0;
+        return Math.min(parsed, maxAmountForField(id, total));
+    };
+
+    const isSplitAmountsValid = (total) => {
+        if (selectedIds.length < 2) return true;
+        const sum = sumSelectedAmounts(null);
+        return Math.abs(sum - splitsApi.roundMoney(total)) < 0.01;
+    };
+
+    const formatAmountsSumMeta = (total) => {
+        const sum = sumSelectedAmounts(null);
+        const diff = splitsApi.roundMoney(total - sum);
+        const ok = Math.abs(diff) < 0.01;
+        const sumClass = ok
+            ? ' totem-pay-amounts__sum--ok'
+            : diff > 0
+              ? ' totem-pay-amounts__sum--low'
+              : ' totem-pay-amounts__sum--high';
+        const diffHtml = ok
+            ? ''
+            : diff > 0
+              ? ` · Falta: <strong>${formatPrice(diff)}</strong>`
+              : ` · Excedente: <strong>${formatPrice(Math.abs(diff))}</strong>`;
+        return {
+            ok,
+            sumClass,
+            html: `Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${diffHtml}`,
+        };
+    };
+
+    const syncConfirmButton = (total) => {
+        const btn = root.querySelector('#totem-pay-confirm');
+        if (!btn) return;
+        btn.disabled = !selectedIds.length || (selectedIds.length >= 2 && !isSplitAmountsValid(total));
+    };
+
+    const applyFieldAmount = (input, total) => {
+        const id = input.dataset.paymentAmount;
+        const clamped = clampFieldAmount(id, amountInputs[id] || input.value, total);
+        const formatted = splitsApi.formatMoneyInput(clamped);
+        amountInputs[id] = formatted;
+        input.value = formatted;
+    };
+
     const toggleMethod = (id) => {
         if (!currentOrder) return;
         formError = '';
@@ -155,30 +214,22 @@
 
     const amountsHtml = (total) => {
         if (selectedIds.length < 2) return '';
-        const sum = splitsApi.roundMoney(
-            selectedIds.reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
-        );
-        const diff = splitsApi.roundMoney(total - sum);
-        const sumClass =
-            Math.abs(diff) < 0.01
-                ? ' totem-pay-amounts__sum--ok'
-                : diff > 0
-                  ? ' totem-pay-amounts__sum--low'
-                  : ' totem-pay-amounts__sum--high';
+        const { sumClass, html } = formatAmountsSumMeta(total);
         return `<div class="totem-pay-amounts">
 <p class="totem-pay-amounts__title">Quanto em cada forma?</p>
+<p class="totem-pay-amounts__hint">Máximo por forma: até o total do pedido (${formatPrice(total)}).</p>
 ${selectedIds
     .map(
         (id) => `<label class="totem-pay-amounts__row">
 <span class="totem-pay-amounts__label">${esc(methodLabel(id))}</span>
 <span class="totem-pay-amounts__field">
 <span class="totem-pay-amounts__prefix">R$</span>
-<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off">
+<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off" aria-label="${esc(methodLabel(id))}, máximo ${formatPrice(maxAmountForField(id, total))}">
 </span>
 </label>`,
     )
     .join('')}
-<p class="totem-pay-amounts__sum${sumClass}">Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}</p>
+<p class="totem-pay-amounts__sum${sumClass}">${html}</p>
 </div>`;
     };
 
@@ -198,18 +249,10 @@ ${icon}
         const updateAmountsSum = () => {
             const sumEl = root.querySelector('.totem-pay-amounts__sum');
             if (!sumEl) return;
-            const sum = splitsApi.roundMoney(
-                selectedIds.reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
-            );
-            const diff = splitsApi.roundMoney(total - sum);
-            const sumClass =
-                Math.abs(diff) < 0.01
-                    ? ' totem-pay-amounts__sum--ok'
-                    : diff > 0
-                      ? ' totem-pay-amounts__sum--low'
-                      : ' totem-pay-amounts__sum--high';
+            const { sumClass, html } = formatAmountsSumMeta(total);
             sumEl.className = `totem-pay-amounts__sum${sumClass}`;
-            sumEl.innerHTML = `Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}`;
+            sumEl.innerHTML = html;
+            syncConfirmButton(total);
         };
 
         root.querySelectorAll('[data-payment-amount]').forEach((input) => {
@@ -219,16 +262,20 @@ ${icon}
                     mode: 'numeric',
                     submitLabel: 'OK',
                     onInput: (value) => {
-                        amountInputs[input.dataset.paymentAmount] = value;
+                        const id = input.dataset.paymentAmount;
+                        const parsed = splitsApi.parseMoneyInput(value);
+                        const max = maxAmountForField(id, total);
+                        if (parsed > max + 0.009) {
+                            const capped = splitsApi.formatMoneyInput(max);
+                            amountInputs[id] = capped;
+                            input.value = capped;
+                        } else {
+                            amountInputs[id] = value;
+                        }
                         updateAmountsSum();
                     },
                     onSubmit: () => {
-                        const id = input.dataset.paymentAmount;
-                        const formatted = splitsApi.formatMoneyInput(
-                            splitsApi.parseMoneyInput(amountInputs[id] || input.value),
-                        );
-                        amountInputs[id] = formatted;
-                        input.value = formatted;
+                        applyFieldAmount(input, total);
                         updateAmountsSum();
                     },
                 });
@@ -238,15 +285,12 @@ ${icon}
             input.addEventListener('click', attachKeyboard);
 
             input.addEventListener('blur', () => {
-                const id = input.dataset.paymentAmount;
-                const formatted = splitsApi.formatMoneyInput(
-                    splitsApi.parseMoneyInput(amountInputs[id] || input.value),
-                );
-                amountInputs[id] = formatted;
-                input.value = formatted;
+                applyFieldAmount(input, total);
                 updateAmountsSum();
             });
         });
+
+        syncConfirmButton(total);
     };
 
     const renderMethodPicker = (order) => {
@@ -265,7 +309,7 @@ ${TOTEM_METHODS.map(methodButtonHtml).join('')}
 ${amountsHtml(total)}
 ${formError ? `<p class="totem-pay-error">${esc(formError)}</p>` : ''}
 <div class="totem-pay-actions totem-pay-actions--confirm">
-<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-pay-confirm" ${selectedIds.length ? '' : 'disabled'}>
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-pay-confirm" ${selectedIds.length && (selectedIds.length === 1 || isSplitAmountsValid(total)) ? '' : 'disabled'}>
 Confirmar pagamento
 </button>
 <a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-back-cart>Cancelar</a>
@@ -296,8 +340,12 @@ Confirmar pagamento
         }
         const splits = selectedIds.map((method) => ({
             method,
-            amount: splitsApi.parseMoneyInput(amountInputs[method]),
+            amount: clampFieldAmount(method, amountInputs[method], total),
         }));
+        if (splits.some((item) => item.amount > total + 0.009)) {
+            formError = 'Nenhum valor pode ser maior que o total do pedido.';
+            return null;
+        }
         const check = splitsApi.validateSplits(splits, total, methodLabel);
         if (!check.ok) {
             formError = check.error;

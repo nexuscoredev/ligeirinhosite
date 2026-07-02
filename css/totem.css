@@ -4182,6 +4182,12 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: var(--lig-text-muted);
 }
 
+.totem-pay-amounts__hint {
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+}
+
 .totem-pay-amounts__row {
     display: grid;
     grid-template-columns: 1fr minmax(7rem, 9rem);
