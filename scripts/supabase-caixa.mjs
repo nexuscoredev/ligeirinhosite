@@ -73,6 +73,36 @@ export function paymentMethodLabel(method) {
     return 'Dinheiro';
 }
 
+const roundMoney = (n) => Math.round(Number(n) * 100) / 100;
+
+function normalizePaymentSplits(raw, total) {
+    if (!Array.isArray(raw) || raw.length < 2) return null;
+    const splits = raw
+        .map((entry) => ({
+            method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
+            amount: roundMoney(entry?.amount),
+        }))
+        .filter((entry) => entry.method && entry.amount > 0);
+    if (splits.length < 2) return null;
+    const sum = roundMoney(splits.reduce((acc, item) => acc + item.amount, 0));
+    if (Math.abs(sum - roundMoney(total)) > 0.009) {
+        const err = new Error('A soma dos pagamentos deve ser igual ao total do pedido.');
+        err.status = 400;
+        throw err;
+    }
+    return splits;
+}
+
+function encodeSplitsInNotes(notes, splits) {
+    const base = String(notes || '').trim();
+    const human = splits
+        .map((item) => `${paymentMethodLabel(item.method)} R$ ${item.amount.toFixed(2).replace('.', ',')}`)
+        .join('; ');
+    const payload = JSON.stringify(splits);
+    const prefix = base ? `${base} · ` : '';
+    return `${prefix}Pagamento dividido no totem: ${human} [[lig-payment-splits:${payload}]]`.slice(0, 2000);
+}
+
 export async function listCaixaQueue(url, key, { limit = 40, useRpc = false } = {}) {
     if (useRpc) {
         const list = await sbRpc(url, key, 'rpc_list_caixa_queue', { p_limit: limit });
@@ -87,7 +117,7 @@ export async function listCaixaQueue(url, key, { limit = 40, useRpc = false } = 
     return Array.isArray(orders) ? orders : [];
 }
 
-export async function selectTotemPayment(url, key, orderId, method, { useRpc = false } = {}) {
+export async function selectTotemPayment(url, key, orderId, method, { useRpc = false, paymentSplits = null } = {}) {
     const order = await fetchOrderById(url, key, orderId, { useRpc });
     if (!order) {
         const err = new Error('Pedido não encontrado');
@@ -106,18 +136,41 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         return order;
     }
 
-    const payment_method = normalizeTotemPaymentMethod(method);
-    const patch = {
-        payment_method,
-        status: 'pending',
-        financial_status: 'aguardando_caixa',
-        notes: [order.notes, `Forma escolhida no totem: ${paymentMethodLabel(payment_method)}`]
+    const splits = normalizePaymentSplits(paymentSplits, order.total);
+    let payment_method;
+    let notes;
+    if (splits?.length) {
+        payment_method = splits.map((item) => item.method).join('+');
+        notes = encodeSplitsInNotes(order.notes, splits);
+    } else {
+        if (!method) {
+            const err = new Error('Informe a forma de pagamento');
+            err.status = 400;
+            throw err;
+        }
+        payment_method = normalizeTotemPaymentMethod(method);
+        notes = [order.notes, `Forma escolhida no totem: ${paymentMethodLabel(payment_method)}`]
             .filter(Boolean)
             .join(' · ')
-            .slice(0, 1000),
+            .slice(0, 1000);
+    }
+
+    const patch = {
+        payment_method,
+        payment_splits: splits,
+        status: 'pending',
+        financial_status: 'aguardando_caixa',
+        notes,
     };
 
-    return patchOrder(url, key, orderId, patch, { useRpc });
+    try {
+        return await patchOrder(url, key, orderId, patch, { useRpc });
+    } catch (patchErr) {
+        const msg = String(patchErr.message || '');
+        if (!/column/i.test(msg)) throw patchErr;
+        const { payment_splits: _ps, ...legacyPatch } = patch;
+        return patchOrder(url, key, orderId, legacyPatch, { useRpc });
+    }
 }
 
 export async function confirmCaixaPayment(

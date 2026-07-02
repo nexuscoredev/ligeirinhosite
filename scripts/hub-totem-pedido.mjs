@@ -51,7 +51,54 @@ function totemMethodToHubForma(method) {
     return 'dinheiro';
 }
 
+function roundMoney(n) {
+    return Math.round(Number(n) * 100) / 100;
+}
+
+const SPLIT_MARKER = '[[lig-payment-splits:';
+const SPLIT_MARKER_END = ']]';
+
+function parseSplitsFromNotes(notes) {
+    const text = String(notes || '');
+    const start = text.indexOf(SPLIT_MARKER);
+    if (start === -1) return [];
+    const end = text.indexOf(SPLIT_MARKER_END, start);
+    if (end === -1) return [];
+    try {
+        const parsed = JSON.parse(text.slice(start + SPLIT_MARKER.length, end));
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+            .map((entry) => ({
+                method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
+                amount: roundMoney(entry?.amount),
+            }))
+            .filter((entry) => entry.method && entry.amount > 0);
+    } catch {
+        return [];
+    }
+}
+
+function resolveOrderSplits(order) {
+    const raw = order.payment_splits || order.paymentSplits;
+    if (Array.isArray(raw) && raw.length) {
+        return raw
+            .map((entry) => ({
+                method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
+                amount: roundMoney(entry?.amount),
+            }))
+            .filter((entry) => entry.method && entry.amount > 0);
+    }
+    return parseSplitsFromNotes(order.notes);
+}
+
 function buildPagamentoSplit(order) {
+    const splits = resolveOrderSplits(order);
+    if (splits.length) {
+        return splits.map((entry) => ({
+            forma: totemMethodToHubForma(entry.method),
+            valor: entry.amount,
+        }));
+    }
     const total = Number(order.total) || 0;
     const forma = totemMethodToHubForma(order.payment_method);
     return [{ forma, valor: total }];

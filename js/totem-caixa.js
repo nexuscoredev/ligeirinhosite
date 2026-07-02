@@ -16,6 +16,8 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
+    const splitsApi = window.LigeirinhoPaymentSplits;
+
     const methodLabel = (m) => {
         const key = String(m || '').toLowerCase();
         if (key === 'pix') return 'Pix';
@@ -23,7 +25,13 @@
         return 'Dinheiro';
     };
 
-    const renderPaymentMethod = (m) => {
+    const renderPaymentMethod = (order) => {
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        if (splits.length >= 2) {
+            const summary = splitsApi.formatSplitSummary(splits, methodLabel, formatPrice);
+            return `<strong>${esc(summary)}</strong>`;
+        }
+        const m = order?.paymentMethod ?? order;
         const key = String(m || '').toLowerCase();
         if (key === 'pix') {
             return `<img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix" width="64" height="23" alt="Pix">`;
@@ -150,7 +158,7 @@ Comprovante enviado para a impressora padrão
 ${printNoteHtml}
 <div class="totem-caixa-card__meta">
 ${renderCustomerMeta(order)}
-<p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order.paymentMethod)}</span></p>
+<p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order)}</span></p>
 <p class="totem-caixa-card__row"><span>Total</span><strong class="totem-caixa-card__value">${formatPrice(order.total)}</strong></p>
 </div>
 <p class="lig-payment-hint totem-caixa-card__hint">

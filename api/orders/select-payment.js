@@ -22,19 +22,22 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { orderId, method, paymentMethod } = req.body || {};
+        const { orderId, method, paymentMethod, paymentSplits } = req.body || {};
         const id = String(orderId || '').trim();
         if (!id) {
             return res.status(400).json({ error: 'Informe o pedido' });
         }
 
         const rawMethod = method || paymentMethod;
-        if (!rawMethod) {
+        if (!rawMethod && !(Array.isArray(paymentSplits) && paymentSplits.length >= 2)) {
             return res.status(400).json({ error: 'Informe a forma de pagamento' });
         }
 
         const db = dbFromPaymentConfig(config);
-        const order = await selectTotemPayment(db.url, db.key, id, rawMethod, { useRpc: db.useRpc });
+        const order = await selectTotemPayment(db.url, db.key, id, rawMethod, {
+            useRpc: db.useRpc,
+            paymentSplits,
+        });
         await ensureHubPedidoForTotem(order, process.env);
 
         return res.status(200).json({

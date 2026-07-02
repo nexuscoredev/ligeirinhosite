@@ -5,6 +5,13 @@
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
     const caixaUrl = (id) => `totem-caixa.html?order=${encodeURIComponent(id)}`;
+    const splitsApi = window.LigeirinhoPaymentSplits;
+
+    const TOTEM_METHODS = [
+        { id: 'pix', label: 'Pix', brand: 'img/icon-pix.svg' },
+        { id: 'cartao', label: 'Cartão', icon: 'credit_card' },
+        { id: 'dinheiro', label: 'Dinheiro', icon: 'payments' },
+    ];
 
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -16,6 +23,13 @@
             .replace(/>/g, '&gt;');
 
     const loading = window.LigeirinhoTotemLoading;
+
+    let currentOrder = null;
+    let selectedIds = [];
+    let amountInputs = {};
+    let formError = '';
+
+    const methodLabel = (id) => TOTEM_METHODS.find((m) => m.id === id)?.label || id;
 
     const showError = (msg) => {
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error totem-pay-card">
@@ -100,56 +114,178 @@
 </div>`;
     };
 
+    const initSelection = (order) => {
+        currentOrder = order;
+        formError = '';
+        selectedIds = [];
+        amountInputs = {};
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        if (splits.length >= 2) {
+            selectedIds = splits.map((s) => s.method);
+            splits.forEach((s) => {
+                amountInputs[s.method] = splitsApi.formatMoneyInput(s.amount);
+            });
+            return;
+        }
+        const method = String(order.paymentMethod || '').toLowerCase();
+        if (method && !method.includes('+')) {
+            selectedIds = [method.split('+')[0]];
+            amountInputs[selectedIds[0]] = splitsApi.formatMoneyInput(order.total);
+        }
+    };
+
+    const toggleMethod = (id) => {
+        if (!currentOrder) return;
+        formError = '';
+        const total = Number(currentOrder.total) || 0;
+        if (selectedIds.includes(id)) {
+            selectedIds = selectedIds.filter((item) => item !== id);
+            delete amountInputs[id];
+            return;
+        }
+        selectedIds.push(id);
+        if (selectedIds.length === 1) {
+            amountInputs[id] = splitsApi.formatMoneyInput(total);
+            return;
+        }
+        const first = selectedIds[0];
+        const firstAmount = splitsApi.parseMoneyInput(amountInputs[first]);
+        amountInputs[id] = splitsApi.formatMoneyInput(Math.max(0, total - firstAmount));
+    };
+
+    const amountsHtml = (total) => {
+        if (selectedIds.length < 2) return '';
+        const sum = splitsApi.roundMoney(
+            selectedIds.reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
+        );
+        const diff = splitsApi.roundMoney(total - sum);
+        const sumClass =
+            Math.abs(diff) < 0.01
+                ? ' totem-pay-amounts__sum--ok'
+                : diff > 0
+                  ? ' totem-pay-amounts__sum--low'
+                  : ' totem-pay-amounts__sum--high';
+        return `<div class="totem-pay-amounts">
+<p class="totem-pay-amounts__title">Quanto em cada forma?</p>
+${selectedIds
+    .map(
+        (id) => `<label class="totem-pay-amounts__row">
+<span class="totem-pay-amounts__label">${esc(methodLabel(id))}</span>
+<span class="totem-pay-amounts__field">
+<span class="totem-pay-amounts__prefix">R$</span>
+<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off">
+</span>
+</label>`,
+    )
+    .join('')}
+<p class="totem-pay-amounts__sum${sumClass}">Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}</p>
+</div>`;
+    };
+
+    const methodButtonHtml = (opt) => {
+        const active = selectedIds.includes(opt.id);
+        const icon = opt.brand
+            ? `<img src="${esc(opt.brand)}" class="totem-pay-mark totem-pay-mark--pix totem-pay-method__brand" width="72" height="26" alt="">`
+            : `<span class="material-symbols-outlined" aria-hidden="true">${esc(opt.icon)}</span>`;
+        return `<button type="button" class="totem-pay-method totem-pay-method--multi${active ? ' totem-pay-method--active' : ''}" data-method="${esc(opt.id)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(opt.label)}">
+<span class="material-symbols-outlined totem-pay-method__check" aria-hidden="true">${active ? 'check_circle' : 'radio_button_unchecked'}</span>
+${icon}
+<span class="totem-pay-method__label">${esc(opt.label)}</span>
+</button>`;
+    };
+
+    const bindAmountInputs = (total) => {
+        root.querySelectorAll('[data-payment-amount]').forEach((input) => {
+            input.addEventListener('input', () => {
+                amountInputs[input.dataset.paymentAmount] = input.value;
+                const block = root.querySelector('.totem-pay-amounts');
+                if (block) block.outerHTML = amountsHtml(total);
+                bindAmountInputs(total);
+            });
+            input.addEventListener('blur', () => {
+                const id = input.dataset.paymentAmount;
+                amountInputs[id] = splitsApi.formatMoneyInput(splitsApi.parseMoneyInput(input.value));
+                renderMethodPicker(currentOrder);
+            });
+        });
+    };
+
     const renderMethodPicker = (order) => {
+        const total = Number(order.total) || 0;
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-pay-card--picker">
 <div class="totem-pay-card__head">
 <h1 class="lig-payment-title">Formas de pagamento</h1>
-<p class="lig-payment-lead">Selecione a forma de pagamento</p>
+<p class="lig-payment-lead">Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.</p>
 </div>
 ${renderSummary(order)}
 <div class="totem-pay-card__footer">
-<h2 class="totem-pay-methods__title">Escolha uma forma</h2>
-<div class="totem-pay-methods" role="group" aria-label="Formas de pagamento">
-<button type="button" class="totem-pay-method" data-method="pix" aria-label="Pix">
-<img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix totem-pay-method__brand" width="72" height="26" alt="">
-<span class="totem-pay-method__label">Pix</span>
-</button>
-<button type="button" class="totem-pay-method" data-method="cartao" aria-label="Cartão">
-<span class="material-symbols-outlined" aria-hidden="true">credit_card</span>
-<span class="totem-pay-method__label">Cartão</span>
-</button>
-<button type="button" class="totem-pay-method" data-method="dinheiro" aria-label="Dinheiro">
-<span class="material-symbols-outlined" aria-hidden="true">payments</span>
-<span class="totem-pay-method__label">Dinheiro</span>
-</button>
+<h2 class="totem-pay-methods__title">Escolha as formas</h2>
+<div class="totem-pay-methods totem-pay-methods--multi" role="group" aria-label="Formas de pagamento">
+${TOTEM_METHODS.map(methodButtonHtml).join('')}
 </div>
-<div class="totem-pay-actions">
+${amountsHtml(total)}
+${formError ? `<p class="totem-pay-error">${esc(formError)}</p>` : ''}
+<div class="totem-pay-actions totem-pay-actions--confirm">
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-pay-confirm" ${selectedIds.length ? '' : 'disabled'}>
+Confirmar pagamento
+</button>
 <a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-back-cart>Cancelar</a>
 </div>
 </div>
 </div>`;
 
         root.querySelectorAll('[data-method]').forEach((btn) => {
-            btn.addEventListener('click', () => selectMethod(order.id, btn.dataset.method, btn));
+            btn.addEventListener('click', () => {
+                toggleMethod(btn.dataset.method);
+                renderMethodPicker(order);
+            });
+        });
+        bindAmountInputs(total);
+        root.querySelector('#totem-pay-confirm')?.addEventListener('click', () => {
+            void confirmPayment(order);
         });
     };
 
-    const selectMethod = async (id, method, btn) => {
-        if (btn) {
-            btn.disabled = true;
+    const buildPayload = (order) => {
+        const total = Number(order.total) || 0;
+        if (!selectedIds.length) {
+            formError = 'Selecione pelo menos uma forma de pagamento.';
+            return null;
+        }
+        if (selectedIds.length === 1) {
+            return { orderId: order.id, method: selectedIds[0] };
+        }
+        const splits = selectedIds.map((method) => ({
+            method,
+            amount: splitsApi.parseMoneyInput(amountInputs[method]),
+        }));
+        const check = splitsApi.validateSplits(splits, total, methodLabel);
+        if (!check.ok) {
+            formError = check.error;
+            return null;
+        }
+        return { orderId: order.id, paymentSplits: check.splits };
+    };
+
+    const confirmPayment = async (order) => {
+        const payload = buildPayload(order);
+        if (!payload) {
+            renderMethodPicker(order);
+            return;
         }
         loading?.mountPreset?.(root, 'paymentConfirm');
         try {
             const res = await fetch('/api/orders/select-payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId: id, method }),
+                body: JSON.stringify(payload),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Não foi possível registrar o pagamento');
-            window.location.replace(caixaUrl(id));
+            window.location.replace(caixaUrl(order.id));
         } catch (err) {
-            showError(err.message || 'Erro ao continuar');
+            formError = err.message || 'Erro ao continuar';
+            renderMethodPicker(order);
         }
     };
 
@@ -158,6 +294,11 @@ ${renderSummary(order)}
 
         if (!orderId) {
             showError('Pedido não informado.');
+            return;
+        }
+
+        if (!splitsApi) {
+            showError('Módulo de pagamento não carregado.');
             return;
         }
 
@@ -183,6 +324,7 @@ ${renderSummary(order)}
                 return;
             }
 
+            initSelection(order);
             renderMethodPicker(order);
         } catch (err) {
             showError(err.message || 'Erro ao carregar pagamento');

@@ -160,6 +160,15 @@
         return 'Dinheiro';
     };
 
+    const paymentLabelForOrder = (order) => {
+        const splitsApi = window.LigeirinhoPaymentSplits;
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        if (splits.length >= 2) {
+            return splitsApi.formatSplitSummary(splits, methodLabel, formatPrice);
+        }
+        return methodLabel(order.paymentMethod);
+    };
+
     const formatDateTime = (iso) => {
         const d = iso ? new Date(iso) : new Date();
         if (Number.isNaN(d.getTime())) return new Date().toLocaleString('pt-BR');
@@ -235,7 +244,7 @@ ${buildCustomerReceiptBlock(order, forPrint)}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 ${itemsBlock}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
-<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(methodLabel(order.paymentMethod))}</strong></div>
+<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(paymentLabelForOrder(order))}</strong></div>
 <div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 <p class="totem-receipt__foot">Dirija-se ao caixa e passe o código de barras no leitor do PDV.</p>
@@ -602,7 +611,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
         });
 
         lines.push(divider());
-        lines.push(padLine('Pagamento', methodLabel(order.paymentMethod), width));
+        lines.push(padLine('Pagamento', paymentLabelForOrder(order), width));
         lines.push(padLine('TOTAL', formatPrice(order.total), width));
         lines.push(divider());
         lines.push(center('Ligeirinho Parceiros'));
