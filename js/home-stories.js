@@ -34,9 +34,11 @@
         }
     };
 
-    const resolveThumb = (story, catalog, catalogData) => {
+    const resolveThumb = (story, catalog, catalogData, eager = false) => {
+        const loading = eager ? 'eager' : 'lazy';
+        const fetchPriority = eager ? ' fetchpriority="high"' : '';
         if (story.thumbImage) {
-            return `<img alt="" class="home-promo-story__img" src="${esc(story.thumbImage)}" loading="lazy" decoding="async">`;
+            return `<img alt="" class="home-promo-story__img" src="${esc(story.thumbImage)}" loading="${loading}" decoding="async"${fetchPriority}>`;
         }
         if (story.thumbCategory && catalog && catalogData) {
             const cat =
@@ -72,7 +74,7 @@
             .map((story, index) => {
                 const isSeen = seen.includes(story.id);
                 const ringColor = story.ringColor || '#F7D53C';
-                const thumb = resolveThumb(story, catalog, catalogData);
+                const thumb = resolveThumb(story, catalog, catalogData, index < 4);
                 return `<button type="button" class="home-promo-story${isSeen ? ' home-promo-story--seen' : ''}" data-story-index="${index}" data-story-id="${esc(story.id)}" style="--home-promo-ring:${esc(ringColor)}" aria-label="${esc(story.label)} — promoção">
 <span class="home-promo-story__ring">${thumb}</span>
 <span class="home-promo-story__label">${esc(story.label)}</span>
@@ -106,7 +108,7 @@
             return;
         }
 
-        const imgSrc = slide.image || resolveSlideImage(slide, catalog, catalogData);
+        const imgSrc = slide.imageFull || slide.image || resolveSlideImage(slide, catalog, catalogData);
         const theme = slide.theme || 'yellow';
         const isPhotoPromo = Boolean(imgSrc && theme === 'photo');
         const progress = slides
@@ -267,16 +269,18 @@ ${
     };
 
     const loadConfig = () => {
-        const fetchStories = () =>
-            fetch('/api/marketing-stories', { cache: 'no-store' }).then((r) => {
-                if (!r.ok) throw new Error(`marketing-stories HTTP ${r.status}`);
-                return r.json();
-            });
+        const mkt = window.LigeirinhoMktPromos;
+        if (!mkt?.loadMarketingStories) {
+            return Promise.resolve({ stories: [], source: 'hub:marketing-drive:vertical-parceiros' });
+        }
 
-        return fetchStories()
-            .catch(() => fetchStories())
+        return mkt
+            .loadMarketingStories()
             .then((payload) => {
-                if (payload?.stories?.length) return payload;
+                if (payload?.stories?.length) {
+                    void mkt.preloadImages(mkt.collectThumbUrls(payload.stories), 4);
+                    return payload;
+                }
                 return { stories: [], source: payload?.source || 'hub:marketing-drive:vertical-parceiros' };
             })
             .catch(() => ({ stories: [], source: 'hub:marketing-drive:vertical-parceiros' }));

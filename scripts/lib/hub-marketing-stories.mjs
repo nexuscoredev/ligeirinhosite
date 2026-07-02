@@ -1,4 +1,5 @@
 import { hubConfig } from '../hub-auth.mjs';
+import { enrichMarketingStories } from './mkt-image-url.mjs';
 
 const RAIZ_DRIVE_ID = '1XxmOF8ks5AUjMK5sC1y9fJ6f_sAWnhgo';
 const STORY_LABEL_PROMOCOES = 'Promoções';
@@ -129,6 +130,7 @@ function buildStoryFromImages(pasta, images, index) {
     const cta = ctaForFolder(pasta.nome);
     const slides = images.map((arquivo) => ({
         image: arquivo.imagem_url,
+        imageFull: arquivo.imagem_url,
         cta,
         theme: 'photo',
     }));
@@ -197,6 +199,7 @@ function buildStoriesFromDriveData(_raiz, pastaList, arquivoList) {
             thumbImage: directImages[0].imagem_url,
             slides: directImages.map((arquivo) => ({
                 image: arquivo.imagem_url,
+                imageFull: arquivo.imagem_url,
                 cta: ctaForFolder(storyLabel),
                 theme: 'photo',
             })),
@@ -269,21 +272,21 @@ export async function getHubMarketingStories(env = process.env) {
     }
 
     if (!driveData) {
-        return {
+        return enrichMarketingStories({
             source: 'hub:marketing-drive:vertical-parceiros',
             fetchedAt: new Date().toISOString(),
             stories: [],
-        };
+        });
     }
 
     const stories = buildStoriesFromDriveData(driveData.raiz, driveData.pastaList, driveData.arquivoList);
 
-    return {
+    return enrichMarketingStories({
         source: 'hub:marketing-drive:vertical-parceiros',
         fetchedAt: new Date().toISOString(),
         raiz: driveData.raiz?.nome || null,
         canal: 'vertical-tablet-parceiros',
         via: driveData.via,
         stories,
-    };
+    });
 }

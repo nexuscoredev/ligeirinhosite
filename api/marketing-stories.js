@@ -1,6 +1,6 @@
 import { getHubMarketingStories } from '../scripts/lib/hub-marketing-stories.mjs';
 
-const CACHE_SECONDS = Number(process.env.MARKETING_STORIES_CACHE_SECONDS || 120);
+const CACHE_SECONDS = Number(process.env.MARKETING_STORIES_CACHE_SECONDS || 300);
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {

@@ -3,13 +3,12 @@
     let bound = false;
     let mktImages = [];
     let fetchError = false;
-    let loadedAt = 0;
     let slideIndex = 0;
     let autoTimer = null;
     let touchStartX = 0;
 
-    const CACHE_MS = 60_000;
     const AUTO_MS = 7000;
+    const mkt = () => window.LigeirinhoMktPromos;
 
     const esc = (value) =>
         String(value ?? '')
@@ -17,28 +16,16 @@
             .replace(/</g, '&lt;')
             .replace(/"/g, '&quot;');
 
-    const collectImages = (stories) => {
-        const urls = [];
-        (stories || []).forEach((story) => {
-            (story.slides || []).forEach((slide) => {
-                if (slide.image && !urls.includes(slide.image)) urls.push(slide.image);
-            });
-        });
-        return urls;
-    };
-
     const loadImages = async (force = false) => {
-        const now = Date.now();
-        if (!force && mktImages.length && now - loadedAt < CACHE_MS) {
-            fetchError = false;
+        const api = mkt();
+        if (!api?.loadMarketingStories) {
+            fetchError = true;
+            mktImages = [];
             return mktImages;
         }
         try {
-            const res = await fetch('/api/marketing-stories', { cache: 'no-store' });
-            if (!res.ok) throw new Error('fetch failed');
-            const data = await res.json();
-            mktImages = collectImages(data.stories);
-            loadedAt = now;
+            const data = await api.loadMarketingStories({ force });
+            mktImages = api.collectImageUrls(data.stories);
             fetchError = false;
         } catch {
             fetchError = true;
@@ -81,7 +68,7 @@
 <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
 </button>
 <div class="totem-promos__frame">
-<img class="totem-promos__slide-img" data-mkt-slide-img src="${esc(images[0])}" alt="">
+<img class="totem-promos__slide-img" data-mkt-slide-img src="${esc(images[0])}" alt="" decoding="async" fetchpriority="high">
 </div>
 <button type="button" class="totem-promos__nav totem-promos__nav--next" data-mkt-next aria-label="Próxima promoção">
 <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
@@ -96,6 +83,15 @@ ${buildDotsHtml(images, 0)}
 </div>`;
 
     const getCarouselEl = () => deps?.gridEl?.querySelector('[data-totem-promos-carousel]');
+
+    const prefetchNeighbors = (index) => {
+        const api = mkt();
+        if (!api || mktImages.length < 2) return;
+        const next = mktImages[(index + 1) % mktImages.length];
+        const prev = mktImages[(index - 1 + mktImages.length) % mktImages.length];
+        void api.preloadImage(next);
+        void api.preloadImage(prev);
+    };
 
     const updateSlide = () => {
         const root = getCarouselEl();
@@ -115,6 +111,7 @@ ${buildDotsHtml(images, 0)}
         if (dots) dots.innerHTML = buildDotsHtml(mktImages, index);
         if (prev) prev.disabled = mktImages.length <= 1;
         if (next) next.disabled = mktImages.length <= 1;
+        prefetchNeighbors(index);
     };
 
     const goToSlide = (index) => {
@@ -194,6 +191,9 @@ ${buildDotsHtml(images, 0)}
             return;
         }
 
+        const api = mkt();
+        await api?.preloadImage?.(images[0]);
+
         slideIndex = 0;
         setPanelVisibility({ showGrid: true });
         deps.gridEl.innerHTML = buildCarouselHtml(images);
@@ -201,6 +201,7 @@ ${buildDotsHtml(images, 0)}
         bindCarousel();
         updateSlide();
         startAuto();
+        void api?.preloadImages?.(images.slice(1), 2);
     };
 
     const bindGrid = () => {
@@ -216,8 +217,8 @@ ${buildDotsHtml(images, 0)}
     };
 
     const refresh = async () => {
+        mkt()?.clearCache?.();
         mktImages = [];
-        loadedAt = 0;
         fetchError = false;
         await loadImages(true);
         await render();

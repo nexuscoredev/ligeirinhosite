@@ -1,6 +1,9 @@
-const CACHE_NAME = 'ligeirinho-app-v221';
+const CACHE_NAME = 'ligeirinho-app-v223';
+const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
+const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
 const NETWORK_FIRST_JS = new Set([
+    '/js/mkt-promo-images.js',
     '/js/layout.js',
     '/js/conta.js',
     '/js/home-stories.js',
@@ -68,6 +71,7 @@ const APP_SHELL = [
     '/js/catalog-loader.js',
     '/js/search-synonyms.js',
     '/js/home-stories.js',
+    '/js/mkt-promo-images.js',
     '/js/home.js',
     '/js/pedidos.js',
     '/js/ofertas.js',
@@ -96,6 +100,7 @@ const APP_SHELL = [
     '/js/auth-routing.js',
     '/js/payment-providers.js',
     '/js/payment.js',
+    '/js/mkt-promo-images.js',
     '/js/totem-promos.js',
     '/js/promo-catalog-match.js',
     '/js/totem.js',
@@ -164,7 +169,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
-            Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+            Promise.all(
+                keys
+                    .filter((key) => key !== CACHE_NAME && key !== MKT_IMAGE_CACHE)
+                    .map((key) => caches.delete(key))
+            )
         ).then(() => self.clients.claim())
     );
 });
@@ -184,11 +193,42 @@ function isStaticAsset(pathname) {
     );
 }
 
+function isMktStorageRequest(url) {
+    return (
+        url.hostname === MKT_IMAGE_HOST &&
+        url.pathname.includes('/storage/v1/') &&
+        url.pathname.includes('/marketing-artes/')
+    );
+}
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     if (request.method !== 'GET') return;
 
     const url = new URL(request.url);
+
+    if (isMktStorageRequest(url)) {
+        event.respondWith(
+            (async () => {
+                const cache = await caches.open(MKT_IMAGE_CACHE);
+                const cached = await cache.match(request);
+                const network = fetch(request)
+                    .then((response) => {
+                        if (response.ok) cache.put(request, response.clone());
+                        return response;
+                    })
+                    .catch(() => null);
+                if (cached) {
+                    event.waitUntil(network);
+                    return cached;
+                }
+                const live = await network;
+                if (live) return live;
+                throw new Error('offline');
+            })()
+        );
+        return;
+    }
 
     if (url.origin !== self.location.origin) return;
 

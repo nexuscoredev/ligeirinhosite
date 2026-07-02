@@ -7,6 +7,8 @@
     const root = document.getElementById('home-app');
     if (!root) return;
 
+    void window.LigeirinhoMktPromos?.warmCache?.();
+
     const featuredCategoryIds = [
         'cervejas',
         'destilados',

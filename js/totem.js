@@ -1616,6 +1616,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             fetch('data/totem-units.json'),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),
+            window.LigeirinhoMktPromos?.warmCache?.() ?? Promise.resolve(),
         ]);
         totemConfig = await configRes.json();
         unitSettings = resolveUnitSettings();

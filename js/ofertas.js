@@ -9,6 +9,8 @@
     const promoCatalog = window.LigeirinhoPromoCatalog;
     if (!cartApi || !catalog || !pricing || !promoCatalog) return;
 
+    void window.LigeirinhoMktPromos?.warmCache?.();
+
     let catalogData = null;
     let displayItems = [];
     let promoEntries = [];
@@ -116,20 +118,15 @@
     };
 
     const loadMktGallery = async () => {
+        const api = window.LigeirinhoMktPromos;
+        if (!api?.loadMarketingStories) {
+            mktGalleryImages = [];
+            return;
+        }
         try {
-            const res = await fetch('/api/marketing-stories', { cache: 'no-store' });
-            if (!res.ok) {
-                mktGalleryImages = [];
-                return;
-            }
-            const data = await res.json();
-            const urls = [];
-            (data.stories || []).forEach((story) => {
-                (story.slides || []).forEach((slide) => {
-                    if (slide.image && !urls.includes(slide.image)) urls.push(slide.image);
-                });
-            });
-            mktGalleryImages = urls;
+            const data = await api.loadMarketingStories();
+            mktGalleryImages = api.collectImageUrls(data.stories);
+            void api.preloadImages(mktGalleryImages.slice(0, 3), 3);
         } catch {
             mktGalleryImages = [];
         }
@@ -143,7 +140,7 @@
 ${mktGalleryImages
     .map(
         (url, index) =>
-            `<figure class="ofertas-mkt-gallery__item"><img src="${esc(url)}" alt="Promoção ${index + 1}" class="ofertas-mkt-gallery__img" loading="lazy" decoding="async"></figure>`
+            `<figure class="ofertas-mkt-gallery__item"><img src="${esc(url)}" alt="Promoção ${index + 1}" class="ofertas-mkt-gallery__img" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async"${index < 2 ? ' fetchpriority="high"' : ''}></figure>`
     )
     .join('')}
 </div>
