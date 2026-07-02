@@ -1,5 +1,5 @@
 import { hubConfig } from './hub-auth.mjs';
-import { normalizeTotemPaymentMethod } from './supabase-caixa.mjs';
+import { normalizeTotemPaymentMethod, paymentMethodLabel } from './supabase-caixa.mjs';
 import {
     formatTotemCode,
     normalizeTotemCode,
@@ -102,6 +102,41 @@ function buildPagamentoSplit(order) {
     const total = Number(order.total) || 0;
     const forma = totemMethodToHubForma(order.payment_method);
     return [{ forma, valor: total }];
+}
+
+function buildObservacoesTotem(order) {
+    const totemLabel = order.totem_label || 'Ligeirinho Totem';
+    const code = formatTotemCode(order.id);
+    const parts = [`${totemLabel} · código ${code}`];
+    const splits = resolveOrderSplits(order);
+    if (splits.length >= 2) {
+        parts.push(
+            `Pagamento dividido: ${splits
+                .map(
+                    (item) =>
+                        `${paymentMethodLabel(item.method)} R$ ${item.amount.toFixed(2).replace('.', ',')}`,
+                )
+                .join(' + ')}`,
+        );
+    } else if (order.payment_method) {
+        parts.push(`Pagamento: ${paymentMethodLabel(order.payment_method)}`);
+    }
+    return parts.join(' · ').slice(0, 2000);
+}
+
+async function syncHubPedidoPagamento(hub, pedido, order) {
+    if (!pedido?.id || pedido.pagamento_recebido_em) return pedido;
+    const total = Number(order.total) || 0;
+    const rows = await hubRest(hub, `pedidos?id=eq.${encodeURIComponent(pedido.id)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: {
+            valor_pedido: total,
+            pagamento_split: buildPagamentoSplit(order),
+            observacoes: buildObservacoesTotem(order),
+        },
+    });
+    return Array.isArray(rows) ? rows[0] ?? pedido : pedido;
 }
 
 async function buscarClienteTotem(config) {
@@ -229,6 +264,8 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
 }
 
 export function publicTotemLookupView(order, hubPedido = null) {
+    const splits = resolveOrderSplits(order);
+    const pagamentoSplit = buildPagamentoSplit(order);
     return {
         orderId: order.id,
         code: formatTotemCode(order.id),
@@ -236,6 +273,13 @@ export function publicTotemLookupView(order, hubPedido = null) {
         total: Number(order.total) || 0,
         items: Array.isArray(order.items) ? order.items : [],
         paymentMethod: normalizeTotemPaymentMethod(order.payment_method),
+        paymentSplits: splits.map((item) => ({
+            method: item.method,
+            label: paymentMethodLabel(item.method),
+            amount: item.amount,
+        })),
+        pagamentoSplit,
+        isSplitPayment: splits.length >= 2,
         totemLabel: order.totem_label || 'Ligeirinho Totem',
         status: order.status,
         financialStatus: order.financial_status,
@@ -256,7 +300,9 @@ export async function ensureHubPedidoForTotem(order, env = process.env) {
     if (!order?.id || String(order.channel || '').toLowerCase() !== 'totem') return null;
 
     const existing = await buscarHubPedidoPorParceirosId(hub, order.id);
-    if (existing) return existing;
+    if (existing) {
+        return syncHubPedidoPagamento(hub, existing, order);
+    }
 
     if (order.financial_status !== 'aguardando_caixa' || !order.payment_method) {
         return null;
@@ -271,8 +317,6 @@ export async function ensureHubPedidoForTotem(order, env = process.env) {
     const items = Array.isArray(order.items) ? order.items : [];
     const porSku = await resolverProdutosHub(hub, items);
     const total = Number(order.total) || 0;
-    const totemLabel = order.totem_label || 'Ligeirinho Totem';
-    const code = formatTotemCode(order.id);
 
     const pedidoRows = await hubRest(hub, 'pedidos', {
         method: 'POST',
@@ -285,7 +329,7 @@ export async function ensureHubPedidoForTotem(order, env = process.env) {
             valor_pedido: total,
             pagamento_split: buildPagamentoSplit(order),
             parceiros_order_id: order.id,
-            observacoes: `${totemLabel} · código ${code}`,
+            observacoes: buildObservacoesTotem(order),
         },
     });
 
@@ -343,8 +387,6 @@ export async function confirmHubPedidoForTotem(order, env = process.env, operato
 
     const agora = new Date().toISOString();
     const op = String(operator || '').trim().slice(0, 64);
-    const totemLabel = order.totem_label || 'Ligeirinho Totem';
-    const code = formatTotemCode(order.id);
     const nota = op ? `PDV ${op}` : 'PDV';
 
     const rows = await hubRest(hub, `pedidos?id=eq.${encodeURIComponent(pedido.id)}`, {
@@ -355,7 +397,7 @@ export async function confirmHubPedidoForTotem(order, env = process.env, operato
             pagamento_recebido_em: agora,
             aceito_em: agora,
             pagamento_split: buildPagamentoSplit(order),
-            observacoes: `${totemLabel} · código ${code} · ${nota}`,
+            observacoes: `${buildObservacoesTotem(order)} · ${nota}`,
         },
     });
 

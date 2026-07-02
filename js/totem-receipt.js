@@ -160,13 +160,76 @@
         return 'Dinheiro';
     };
 
-    const paymentLabelForOrder = (order) => {
+    const SPLIT_MARKER = '[[lig-payment-splits:';
+
+    const resolvePaymentSplits = (order) => {
         const splitsApi = window.LigeirinhoPaymentSplits;
-        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
-        if (splits.length >= 2) {
-            return splitsApi.formatSplitSummary(splits, methodLabel, formatPrice);
+        if (splitsApi?.resolveOrderSplits) {
+            const resolved = splitsApi.resolveOrderSplits(order);
+            if (resolved?.length) return resolved;
         }
-        return methodLabel(order.paymentMethod);
+        const raw = order?.paymentSplits || order?.payment_splits;
+        if (Array.isArray(raw) && raw.length) {
+            return raw
+                .map((entry) => ({
+                    method: String(entry?.method || entry?.id || '').toLowerCase(),
+                    amount: Number(entry?.amount) || 0,
+                }))
+                .filter((entry) => entry.method && entry.amount > 0);
+        }
+        const text = String(order?.notes || '');
+        const start = text.indexOf(SPLIT_MARKER);
+        if (start === -1) return [];
+        const end = text.indexOf(']]', start);
+        if (end === -1) return [];
+        try {
+            const parsed = JSON.parse(text.slice(start + SPLIT_MARKER.length, end));
+            if (!Array.isArray(parsed)) return [];
+            return parsed
+                .map((entry) => ({
+                    method: String(entry?.method || entry?.id || '').toLowerCase(),
+                    amount: Number(entry?.amount) || 0,
+                }))
+                .filter((entry) => entry.method && entry.amount > 0);
+        } catch {
+            return [];
+        }
+    };
+
+    const buildPaymentReceiptBlock = (order, forPrint = false) => {
+        const splits = resolvePaymentSplits(order);
+        if (splits.length >= 2) {
+            const title = forPrint ? 'Pagamento dividido' : esc('Pagamento dividido');
+            const rows = splits
+                .map((item) => {
+                    const label = methodLabel(item.method);
+                    const amount = formatPrice(item.amount);
+                    if (forPrint) {
+                        return `<div class="totem-receipt__row totem-receipt__row--split"><span>${label}</span><strong>${amount}</strong></div>`;
+                    }
+                    return `<div class="totem-receipt__row totem-receipt__row--split"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`;
+                })
+                .join('');
+            return `<p class="totem-receipt__split-title">${title}</p>${rows}`;
+        }
+        const paymentLabel = forPrint ? 'Pagamento' : 'Forma de pagamento';
+        const value = methodLabel(order.paymentMethod);
+        if (forPrint) {
+            return `<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${value}</strong></div>`;
+        }
+        return `<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(value)}</strong></div>`;
+    };
+
+    const appendEscPosPaymentLines = (lines, order, width, padLine) => {
+        const splits = resolvePaymentSplits(order);
+        if (splits.length >= 2) {
+            lines.push('Pagamento dividido'.slice(0, width));
+            splits.forEach((item) => {
+                lines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
+            });
+            return;
+        }
+        lines.push(padLine('Pagamento', methodLabel(order.paymentMethod), width));
     };
 
     const formatDateTime = (iso) => {
@@ -229,7 +292,6 @@
         const itemsBlock = forPrint
             ? `<div class="totem-receipt__items">${itemsHtml}</div>`
             : `<table class="totem-receipt__items" aria-label="Itens do pedido"><tbody>${itemsHtml}</tbody></table>`;
-        const paymentLabel = forPrint ? 'Pagamento' : 'Forma de pagamento';
 
         return `<div class="totem-receipt__paper">
 <div class="totem-receipt__brand">${esc(unitLabel)}</div>
@@ -244,7 +306,7 @@ ${buildCustomerReceiptBlock(order, forPrint)}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 ${itemsBlock}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
-<div class="totem-receipt__row"><span>${paymentLabel}</span><strong>${esc(paymentLabelForOrder(order))}</strong></div>
+${buildPaymentReceiptBlock(order, forPrint)}
 <div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 <p class="totem-receipt__foot">Dirija-se ao caixa e passe o código de barras no leitor do PDV.</p>
@@ -282,6 +344,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .totem-receipt__row strong{flex-shrink:0;max-width:48%;text-align:right;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums;word-break:break-word}
 .totem-receipt__row--total{margin-top:2mm;font-size:12px;font-weight:900}
 .totem-receipt__row--total strong{font-size:14px;font-weight:900;max-width:55%}
+.totem-receipt__split-title{margin:1.5mm 0 0;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.totem-receipt__row--split{margin:0.5mm 0}
 .totem-receipt__foot{margin:2mm 0 0;font-size:10px;line-height:1.35;text-align:center;font-weight:700}
 .totem-receipt__foot--muted{margin-top:2mm;font-weight:900;font-size:10px}`;
     };
@@ -611,7 +675,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
         });
 
         lines.push(divider());
-        lines.push(padLine('Pagamento', paymentLabelForOrder(order), width));
+        appendEscPosPaymentLines(lines, order, width, padLine);
         lines.push(padLine('TOTAL', formatPrice(order.total), width));
         lines.push(divider());
         lines.push(center('Ligeirinho Parceiros'));
