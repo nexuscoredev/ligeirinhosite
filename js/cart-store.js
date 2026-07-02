@@ -22,6 +22,7 @@
         address: '',
         payment: '',
         paymentMethod: '',
+        paymentSplits: [],
         condicaoPagamento: '',
         deliveryDate: '',
         notes: '',

@@ -1,0 +1,151 @@
+(function () {
+    const SPLIT_MARKER = '[[lig-payment-splits:';
+    const SPLIT_MARKER_END = ']]';
+
+    const roundMoney = (value) => Math.round(Number(value) * 100) / 100;
+
+    const parseMoneyInput = (value) => {
+        const raw = String(value ?? '').trim();
+        if (!raw) return 0;
+        const normalized = raw.includes(',')
+            ? raw.replace(/\./g, '').replace(',', '.')
+            : raw.replace(/[^\d.]/g, '');
+        const n = Number(normalized);
+        return Number.isFinite(n) ? roundMoney(Math.max(0, n)) : 0;
+    };
+
+    const formatMoneyInput = (value) => {
+        const n = roundMoney(value);
+        if (!n) return '';
+        return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const normalizeMethodId = (id) => String(id || '').toLowerCase().trim();
+
+    const normalizeSplits = (splits, { total = null } = {}) => {
+        if (!Array.isArray(splits)) return [];
+        const seen = new Set();
+        const out = [];
+        splits.forEach((entry) => {
+            const method = normalizeMethodId(entry?.method || entry?.id);
+            const amount = roundMoney(entry?.amount);
+            if (!method || amount <= 0 || seen.has(method)) return;
+            seen.add(method);
+            out.push({ method, amount });
+        });
+        if (total != null && out.length === 1) {
+            out[0].amount = roundMoney(total);
+        }
+        return out;
+    };
+
+    const splitsFromCheckout = (checkout, total = null) => {
+        const stored = normalizeSplits(checkout?.paymentSplits || []);
+        if (stored.length >= 2) return stored;
+        const method = normalizeMethodId(checkout?.paymentMethod || checkout?.payment);
+        if (!method) return [];
+        if (total == null) return [{ method, amount: 0 }];
+        return [{ method, amount: roundMoney(total) }];
+    };
+
+    const isMultiPayment = (checkout) => normalizeSplits(checkout?.paymentSplits || []).length >= 2;
+
+    const selectedMethodIds = (checkout) => {
+        const splits = normalizeSplits(checkout?.paymentSplits || []);
+        if (splits.length >= 2) return splits.map((s) => s.method);
+        const single = normalizeMethodId(checkout?.paymentMethod || checkout?.payment);
+        return single ? [single] : [];
+    };
+
+    const validateSplits = (splits, total, labelFn = (id) => id) => {
+        const normalized = normalizeSplits(splits);
+        if (normalized.length < 2) {
+            return { ok: false, error: 'Selecione pelo menos duas formas de pagamento.' };
+        }
+        const sum = roundMoney(normalized.reduce((acc, item) => acc + item.amount, 0));
+        const expected = roundMoney(total);
+        if (Math.abs(sum - expected) > 0.009) {
+            return {
+                ok: false,
+                error: `A soma (${sum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) deve ser igual ao total (${expected.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`,
+            };
+        }
+        if (normalized.some((item) => !labelFn(item.method))) {
+            return { ok: false, error: 'Forma de pagamento inválida.' };
+        }
+        return { ok: true, splits: normalized, sum };
+    };
+
+    const validateCheckoutPayment = (checkout, total, labelFn) => {
+        if (isMultiPayment(checkout)) {
+            return validateSplits(checkout.paymentSplits, total, labelFn);
+        }
+        const method = normalizeMethodId(checkout?.paymentMethod || checkout?.payment);
+        if (!method) return { ok: false, error: 'Selecione o método de pagamento.' };
+        return { ok: true, splits: [{ method, amount: roundMoney(total) }] };
+    };
+
+    const formatSplitSummary = (splits, labelFn, formatMoney) => {
+        const normalized = normalizeSplits(splits);
+        if (!normalized.length) return '';
+        return normalized
+            .map((item) => `${labelFn(item.method)} ${formatMoney(item.amount)}`)
+            .join(' + ');
+    };
+
+    const encodeSplitsInNotes = (notes, splits) => {
+        const base = String(notes || '')
+            .replace(new RegExp(`\\s*${SPLIT_MARKER.replace(/[[\]]/g, '\\$&')}[\\s\\S]*?${SPLIT_MARKER_END}`), '')
+            .trim();
+        const normalized = normalizeSplits(splits);
+        if (normalized.length < 2) return base || null;
+        const payload = JSON.stringify(normalized);
+        const human = normalized
+            .map((item) => `${item.method.toUpperCase()} R$ ${item.amount.toFixed(2).replace('.', ',')}`)
+            .join('; ');
+        const prefix = base ? `${base} · ` : '';
+        return `${prefix}Pagamento dividido: ${human} ${SPLIT_MARKER}${payload}${SPLIT_MARKER_END}`.slice(
+            0,
+            2000,
+        );
+    };
+
+    const parseSplitsFromNotes = (notes) => {
+        const text = String(notes || '');
+        const start = text.indexOf(SPLIT_MARKER);
+        if (start === -1) return [];
+        const end = text.indexOf(SPLIT_MARKER_END, start);
+        if (end === -1) return [];
+        try {
+            return normalizeSplits(JSON.parse(text.slice(start + SPLIT_MARKER.length, end)));
+        } catch {
+            return [];
+        }
+    };
+
+    const resolveOrderSplits = (order) => {
+        if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length) {
+            return normalizeSplits(order.paymentSplits);
+        }
+        if (Array.isArray(order?.payment_splits) && order.payment_splits.length) {
+            return normalizeSplits(order.payment_splits);
+        }
+        return parseSplitsFromNotes(order?.notes);
+    };
+
+    window.LigeirinhoPaymentSplits = {
+        roundMoney,
+        parseMoneyInput,
+        formatMoneyInput,
+        normalizeSplits,
+        splitsFromCheckout,
+        isMultiPayment,
+        selectedMethodIds,
+        validateSplits,
+        validateCheckoutPayment,
+        formatSplitSummary,
+        encodeSplitsInNotes,
+        parseSplitsFromNotes,
+        resolveOrderSplits,
+    };
+})();

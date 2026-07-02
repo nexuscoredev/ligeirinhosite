@@ -134,7 +134,17 @@
         return method;
     };
 
-    const paymentMethodSelectHtml = (methodId) => {
+    const paymentMethodSelectHtml = (checkout, orderTotal = null) => {
+        const api = splitsApi();
+        if (api?.isMultiPayment?.(checkout)) {
+            const summary = api.formatSplitSummary(
+                checkout.paymentSplits,
+                paymentLabelFor,
+                formatPrice,
+            );
+            return `<span class="resumo-select-btn__payment resumo-select-btn__payment--multi"><span>${esc(summary)}</span></span>`;
+        }
+        const methodId = checkout.paymentMethod || checkout.payment;
         if (!methodId) return esc('Selecionar método');
         const resolvedId = resolvePaymentMethodForOrder(methodId);
         const opt = paymentMethods().find((m) => m.id === resolvedId);
@@ -177,6 +187,18 @@
 
     let step = 'resumo';
     let pickerMode = null;
+    let pickerPaymentIds = [];
+    let pickerPaymentAmounts = {};
+    let pickerPaymentError = '';
+    let pickerPaymentInitialized = false;
+
+    const splitsApi = () => window.LigeirinhoPaymentSplits;
+
+    const paymentLabelFor = (id) => {
+        const resolved = resolvePaymentMethodForOrder(id);
+        const opt = paymentMethods().find((m) => m.id === resolved);
+        return opt?.label || id || '';
+    };
 
     const syncCheckoutFromSession = () => {
         const s = session();
@@ -185,7 +207,7 @@
         if (Object.keys(patch).length) cartApi.saveCheckout(patch);
     };
 
-    const validateCheckout = (checkout) => {
+    const validateCheckout = (checkout, orderTotal = null) => {
         const errors = {};
         if (checkout.deliveryType === 'entrega' && !checkout.address?.trim()) {
             errors.address = 'Informe o endereço para entrega.';
@@ -196,11 +218,113 @@
         } else if (!opts.some((d) => d.value === checkout.deliveryDate)) {
             errors.deliveryDate = 'Selecione uma data de entrega válida.';
         }
-        if (!checkout.paymentMethod) errors.paymentMethod = 'Selecione o método de pagamento.';
-        else if (resolvePaymentMethodForOrder(checkout.paymentMethod) === 'cartao') {
+        if (!checkout.paymentMethod && !(checkout.paymentSplits || []).length) {
+            errors.paymentMethod = 'Selecione o método de pagamento.';
+        } else if (orderTotal != null && splitsApi()?.isMultiPayment?.(checkout)) {
+            const check = splitsApi().validateCheckoutPayment(checkout, orderTotal, paymentLabelFor);
+            if (!check.ok) errors.paymentMethod = check.error;
+        } else if (resolvePaymentMethodForOrder(checkout.paymentMethod) === 'cartao') {
             errors.paymentMethod = 'Cartão não está disponível. Escolha PIX ou dinheiro.';
         }
         return errors;
+    };
+
+    const initPickerPaymentState = (checkout, total) => {
+        const api = splitsApi();
+        pickerPaymentError = '';
+        pickerPaymentIds = api?.selectedMethodIds?.(checkout) || [];
+        pickerPaymentAmounts = {};
+        (checkout.paymentSplits || []).forEach((entry) => {
+            const method = resolvePaymentMethodForOrder(entry.method);
+            if (method) pickerPaymentAmounts[method] = api.formatMoneyInput(entry.amount);
+        });
+        if (pickerPaymentIds.length === 1 && !pickerPaymentAmounts[pickerPaymentIds[0]]) {
+            pickerPaymentAmounts[pickerPaymentIds[0]] = api.formatMoneyInput(total);
+        }
+    };
+
+    const togglePickerPayment = (id, total) => {
+        const api = splitsApi();
+        const method = resolvePaymentMethodForOrder(id);
+        if (!method) return;
+        pickerPaymentError = '';
+        if (pickerPaymentIds.includes(method)) {
+            pickerPaymentIds = pickerPaymentIds.filter((item) => item !== method);
+            delete pickerPaymentAmounts[method];
+            return;
+        }
+        pickerPaymentIds.push(method);
+        if (pickerPaymentIds.length === 1) {
+            pickerPaymentAmounts[method] = api.formatMoneyInput(total);
+            return;
+        }
+        const first = pickerPaymentIds[0];
+        const firstAmount = api.parseMoneyInput(pickerPaymentAmounts[first]);
+        pickerPaymentAmounts[method] = api.formatMoneyInput(Math.max(0, total - firstAmount));
+    };
+
+    const pickerPaymentAmountsHtml = (total) => {
+        if (pickerPaymentIds.length < 2) return '';
+        const api = splitsApi();
+        const sum = api.roundMoney(
+            pickerPaymentIds.reduce((acc, id) => acc + api.parseMoneyInput(pickerPaymentAmounts[id]), 0),
+        );
+        const diff = api.roundMoney(total - sum);
+        const sumClass =
+            Math.abs(diff) < 0.01
+                ? ' resumo-payment-amounts__sum--ok'
+                : diff > 0
+                  ? ' resumo-payment-amounts__sum--low'
+                  : ' resumo-payment-amounts__sum--high';
+        return `<div class="resumo-payment-amounts">
+<p class="resumo-payment-amounts__title">Quanto em cada forma?</p>
+${pickerPaymentIds
+    .map((id) => {
+        const opt = paymentMethods().find((m) => m.id === id);
+        const label = opt?.label || id;
+        return `<label class="resumo-payment-amounts__row">
+<span class="resumo-payment-amounts__label">${esc(label)}</span>
+<span class="resumo-payment-amounts__field">
+<span class="resumo-payment-amounts__prefix">R$</span>
+<input type="text" inputmode="decimal" class="resumo-payment-amounts__input" data-payment-amount="${esc(id)}" value="${esc(pickerPaymentAmounts[id] || '')}" placeholder="0,00" autocomplete="off">
+</span>
+</label>`;
+    })
+    .join('')}
+<p class="resumo-payment-amounts__sum${sumClass}">Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}</p>
+</div>`;
+    };
+
+    const savePickerPayment = (total) => {
+        const api = splitsApi();
+        if (!pickerPaymentIds.length) {
+            pickerPaymentError = 'Selecione pelo menos uma forma de pagamento.';
+            return false;
+        }
+        if (pickerPaymentIds.length === 1) {
+            const method = pickerPaymentIds[0];
+            cartApi.saveCheckout({
+                paymentMethod: method,
+                payment: method,
+                paymentSplits: [],
+            });
+            return true;
+        }
+        const splits = pickerPaymentIds.map((method) => ({
+            method,
+            amount: api.parseMoneyInput(pickerPaymentAmounts[method]),
+        }));
+        const check = api.validateSplits(splits, total, paymentLabelFor);
+        if (!check.ok) {
+            pickerPaymentError = check.error;
+            return false;
+        }
+        cartApi.saveCheckout({
+            paymentMethod: splits[0].method,
+            payment: splits[0].method,
+            paymentSplits: check.splits,
+        });
+        return true;
     };
 
     const headerHtml = (title, subtitle) => {
@@ -292,13 +416,13 @@ ${body}
         const checkout = loadCheckoutState();
         const { units, subtotal } = cartApi.cartSummary(cart);
         const s = session();
-        const errors = validateCheckout(checkout);
+        const errors = validateCheckout(checkout, subtotal);
         const dateLabel =
             deliveryOptions().find((d) => d.value === checkout.deliveryDate)?.label || 'Selecionar data';
         const diasLabel = s?.datasEntrega?.length
             ? s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || ''
             : '';
-        const payLabel = paymentMethodSelectHtml(checkout.paymentMethod);
+        const payLabel = paymentMethodSelectHtml(checkout, subtotal);
 
         const productsBody = `<div class="resumo-products-list">${items.map(productLineHtml).join('')}</div>`;
 
@@ -337,6 +461,7 @@ ${cardHtml(
         root.querySelectorAll('[data-open-picker]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 pickerMode = btn.dataset.openPicker;
+                if (pickerMode === 'payment') pickerPaymentInitialized = false;
                 step = 'picker';
                 render();
             });
@@ -346,6 +471,8 @@ ${cardHtml(
 
     const renderPicker = () => {
         const checkout = loadCheckoutState();
+        const cart = cartApi.loadCart();
+        const { subtotal } = cartApi.cartSummary(cart);
         const title = pickerMode === 'date' ? 'Data de entrega' : 'Condições de pagamento';
 
         let body = '';
@@ -361,17 +488,29 @@ ${cardHtml(
                 )
                 .join('');
         } else {
-            body = paymentMethods()
-                .map(
-                    (opt) => `<button type="button" class="resumo-option resumo-option--payment${resolvePaymentMethodForOrder(checkout.paymentMethod) === opt.id ? ' resumo-option--active' : ''}" data-pick-payment="${esc(opt.id)}">
+            if (!pickerPaymentInitialized) {
+                initPickerPaymentState(checkout, subtotal);
+                pickerPaymentInitialized = true;
+            }
+            body = `${paymentMethods()
+                .map((opt) => {
+                    const active = pickerPaymentIds.includes(opt.id);
+                    return `<button type="button" class="resumo-option resumo-option--payment resumo-option--multi${active ? ' resumo-option--active' : ''}" data-toggle-payment="${esc(opt.id)}" aria-pressed="${active ? 'true' : 'false'}">
+<span class="material-symbols-outlined resumo-option__check" aria-hidden="true">${active ? 'check_circle' : 'radio_button_unchecked'}</span>
 ${paymentMethodIconHtml(opt)}
 <div class="resumo-option__body">
 <strong>${esc(opt.label)}</strong>
 ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
 </div>
-</button>`
-                )
-                .join('');
+</button>`;
+                })
+                .join('')}
+${pickerPaymentAmountsHtml(subtotal)}
+${pickerPaymentError ? `<p class="resumo-error">${esc(pickerPaymentError)}</p>` : ''}
+<button type="button" class="resumo-confirm-btn resumo-payment-confirm" id="resumo-payment-confirm">
+<span>Confirmar pagamento</span>
+<span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
+</button>`;
         }
 
         const pickerLead =
@@ -385,7 +524,7 @@ ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
                           ? `Escolha uma data de entrega (${diasLabel}).`
                           : 'Escolha a melhor data para receber seu pedido.';
                   })()
-                : 'Escolha a forma de pagamento para este pedido.';
+                : 'Selecione uma ou mais formas de pagamento. Com mais de uma, informe o valor de cada.';
 
         root.innerHTML = `<div class="resumo-shell">
 ${headerHtml(title)}
@@ -404,21 +543,49 @@ ${headerHtml(title)}
                 render();
             });
         });
-        root.querySelectorAll('[data-pick-payment]').forEach((btn) => {
+        root.querySelectorAll('[data-toggle-payment]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                const id = btn.dataset.pickPayment;
-                cartApi.saveCheckout({ paymentMethod: id, payment: id });
-                step = 'resumo';
-                pickerMode = null;
-                render();
+                togglePickerPayment(btn.dataset.togglePayment, subtotal);
+                renderPicker();
             });
+        });
+        root.querySelectorAll('[data-payment-amount]').forEach((input) => {
+            input.addEventListener('input', () => {
+                pickerPaymentAmounts[input.dataset.paymentAmount] = input.value;
+                const amounts = root.querySelector('.resumo-payment-amounts');
+                if (amounts) {
+                    amounts.outerHTML = pickerPaymentAmountsHtml(subtotal);
+                    root.querySelectorAll('[data-payment-amount]').forEach((el) => {
+                        el.addEventListener('input', () => {
+                            pickerPaymentAmounts[el.dataset.paymentAmount] = el.value;
+                            renderPicker();
+                        });
+                    });
+                }
+            });
+            input.addEventListener('blur', () => {
+                const api = splitsApi();
+                const id = input.dataset.paymentAmount;
+                pickerPaymentAmounts[id] = api.formatMoneyInput(api.parseMoneyInput(input.value));
+                renderPicker();
+            });
+        });
+        root.querySelector('#resumo-payment-confirm')?.addEventListener('click', () => {
+            if (!savePickerPayment(subtotal)) {
+                renderPicker();
+                return;
+            }
+            step = 'resumo';
+            pickerMode = null;
+            pickerPaymentInitialized = false;
+            render();
         });
     };
 
     const confirmOrder = async () => {
         const cart = cartApi.loadCart();
         const checkout = loadCheckoutState();
-        const errors = validateCheckout(checkout);
+        const errors = validateCheckout(checkout, cartApi.cartSummary(cart).subtotal);
         if (Object.keys(errors).length) {
             step = 'resumo';
             render();
@@ -446,13 +613,16 @@ ${headerHtml(title)}
         }));
 
         const paymentMethod = resolvePaymentMethodForOrder(checkout.paymentMethod);
-        const notes = [
+        const paymentSplits = splitsApi()?.normalizeSplits?.(checkout.paymentSplits || []) || [];
+        const notesParts = [
             checkout.notes,
             checkout.deliveryDate ? `Entrega: ${checkout.deliveryDate}` : '',
             checkout.condicaoPagamento ? `Condição: ${checkout.condicaoPagamento}` : '',
-        ]
-            .filter(Boolean)
-            .join(' · ');
+        ].filter(Boolean);
+        let notes = notesParts.join(' · ');
+        if (paymentSplits.length >= 2) {
+            notes = splitsApi().encodeSplitsInNotes(notes, paymentSplits) || notes;
+        }
 
         try {
             const res = await fetch('/api/orders/create', {
@@ -464,6 +634,7 @@ ${headerHtml(title)}
                     address: checkout.address,
                     notes,
                     paymentMethod,
+                    paymentSplits: paymentSplits.length >= 2 ? paymentSplits : undefined,
                     condicaoPagamento: checkout.condicaoPagamento || s?.condicaoPagamento || '',
                     deliveryDate: checkout.deliveryDate,
                     hubUserId,
@@ -497,6 +668,7 @@ ${headerHtml(title)}
             if (step === 'picker') {
                 step = 'resumo';
                 pickerMode = null;
+                pickerPaymentInitialized = false;
                 render();
                 return;
             }

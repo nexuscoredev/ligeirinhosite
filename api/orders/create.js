@@ -49,6 +49,22 @@ function addDays(date, days) {
 
 const CREDIT_METHODS = new Set(['fiado', 'credito', 'boleto', 'prazo']);
 
+const normalizePaymentSplits = (raw, total) => {
+    if (!Array.isArray(raw) || raw.length < 2) return null;
+    const splits = raw
+        .map((entry) => ({
+            method: String(entry?.method || entry?.id || '').toLowerCase().trim(),
+            amount: roundMoney(entry?.amount),
+        }))
+        .filter((entry) => entry.method && entry.amount > 0);
+    if (splits.length < 2) return null;
+    const sum = roundMoney(splits.reduce((acc, item) => acc + item.amount, 0));
+    if (Math.abs(sum - roundMoney(total)) > 0.009) {
+        throw new Error('A soma dos pagamentos deve ser igual ao total do pedido.');
+    }
+    return splits;
+};
+
 export default async function handler(req, res) {
     const host = req.headers['x-forwarded-host'] || req.headers.host;
     const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -92,8 +108,19 @@ export default async function handler(req, res) {
         const isTotem = channel === 'totem';
         const isParceiros = !isTotem;
         let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
+        let paymentSplits = null;
+        try {
+            paymentSplits = normalizePaymentSplits(body.paymentSplits || body.payment_splits, total);
+        } catch (splitErr) {
+            return res.status(400).json({ error: splitErr.message || 'Pagamento dividido inválido.' });
+        }
+        if (paymentSplits?.length) {
+            paymentMethod = paymentSplits.map((item) => item.method).join('+');
+        }
         if (!paymentMethod && !isTotem) paymentMethod = 'pix';
-        const isCreditOrder = paymentMethod && CREDIT_METHODS.has(paymentMethod);
+        const isCreditOrder = paymentSplits?.length
+            ? paymentSplits.some((item) => CREDIT_METHODS.has(item.method))
+            : paymentMethod && CREDIT_METHODS.has(paymentMethod);
         const financialStatus =
             isTotem && !paymentMethod
                 ? 'pendente'
@@ -147,10 +174,15 @@ export default async function handler(req, res) {
 
         const customerCnpj = String(customer.cnpj || '').trim();
         const notesBase = String(body.notes || '').trim();
-        const notes = [notesBase, customerCnpj ? `CNPJ: ${customerCnpj}` : '']
-            .filter(Boolean)
-            .join(' · ')
-            .slice(0, 1000) || null;
+        const notesParts = [notesBase, customerCnpj ? `CNPJ: ${customerCnpj}` : ''].filter(Boolean);
+        let notes = notesParts.join(' · ').slice(0, 2000) || null;
+        if (paymentSplits?.length) {
+            const human = paymentSplits
+                .map((item) => `${item.method.toUpperCase()} R$ ${item.amount.toFixed(2).replace('.', ',')}`)
+                .join('; ');
+            const splitNote = `Pagamento dividido: ${human} [[lig-payment-splits:${JSON.stringify(paymentSplits)}]]`;
+            notes = [notes, splitNote].filter(Boolean).join(' · ').slice(0, 2000);
+        }
 
         const row = {
             status: 'pending',
@@ -170,6 +202,7 @@ export default async function handler(req, res) {
             customer_id: customerRow?.id || null,
             hub_user_id: hubUserId,
             payment_method: paymentMethod || null,
+            payment_splits: paymentSplits,
             due_date: isCreditOrder || financialStatus === 'pendente' ? addDays(new Date(), dueDays) : null,
             financial_status: financialStatus,
         };
@@ -184,6 +217,7 @@ export default async function handler(req, res) {
                     customer_id: _a,
                     hub_user_id: _b,
                     payment_method: _c,
+                    payment_splits: _ps,
                     due_date: _d,
                     financial_status: _e,
                     delivery_date: _f,

@@ -24,7 +24,7 @@
         );
     };
 
-    const paymentLabel = (id) => {
+    const paymentLabelSingle = (id) => {
         const methods = window.LigeirinhoPaymentMethods;
         if (methods?.label?.(id)) return methods.label(id);
         const key = String(id || '').toLowerCase();
@@ -32,6 +32,18 @@
         if (key === 'mercado_pago') return 'Mercado Pago';
         if (key === 'dinheiro') return 'Dinheiro';
         return id || '—';
+    };
+
+    const paymentLabel = (orderOrId) => {
+        if (orderOrId && typeof orderOrId === 'object') {
+            const splitsApi = window.LigeirinhoPaymentSplits;
+            const splits = splitsApi?.resolveOrderSplits?.(orderOrId) || [];
+            if (splits.length >= 2) {
+                return splitsApi.formatSplitSummary(splits, paymentLabelSingle, formatPrice);
+            }
+            return paymentLabelSingle(orderOrId.paymentMethod);
+        }
+        return paymentLabelSingle(orderOrId);
     };
 
     const itemDetailLine = (item) => {
@@ -167,7 +179,7 @@ Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chev
 <section class="order-track__meta-strip">
 <div class="order-track__meta-row">
 <span class="order-track__meta-label">Pagamento</span>
-<span class="order-track__meta-value">${esc(paymentLabel(order.paymentMethod))}</span>
+<span class="order-track__meta-value">${esc(paymentLabel(order))}</span>
 </div>
 </section>
 

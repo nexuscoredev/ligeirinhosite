@@ -81,7 +81,16 @@
         );
     };
 
-    const paymentMethodLabel = (id) => {
+    const paymentMethodLabel = (order) => {
+        const splitsApi = window.LigeirinhoPaymentSplits;
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        if (splits.length >= 2) {
+            return splitsApi.formatSplitSummary(splits, paymentMethodLabelSingle, formatPrice);
+        }
+        return paymentMethodLabelSingle(order.paymentMethod);
+    };
+
+    const paymentMethodLabelSingle = (id) => {
         const methods = window.LigeirinhoPaymentMethods;
         if (methods?.label?.(id)) return methods.label(id);
         const key = String(id || '').toLowerCase();
@@ -145,7 +154,7 @@
 <dl class="conta-order-detail__facts">
 ${orderFact('Modalidade', deliveryLabel)}
 ${orderFact('Endereço', order.deliveryType === 'entrega' ? order.address : '')}
-${orderFact('Pagamento', paymentMethodLabel(order.paymentMethod))}
+${orderFact('Pagamento', paymentMethodLabel(order))}
 ${orderFact('Cliente', order.customerName)}
 </dl>
 <ul class="conta-order-detail__items" aria-label="Itens do pedido">${orderItemsHtml(order.items || [])}</ul>

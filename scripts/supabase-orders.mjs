@@ -231,6 +231,24 @@ export async function fetchOrderByPixTxid(supabaseUrl, apiKey, txid, { useRpc = 
 
 export function publicOrderView(order) {
     if (!order) return null;
+    let paymentSplits = [];
+    if (Array.isArray(order.payment_splits) && order.payment_splits.length) {
+        paymentSplits = order.payment_splits;
+    } else {
+        const marker = '[[lig-payment-splits:';
+        const text = String(order.notes || '');
+        const start = text.indexOf(marker);
+        if (start !== -1) {
+            const end = text.indexOf(']]', start);
+            if (end !== -1) {
+                try {
+                    paymentSplits = JSON.parse(text.slice(start + marker.length, end));
+                } catch {
+                    paymentSplits = [];
+                }
+            }
+        }
+    }
     return {
         id: order.id,
         status: order.status,
@@ -243,6 +261,7 @@ export function publicOrderView(order) {
         customerName: order.customer_name,
         customerPhone: order.customer_phone,
         paymentMethod: order.payment_method,
+        paymentSplits,
         paymentChosen: order.financial_status === 'aguardando_caixa',
         dueDate: order.due_date,
         paidAt: order.paid_at,

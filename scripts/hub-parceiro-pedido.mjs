@@ -139,8 +139,21 @@ function parceirosMethodToHubForma(method) {
 }
 
 function buildPagamentoSplit(order) {
+    const raw = order.payment_splits || order.paymentSplits;
+    if (Array.isArray(raw) && raw.length) {
+        return raw
+            .map((entry) => ({
+                forma: parceirosMethodToHubForma(entry.method),
+                valor: roundMoney(entry.amount),
+            }))
+            .filter((entry) => entry.forma && entry.valor > 0);
+    }
     const total = Number(order.total) || 0;
     return [{ forma: parceirosMethodToHubForma(order.payment_method), valor: total }];
+}
+
+function roundMoney(n) {
+    return Math.round(Number(n) * 100) / 100;
 }
 
 function formatDeliveryDate(value) {
@@ -165,7 +178,16 @@ function buildObservacoes(order) {
     const parts = [PARCEIROS_TAG];
     parts.push(`Pedido ${String(order.id || '').slice(0, 8).toUpperCase()}`);
     if (order.customer_name) parts.push(String(order.customer_name).trim());
-    if (order.payment_method) parts.push(`Pagamento: ${paymentMethodLabel(order.payment_method)}`);
+    const splits = Array.isArray(order.payment_splits) ? order.payment_splits : [];
+    if (splits.length >= 2) {
+        parts.push(
+            `Pagamento: ${splits
+                .map((item) => `${paymentMethodLabel(item.method)} ${Number(item.amount).toFixed(2)}`)
+                .join(' + ')}`,
+        );
+    } else if (order.payment_method) {
+        parts.push(`Pagamento: ${paymentMethodLabel(order.payment_method)}`);
+    }
     if (order.delivery_date) parts.push(`Entrega: ${formatDeliveryDate(order.delivery_date)}`);
     if (order.delivery_type === 'entrega' && order.address) {
         parts.push(`Endereço: ${String(order.address).trim()}`);

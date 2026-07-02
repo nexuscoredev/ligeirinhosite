@@ -34,7 +34,21 @@
 
 
 
-    const paymentLabel = (id) => methods?.label?.(id) || id || '';
+    const paymentLabel = (checkoutOrId) => {
+        if (checkoutOrId && typeof checkoutOrId === 'object') {
+            const checkout = checkoutOrId;
+            const splitsApi = window.LigeirinhoPaymentSplits;
+            if (splitsApi?.isMultiPayment?.(checkout)) {
+                return splitsApi.formatSplitSummary(
+                    checkout.paymentSplits,
+                    (id) => methods?.label?.(id) || id || '',
+                    formatPrice,
+                );
+            }
+            return methods?.label?.(checkout.paymentMethod || checkout.payment) || checkout.paymentMethod || '';
+        }
+        return methods?.label?.(checkoutOrId) || checkoutOrId || '';
+    };
 
 
 
@@ -62,7 +76,11 @@
 
         const dateOk = checkout.deliveryType === 'retirada' || Boolean(checkout.deliveryDate);
 
-        const paymentOk = Boolean(checkout.paymentMethod || checkout.payment);
+        const paymentOk = (() => {
+            const splitsApi = window.LigeirinhoPaymentSplits;
+            const total = cartApi.cartSummary(cartApi.loadCart()).subtotal;
+            return splitsApi?.validateCheckoutPayment?.(checkout, total, (id) => methods?.label?.(id))?.ok;
+        })();
 
         return addressOk && dateOk && paymentOk;
 
@@ -128,8 +146,9 @@ ${thumb}
 
         const paymentId = checkout.paymentMethod || checkout.payment || '';
 
-        const deliveryLabel =
+        const paymentDisplay = paymentLabel(checkout);
 
+        const deliveryLabel =
             checkout.deliveryType === 'retirada'
 
                 ? 'Retirada no depósito'
@@ -230,7 +249,7 @@ ${
 
     paymentId
 
-        ? `<p class="checkout-card__value">${esc(paymentLabel(paymentId))}</p>
+        ? `<p class="checkout-card__value">${esc(paymentDisplay)}</p>
 
 <button type="button" class="checkout-pill-btn" id="resumo-change-payment">Alterar método</button>`
 
