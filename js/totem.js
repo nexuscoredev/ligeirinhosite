@@ -931,7 +931,14 @@ ${unitHtml}
             input: field,
             mode: keyboardMode,
             submitLabel: 'OK',
-            onSubmit: () => totemKeyboard?.hide?.(),
+            onSubmit: () => {
+                if (field === customerNameInput && customerPhoneInput) {
+                    customerPhoneInput.focus();
+                    bindCustomerKeyboard(customerPhoneInput, 'numeric');
+                    return;
+                }
+                totemKeyboard?.hide?.();
+            },
             onClose: bumpIdle,
         });
         field.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });

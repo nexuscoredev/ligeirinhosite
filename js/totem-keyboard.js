@@ -70,8 +70,19 @@
         document.documentElement.style.setProperty('--totem-vk-height', `${root.offsetHeight}px`);
     };
 
+    const clearOpenClasses = () => {
+        document.body.classList.remove(
+            'totem-keyboard-open',
+            'totem-keyboard-customer',
+            'totem-keyboard-numeric',
+            'totem-keyboard-payment',
+        );
+        document.documentElement.style.removeProperty('--totem-vk-height');
+    };
+
     const show = () => {
-        if (!root || open) return;
+        if (!root) return;
+        const alreadyVisible = open && !root.hidden;
         open = true;
         root.hidden = false;
         root.setAttribute('aria-hidden', 'false');
@@ -83,7 +94,11 @@
         );
         const inCustomer = document.getElementById('totem-view-customer')?.classList.contains('totem-view--active');
         document.body.classList.toggle('totem-keyboard-customer', Boolean(inCustomer));
-        window.requestAnimationFrame(syncVkHeight);
+        if (!alreadyVisible) {
+            window.requestAnimationFrame(syncVkHeight);
+        } else {
+            syncVkHeight();
+        }
     };
 
     const hide = () => {
@@ -91,13 +106,7 @@
         open = false;
         root.hidden = true;
         root.setAttribute('aria-hidden', 'true');
-        document.body.classList.remove(
-            'totem-keyboard-open',
-            'totem-keyboard-customer',
-            'totem-keyboard-numeric',
-            'totem-keyboard-payment',
-        );
-        document.documentElement.style.removeProperty('--totem-vk-height');
+        clearOpenClasses();
         input?.blur();
         onClose?.();
     };
@@ -273,8 +282,11 @@
             setSubmitLabel(submitLabel);
             return;
         }
+        // Troca de layout (ex.: nome → telefone): recria o teclado e libera show().
         root?.remove();
         root = null;
+        open = false;
+        clearOpenClasses();
         currentMode = mode;
         if (mode === 'numeric') buildNumericKeyboard(submitLabel);
         else if (mode === 'email') buildFullKeyboard(submitLabel, { email: true });
