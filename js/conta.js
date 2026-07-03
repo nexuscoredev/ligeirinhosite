@@ -390,9 +390,9 @@ ${
         const hasPhone = Boolean(String(s?.phone || '').replace(/\D/g, '').length >= 10);
         const pageTitle = hasPhone ? 'Atualizar telefone' : 'Cadastrar telefone';
         const body = `<div class="conta-sub-body">
-<form class="conta-edit-form" id="conta-telefone-form">
+<form class="conta-edit-form" id="conta-telefone-form" novalidate>
 <label class="conta-edit-label" for="conta-telefone-input">Telefone celular</label>
-<input class="conta-edit-input" id="conta-telefone-input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="(11) 99999-9999" value="${esc(formatPhoneDisplay(s?.phone || ''))}" maxlength="15" enterkeyhint="done">
+<input class="conta-edit-input" id="conta-telefone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" value="${esc(formatPhoneDisplay(s?.phone || ''))}" maxlength="15" enterkeyhint="done">
 <p class="conta-hint">Usado para contato sobre pedidos e entregas. Informe DDD + número.</p>
 <p class="conta-edit-status" id="conta-telefone-status" hidden></p>
 <button type="submit" class="conta-btn conta-btn--primary conta-btn--full">${hasPhone ? 'Salvar telefone' : 'Cadastrar telefone'}</button>
