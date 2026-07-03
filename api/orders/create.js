@@ -13,6 +13,7 @@ import {
     getFinanceSettings,
 } from '../../scripts/supabase-finance.mjs';
 import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
+import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -97,6 +98,12 @@ export default async function handler(req, res) {
         }
 
         const customer = body.customer || {};
+        const customerCpfRaw = customer.cpf || customer.customerCpf || body.customerCpf || '';
+        const customerCpfDigits = normalizeCpfDigits(customerCpfRaw);
+        if (customerCpfDigits && !isValidCpf(customerCpfDigits)) {
+            return res.status(400).json({ error: 'CPF inválido. Confira os dígitos e tente novamente.' });
+        }
+        const customerCpf = customerCpfDigits.length === 11 ? customerCpfDigits : null;
         const hubUserId = String(body.hubUserId || customer.hubUserId || '').trim() || null;
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
         const isTotem = channel === 'totem';
@@ -168,7 +175,11 @@ export default async function handler(req, res) {
 
         const customerCnpj = String(customer.cnpj || '').trim();
         const notesBase = String(body.notes || '').trim();
-        const notesParts = [notesBase, customerCnpj ? `CNPJ: ${customerCnpj}` : ''].filter(Boolean);
+        const notesParts = [
+            notesBase,
+            customerCnpj ? `CNPJ: ${customerCnpj}` : '',
+            customerCpf ? `CPF na nota: ${formatCpf(customerCpf)}` : '',
+        ].filter(Boolean);
         let notes = notesParts.join(' · ').slice(0, 2000) || null;
         if (paymentSplits?.length) {
             const human = paymentSplits
@@ -196,6 +207,7 @@ export default async function handler(req, res) {
             customer_name: String(customer.name || '').trim().slice(0, 120) || null,
             customer_phone: String(customer.phone || '').trim().slice(0, 32) || null,
             customer_email: String(customer.email || '').trim().slice(0, 120) || null,
+            customer_cpf: customerCpf,
             channel,
             totem_id: String(body.totemId || '').trim().slice(0, 64) || null,
             totem_label: String(body.totemLabel || '').trim().slice(0, 120) || null,
@@ -225,6 +237,7 @@ export default async function handler(req, res) {
                     wants_invoice: _g,
                     nf_queue_status: _h,
                     hub_pedido_id: _i,
+                    customer_cpf: _cpf,
                     ...legacyRow
                 } = row;
                 if (channel === 'totem') {

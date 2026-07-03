@@ -161,6 +161,51 @@
 </label>
 <p class="totem-customer__error" id="totem-customer-error" role="alert" hidden></p>
 <button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-continue">
+<span>Continuar</span>
+<span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+</button>
+</form>
+</div>
+
+<div class="totem-customer__step" id="totem-customer-step-invoice" data-customer-step="invoice" hidden>
+<div class="totem-customer__hero">
+<p class="totem-customer__eyebrow">Nota fiscal</p>
+<h2 class="totem-customer__title">Deseja CPF na nota?</h2>
+<p class="totem-customer__lead">O CPF aparece no comprovante final de pagamento no caixa.</p>
+</div>
+<div class="totem-customer__choices" role="group" aria-label="CPF na nota">
+<button type="button" class="totem-customer__choice totem-customer__choice--primary" id="totem-customer-invoice-yes">
+<span class="totem-customer__choice-icon" aria-hidden="true"><span class="material-symbols-outlined">receipt_long</span></span>
+<span class="totem-customer__choice-copy">
+<strong>Sim, quero CPF na nota</strong>
+<span>Informar o CPF agora</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+<button type="button" class="totem-customer__choice" id="totem-customer-invoice-no">
+<span class="totem-customer__choice-icon totem-customer__choice-icon--soft" aria-hidden="true"><span class="material-symbols-outlined">block</span></span>
+<span class="totem-customer__choice-copy">
+<strong>Não, obrigado</strong>
+<span>Seguir sem CPF na nota</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+</div>
+</div>
+
+<div class="totem-customer__step" id="totem-customer-step-cpf" data-customer-step="cpf" hidden>
+<div class="totem-customer__hero">
+<p class="totem-customer__eyebrow">CPF na nota</p>
+<h2 class="totem-customer__title">Qual é o seu CPF?</h2>
+<p class="totem-customer__lead">Digite um CPF válido. Ele será impresso no comprovante do caixa.</p>
+</div>
+<form class="totem-customer__form" id="totem-customer-cpf-form" novalidate>
+<label class="totem-customer__field" for="totem-customer-cpf-input">
+<span class="totem-customer__label">CPF</span>
+<input type="text" id="totem-customer-cpf-input" class="totem-customer__input totem-customer__input--lookup" placeholder="000.000.000-00" autocomplete="off" inputmode="numeric" maxlength="14" readonly>
+</label>
+<p class="totem-customer__error" id="totem-customer-cpf-error" role="alert" hidden></p>
+<button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-cpf-submit">
 <span>Continuar para o cardápio</span>
 <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
 </button>
@@ -355,6 +400,7 @@
 <script src="js/auth-store.js"></script>
 <script src="js/auth-routing.js"></script>
 <script src="js/cart-store.js"></script>
+<script src="js/cpf.js"></script>
 <script src="js/product-pricing.js"></script>
 <script src="js/catalog-utils.js"></script>
 <script src="js/catalog-loader.js"></script>

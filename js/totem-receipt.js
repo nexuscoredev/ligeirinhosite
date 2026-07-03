@@ -306,16 +306,26 @@
         return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     };
 
+    const formatCpfReceipt = (raw) => {
+        const d = String(raw || '').replace(/\D/g, '');
+        if (d.length !== 11) return '';
+        return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+    };
+
     const buildCustomerReceiptBlock = (order, forPrint = false) => {
         const rows = [];
         const name = String(order.customerName || '').trim();
         const phone = String(order.customerPhone || '').trim();
+        const cpf = formatCpfReceipt(order.customerCpf || order.customer_cpf);
         if (name) {
             const label = forPrint ? truncateName(name, 28) : esc(name);
             rows.push(`<div class="totem-receipt__row"><span>Cliente</span><strong>${label}</strong></div>`);
         }
         if (phone) {
             rows.push(`<div class="totem-receipt__row"><span>Telefone</span><strong>${esc(phone)}</strong></div>`);
+        }
+        if (cpf) {
+            rows.push(`<div class="totem-receipt__row"><span>CPF</span><strong>${forPrint ? cpf : esc(cpf)}</strong></div>`);
         }
         if (!rows.length) return '';
         return `${rows.join('')}<div class="totem-receipt__divider" aria-hidden="true"></div>`;
@@ -725,13 +735,17 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
         const customerName = String(order.customerName || '').trim();
         const customerPhone = String(order.customerPhone || '').trim();
+        const customerCpf = formatCpfReceipt(order.customerCpf || order.customer_cpf);
         if (customerName) {
             lines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
         }
         if (customerPhone) {
             lines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
         }
-        if (customerName || customerPhone) {
+        if (customerCpf) {
+            lines.push(padLine('CPF', customerCpf, width));
+        }
+        if (customerName || customerPhone || customerCpf) {
             lines.push(divider());
         }
 

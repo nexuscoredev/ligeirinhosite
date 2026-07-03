@@ -1,4 +1,5 @@
 import { resolveOrderSplits } from './lib/payment-splits.mjs';
+import { extractCpfFromNotes, isValidCpf, normalizeCpfDigits } from './lib/cpf.mjs';
 
 function headers(apiKey, extra = {}) {
     return {
@@ -235,9 +236,17 @@ export async function fetchOrderByPixTxid(supabaseUrl, apiKey, txid, { useRpc = 
     return Array.isArray(data) ? data[0] : null;
 }
 
+function resolveOrderCustomerCpf(order) {
+    const fromColumn = normalizeCpfDigits(order?.customer_cpf);
+    if (isValidCpf(fromColumn)) return fromColumn;
+    const fromNotes = extractCpfFromNotes(order?.notes);
+    return isValidCpf(fromNotes) ? fromNotes : null;
+}
+
 export function publicOrderView(order) {
     if (!order) return null;
     const paymentSplits = resolveOrderSplits(order);
+    const customerCpf = resolveOrderCustomerCpf(order);
     return {
         id: order.id,
         status: order.status,
@@ -249,6 +258,7 @@ export function publicOrderView(order) {
         notes: order.notes,
         customerName: order.customer_name,
         customerPhone: order.customer_phone,
+        customerCpf,
         paymentMethod: order.payment_method,
         paymentSplits,
         paymentChosen: order.financial_status === 'aguardando_caixa',

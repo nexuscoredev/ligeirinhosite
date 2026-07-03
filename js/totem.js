@@ -25,7 +25,13 @@
         lookup: document.getElementById('totem-customer-step-lookup'),
         confirm: document.getElementById('totem-customer-step-confirm'),
         manual: document.getElementById('totem-customer-step-manual'),
+        invoice: document.getElementById('totem-customer-step-invoice'),
+        cpf: document.getElementById('totem-customer-step-cpf'),
     };
+    const customerCpfForm = document.getElementById('totem-customer-cpf-form');
+    const customerCpfInput = document.getElementById('totem-customer-cpf-input');
+    const customerCpfError = document.getElementById('totem-customer-cpf-error');
+    const cpfApi = window.LigeirinhoCpf;
     const customerLookupForm = document.getElementById('totem-customer-lookup-form');
     const customerLookupInput = document.getElementById('totem-customer-lookup-input');
     const customerLookupError = document.getElementById('totem-customer-lookup-error');
@@ -113,7 +119,7 @@
     let detailItemKey = null;
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
-    let totemCustomer = { name: '', phone: '' };
+    let totemCustomer = { name: '', phone: '', cpf: '' };
     let customerStep = 'register';
     let customerLookupMode = 'doc';
     let customerLookupHit = null;
@@ -773,22 +779,31 @@ ${unitHtml}
     const lookupKeyboardMode = () => (customerLookupMode === 'email' ? 'email' : 'numeric');
 
     const resetCustomerForm = () => {
-        totemCustomer = { name: '', phone: '' };
+        totemCustomer = { name: '', phone: '', cpf: '' };
         customerLookupHit = null;
         customerStep = 'register';
         customerLookupMode = 'doc';
         if (customerNameInput) customerNameInput.value = '';
         if (customerPhoneInput) customerPhoneInput.value = '';
         if (customerLookupInput) customerLookupInput.value = '';
+        if (customerCpfInput) customerCpfInput.value = '';
         showCustomerError('');
         showLookupError('');
+        showCpfError('');
         customerNameInput?.classList.remove('totem-customer__input--error');
+        customerCpfInput?.classList.remove('totem-customer__input--error');
     };
 
     const showLookupError = (message) => {
         if (!customerLookupError) return;
         customerLookupError.textContent = message;
         customerLookupError.hidden = !message;
+    };
+
+    const showCpfError = (message) => {
+        if (!customerCpfError) return;
+        customerCpfError.textContent = message;
+        customerCpfError.hidden = !message;
     };
 
     const showCustomerStep = (step) => {
@@ -810,7 +825,21 @@ ${unitHtml}
                 customerNameInput?.focus();
                 bindCustomerKeyboard(customerNameInput);
             }, 120);
+        } else if (step === 'cpf') {
+            window.setTimeout(() => {
+                customerCpfInput?.focus();
+                bindCustomerKeyboard(customerCpfInput, 'numeric');
+            }, 120);
+        } else {
+            totemKeyboard?.hide?.();
         }
+    };
+
+    const goInvoiceStep = () => {
+        showCpfError('');
+        if (customerCpfInput) customerCpfInput.value = '';
+        showCustomerStep('invoice');
+        bumpIdle();
     };
 
     const startCustomerFlow = () => {
@@ -899,9 +928,10 @@ ${unitHtml}
         totemCustomer = {
             name: customerLookupHit.name,
             phone: String(customerLookupHit.phone || '').trim(),
+            cpf: '',
         };
         totemKeyboard?.hide?.();
-        enterCatalog();
+        goInvoiceStep();
     };
 
     const showCustomerError = (message) => {
@@ -927,7 +957,7 @@ ${unitHtml}
         if (!field) return;
         const keyboardMode =
             mode ||
-            (field === customerPhoneInput
+            (field === customerPhoneInput || field === customerCpfInput
                 ? 'numeric'
                 : field === customerLookupInput
                   ? lookupKeyboardMode()
@@ -936,10 +966,21 @@ ${unitHtml}
             input: field,
             mode: keyboardMode,
             submitLabel: 'OK',
+            onInput:
+                field === customerCpfInput
+                    ? (value) => {
+                          if (!customerCpfInput) return;
+                          customerCpfInput.value = cpfApi?.formatCpf?.(value) || value;
+                      }
+                    : undefined,
             onSubmit: () => {
                 if (field === customerNameInput && customerPhoneInput) {
                     customerPhoneInput.focus();
                     bindCustomerKeyboard(customerPhoneInput, 'numeric');
+                    return;
+                }
+                if (field === customerCpfInput) {
+                    void submitCustomerCpf();
                     return;
                 }
                 totemKeyboard?.hide?.();
@@ -975,7 +1016,23 @@ ${unitHtml}
         }
         customerNameInput?.classList.remove('totem-customer__input--error');
         showCustomerError('');
-        totemCustomer = { name, phone };
+        totemCustomer = { name, phone, cpf: '' };
+        totemKeyboard?.hide?.();
+        goInvoiceStep();
+    };
+
+    const submitCustomerCpf = () => {
+        const digits = cpfApi?.normalizeCpfDigits?.(customerCpfInput?.value) || '';
+        if (!cpfApi?.isValidCpf?.(digits)) {
+            customerCpfInput?.classList.add('totem-customer__input--error');
+            showCpfError('Informe um CPF válido com 11 dígitos.');
+            customerCpfInput?.focus();
+            bindCustomerKeyboard(customerCpfInput, 'numeric');
+            return;
+        }
+        customerCpfInput?.classList.remove('totem-customer__input--error');
+        showCpfError('');
+        totemCustomer = { ...totemCustomer, cpf: digits };
         totemKeyboard?.hide?.();
         enterCatalog();
     };
@@ -1610,6 +1667,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                         name: totemCustomer.name || s?.totemLabel || s?.name || 'Cliente Totem',
                         phone: totemCustomer.phone || s?.phone || '',
                         email: s?.email || '',
+                        cpf: totemCustomer.cpf || '',
                     },
                 }),
             });
@@ -1665,6 +1723,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 showCustomerStep('register');
             } else if (customerStep === 'confirm') {
                 showCustomerStep('lookup');
+            } else if (customerStep === 'invoice') {
+                showCustomerStep(customerLookupHit?.name ? 'confirm' : 'manual');
+            } else if (customerStep === 'cpf') {
+                showCustomerStep('invoice');
+            } else if (customerStep === 'manual') {
+                showCustomerStep('register');
             } else {
                 showCustomerStep('register');
             }
@@ -1713,6 +1777,28 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             e.preventDefault();
             submitCustomerAndStart();
         });
+
+        document.getElementById('totem-customer-invoice-yes')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            showCpfError('');
+            if (customerCpfInput) customerCpfInput.value = '';
+            showCustomerStep('cpf');
+            bumpIdle();
+        });
+
+        document.getElementById('totem-customer-invoice-no')?.addEventListener('click', () => {
+            totemCustomer = { ...totemCustomer, cpf: '' };
+            totemKeyboard?.hide?.();
+            enterCatalog();
+            bumpIdle();
+        });
+
+        customerCpfForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            submitCustomerCpf();
+        });
+
+        customerCpfInput?.addEventListener('focus', () => bindCustomerKeyboard(customerCpfInput, 'numeric'));
 
         customerNameInput?.addEventListener('input', () => {
             customerNameInput.classList.remove('totem-customer__input--error');

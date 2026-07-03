@@ -5,6 +5,7 @@ import {
     normalizeTotemCode,
     parseTotemOrderCode,
 } from './totem-order-code.mjs';
+import { extractCpfFromNotes, isValidCpf, normalizeCpfDigits } from './lib/cpf.mjs';
 
 export { formatTotemCode, normalizeTotemCode, parseTotemOrderCode };
 export { isTotemOrderCodeScannerInput as isTotemOrderCodeInput } from './totem-order-code.mjs';
@@ -58,37 +59,92 @@ function roundMoney(n) {
 const SPLIT_MARKER = '[[lig-payment-splits:';
 const SPLIT_MARKER_END = ']]';
 
+function parseMoneyBr(raw) {
+    const text = String(raw || '').trim();
+    if (!text) return 0;
+    const normalized = text.includes(',')
+        ? text.replace(/\./g, '').replace(',', '.')
+        : text.replace(/[^\d.]/g, '');
+    const n = Number(normalized);
+    return Number.isFinite(n) ? roundMoney(Math.max(0, n)) : 0;
+}
+
+function mapHumanLabelToMethod(label) {
+    const text = String(label || '').toLowerCase().trim();
+    if (text.includes('pix')) return 'pix';
+    if (text.includes('cart') || text.includes('cartao') || text.includes('cartão')) return 'cartao';
+    if (text.includes('dinheiro')) return 'dinheiro';
+    return normalizeTotemPaymentMethod(text);
+}
+
 function parseSplitsFromNotes(notes) {
     const text = String(notes || '');
     const start = text.indexOf(SPLIT_MARKER);
-    if (start === -1) return [];
-    const end = text.indexOf(SPLIT_MARKER_END, start);
-    if (end === -1) return [];
-    try {
-        const parsed = JSON.parse(text.slice(start + SPLIT_MARKER.length, end));
-        if (!Array.isArray(parsed)) return [];
-        return parsed
-            .map((entry) => ({
-                method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
-                amount: roundMoney(entry?.amount),
-            }))
-            .filter((entry) => entry.method && entry.amount > 0);
-    } catch {
-        return [];
+    if (start !== -1) {
+        const end = text.indexOf(SPLIT_MARKER_END, start);
+        if (end !== -1) {
+            try {
+                const parsed = JSON.parse(text.slice(start + SPLIT_MARKER.length, end));
+                if (Array.isArray(parsed)) {
+                    return parsed
+                        .map((entry) => ({
+                            method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
+                            amount: roundMoney(entry?.amount),
+                        }))
+                        .filter((entry) => entry.method && entry.amount > 0);
+                }
+            } catch {
+                /* tenta formato humano abaixo */
+            }
+        }
     }
+
+    const match = text.match(/Pagamento dividido(?: no totem)?:\s*([^[\n]+)/i);
+    if (!match) return [];
+    const chunks = match[1].split(/\s*\+\s*|\s*;\s*/);
+    const out = [];
+    chunks.forEach((chunk) => {
+        const part = chunk.trim();
+        const m = part.match(/^(.+?)\s+R\$\s*([\d.,]+)$/i);
+        if (!m) return;
+        const method = mapHumanLabelToMethod(m[1]);
+        const amount = parseMoneyBr(m[2]);
+        if (method && amount > 0) out.push({ method, amount });
+    });
+    return out;
+}
+
+function coalesceSplitArray(raw) {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string' && raw.trim()) {
+        try {
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
 }
 
 function resolveOrderSplits(order) {
-    const raw = order.payment_splits || order.paymentSplits;
-    if (Array.isArray(raw) && raw.length) {
-        return raw
-            .map((entry) => ({
-                method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
-                amount: roundMoney(entry?.amount),
-            }))
-            .filter((entry) => entry.method && entry.amount > 0);
-    }
-    return parseSplitsFromNotes(order.notes);
+    const fromColumn = coalesceSplitArray(order.payment_splits || order.paymentSplits)
+        .map((entry) => ({
+            method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
+            amount:
+                typeof entry?.amount === 'number' && Number.isFinite(entry.amount)
+                    ? roundMoney(entry.amount)
+                    : parseMoneyBr(entry?.amount ?? entry?.valor),
+        }))
+        .filter((entry) => entry.method && entry.amount > 0);
+    if (fromColumn.length >= 2) return fromColumn;
+
+    const fromNotes = parseSplitsFromNotes(order.notes);
+    if (fromNotes.length >= 2) return fromNotes;
+
+    if (fromColumn.length === 1) return fromColumn;
+    if (fromNotes.length === 1) return fromNotes;
+    return [];
 }
 
 function buildPagamentoSplit(order) {
@@ -179,8 +235,9 @@ async function resolverProdutosHub(config, items = []) {
     return map;
 }
 
-const TOTEM_ORDER_SELECT =
-    'id,total,customer_name,totem_label,unit_id,created_at,payment_method,items,notes,status,financial_status,channel';
+const TOTEM_ORDER_SELECT_BASE =
+    'id,total,customer_name,customer_phone,customer_cpf,totem_label,unit_id,created_at,payment_method,items,notes,status,financial_status,channel';
+const TOTEM_ORDER_SELECT = `${TOTEM_ORDER_SELECT_BASE},payment_splits`;
 
 function parceirosHeaders(parceirosKey) {
     return {
@@ -205,6 +262,14 @@ function pickTotemOrderByPrefix(list, prefix) {
     return list.find((o) => String(o.id || '').toLowerCase().startsWith(prefix)) || list[0];
 }
 
+async function fetchTotemOrders(parceirosUrl, parceirosKey, queryPath) {
+    let result = await parceirosRest(parceirosUrl, parceirosKey, queryPath(TOTEM_ORDER_SELECT));
+    if (!result.ok && /payment_splits|column/i.test(String(result.message || ''))) {
+        result = await parceirosRest(parceirosUrl, parceirosKey, queryPath(TOTEM_ORDER_SELECT_BASE));
+    }
+    return result;
+}
+
 export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
     const prefix = parseTotemOrderCode(code);
     if (!prefix) {
@@ -217,10 +282,11 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
 
     // 1) Coluna texto totem_code (eq) — sem cast/ilike em uuid.
     {
-        const { ok, rows } = await parceirosRest(
+        const { ok, rows } = await fetchTotemOrders(
             parceirosUrl,
             parceirosKey,
-            `orders?channel=eq.totem&totem_code=eq.${encodeURIComponent(prefix)}&select=${TOTEM_ORDER_SELECT}&order=created_at.desc&limit=5`,
+            (select) =>
+                `orders?channel=eq.totem&totem_code=eq.${encodeURIComponent(prefix)}&select=${select}&order=created_at.desc&limit=5`,
         );
         if (ok) {
             const order = pickTotemOrderByPrefix(rows, prefix);
@@ -243,10 +309,11 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
 
     // 3) Fallback: pedidos totem recentes + filtro em memória.
     {
-        const { ok, rows, message } = await parceirosRest(
+        const { ok, rows, message } = await fetchTotemOrders(
             parceirosUrl,
             parceirosKey,
-            `orders?channel=eq.totem&select=${TOTEM_ORDER_SELECT}&order=created_at.desc&limit=120`,
+            (select) =>
+                `orders?channel=eq.totem&select=${select}&order=created_at.desc&limit=120`,
         );
         if (!ok) {
             const err = new Error(message || 'Erro ao buscar pedido');
@@ -263,24 +330,43 @@ export async function lookupTotemOrderByCode(parceirosUrl, parceirosKey, code) {
     }
 }
 
+function resolveCustomerCpf(order) {
+    const fromColumn = normalizeCpfDigits(order?.customer_cpf);
+    if (isValidCpf(fromColumn)) return fromColumn;
+    const fromNotes = extractCpfFromNotes(order?.notes);
+    return isValidCpf(fromNotes) ? fromNotes : null;
+}
+
 export function publicTotemLookupView(order, hubPedido = null) {
     const splits = resolveOrderSplits(order);
     const pagamentoSplit = buildPagamentoSplit(order);
+    const customerCpf = resolveCustomerCpf(order);
+    const paymentMethodRaw = String(order.payment_method || '').toLowerCase().trim();
+    const paymentMethod =
+        splits.length >= 2
+            ? splits.map((item) => item.method).join('+')
+            : paymentMethodRaw.includes('+')
+              ? paymentMethodRaw
+              : normalizeTotemPaymentMethod(paymentMethodRaw);
     return {
         orderId: order.id,
         code: formatTotemCode(order.id),
         codeRaw: normalizeTotemCode(order.id).toUpperCase(),
         total: Number(order.total) || 0,
         items: Array.isArray(order.items) ? order.items : [],
-        paymentMethod: normalizeTotemPaymentMethod(order.payment_method),
+        paymentMethod,
         paymentSplits: splits.map((item) => ({
             method: item.method,
             label: paymentMethodLabel(item.method),
             amount: item.amount,
         })),
         pagamentoSplit,
-        isSplitPayment: splits.length >= 2,
+        isSplitPayment: splits.length >= 2 || paymentMethod.includes('+'),
+        notes: order.notes || null,
         totemLabel: order.totem_label || 'Ligeirinho Totem',
+        customerName: order.customer_name || null,
+        customerPhone: order.customer_phone || null,
+        customerCpf,
         status: order.status,
         financialStatus: order.financial_status,
         createdAt: order.created_at,
