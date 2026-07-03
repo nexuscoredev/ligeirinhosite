@@ -5770,6 +5770,12 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     margin-inline: auto;
 }
 
+.totem-vk__row--symbols {
+    grid-template-columns: repeat(4, minmax(2.75rem, 1fr));
+    width: min(100%, 52%);
+    margin-inline: auto;
+}
+
 .totem-vk__row--actions {
     grid-template-columns: minmax(3.5rem, 2.4fr) minmax(2.5rem, 0.95fr) minmax(2.75rem, 1.1fr) minmax(2.25rem, 0.85fr);
     margin-top: 0.1rem;

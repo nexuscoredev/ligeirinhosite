@@ -12,11 +12,14 @@ export default async function handler(req, res) {
 
     try {
         const query = String(req.body?.query || req.body?.q || '').trim();
+        const type = String(req.body?.type || '').trim().toLowerCase();
         if (!query) {
-            return res.status(400).json({ error: 'Informe telefone, CPF ou CNPJ.' });
+            return res.status(400).json({ error: 'Informe telefone, CPF, CNPJ ou e-mail.' });
         }
 
-        const customer = await lookupTotemCustomer(process.env, query);
+        const customer = await lookupTotemCustomer(process.env, query, {
+            type: type === 'email' ? 'email' : 'contact',
+        });
         if (!customer) {
             return res.status(404).json({ error: 'Cadastro não encontrado. Você pode continuar como novo cliente.' });
         }

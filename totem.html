@@ -74,14 +74,22 @@
 <div class="totem-customer__hero">
 <p class="totem-customer__eyebrow">Identificação</p>
 <h2 class="totem-customer__title">Já é cliente Ligeirinho?</h2>
-<p class="totem-customer__lead">Se você já compra conosco, localizamos seu cadastro em segundos.</p>
+<p class="totem-customer__lead">Se você já compra conosco, localizamos seu cadastro por telefone, documento ou e-mail.</p>
 </div>
 <div class="totem-customer__choices" role="group" aria-label="Tipo de cliente">
-<button type="button" class="totem-customer__choice totem-customer__choice--primary" id="totem-customer-registered-yes">
+<button type="button" class="totem-customer__choice totem-customer__choice--primary" id="totem-customer-registered-doc">
 <span class="totem-customer__choice-icon" aria-hidden="true"><span class="material-symbols-outlined">verified_user</span></span>
 <span class="totem-customer__choice-copy">
-<strong>Sim, sou cliente</strong>
-<span>Telefone, CPF ou CNPJ</span>
+<strong>Telefone, CPF ou CNPJ</strong>
+<span>Celular ou documento cadastrado</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+<button type="button" class="totem-customer__choice" id="totem-customer-registered-email">
+<span class="totem-customer__choice-icon totem-customer__choice-icon--soft" aria-hidden="true"><span class="material-symbols-outlined">mail</span></span>
+<span class="totem-customer__choice-copy">
+<strong>E-mail</strong>
+<span>Gmail, Outlook ou outro</span>
 </span>
 <span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
 </button>
@@ -99,12 +107,12 @@
 <div class="totem-customer__step" id="totem-customer-step-lookup" data-customer-step="lookup" hidden>
 <div class="totem-customer__hero">
 <p class="totem-customer__eyebrow">Cliente cadastrado</p>
-<h2 class="totem-customer__title">Como podemos te achar?</h2>
-<p class="totem-customer__lead">Digite seu telefone, CPF ou CNPJ cadastrado na Ligeirinho.</p>
+<h2 class="totem-customer__title" id="totem-customer-lookup-title">Como podemos te achar?</h2>
+<p class="totem-customer__lead" id="totem-customer-lookup-lead">Digite seu telefone, CPF ou CNPJ cadastrado na Ligeirinho.</p>
 </div>
 <form class="totem-customer__form" id="totem-customer-lookup-form" novalidate>
 <label class="totem-customer__field" for="totem-customer-lookup-input">
-<span class="totem-customer__label">Telefone, CPF ou CNPJ</span>
+<span class="totem-customer__label" id="totem-customer-lookup-label">Telefone, CPF ou CNPJ</span>
 <input type="text" id="totem-customer-lookup-input" class="totem-customer__input totem-customer__input--lookup" placeholder="(00) 00000-0000 ou documento" autocomplete="off" inputmode="numeric" maxlength="18" readonly>
 </label>
 <p class="totem-customer__error" id="totem-customer-lookup-error" role="alert" hidden></p>

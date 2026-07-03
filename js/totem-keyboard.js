@@ -25,6 +25,7 @@
     let onClose = null;
     let open = false;
     let currentMode = null;
+    let lowercaseInput = false;
 
     const syncInput = () => {
         if (!input) return;
@@ -33,6 +34,7 @@
 
     const insertChar = (char) => {
         if (!input) return;
+        if (lowercaseInput && /[A-ZÇ]/.test(char)) char = char.toLowerCase();
         const start = input.selectionStart ?? input.value.length;
         const end = input.selectionEnd ?? input.value.length;
         const next = `${input.value.slice(0, start)}${char}${input.value.slice(end)}`;
@@ -134,7 +136,7 @@
         });
     };
 
-    const buildFullKeyboard = (submitLabel = 'Buscar') => {
+    const buildFullKeyboard = (submitLabel = 'Buscar', { email = false } = {}) => {
         root = document.createElement('div');
         root.id = 'totem-vk';
         root.className = 'totem-vk';
@@ -174,6 +176,13 @@
 
             letters.appendChild(rowEl);
         });
+
+        if (email) {
+            const symRow = document.createElement('div');
+            symRow.className = 'totem-vk__row totem-vk__row--symbols';
+            ['@', '.', '-', '_'].forEach((key) => symRow.appendChild(createCharKey(key)));
+            letters.appendChild(symRow);
+        }
 
         const actions = document.createElement('div');
         actions.className = 'totem-vk__row totem-vk__row--actions';
@@ -268,6 +277,7 @@
         root = null;
         currentMode = mode;
         if (mode === 'numeric') buildNumericKeyboard(submitLabel);
+        else if (mode === 'email') buildFullKeyboard(submitLabel, { email: true });
         else buildFullKeyboard(submitLabel);
     };
 
@@ -278,8 +288,9 @@
         onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
         if (!input) return;
 
-        const mode = opts.mode === 'numeric' ? 'numeric' : 'full';
+        const mode = opts.mode === 'numeric' ? 'numeric' : opts.mode === 'email' ? 'email' : 'full';
         const submitLabel = String(opts.submitLabel || (mode === 'numeric' ? 'OK' : 'Buscar'));
+        lowercaseInput = mode === 'email';
         ensureKeyboard(mode, submitLabel);
 
         if (!input.hasAttribute('readonly')) {

@@ -29,6 +29,9 @@
     const customerLookupForm = document.getElementById('totem-customer-lookup-form');
     const customerLookupInput = document.getElementById('totem-customer-lookup-input');
     const customerLookupError = document.getElementById('totem-customer-lookup-error');
+    const customerLookupLead = document.getElementById('totem-customer-lookup-lead');
+    const customerLookupLabel = document.getElementById('totem-customer-lookup-label');
+    const customerLookupTitle = document.getElementById('totem-customer-lookup-title');
     const customerLookupSubmit = document.getElementById('totem-customer-lookup-submit');
     const customerConfirmName = document.getElementById('totem-customer-confirm-name');
     const customerConfirmHint = document.getElementById('totem-customer-confirm-hint');
@@ -107,6 +110,7 @@
     let promosReturnView = 'welcome';
     let totemCustomer = { name: '', phone: '' };
     let customerStep = 'register';
+    let customerLookupMode = 'doc';
     let customerLookupHit = null;
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
@@ -722,10 +726,52 @@ ${unitHtml}
         return `<button type="button" class="ze-filter-pill totem-cat-pill" data-cat="${esc(catId)}" aria-pressed="${active ? 'true' : 'false'}">${iconHtml}<span class="totem-cat-pill__text"><span class="totem-cat-pill__label">${esc(label)}</span><span class="totem-cat-pill__count">${count}</span></span></button>`;
     };
 
+    const LOOKUP_COPY = {
+        doc: {
+            title: 'Como podemos te achar?',
+            lead: 'Digite seu telefone, CPF ou CNPJ cadastrado na Ligeirinho.',
+            label: 'Telefone, CPF ou CNPJ',
+            placeholder: '(00) 00000-0000 ou documento',
+            maxlength: 18,
+        },
+        email: {
+            title: 'Qual é o seu e-mail?',
+            lead: 'Digite o e-mail cadastrado na Ligeirinho (Gmail, Outlook etc.).',
+            label: 'E-mail',
+            placeholder: 'seu@email.com',
+            maxlength: 120,
+        },
+    };
+
+    const isValidEmail = (raw) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(raw || '').trim());
+
+    const setCustomerLookupCopy = (mode) => {
+        customerLookupMode = mode === 'email' ? 'email' : 'doc';
+        const copy = LOOKUP_COPY[customerLookupMode];
+        if (customerLookupTitle) customerLookupTitle.textContent = copy.title;
+        if (customerLookupLead) customerLookupLead.textContent = copy.lead;
+        if (customerLookupLabel) customerLookupLabel.textContent = copy.label;
+        if (customerLookupInput) {
+            customerLookupInput.placeholder = copy.placeholder;
+            customerLookupInput.maxLength = copy.maxlength;
+            customerLookupInput.setAttribute('autocomplete', customerLookupMode === 'email' ? 'email' : 'off');
+        }
+    };
+
+    const startCustomerLookup = (mode) => {
+        setCustomerLookupCopy(mode);
+        if (customerLookupInput) customerLookupInput.value = '';
+        showLookupError('');
+        showCustomerStep('lookup');
+    };
+
+    const lookupKeyboardMode = () => (customerLookupMode === 'email' ? 'email' : 'numeric');
+
     const resetCustomerForm = () => {
         totemCustomer = { name: '', phone: '' };
         customerLookupHit = null;
         customerStep = 'register';
+        customerLookupMode = 'doc';
         if (customerNameInput) customerNameInput.value = '';
         if (customerPhoneInput) customerPhoneInput.value = '';
         if (customerLookupInput) customerLookupInput.value = '';
@@ -749,9 +795,10 @@ ${unitHtml}
             el.hidden = !active;
         });
         if (step === 'lookup') {
+            setCustomerLookupCopy(customerLookupMode);
             window.setTimeout(() => {
                 customerLookupInput?.focus();
-                bindCustomerKeyboard(customerLookupInput, 'numeric');
+                bindCustomerKeyboard(customerLookupInput, lookupKeyboardMode());
             }, 120);
         } else if (step === 'manual') {
             window.setTimeout(() => {
@@ -798,21 +845,35 @@ ${unitHtml}
 
     const submitCustomerLookup = async () => {
         const query = String(customerLookupInput?.value || '').trim();
-        const digits = query.replace(/\D/g, '');
-        if (digits.length < 10) {
-            showLookupError('Informe telefone, CPF ou CNPJ com pelo menos 10 dígitos.');
-            customerLookupInput?.focus();
-            bindCustomerKeyboard(customerLookupInput, 'numeric');
-            return;
+        if (customerLookupMode === 'email') {
+            const email = query.toLowerCase();
+            if (!isValidEmail(email)) {
+                showLookupError('Informe um e-mail válido (ex.: nome@gmail.com).');
+                customerLookupInput?.focus();
+                bindCustomerKeyboard(customerLookupInput, 'email');
+                return;
+            }
+        } else {
+            const digits = query.replace(/\D/g, '');
+            if (digits.length < 10) {
+                showLookupError('Informe telefone, CPF ou CNPJ com pelo menos 10 dígitos.');
+                customerLookupInput?.focus();
+                bindCustomerKeyboard(customerLookupInput, 'numeric');
+                return;
+            }
         }
         if (customerLookupSubmit) customerLookupSubmit.disabled = true;
         showLookupError('');
         totemKeyboard?.hide?.();
         try {
+            const payload =
+                customerLookupMode === 'email'
+                    ? { query: query.toLowerCase(), type: 'email' }
+                    : { query, type: 'contact' };
             const res = await fetch('/api/totem/customer/lookup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query }),
+                body: JSON.stringify(payload),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Cadastro não encontrado');
@@ -822,7 +883,7 @@ ${unitHtml}
         } catch (err) {
             showLookupError(err.message || 'Cadastro não encontrado.');
             customerLookupInput?.focus();
-            bindCustomerKeyboard(customerLookupInput, 'numeric');
+            bindCustomerKeyboard(customerLookupInput, lookupKeyboardMode());
         } finally {
             if (customerLookupSubmit) customerLookupSubmit.disabled = false;
         }
@@ -860,7 +921,12 @@ ${unitHtml}
     const bindCustomerKeyboard = (field, mode = null) => {
         if (!field) return;
         const keyboardMode =
-            mode || (field === customerPhoneInput || field === customerLookupInput ? 'numeric' : 'full');
+            mode ||
+            (field === customerPhoneInput
+                ? 'numeric'
+                : field === customerLookupInput
+                  ? lookupKeyboardMode()
+                  : 'full');
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: field,
             mode: keyboardMode,
@@ -1543,9 +1609,15 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             bumpIdle();
         });
 
-        document.getElementById('totem-customer-registered-yes')?.addEventListener('click', () => {
+        document.getElementById('totem-customer-registered-doc')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
-            showCustomerStep('lookup');
+            startCustomerLookup('doc');
+            bumpIdle();
+        });
+
+        document.getElementById('totem-customer-registered-email')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            startCustomerLookup('email');
             bumpIdle();
         });
 
@@ -1560,7 +1632,9 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             void submitCustomerLookup();
         });
 
-        customerLookupInput?.addEventListener('focus', () => bindCustomerKeyboard(customerLookupInput, 'numeric'));
+        customerLookupInput?.addEventListener('focus', () =>
+            bindCustomerKeyboard(customerLookupInput, lookupKeyboardMode()),
+        );
 
         document.getElementById('totem-customer-confirm-yes')?.addEventListener('click', () => {
             confirmCustomerIdentity();

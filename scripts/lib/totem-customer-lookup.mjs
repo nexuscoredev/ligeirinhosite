@@ -56,15 +56,37 @@ function maskPhone(digits) {
     return `Tel. (••) •••••-${d.slice(-4)}`;
 }
 
+function normalizeEmail(raw) {
+    return String(raw || '').trim().toLowerCase();
+}
+
+function isValidEmail(raw) {
+    const email = normalizeEmail(raw);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}
+
+function maskEmail(raw) {
+    const email = normalizeEmail(raw);
+    const at = email.indexOf('@');
+    if (at <= 0) return '';
+    const local = email.slice(0, at);
+    const domain = email.slice(at + 1);
+    const maskedLocal =
+        local.length <= 1 ? '*' : `${local[0]}${'•'.repeat(Math.min(3, local.length - 1))}`;
+    return `E-mail ${maskedLocal}@${domain}`;
+}
+
 function toPublicHit(pessoa, matchedBy) {
     const name = displayName(pessoa);
     if (!name) return null;
     const docDigits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj);
     const phoneDigits = normalizeDocDigits(pessoa.telefone);
     const hint =
-        matchedBy === 'phone'
-            ? maskPhone(phoneDigits)
-            : maskDoc(docDigits) || maskPhone(phoneDigits) || 'Cadastro Ligeirinho';
+        matchedBy === 'email'
+            ? maskEmail(pessoa.email)
+            : matchedBy === 'phone'
+              ? maskPhone(phoneDigits)
+              : maskDoc(docDigits) || maskPhone(phoneDigits) || 'Cadastro Ligeirinho';
     return {
         name,
         phone: String(pessoa.telefone || '').trim(),
@@ -89,6 +111,21 @@ async function lookupByPhone(config, digits) {
     return null;
 }
 
+async function lookupByEmail(config, rawEmail) {
+    const email = normalizeEmail(rawEmail);
+    const rows = await hubRest(
+        config,
+        `pessoas?select=${PESSOA_SELECT}&email=ilike.${encodeURIComponent(email)}&limit=5`,
+    );
+    const list = Array.isArray(rows) ? rows : [];
+    for (const pessoa of list) {
+        if (normalizeEmail(pessoa.email) !== email) continue;
+        const hit = toPublicHit(pessoa, 'email');
+        if (hit) return hit;
+    }
+    return null;
+}
+
 async function lookupByDoc(config, digits) {
     const pessoa = await fetchPessoaParceiroByCnpj(config, digits);
     if (!pessoa) {
@@ -103,7 +140,7 @@ async function lookupByDoc(config, digits) {
     return toPublicHit(pessoa, digits.length === 14 ? 'cnpj' : 'cpf');
 }
 
-export async function lookupTotemCustomer(env, rawQuery) {
+export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
     const config = hubConfig(env);
     if (!config.serviceKey) {
         const err = new Error('Busca de cliente indisponível no momento.');
@@ -111,7 +148,19 @@ export async function lookupTotemCustomer(env, rawQuery) {
         throw err;
     }
 
-    const digits = normalizeDocDigits(rawQuery);
+    const query = String(rawQuery || '').trim();
+    const emailMode = type === 'email' || query.includes('@');
+
+    if (emailMode) {
+        if (!isValidEmail(query)) {
+            const err = new Error('Informe um e-mail válido.');
+            err.status = 400;
+            throw err;
+        }
+        return lookupByEmail(config, query);
+    }
+
+    const digits = normalizeDocDigits(query);
     if (digits.length < 10) {
         const err = new Error('Informe telefone, CPF ou CNPJ válido.');
         err.status = 400;
