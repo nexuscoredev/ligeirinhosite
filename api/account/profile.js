@@ -12,6 +12,17 @@ import { isTotemRole } from '../../scripts/hub-auth.mjs';
 
 export const config = { maxDuration: 15 };
 
+function friendlyProfileError(err) {
+    const msg = String(err?.message || err || '');
+    if (/hub_profiles_email_key|duplicate key.*email/i.test(msg)) {
+        return 'Este e-mail já está vinculado a outra conta. Saia e entre novamente com Google, ou fale com o suporte.';
+    }
+    if (/duplicate key/i.test(msg)) {
+        return 'Não foi possível salvar: dados já cadastrados. Tente novamente ou fale com o suporte.';
+    }
+    return msg || 'Erro ao atualizar perfil.';
+}
+
 function publicProfile(usuario, extras = {}) {
     const cnpjDigits = extras.cnpjDigits || '';
     const provider = extras.provider || 'hub';
@@ -135,7 +146,7 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Campo inválido. Use telefone, email ou cnpj.' });
         } catch (err) {
             console.error('account/profile PATCH', err);
-            return res.status(500).json({ error: err.message || 'Erro ao atualizar perfil.' });
+            return res.status(500).json({ error: friendlyProfileError(err) });
         }
     }
 

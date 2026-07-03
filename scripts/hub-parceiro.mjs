@@ -654,34 +654,105 @@ export async function buildParceiroExtras(config, usuario) {
 export async function updateUsuarioFields(config, userId, patch) {
     const allowed = {};
     if (patch.telefone !== undefined) allowed.telefone = String(patch.telefone || '').trim() || null;
-    if (patch.email !== undefined) allowed.email = String(patch.email || '').trim() || null;
+    if (patch.email !== undefined) {
+        const emailNorm = String(patch.email || '').trim().toLowerCase();
+        if (emailNorm) {
+            const other = await fetchUsuarioByEmail(config, emailNorm);
+            if (other?.id && other.id !== userId) {
+                throw new Error('Este e-mail já está em uso por outra conta.');
+            }
+        }
+        allowed.email = emailNorm || null;
+    }
     if (Object.keys(allowed).length === 0) return null;
 
-    const rows = await hubRest(
-        config,
-        `usuarios?id=eq.${encodeURIComponent(userId)}`,
-        {
-            method: 'PATCH',
-            headers: { Prefer: 'return=representation' },
-            body: allowed,
+    let usuario;
+    try {
+        const rows = await hubRest(
+            config,
+            `usuarios?id=eq.${encodeURIComponent(userId)}`,
+            {
+                method: 'PATCH',
+                headers: { Prefer: 'return=representation' },
+                body: allowed,
+            },
+        );
+        usuario = Array.isArray(rows) ? rows[0] : rows;
+    } catch (err) {
+        const msg = String(err?.message || err || '');
+        if (/hub_profiles_email_key|duplicate key.*email/i.test(msg)) {
+            throw new Error('Este e-mail já está em uso por outra conta.');
         }
-    );
-    const usuario = Array.isArray(rows) ? rows[0] : rows;
+        throw err;
+    }
 
-    if (usuario && allowed.telefone) {
+    if (!usuario?.id) {
+        usuario = await fetchUsuarioById(config, userId, config.serviceKey);
+    }
+    if (!usuario?.id) {
+        throw new Error('Conta não encontrada no Hub. Saia e entre novamente.');
+    }
+
+    if (allowed.telefone) {
         const pessoa = await findPessoaForUsuario(config, usuario);
         if (pessoa?.id) {
             const phoneDigits = normalizeDocDigits(allowed.telefone);
             if (phoneDigits.length >= 10) {
-                await hubRest(config, `pessoas?id=eq.${encodeURIComponent(pessoa.id)}`, {
-                    method: 'PATCH',
-                    body: { telefone: phoneDigits.slice(-11) },
-                });
+                try {
+                    await hubRest(config, `pessoas?id=eq.${encodeURIComponent(pessoa.id)}`, {
+                        method: 'PATCH',
+                        body: { telefone: phoneDigits.slice(-11) },
+                    });
+                } catch (err) {
+                    console.warn('[updateUsuarioFields] pessoas telefone', err?.message || err);
+                }
             }
         }
     }
 
     return usuario;
+}
+
+async function fetchAuthUserIdByEmail(config, email) {
+    try {
+        const id = await hubRest(config, 'rpc/hub_auth_user_id_by_email', {
+            method: 'POST',
+            body: { p_email: email },
+        });
+        return id || null;
+    } catch {
+        return null;
+    }
+}
+
+async function upsertUsuarioParceiro(config, { authId, emailNorm, name }) {
+    const byId = await fetchUsuarioById(config, authId, config.serviceKey);
+    if (byId?.id) return byId;
+
+    const byEmail = await fetchUsuarioByEmail(config, emailNorm);
+    if (byEmail?.id) return byEmail;
+
+    try {
+        const rows = await hubRest(config, 'usuarios', {
+            method: 'POST',
+            headers: { Prefer: 'return=representation' },
+            body: {
+                id: authId,
+                email: emailNorm,
+                login: emailNorm,
+                nome: String(name || emailNorm).slice(0, 120),
+                cargo: 'Clientes',
+                ativo: true,
+            },
+        });
+        return Array.isArray(rows) ? rows[0] : rows;
+    } catch (err) {
+        const again =
+            (await fetchUsuarioById(config, authId, config.serviceKey)) ||
+            (await fetchUsuarioByEmail(config, emailNorm));
+        if (again?.id) return again;
+        throw err;
+    }
 }
 
 export async function ensureUsuarioForGoogleParceiro(config, { email, name = '' } = {}) {
@@ -697,39 +768,44 @@ export async function ensureUsuarioForGoogleParceiro(config, { email, name = '' 
     const existing = await fetchUsuarioByEmail(config, emailNorm);
     if (existing?.id) return existing;
 
-    const password = crypto.randomUUID();
-    const authRes = await fetch(`${config.url}/auth/v1/admin/users`, {
-        method: 'POST',
-        headers: hubHeaders(config, config.serviceKey),
-        body: JSON.stringify({
-            email: emailNorm,
-            email_confirm: true,
-            password,
-            user_metadata: { nome: name || emailNorm, provider: 'google' },
-        }),
-    });
-    const authUser = await authRes.json();
-    if (!authRes.ok) {
-        throw new Error(authUser.msg || authUser.message || 'Não foi possível criar usuário no Hub.');
+    let authId = await fetchAuthUserIdByEmail(config, emailNorm);
+
+    if (!authId) {
+        const password = crypto.randomUUID();
+        const authRes = await fetch(`${config.url}/auth/v1/admin/users`, {
+            method: 'POST',
+            headers: hubHeaders(config, config.serviceKey),
+            body: JSON.stringify({
+                email: emailNorm,
+                email_confirm: true,
+                password,
+                user_metadata: { nome: name || emailNorm, provider: 'google' },
+            }),
+        });
+        const authUser = await authRes.json().catch(() => ({}));
+        if (authRes.ok) {
+            authId = authUser.id || authUser.user?.id || null;
+        } else {
+            authId = await fetchAuthUserIdByEmail(config, emailNorm);
+            if (!authId) {
+                const msg = String(authUser.msg || authUser.message || authUser.error_description || '');
+                if (/hub_profiles_email_key|duplicate key.*email/i.test(msg)) {
+                    throw new Error(
+                        'Não foi possível vincular este e-mail. Saia e entre novamente com Google, ou fale com o suporte.',
+                    );
+                }
+                throw new Error(msg || 'Não foi possível criar usuário no Hub.');
+            }
+        }
     }
 
-    const authId = authUser.id || authUser.user?.id;
     if (!authId) throw new Error('ID do usuário auth não retornado.');
 
-    const rows = await hubRest(config, 'usuarios', {
-        method: 'POST',
-        headers: { Prefer: 'return=representation' },
-        body: {
-            id: authId,
-            email: emailNorm,
-            login: emailNorm,
-            nome: String(name || emailNorm).slice(0, 120),
-            cargo: 'Clientes',
-            ativo: true,
-        },
+    return upsertUsuarioParceiro(config, {
+        authId,
+        emailNorm,
+        name: name || emailNorm,
     });
-
-    return Array.isArray(rows) ? rows[0] : rows;
 }
 
 function formatCepBr(cep) {
