@@ -188,26 +188,29 @@
         const analysis = splitsApi.analyzeSplits(currentSplitEntries(), total);
         const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
         const ok = everyFilled && isSplitAmountsValid(total);
+
+        // Quanto ainda falta para cobrir o pedido (mesmo com algum campo vazio).
+        const falta = analysis.hasCash
+            ? splitsApi.roundMoney(Math.max(0, analysis.neededFromCash - analysis.cashTendered))
+            : splitsApi.roundMoney(Math.max(0, analysis.expected - analysis.tenderedSum));
+
         let sumClass = ' totem-pay-amounts__sum--low';
         let diffHtml = '';
 
-        if (ok && analysis.troco > 0) {
+        if (ok && analysis.troco > 0.009) {
             sumClass = ' totem-pay-amounts__sum--ok';
             diffHtml = ` · Troco: <strong>${formatPrice(analysis.troco)}</strong>`;
         } else if (ok) {
             sumClass = ' totem-pay-amounts__sum--ok';
-        } else if (analysis.hasCash && everyFilled && analysis.cashTendered + 0.009 < analysis.neededFromCash) {
+        } else if (falta > 0.009) {
             sumClass = ' totem-pay-amounts__sum--low';
-            diffHtml = ` · Falta: <strong>${formatPrice(analysis.neededFromCash - analysis.cashTendered)}</strong>`;
-        } else if (everyFilled && analysis.tenderedSum + 0.009 < analysis.expected) {
-            sumClass = ' totem-pay-amounts__sum--low';
-            diffHtml = ` · Falta: <strong>${formatPrice(analysis.expected - analysis.tenderedSum)}</strong>`;
-        } else if (everyFilled && analysis.tenderedSum > analysis.expected + 0.009 && !analysis.hasCash) {
-            sumClass = ' totem-pay-amounts__sum--high';
-            diffHtml = ` · Excedente: <strong>${formatPrice(analysis.tenderedSum - analysis.expected)}</strong>`;
-        } else if (everyFilled && analysis.nonCashSum > analysis.expected + 0.009) {
+            diffHtml = ` · Falta: <strong>${formatPrice(falta)}</strong>`;
+        } else if (analysis.nonCashSum > analysis.expected + 0.009) {
             sumClass = ' totem-pay-amounts__sum--high';
             diffHtml = ` · Excedente: <strong>${formatPrice(analysis.nonCashSum - analysis.expected)}</strong>`;
+        } else if (!analysis.hasCash && analysis.tenderedSum > analysis.expected + 0.009) {
+            sumClass = ' totem-pay-amounts__sum--high';
+            diffHtml = ` · Excedente: <strong>${formatPrice(analysis.tenderedSum - analysis.expected)}</strong>`;
         }
 
         return {
