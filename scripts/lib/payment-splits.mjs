@@ -49,7 +49,10 @@ function normalizeSplits(raw) {
     const out = [];
     list.forEach((entry) => {
         const method = normalizeMethodId(entry?.method || entry?.id);
-        const amount = roundMoney(entry?.amount);
+        const amount =
+            typeof entry?.amount === 'number' && Number.isFinite(entry.amount)
+                ? roundMoney(entry.amount)
+                : parseMoneyBr(entry?.amount);
         if (!method || amount <= 0 || seen.has(method)) return;
         seen.add(method);
         out.push({ method, amount });

@@ -181,7 +181,14 @@ export default async function handler(req, res) {
                 .map((item) => `${item.method.toUpperCase()} R$ ${item.amount.toFixed(2).replace('.', ',')}`)
                 .join('; ');
             const splitNote = `Pagamento dividido: ${human} [[lig-payment-splits:${JSON.stringify(paymentSplits)}]]`;
-            notes = [notes, splitNote].filter(Boolean).join(' · ').slice(0, 2000);
+            const prefix = notes ? `${notes} · ` : '';
+            const combined = `${prefix}${splitNote}`;
+            if (combined.length <= 2000) {
+                notes = combined;
+            } else {
+                const maxNotes = Math.max(0, 2000 - splitNote.length - 3);
+                notes = `${String(notes || '').slice(0, maxNotes)} · ${splitNote}`;
+            }
         }
 
         const row = {

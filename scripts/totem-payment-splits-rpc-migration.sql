@@ -1,4 +1,6 @@
--- Grava notes via rpc_patch_order (pagamento dividido no totem grava splits nas notes)
+-- Coluna payment_splits + rpc_patch_order grava notes e payment_splits (totem pagamento dividido)
+alter table public.orders add column if not exists payment_splits jsonb;
+
 create or replace function public.rpc_patch_order(p_id uuid, p_patch jsonb)
 returns jsonb
 language plpgsql
@@ -13,6 +15,7 @@ begin
     financial_status = coalesce(nullif(p_patch->>'financial_status', ''), financial_status),
     payment_method = coalesce(nullif(p_patch->>'payment_method', ''), payment_method),
     notes = coalesce(nullif(p_patch->>'notes', ''), notes),
+    payment_splits = coalesce(p_patch->'payment_splits', payment_splits),
     mp_payment_id = coalesce((p_patch->>'mp_payment_id')::bigint, mp_payment_id),
     mp_status = coalesce(nullif(p_patch->>'mp_status', ''), mp_status),
     mp_status_detail = coalesce(nullif(p_patch->>'mp_status_detail', ''), mp_status_detail),

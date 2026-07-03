@@ -95,13 +95,20 @@ function normalizePaymentSplits(raw, total) {
 }
 
 function encodeSplitsInNotes(notes, splits) {
-    const base = String(notes || '').trim();
+    const base = String(notes || '')
+        .replace(/\s*\[\[lig-payment-splits:[\s\S]*?\]\]/g, '')
+        .trim();
     const human = splits
         .map((item) => `${paymentMethodLabel(item.method)} R$ ${item.amount.toFixed(2).replace('.', ',')}`)
         .join('; ');
     const payload = JSON.stringify(splits);
+    const suffix = `Pagamento dividido no totem: ${human} [[lig-payment-splits:${payload}]]`;
     const prefix = base ? `${base} · ` : '';
-    return `${prefix}Pagamento dividido no totem: ${human} [[lig-payment-splits:${payload}]]`.slice(0, 2000);
+    const combined = `${prefix}${suffix}`;
+    if (combined.length <= 2000) return combined;
+    const maxBase = Math.max(0, 2000 - suffix.length - 3);
+    const trimmedBase = base.slice(0, maxBase);
+    return `${trimmedBase ? `${trimmedBase} · ` : ''}${suffix}`;
 }
 
 export async function listCaixaQueue(url, key, { limit = 40, useRpc = false } = {}) {
@@ -166,12 +173,20 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         financial_status: 'aguardando_caixa',
         notes,
     };
+    if (splits?.length) {
+        patch.payment_splits = splits;
+    }
 
     let updated;
     try {
         updated = await patchOrder(url, key, orderId, patch, { useRpc });
     } catch (patchErr) {
-        throw patchErr;
+        if (splits?.length && /column|payment_splits/i.test(String(patchErr.message || ''))) {
+            const { payment_splits: _drop, ...patchWithoutSplits } = patch;
+            updated = await patchOrder(url, key, orderId, patchWithoutSplits, { useRpc });
+        } else {
+            throw patchErr;
+        }
     }
     if (!updated?.id) {
         updated = await fetchOrderById(url, key, orderId, { useRpc });

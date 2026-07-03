@@ -36,7 +36,7 @@
 
     const paymentLinesFromOrder = (order) => {
         const splits = splitsApi?.resolveOrderSplits?.(order) || [];
-        if (splits.length) return splits;
+        if (splits.length >= 2) return splits;
 
         const raw = String(order?.paymentMethod || '').toLowerCase();
         const methods = raw
@@ -48,6 +48,7 @@
         if (methods.length >= 2) {
             return methods.map((method) => ({ method, amount: null }));
         }
+        if (splits.length === 1) return splits;
         if (raw) return [{ method: raw, amount: total }];
         return [];
     };

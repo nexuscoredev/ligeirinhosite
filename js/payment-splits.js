@@ -28,7 +28,10 @@
         const out = [];
         splits.forEach((entry) => {
             const method = normalizeMethodId(entry?.method || entry?.id);
-            const amount = roundMoney(entry?.amount);
+            const amount =
+                typeof entry?.amount === 'number' && Number.isFinite(entry.amount)
+                    ? roundMoney(entry.amount)
+                    : parseMoneyInput(entry?.amount);
             if (!method || amount <= 0 || seen.has(method)) return;
             seen.add(method);
             out.push({ method, amount });
@@ -114,11 +117,13 @@
         const human = normalized
             .map((item) => `${item.method.toUpperCase()} R$ ${item.amount.toFixed(2).replace('.', ',')}`)
             .join('; ');
+        const suffix = `Pagamento dividido: ${human} ${SPLIT_MARKER}${payload}${SPLIT_MARKER_END}`;
         const prefix = base ? `${base} · ` : '';
-        return `${prefix}Pagamento dividido: ${human} ${SPLIT_MARKER}${payload}${SPLIT_MARKER_END}`.slice(
-            0,
-            2000,
-        );
+        const combined = `${prefix}${suffix}`;
+        if (combined.length <= 2000) return combined;
+        const maxBase = Math.max(0, 2000 - suffix.length - 3);
+        const trimmedBase = base.slice(0, maxBase);
+        return `${trimmedBase ? `${trimmedBase} · ` : ''}${suffix}`;
     };
 
     const parseSplitsFromNotes = (notes) => {
@@ -144,7 +149,7 @@
             const part = chunk.trim();
             const m = part.match(/^(.+?)\s+R\$\s*([\d.,]+)$/i);
             if (!m) return;
-            const label = String(m[1] || '').toLowerCase();
+            const label = String(m[1] || '').toLowerCase().trim();
             let method = normalizeMethodId(label);
             if (label.includes('pix')) method = 'pix';
             else if (label.includes('cart') || label.includes('cartão') || label.includes('cartao')) method = 'cartao';
@@ -156,19 +161,20 @@
     };
 
     const resolveOrderSplits = (order) => {
-        if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length) {
+        if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length >= 2) {
             const fromColumn = normalizeSplits(order.paymentSplits);
-            if (fromColumn.length) return fromColumn;
+            if (fromColumn.length >= 2) return fromColumn;
         }
-        if (Array.isArray(order?.payment_splits) && order.payment_splits.length) {
+        if (Array.isArray(order?.payment_splits) && order.payment_splits.length >= 2) {
             const fromColumn = normalizeSplits(order.payment_splits);
-            if (fromColumn.length) return fromColumn;
+            if (fromColumn.length >= 2) return fromColumn;
         }
         const fromJson = parseSplitsFromNotes(order?.notes);
         if (fromJson.length >= 2) return fromJson;
         const fromHuman = parseSplitsFromNotesHuman(order?.notes);
         if (fromHuman.length >= 2) return fromHuman;
-        return fromJson;
+        if (fromJson.length === 1) return fromJson;
+        return [];
     };
 
     window.LigeirinhoPaymentSplits = {
