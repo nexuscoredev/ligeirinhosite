@@ -108,3 +108,82 @@ export function resolveOrderSplits(order) {
 export function isSplitPayment(order) {
     return resolveOrderSplits(order).length >= 2;
 }
+
+/** Dinheiro pode exceder o total (troco); demais formas não. */
+export function analyzePaymentSplits(splits, total) {
+    const normalized = normalizeSplits(splits);
+    const expected = roundMoney(total);
+    const cash = normalized.find((s) => s.method === 'dinheiro') || null;
+    const nonCashSum = roundMoney(
+        normalized.filter((s) => s.method !== 'dinheiro').reduce((acc, s) => acc + s.amount, 0),
+    );
+    const cashTendered = cash ? cash.amount : 0;
+    const neededFromCash = cash ? roundMoney(Math.max(0, expected - nonCashSum)) : 0;
+    const troco = cash ? roundMoney(Math.max(0, cashTendered - neededFromCash)) : 0;
+    const tenderedSum = roundMoney(nonCashSum + cashTendered);
+    return {
+        splits: normalized,
+        expected,
+        hasCash: Boolean(cash),
+        nonCashSum,
+        cashTendered,
+        neededFromCash,
+        troco,
+        tenderedSum,
+    };
+}
+
+export function computeCashChange(splits, total) {
+    return analyzePaymentSplits(splits, total).troco;
+}
+
+export function validatePaymentSplits(raw, total) {
+    const analysis = analyzePaymentSplits(raw, total);
+    if (analysis.splits.length < 2) {
+        return { ok: false, error: 'Informe ao menos duas formas de pagamento.', status: 400 };
+    }
+
+    for (const item of analysis.splits) {
+        if (item.method !== 'dinheiro' && item.amount > analysis.expected + 0.009) {
+            return {
+                ok: false,
+                error: `${paymentMethodLabelShort(item.method)} não pode ser maior que o total do pedido.`,
+                status: 400,
+            };
+        }
+    }
+
+    if (analysis.hasCash) {
+        if (analysis.nonCashSum > analysis.expected + 0.009) {
+            return {
+                ok: false,
+                error: 'A soma das outras formas não pode ultrapassar o total do pedido.',
+                status: 400,
+            };
+        }
+        if (analysis.cashTendered + 0.009 < analysis.neededFromCash) {
+            const falta = roundMoney(analysis.neededFromCash - analysis.cashTendered);
+            return {
+                ok: false,
+                error: `Dinheiro insuficiente. Falta ${falta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+                status: 400,
+            };
+        }
+        return {
+            ok: true,
+            splits: analysis.splits,
+            troco: analysis.troco,
+            sum: analysis.tenderedSum,
+        };
+    }
+
+    if (Math.abs(analysis.tenderedSum - analysis.expected) > 0.009) {
+        return {
+            ok: false,
+            error: 'A soma dos pagamentos deve ser igual ao total do pedido.',
+            status: 400,
+        };
+    }
+
+    return { ok: true, splits: analysis.splits, troco: 0, sum: analysis.tenderedSum };
+}

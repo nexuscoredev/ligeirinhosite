@@ -1,7 +1,7 @@
 import { fetchOrderById, patchOrder } from './supabase-orders.mjs';
 import { maybeInitSeparation } from './separation-init.mjs';
 import { confirmHubPedidoForTotem } from './hub-totem-pedido.mjs';
-import { resolveOrderSplits } from './lib/payment-splits.mjs';
+import { resolveOrderSplits, validatePaymentSplits } from './lib/payment-splits.mjs';
 
 async function sbFetch(url, key, path, options = {}) {
     const res = await fetch(`${url}/rest/v1/${path}`, {
@@ -74,24 +74,19 @@ export function paymentMethodLabel(method) {
     return 'Dinheiro';
 }
 
-const roundMoney = (n) => Math.round(Number(n) * 100) / 100;
-
 function normalizePaymentSplits(raw, total) {
     if (!Array.isArray(raw) || raw.length < 2) return null;
-    const splits = raw
-        .map((entry) => ({
-            method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
-            amount: roundMoney(entry?.amount),
-        }))
-        .filter((entry) => entry.method && entry.amount > 0);
-    if (splits.length < 2) return null;
-    const sum = roundMoney(splits.reduce((acc, item) => acc + item.amount, 0));
-    if (Math.abs(sum - roundMoney(total)) > 0.009) {
-        const err = new Error('A soma dos pagamentos deve ser igual ao total do pedido.');
-        err.status = 400;
+    const mapped = raw.map((entry) => ({
+        method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
+        amount: entry?.amount,
+    }));
+    const check = validatePaymentSplits(mapped, total);
+    if (!check.ok) {
+        const err = new Error(check.error || 'Pagamento dividido inválido.');
+        err.status = check.status || 400;
         throw err;
     }
-    return splits;
+    return check.splits;
 }
 
 function encodeSplitsInNotes(notes, splits) {

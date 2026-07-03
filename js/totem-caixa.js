@@ -72,6 +72,17 @@ ${amountHtml}
         const listHtml = lines.length
             ? `<ul class="totem-caixa-pay-list" aria-label="${esc(title)}">${lines.map(renderPaymentLine).join('')}</ul>`
             : `<p class="totem-caixa-card__empty-pay">Forma não informada</p>`;
+        const troco =
+            isSplit && splitsApi?.computeCashChange
+                ? splitsApi.computeCashChange(lines, order.total)
+                : 0;
+        const trocoHtml =
+            troco > 0.009
+                ? `<div class="totem-caixa-pay-total totem-caixa-pay-total--troco">
+<span>Troco</span>
+<strong>${formatPrice(troco)}</strong>
+</div>`
+                : '';
 
         return `<section class="totem-caixa-card__section totem-caixa-card__section--payment">
 <h2 class="totem-caixa-card__section-title">${esc(title)}</h2>
@@ -80,6 +91,7 @@ ${listHtml}
 <span>Total do pedido</span>
 <strong>${formatPrice(order.total)}</strong>
 </div>
+${trocoHtml}
 </section>`;
     };
 

@@ -237,19 +237,45 @@
         return parseSplitsFromNotesHuman(order?.notes);
     };
 
+    const cashChangeForOrder = (order, splits) => {
+        const splitsApi = window.LigeirinhoPaymentSplits;
+        if (splitsApi?.computeCashChange) {
+            return splitsApi.computeCashChange(splits, order.total);
+        }
+        const cash = splits.find((s) => String(s.method).toLowerCase() === 'dinheiro');
+        if (!cash) return 0;
+        const nonCash = splits
+            .filter((s) => String(s.method).toLowerCase() !== 'dinheiro')
+            .reduce((acc, s) => acc + Number(s.amount || 0), 0);
+        const needed = Math.max(0, Math.round((Number(order.total) - nonCash) * 100) / 100);
+        return Math.max(0, Math.round((Number(cash.amount) - needed) * 100) / 100);
+    };
+
     const buildPaymentReceiptBlock = (order, forPrint = false) => {
         const splits = resolvePaymentSplits(order);
         if (splits.length >= 2) {
-            return splits
-                .map((item) => {
-                    const label = methodLabel(item.method);
-                    const amount = formatPrice(item.amount);
-                    if (forPrint) {
-                        return `<div class="totem-receipt__row totem-receipt__row--split"><span>${label}</span><strong>${amount}</strong></div>`;
-                    }
-                    return `<div class="totem-receipt__row totem-receipt__row--split"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`;
-                })
-                .join('');
+            const rows = splits.map((item) => {
+                const label = methodLabel(item.method);
+                const amount = formatPrice(item.amount);
+                if (forPrint) {
+                    return `<div class="totem-receipt__row totem-receipt__row--split"><span>${label}</span><strong>${amount}</strong></div>`;
+                }
+                return `<div class="totem-receipt__row totem-receipt__row--split"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`;
+            });
+            const troco = cashChangeForOrder(order, splits);
+            if (troco > 0.009) {
+                const trocoLabel = formatPrice(troco);
+                if (forPrint) {
+                    rows.push(
+                        `<div class="totem-receipt__row totem-receipt__row--troco"><span>Troco</span><strong>${trocoLabel}</strong></div>`,
+                    );
+                } else {
+                    rows.push(
+                        `<div class="totem-receipt__row totem-receipt__row--troco"><span>Troco</span><strong>${esc(trocoLabel)}</strong></div>`,
+                    );
+                }
+            }
+            return rows.join('');
         }
         const label = methodLabel(order.paymentMethod);
         const amount = formatPrice(order.total);
@@ -265,6 +291,10 @@
             splits.forEach((item) => {
                 lines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
             });
+            const troco = cashChangeForOrder(order, splits);
+            if (troco > 0.009) {
+                lines.push(padLine('Troco', formatPrice(troco), width));
+            }
             return;
         }
         lines.push(padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width));
@@ -384,6 +414,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .totem-receipt__row--total strong{font-size:14px;font-weight:900;max-width:55%}
 .totem-receipt__split-title{margin:1.5mm 0 0;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
 .totem-receipt__row--split{margin:0.5mm 0}
+.totem-receipt__row--troco{margin:0.8mm 0 0;font-weight:900}
 .totem-receipt__foot{margin:2mm 0 0;font-size:10px;line-height:1.35;text-align:center;font-weight:700}
 .totem-receipt__foot--muted{margin-top:2mm;font-weight:900;font-size:10px}`;
     };

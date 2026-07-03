@@ -134,6 +134,14 @@
         }
     };
 
+    const isCashMethod = (id) => splitsApi?.isCashMethod?.(id) || id === 'dinheiro';
+
+    const currentSplitEntries = () =>
+        selectedIds.map((method) => ({
+            method,
+            amount: splitsApi.parseMoneyInput(amountInputs[method]),
+        }));
+
     const sumSelectedAmounts = (excludeId = null) =>
         splitsApi.roundMoney(
             selectedIds
@@ -141,15 +149,21 @@
                 .reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
         );
 
+    /** Pix/Cartão: até o restante sem contar dinheiro. Dinheiro: sem teto (troco). */
     const maxAmountForField = (id, total) => {
-        const remaining = splitsApi.roundMoney(total - sumSelectedAmounts(id));
-        return splitsApi.roundMoney(Math.max(0, Math.min(total, remaining)));
+        if (isCashMethod(id)) return null;
+        const otherNonCash = selectedIds
+            .filter((sid) => sid !== id && !isCashMethod(sid))
+            .reduce((acc, sid) => acc + splitsApi.parseMoneyInput(amountInputs[sid]), 0);
+        return splitsApi.roundMoney(Math.max(0, Math.min(total, total - otherNonCash)));
     };
 
     const clampFieldAmount = (id, rawValue, total) => {
         const parsed = splitsApi.parseMoneyInput(rawValue);
         if (!parsed) return 0;
-        return Math.min(parsed, maxAmountForField(id, total));
+        if (isCashMethod(id)) return parsed;
+        const max = maxAmountForField(id, total);
+        return Math.min(parsed, max ?? total);
     };
 
     const SPLIT_AMOUNTS_MSG = 'Preencha o valor das formas de pagamento para finalizar.';
@@ -158,8 +172,7 @@
         if (selectedIds.length < 2) return true;
         const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
         if (!everyFilled) return false;
-        const sum = sumSelectedAmounts(null);
-        return Math.abs(sum - splitsApi.roundMoney(total)) < 0.01;
+        return Boolean(splitsApi.validateSplits(currentSplitEntries(), total, methodLabel).ok);
     };
 
     const splitAmountsHintHtml = (total) => {
@@ -172,23 +185,35 @@
     };
 
     const formatAmountsSumMeta = (total) => {
-        const sum = sumSelectedAmounts(null);
-        const diff = splitsApi.roundMoney(total - sum);
-        const ok = isSplitAmountsValid(total);
-        const sumClass = ok
-            ? ' totem-pay-amounts__sum--ok'
-            : diff > 0
-              ? ' totem-pay-amounts__sum--low'
-              : ' totem-pay-amounts__sum--high';
-        const diffHtml = ok
-            ? ''
-            : diff > 0
-              ? ` · Falta: <strong>${formatPrice(diff)}</strong>`
-              : ` · Excedente: <strong>${formatPrice(Math.abs(diff))}</strong>`;
+        const analysis = splitsApi.analyzeSplits(currentSplitEntries(), total);
+        const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
+        const ok = everyFilled && isSplitAmountsValid(total);
+        let sumClass = ' totem-pay-amounts__sum--low';
+        let diffHtml = '';
+
+        if (ok && analysis.troco > 0) {
+            sumClass = ' totem-pay-amounts__sum--ok';
+            diffHtml = ` · Troco: <strong>${formatPrice(analysis.troco)}</strong>`;
+        } else if (ok) {
+            sumClass = ' totem-pay-amounts__sum--ok';
+        } else if (analysis.hasCash && everyFilled && analysis.cashTendered + 0.009 < analysis.neededFromCash) {
+            sumClass = ' totem-pay-amounts__sum--low';
+            diffHtml = ` · Falta: <strong>${formatPrice(analysis.neededFromCash - analysis.cashTendered)}</strong>`;
+        } else if (everyFilled && analysis.tenderedSum + 0.009 < analysis.expected) {
+            sumClass = ' totem-pay-amounts__sum--low';
+            diffHtml = ` · Falta: <strong>${formatPrice(analysis.expected - analysis.tenderedSum)}</strong>`;
+        } else if (everyFilled && analysis.tenderedSum > analysis.expected + 0.009 && !analysis.hasCash) {
+            sumClass = ' totem-pay-amounts__sum--high';
+            diffHtml = ` · Excedente: <strong>${formatPrice(analysis.tenderedSum - analysis.expected)}</strong>`;
+        } else if (everyFilled && analysis.nonCashSum > analysis.expected + 0.009) {
+            sumClass = ' totem-pay-amounts__sum--high';
+            diffHtml = ` · Excedente: <strong>${formatPrice(analysis.nonCashSum - analysis.expected)}</strong>`;
+        }
+
         return {
             ok,
             sumClass,
-            html: `Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${diffHtml}`,
+            html: `Informado: <strong>${formatPrice(analysis.tenderedSum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${diffHtml}`,
         };
     };
 
@@ -233,19 +258,25 @@
     const amountsHtml = (total) => {
         if (selectedIds.length < 2) return '';
         const { sumClass, html } = formatAmountsSumMeta(total);
+        const hasCash = selectedIds.some((id) => isCashMethod(id));
+        const hint = hasCash
+            ? `Pix e Cartão: até o total (${formatPrice(total)}). Dinheiro pode ser maior — o troco aparece abaixo.`
+            : `Máximo por forma: até o total do pedido (${formatPrice(total)}).`;
         return `<div class="totem-pay-amounts">
 <p class="totem-pay-amounts__title">Quanto em cada forma?</p>
-<p class="totem-pay-amounts__hint">Máximo por forma: até o total do pedido (${formatPrice(total)}).</p>
+<p class="totem-pay-amounts__hint">${esc(hint)}</p>
 ${selectedIds
-    .map(
-        (id) => `<label class="totem-pay-amounts__row">
+    .map((id) => {
+        const max = maxAmountForField(id, total);
+        const ariaMax = max == null ? 'sem limite (troco)' : `máximo ${formatPrice(max)}`;
+        return `<label class="totem-pay-amounts__row">
 <span class="totem-pay-amounts__label">${esc(methodLabel(id))}</span>
 <span class="totem-pay-amounts__field">
 <span class="totem-pay-amounts__prefix">R$</span>
-<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off" aria-label="${esc(methodLabel(id))}, máximo ${formatPrice(maxAmountForField(id, total))}">
+<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off" aria-label="${esc(methodLabel(id))}, ${ariaMax}">
 </span>
-</label>`,
-    )
+</label>`;
+    })
     .join('')}
 <p class="totem-pay-amounts__sum${sumClass}">${html}</p>
 ${splitAmountsHintHtml(total)}
@@ -290,7 +321,7 @@ ${icon}
                         const id = input.dataset.paymentAmount;
                         const parsed = splitsApi.parseMoneyInput(value);
                         const max = maxAmountForField(id, total);
-                        if (parsed > max + 0.009) {
+                        if (max != null && parsed > max + 0.009) {
                             const capped = splitsApi.formatMoneyInput(max);
                             amountInputs[id] = capped;
                             input.value = capped;
@@ -367,8 +398,8 @@ Confirmar pagamento
             method,
             amount: clampFieldAmount(method, amountInputs[method], total),
         }));
-        if (splits.some((item) => item.amount > total + 0.009)) {
-            formError = 'Nenhum valor pode ser maior que o total do pedido.';
+        if (splits.some((item) => !isCashMethod(item.method) && item.amount > total + 0.009)) {
+            formError = 'Pix e Cartão não podem ser maiores que o total do pedido.';
             return null;
         }
         if (splits.some((item) => item.amount <= 0)) {

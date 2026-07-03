@@ -4397,6 +4397,10 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: #15803d;
 }
 
+.totem-pay-amounts__sum--ok {
+    color: var(--lig-text);
+}
+
 .totem-pay-amounts__sum--low,
 .totem-pay-amounts__sum--high {
     color: #b91c1c;
@@ -4569,6 +4573,17 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     color: var(--lig-text);
+}
+
+.totem-caixa-pay-total--troco {
+    border-top: none;
+    padding-top: 0.35rem;
+    margin-top: 0;
+    color: #15803d;
+}
+
+.totem-caixa-pay-total--troco strong {
+    color: #15803d;
 }
 
 .totem-caixa-card__empty-pay {

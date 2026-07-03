@@ -60,9 +60,37 @@
         return single ? [single] : [];
     };
 
-    const validateSplits = (splits, total, labelFn = (id) => id) => {
+    const isCashMethod = (id) => normalizeMethodId(id) === 'dinheiro';
+
+    /** Dinheiro pode exceder o total (troco); Pix/Cartão não. */
+    const analyzeSplits = (splits, total) => {
         const normalized = normalizeSplits(splits);
-        if (normalized.length < 2) {
+        const expected = roundMoney(total);
+        const cash = normalized.find((s) => isCashMethod(s.method)) || null;
+        const nonCashSum = roundMoney(
+            normalized.filter((s) => !isCashMethod(s.method)).reduce((acc, s) => acc + s.amount, 0),
+        );
+        const cashTendered = cash ? cash.amount : 0;
+        const neededFromCash = cash ? roundMoney(Math.max(0, expected - nonCashSum)) : 0;
+        const troco = cash ? roundMoney(Math.max(0, cashTendered - neededFromCash)) : 0;
+        const tenderedSum = roundMoney(nonCashSum + cashTendered);
+        return {
+            splits: normalized,
+            expected,
+            hasCash: Boolean(cash),
+            nonCashSum,
+            cashTendered,
+            neededFromCash,
+            troco,
+            tenderedSum,
+        };
+    };
+
+    const computeCashChange = (splits, total) => analyzeSplits(splits, total).troco;
+
+    const validateSplits = (splits, total, labelFn = (id) => id) => {
+        const analysis = analyzeSplits(splits, total);
+        if (analysis.splits.length < 2) {
             const methods = new Set(
                 (Array.isArray(splits) ? splits : [])
                     .map((entry) => normalizeMethodId(entry?.method || entry?.id))
@@ -76,18 +104,45 @@
             }
             return { ok: false, error: 'Selecione pelo menos duas formas de pagamento.' };
         }
-        const sum = roundMoney(normalized.reduce((acc, item) => acc + item.amount, 0));
-        const expected = roundMoney(total);
-        if (Math.abs(sum - expected) > 0.009) {
-            return {
-                ok: false,
-                error: `A soma (${sum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) deve ser igual ao total (${expected.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`,
-            };
-        }
-        if (normalized.some((item) => !labelFn(item.method))) {
+        if (analysis.splits.some((item) => !labelFn(item.method))) {
             return { ok: false, error: 'Forma de pagamento inválida.' };
         }
-        return { ok: true, splits: normalized, sum };
+        for (const item of analysis.splits) {
+            if (!isCashMethod(item.method) && item.amount > analysis.expected + 0.009) {
+                return {
+                    ok: false,
+                    error: `${labelFn(item.method)} não pode ser maior que o total do pedido.`,
+                };
+            }
+        }
+        if (analysis.hasCash) {
+            if (analysis.nonCashSum > analysis.expected + 0.009) {
+                return {
+                    ok: false,
+                    error: 'A soma das outras formas não pode ultrapassar o total do pedido.',
+                };
+            }
+            if (analysis.cashTendered + 0.009 < analysis.neededFromCash) {
+                const falta = roundMoney(analysis.neededFromCash - analysis.cashTendered);
+                return {
+                    ok: false,
+                    error: `Dinheiro insuficiente. Falta ${falta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+                };
+            }
+            return {
+                ok: true,
+                splits: analysis.splits,
+                sum: analysis.tenderedSum,
+                troco: analysis.troco,
+            };
+        }
+        if (Math.abs(analysis.tenderedSum - analysis.expected) > 0.009) {
+            return {
+                ok: false,
+                error: `A soma (${analysis.tenderedSum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}) deve ser igual ao total (${analysis.expected.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`,
+            };
+        }
+        return { ok: true, splits: analysis.splits, sum: analysis.tenderedSum, troco: 0 };
     };
 
     const validateCheckoutPayment = (checkout, total, labelFn) => {
@@ -185,6 +240,9 @@
         splitsFromCheckout,
         isMultiPayment,
         selectedMethodIds,
+        isCashMethod,
+        analyzeSplits,
+        computeCashChange,
         validateSplits,
         validateCheckoutPayment,
         formatSplitSummary,

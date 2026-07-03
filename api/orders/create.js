@@ -12,6 +12,7 @@ import {
     reserveCredit,
     getFinanceSettings,
 } from '../../scripts/supabase-finance.mjs';
+import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -51,18 +52,11 @@ const CREDIT_METHODS = new Set(['fiado', 'credito', 'boleto', 'prazo']);
 
 const normalizePaymentSplits = (raw, total) => {
     if (!Array.isArray(raw) || raw.length < 2) return null;
-    const splits = raw
-        .map((entry) => ({
-            method: String(entry?.method || entry?.id || '').toLowerCase().trim(),
-            amount: roundMoney(entry?.amount),
-        }))
-        .filter((entry) => entry.method && entry.amount > 0);
-    if (splits.length < 2) return null;
-    const sum = roundMoney(splits.reduce((acc, item) => acc + item.amount, 0));
-    if (Math.abs(sum - roundMoney(total)) > 0.009) {
-        throw new Error('A soma dos pagamentos deve ser igual ao total do pedido.');
+    const check = validatePaymentSplits(raw, total);
+    if (!check.ok) {
+        throw new Error(check.error || 'Pagamento dividido inválido.');
     }
-    return splits;
+    return check.splits;
 };
 
 export default async function handler(req, res) {
