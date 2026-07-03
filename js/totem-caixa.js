@@ -18,25 +18,91 @@
 
     const splitsApi = window.LigeirinhoPaymentSplits;
 
-    const methodLabel = (m) => {
+    const methodLabelShort = (m) => {
         const key = String(m || '').toLowerCase();
         if (key === 'pix') return 'Pix';
-        if (key === 'cartao') return 'Cartão débito/crédito';
+        if (key === 'cartao') return 'Cartão';
         return 'Dinheiro';
     };
 
-    const renderPaymentMethod = (order) => {
-        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
-        if (splits.length >= 2) {
-            const summary = splitsApi.formatSplitSummary(splits, methodLabel, formatPrice);
-            return `<strong>${esc(summary)}</strong>`;
-        }
-        const m = order?.paymentMethod ?? order;
+    const methodIconHtml = (m) => {
         const key = String(m || '').toLowerCase();
         if (key === 'pix') {
-            return `<img src="img/icon-pix.svg" class="totem-pay-mark totem-pay-mark--pix" width="64" height="23" alt="Pix">`;
+            return '<img src="img/icon-pix.svg" class="totem-caixa-pay-item__pix" width="52" height="20" alt="Pix">';
         }
-        return `<strong>${esc(methodLabel(m))}</strong>`;
+        const icon = key === 'cartao' ? 'credit_card' : 'payments';
+        return `<span class="material-symbols-outlined totem-caixa-pay-item__icon" aria-hidden="true">${icon}</span>`;
+    };
+
+    const paymentLinesFromOrder = (order) => {
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        if (splits.length) return splits;
+
+        const raw = String(order?.paymentMethod || '').toLowerCase();
+        const methods = raw
+            .split('+')
+            .map((part) => part.trim())
+            .filter(Boolean);
+        const total = Number(order.total) || 0;
+
+        if (methods.length >= 2) {
+            return methods.map((method) => ({ method, amount: null }));
+        }
+        if (raw) return [{ method: raw, amount: total }];
+        return [];
+    };
+
+    const renderPaymentLine = (line) => {
+        const label = methodLabelShort(line.method);
+        const amountHtml =
+            line.amount != null && Number.isFinite(Number(line.amount))
+                ? `<span class="totem-caixa-pay-item__amount">${formatPrice(line.amount)}</span>`
+                : `<span class="totem-caixa-pay-item__amount totem-caixa-pay-item__amount--pending">—</span>`;
+        return `<li class="totem-caixa-pay-item">
+<span class="totem-caixa-pay-item__method">${methodIconHtml(line.method)}<span class="totem-caixa-pay-item__label">${esc(label)}</span></span>
+${amountHtml}
+</li>`;
+    };
+
+    const renderPaymentBlock = (order) => {
+        const lines = paymentLinesFromOrder(order);
+        const isSplit = lines.length >= 2;
+        const title = isSplit ? 'Formas de pagamento' : 'Forma de pagamento';
+        const listHtml = lines.length
+            ? `<ul class="totem-caixa-pay-list" aria-label="${esc(title)}">${lines.map(renderPaymentLine).join('')}</ul>`
+            : `<p class="totem-caixa-card__empty-pay">Forma não informada</p>`;
+
+        return `<section class="totem-caixa-card__section totem-caixa-card__section--payment">
+<h2 class="totem-caixa-card__section-title">${esc(title)}</h2>
+${listHtml}
+<div class="totem-caixa-pay-total">
+<span>Total do pedido</span>
+<strong>${formatPrice(order.total)}</strong>
+</div>
+</section>`;
+    };
+
+    const renderCustomerSection = (order) => {
+        const rows = [];
+        const name = String(order.customerName || '').trim();
+        const phone = String(order.customerPhone || '').trim();
+        if (!name && !phone) return '';
+
+        if (name) {
+            rows.push(
+                `<p class="totem-caixa-card__row"><span>Nome</span><strong class="totem-caixa-card__value">${esc(name)}</strong></p>`
+            );
+        }
+        if (phone) {
+            rows.push(
+                `<p class="totem-caixa-card__row"><span>Telefone</span><span class="totem-caixa-card__value">${esc(phone)}</span></p>`
+            );
+        }
+
+        return `<section class="totem-caixa-card__section totem-caixa-card__section--customer">
+<h2 class="totem-caixa-card__section-title">Cliente</h2>
+${rows.join('')}
+</section>`;
     };
 
     const receipt = window.LigeirinhoTotemReceipt;
@@ -144,23 +210,6 @@
 </div>`;
     };
 
-    const renderCustomerMeta = (order) => {
-        const rows = [];
-        const name = String(order.customerName || '').trim();
-        const phone = String(order.customerPhone || '').trim();
-        if (name) {
-            rows.push(
-                `<p class="totem-caixa-card__row"><span>Cliente</span><strong class="totem-caixa-card__value">${esc(name)}</strong></p>`
-            );
-        }
-        if (phone) {
-            rows.push(
-                `<p class="totem-caixa-card__row"><span>Telefone</span><span class="totem-caixa-card__value">${esc(phone)}</span></p>`
-            );
-        }
-        return rows.join('');
-    };
-
     const renderWaiting = (order) => {
         currentOrder = order;
         const code = formatDisplayCode(order.id);
@@ -178,9 +227,8 @@ Comprovante enviado para a impressora padrão
 <button type="button" class="totem-success-code totem-caixa-card__code" data-totem-copy-code data-copy-text="${esc(copyCode)}" aria-label="Copiar código do pedido">${esc(code)}</button>
 ${printNoteHtml}
 <div class="totem-caixa-card__meta">
-${renderCustomerMeta(order)}
-<p class="totem-caixa-card__row"><span>Forma escolhida</span><span class="totem-caixa-card__value">${renderPaymentMethod(order)}</span></p>
-<p class="totem-caixa-card__row"><span>Total</span><strong class="totem-caixa-card__value">${formatPrice(order.total)}</strong></p>
+${renderCustomerSection(order)}
+${renderPaymentBlock(order)}
 </div>
 <p class="lig-payment-hint totem-caixa-card__hint">
 <span class="totem-caixa-pulse" aria-hidden="true"></span>

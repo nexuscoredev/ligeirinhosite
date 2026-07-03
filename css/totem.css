@@ -4307,16 +4307,119 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
 
 .totem-caixa-card__meta {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.65rem;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     margin-bottom: 1rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.totem-caixa-card__section {
+    display: grid;
+    gap: 0.55rem;
     padding: 0.85rem clamp(0.65rem, 3vw, 1rem);
     border-radius: 0.85rem;
     background: rgba(255, 255, 255, 0.72);
     border: 1px solid var(--lig-border);
-    box-sizing: border-box;
+}
+
+.totem-caixa-card__section-title {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
+.totem-caixa-pay-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.totem-caixa-pay-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    border-radius: 0.65rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.totem-caixa-pay-item__method {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--lig-text);
+}
+
+.totem-caixa-pay-item__icon {
+    font-size: 1.25rem;
+    color: var(--lig-yellow-text);
+    flex-shrink: 0;
+}
+
+.totem-caixa-pay-item__pix {
+    display: block;
+    flex-shrink: 0;
+    height: 1.125rem;
+    width: auto;
+}
+
+.totem-caixa-pay-item__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.totem-caixa-pay-item__amount {
+    flex-shrink: 0;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--lig-text);
+}
+
+.totem-caixa-pay-item__amount--pending {
+    color: var(--lig-text-subtle);
+    font-weight: 600;
+}
+
+.totem-caixa-pay-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.15rem;
+    padding-top: 0.65rem;
+    border-top: 1px dashed var(--lig-border);
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-caixa-pay-total strong {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--lig-text);
+}
+
+.totem-caixa-card__empty-pay {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--lig-text-muted);
 }
 
 .totem-caixa-card__row {

@@ -134,14 +134,41 @@
         }
     };
 
+    const parseSplitsFromNotesHuman = (notes) => {
+        const text = String(notes || '');
+        const match = text.match(/Pagamento dividido(?: no totem)?:\s*([^[\n]+)/i);
+        if (!match) return [];
+        const chunks = match[1].split(/\s*\+\s*|\s*;\s*/);
+        const out = [];
+        chunks.forEach((chunk) => {
+            const part = chunk.trim();
+            const m = part.match(/^(.+?)\s+R\$\s*([\d.,]+)$/i);
+            if (!m) return;
+            const label = String(m[1] || '').toLowerCase();
+            let method = normalizeMethodId(label);
+            if (label.includes('pix')) method = 'pix';
+            else if (label.includes('cart') || label.includes('cartão') || label.includes('cartao')) method = 'cartao';
+            else if (label.includes('dinheiro')) method = 'dinheiro';
+            const amount = parseMoneyInput(m[2]);
+            if (method && amount > 0) out.push({ method, amount });
+        });
+        return out.length >= 2 ? out : [];
+    };
+
     const resolveOrderSplits = (order) => {
         if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length) {
-            return normalizeSplits(order.paymentSplits);
+            const fromColumn = normalizeSplits(order.paymentSplits);
+            if (fromColumn.length) return fromColumn;
         }
         if (Array.isArray(order?.payment_splits) && order.payment_splits.length) {
-            return normalizeSplits(order.payment_splits);
+            const fromColumn = normalizeSplits(order.payment_splits);
+            if (fromColumn.length) return fromColumn;
         }
-        return parseSplitsFromNotes(order?.notes);
+        const fromJson = parseSplitsFromNotes(order?.notes);
+        if (fromJson.length >= 2) return fromJson;
+        const fromHuman = parseSplitsFromNotesHuman(order?.notes);
+        if (fromHuman.length >= 2) return fromHuman;
+        return fromJson;
     };
 
     window.LigeirinhoPaymentSplits = {
