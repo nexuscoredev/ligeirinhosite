@@ -264,7 +264,8 @@ function pickTotemOrderByPrefix(list, prefix) {
 
 async function fetchTotemOrders(parceirosUrl, parceirosKey, queryPath) {
     let result = await parceirosRest(parceirosUrl, parceirosKey, queryPath(TOTEM_ORDER_SELECT));
-    if (!result.ok && /payment_splits|column/i.test(String(result.message || ''))) {
+    const errText = `${result.message || ''} ${JSON.stringify(result.rows || '')}`;
+    if (!result.ok && /payment_splits|column|42703/i.test(errText)) {
         result = await parceirosRest(parceirosUrl, parceirosKey, queryPath(TOTEM_ORDER_SELECT_BASE));
     }
     return result;
