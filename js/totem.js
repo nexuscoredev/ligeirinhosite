@@ -20,6 +20,22 @@
     const customerError = document.getElementById('totem-customer-error');
     const customerBackBtn = document.getElementById('totem-customer-back');
     const customerContinueBtn = document.getElementById('totem-customer-continue');
+    const customerSteps = {
+        register: document.getElementById('totem-customer-step-register'),
+        lookup: document.getElementById('totem-customer-step-lookup'),
+        confirm: document.getElementById('totem-customer-step-confirm'),
+        manual: document.getElementById('totem-customer-step-manual'),
+    };
+    const customerLookupForm = document.getElementById('totem-customer-lookup-form');
+    const customerLookupInput = document.getElementById('totem-customer-lookup-input');
+    const customerLookupError = document.getElementById('totem-customer-lookup-error');
+    const customerLookupSubmit = document.getElementById('totem-customer-lookup-submit');
+    const customerConfirmName = document.getElementById('totem-customer-confirm-name');
+    const customerConfirmHint = document.getElementById('totem-customer-confirm-hint');
+    const customerConfirmCardName = document.getElementById('totem-customer-confirm-card-name');
+    const customerManualEyebrow = document.getElementById('totem-customer-manual-eyebrow');
+    const customerManualTitle = document.getElementById('totem-customer-manual-title');
+    const customerManualLead = document.getElementById('totem-customer-manual-lead');
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
     const promosBackBtn = document.getElementById('totem-promos-back');
@@ -90,6 +106,8 @@
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
     let totemCustomer = { name: '', phone: '' };
+    let customerStep = 'register';
+    let customerLookupHit = null;
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
     const GRID_DENSITY_CLASSES = ['totem-grid--grid-s', 'totem-grid--grid-m', 'totem-grid--grid-l'];
@@ -706,13 +724,118 @@ ${unitHtml}
 
     const resetCustomerForm = () => {
         totemCustomer = { name: '', phone: '' };
+        customerLookupHit = null;
+        customerStep = 'register';
         if (customerNameInput) customerNameInput.value = '';
         if (customerPhoneInput) customerPhoneInput.value = '';
-        if (customerError) {
-            customerError.textContent = '';
-            customerError.hidden = true;
-        }
+        if (customerLookupInput) customerLookupInput.value = '';
+        showCustomerError('');
+        showLookupError('');
         customerNameInput?.classList.remove('totem-customer__input--error');
+    };
+
+    const showLookupError = (message) => {
+        if (!customerLookupError) return;
+        customerLookupError.textContent = message;
+        customerLookupError.hidden = !message;
+    };
+
+    const showCustomerStep = (step) => {
+        customerStep = step;
+        Object.entries(customerSteps).forEach(([key, el]) => {
+            if (!el) return;
+            const active = key === step;
+            el.classList.toggle('totem-customer__step--active', active);
+            el.hidden = !active;
+        });
+        if (step === 'lookup') {
+            window.setTimeout(() => {
+                customerLookupInput?.focus();
+                bindCustomerKeyboard(customerLookupInput, 'numeric');
+            }, 120);
+        } else if (step === 'manual') {
+            window.setTimeout(() => {
+                customerNameInput?.focus();
+                bindCustomerKeyboard(customerNameInput);
+            }, 120);
+        }
+    };
+
+    const startCustomerFlow = () => {
+        resetCustomerForm();
+        showCustomerStep('register');
+    };
+
+    const showCustomerConfirm = (customer) => {
+        if (customerConfirmName) customerConfirmName.textContent = customer.name;
+        if (customerConfirmCardName) customerConfirmCardName.textContent = customer.name;
+        if (customerConfirmHint) {
+            customerConfirmHint.textContent = customer.hint
+                ? `${customer.hint} — confirme se é você.`
+                : 'Confirme se este cadastro é seu.';
+        }
+    };
+
+    const goManualCustomer = ({ fromReject = false } = {}) => {
+        if (fromReject) {
+            if (customerManualEyebrow) customerManualEyebrow.textContent = 'Outro cadastro';
+            if (customerManualTitle) customerManualTitle.textContent = 'Vamos identificar você';
+            if (customerManualLead) {
+                customerManualLead.textContent = 'Informe seu nome e telefone para o pedido no caixa.';
+            }
+        } else {
+            if (customerManualEyebrow) customerManualEyebrow.textContent = 'Novo cliente';
+            if (customerManualTitle) customerManualTitle.textContent = 'Seja bem-vindo!';
+            if (customerManualLead) {
+                customerManualLead.textContent = 'Informe seu nome para identificarmos o pedido no caixa.';
+            }
+        }
+        if (customerNameInput) customerNameInput.value = '';
+        if (customerPhoneInput) customerPhoneInput.value = fromReject ? customerLookupHit?.phone || '' : '';
+        showCustomerError('');
+        showCustomerStep('manual');
+    };
+
+    const submitCustomerLookup = async () => {
+        const query = String(customerLookupInput?.value || '').trim();
+        const digits = query.replace(/\D/g, '');
+        if (digits.length < 10) {
+            showLookupError('Informe telefone, CPF ou CNPJ com pelo menos 10 dígitos.');
+            customerLookupInput?.focus();
+            bindCustomerKeyboard(customerLookupInput, 'numeric');
+            return;
+        }
+        if (customerLookupSubmit) customerLookupSubmit.disabled = true;
+        showLookupError('');
+        totemKeyboard?.hide?.();
+        try {
+            const res = await fetch('/api/totem/customer/lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Cadastro não encontrado');
+            customerLookupHit = data.customer;
+            showCustomerConfirm(data.customer);
+            showCustomerStep('confirm');
+        } catch (err) {
+            showLookupError(err.message || 'Cadastro não encontrado.');
+            customerLookupInput?.focus();
+            bindCustomerKeyboard(customerLookupInput, 'numeric');
+        } finally {
+            if (customerLookupSubmit) customerLookupSubmit.disabled = false;
+        }
+    };
+
+    const confirmCustomerIdentity = () => {
+        if (!customerLookupHit?.name) return;
+        totemCustomer = {
+            name: customerLookupHit.name,
+            phone: String(customerLookupHit.phone || '').trim(),
+        };
+        totemKeyboard?.hide?.();
+        enterCatalog();
     };
 
     const showCustomerError = (message) => {
@@ -734,10 +857,13 @@ ${unitHtml}
         });
     };
 
-    const bindCustomerKeyboard = (field) => {
+    const bindCustomerKeyboard = (field, mode = null) => {
         if (!field) return;
+        const keyboardMode =
+            mode || (field === customerPhoneInput || field === customerLookupInput ? 'numeric' : 'full');
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: field,
+            mode: keyboardMode,
             submitLabel: 'OK',
             onSubmit: () => totemKeyboard?.hide?.(),
             onClose: bumpIdle,
@@ -828,11 +954,8 @@ ${unitHtml}
             totemKeyboard?.hide?.();
             closeCategoriesModal();
         }
-        if (name === 'customer') {
-            window.setTimeout(() => {
-                customerNameInput?.focus();
-                bindCustomerKeyboard(customerNameInput);
-            }, 120);
+        if (name === 'customer' && customerStep === 'register' && !customerSteps.register?.classList.contains('totem-customer__step--active')) {
+            startCustomerFlow();
         }
         if (inPromos) {
             window.LigeirinhoTotemPromos?.refresh?.();
@@ -1401,14 +1524,52 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     const bindEvents = () => {
         startBtn?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
-            resetCustomerForm();
             setView('customer');
+            startCustomerFlow();
             bumpIdle();
         });
 
         customerBackBtn?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
-            setView('welcome');
+            if (customerStep === 'register') {
+                setView('welcome');
+            } else if (customerStep === 'lookup') {
+                showCustomerStep('register');
+            } else if (customerStep === 'confirm') {
+                showCustomerStep('lookup');
+            } else {
+                showCustomerStep('register');
+            }
+            bumpIdle();
+        });
+
+        document.getElementById('totem-customer-registered-yes')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            showCustomerStep('lookup');
+            bumpIdle();
+        });
+
+        document.getElementById('totem-customer-registered-no')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            goManualCustomer();
+            bumpIdle();
+        });
+
+        customerLookupForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            void submitCustomerLookup();
+        });
+
+        customerLookupInput?.addEventListener('focus', () => bindCustomerKeyboard(customerLookupInput, 'numeric'));
+
+        document.getElementById('totem-customer-confirm-yes')?.addEventListener('click', () => {
+            confirmCustomerIdentity();
+            bumpIdle();
+        });
+
+        document.getElementById('totem-customer-confirm-no')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            goManualCustomer({ fromReject: true });
             bumpIdle();
         });
 

@@ -1297,6 +1297,15 @@ html.totem--phone .totem-btn--promos__icon {
     flex-shrink: 0;
 }
 
+.totem-customer__eyebrow {
+    margin: 0 0 0.35rem;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lig-yellow-text);
+}
+
 .totem-customer__title {
     margin: 0 0 0.4rem;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -1304,6 +1313,14 @@ html.totem--phone .totem-btn--promos__icon {
     font-weight: 800;
     letter-spacing: -0.03em;
     color: var(--lig-text);
+}
+
+.totem-customer__title--confirm span {
+    color: var(--lig-yellow-text);
+}
+
+.totem-customer__hero--confirm {
+    margin-bottom: 0.15rem;
 }
 
 .totem-customer__lead {
@@ -1396,6 +1413,144 @@ html.totem--phone .totem-btn--promos__icon {
     min-height: 3.1rem;
     border-radius: 1rem;
     flex-shrink: 0;
+}
+
+.totem-customer__step {
+    display: none;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.totem-customer__step--active {
+    display: flex;
+}
+
+.totem-customer__choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: 100%;
+}
+
+.totem-customer__choices--confirm {
+    gap: 0.55rem;
+}
+
+.totem-customer__choice {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 4.25rem;
+    padding: 0.75rem 0.85rem;
+    border: 1.5px solid rgba(20, 18, 15, 0.08);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--lig-text);
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: var(--lig-shadow-sm);
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.totem-customer__choice:active {
+    transform: scale(0.985);
+}
+
+.totem-customer__choice--primary {
+    border-color: rgba(240, 201, 41, 0.45);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 250, 232, 0.95) 100%);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 6px 18px rgba(240, 201, 41, 0.14);
+}
+
+.totem-customer__choice-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    background: linear-gradient(165deg, #fde047 0%, #f0c929 55%, #d4a81a 100%);
+    color: #14120f;
+    box-shadow: 0 2px 8px rgba(240, 201, 41, 0.28);
+}
+
+.totem-customer__choice-icon--soft {
+    background: rgba(20, 18, 15, 0.06);
+    color: var(--lig-text-muted);
+    box-shadow: none;
+}
+
+.totem-customer__choice-icon .material-symbols-outlined {
+    font-size: 1.35rem;
+}
+
+.totem-customer__choice-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.totem-customer__choice-copy strong {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.totem-customer__choice-copy span {
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+    line-height: 1.35;
+}
+
+.totem-customer__choice-arrow {
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-customer__confirm-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    background: rgba(240, 201, 41, 0.12);
+    border: 1px dashed rgba(240, 201, 41, 0.45);
+}
+
+.totem-customer__confirm-card .material-symbols-outlined {
+    font-size: 1.75rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-customer__confirm-card p {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-customer__confirm-no {
+    width: 100%;
+    min-height: 2.75rem;
+}
+
+.totem-customer__input--lookup {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
 }
 
 body.totem-keyboard-customer {

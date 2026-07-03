@@ -69,9 +69,78 @@
 <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
 <span>Voltar</span>
 </button>
+
+<div class="totem-customer__step totem-customer__step--active" id="totem-customer-step-register" data-customer-step="register">
 <div class="totem-customer__hero">
-<h2 class="totem-customer__title">Seja um cliente Ligeirinho</h2>
-<p class="totem-customer__lead">Informe seu nome para identificarmos o pedido no caixa.</p>
+<p class="totem-customer__eyebrow">Identificação</p>
+<h2 class="totem-customer__title">Já é cliente Ligeirinho?</h2>
+<p class="totem-customer__lead">Se você já compra conosco, localizamos seu cadastro em segundos.</p>
+</div>
+<div class="totem-customer__choices" role="group" aria-label="Tipo de cliente">
+<button type="button" class="totem-customer__choice totem-customer__choice--primary" id="totem-customer-registered-yes">
+<span class="totem-customer__choice-icon" aria-hidden="true"><span class="material-symbols-outlined">verified_user</span></span>
+<span class="totem-customer__choice-copy">
+<strong>Sim, sou cliente</strong>
+<span>Telefone, CPF ou CNPJ</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+<button type="button" class="totem-customer__choice" id="totem-customer-registered-no">
+<span class="totem-customer__choice-icon totem-customer__choice-icon--soft" aria-hidden="true"><span class="material-symbols-outlined">person_add</span></span>
+<span class="totem-customer__choice-copy">
+<strong>Ainda não sou cliente</strong>
+<span>Informar nome e telefone</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+</div>
+</div>
+
+<div class="totem-customer__step" id="totem-customer-step-lookup" data-customer-step="lookup" hidden>
+<div class="totem-customer__hero">
+<p class="totem-customer__eyebrow">Cliente cadastrado</p>
+<h2 class="totem-customer__title">Como podemos te achar?</h2>
+<p class="totem-customer__lead">Digite seu telefone, CPF ou CNPJ cadastrado na Ligeirinho.</p>
+</div>
+<form class="totem-customer__form" id="totem-customer-lookup-form" novalidate>
+<label class="totem-customer__field" for="totem-customer-lookup-input">
+<span class="totem-customer__label">Telefone, CPF ou CNPJ</span>
+<input type="text" id="totem-customer-lookup-input" class="totem-customer__input totem-customer__input--lookup" placeholder="(00) 00000-0000 ou documento" autocomplete="off" inputmode="numeric" maxlength="18" readonly>
+</label>
+<p class="totem-customer__error" id="totem-customer-lookup-error" role="alert" hidden></p>
+<button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-lookup-submit">
+<span>Buscar cadastro</span>
+<span class="material-symbols-outlined" aria-hidden="true">search</span>
+</button>
+</form>
+</div>
+
+<div class="totem-customer__step" id="totem-customer-step-confirm" data-customer-step="confirm" hidden>
+<div class="totem-customer__hero totem-customer__hero--confirm">
+<p class="totem-customer__eyebrow">Cadastro encontrado</p>
+<h2 class="totem-customer__title totem-customer__title--confirm">Você é <span id="totem-customer-confirm-name">…</span>?</h2>
+<p class="totem-customer__lead" id="totem-customer-confirm-hint"></p>
+</div>
+<div class="totem-customer__confirm-card" aria-hidden="true">
+<span class="material-symbols-outlined">badge</span>
+<p id="totem-customer-confirm-card-name"></p>
+</div>
+<div class="totem-customer__choices totem-customer__choices--confirm" role="group" aria-label="Confirmar identidade">
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-customer-confirm-yes">
+<span>Sim, sou eu</span>
+<span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+</button>
+<button type="button" class="totem-btn totem-btn--ghost totem-customer__confirm-no" id="totem-customer-confirm-no">
+<span>Não sou essa pessoa</span>
+</button>
+</div>
+</div>
+
+<div class="totem-customer__step" id="totem-customer-step-manual" data-customer-step="manual" hidden>
+<div class="totem-customer__hero">
+<p class="totem-customer__eyebrow" id="totem-customer-manual-eyebrow">Novo cliente</p>
+<h2 class="totem-customer__title" id="totem-customer-manual-title">Seja bem-vindo!</h2>
+<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome para identificarmos o pedido no caixa.</p>
 </div>
 <form class="totem-customer__form" id="totem-customer-form" novalidate>
 <label class="totem-customer__field" for="totem-customer-name">
@@ -88,6 +157,7 @@
 <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
 </button>
 </form>
+</div>
 </div>
 </section>
 
