@@ -76,6 +76,7 @@
     const unitLabel = document.getElementById('totem-unit-label');
     const deviceLabel = document.getElementById('totem-device-label');
     const idleHint = document.getElementById('totem-idle-hint');
+    const idleCountdownEl = document.getElementById('totem-idle-countdown');
     const adminModal = document.getElementById('totem-admin-modal');
     const adminPin = document.getElementById('totem-admin-pin');
     const detailPanel = document.getElementById('totem-product-detail');
@@ -94,6 +95,10 @@
     let unitSettings = null;
     let idleTimer = null;
     let idleHintTimer = null;
+    let idleCountdownTimer = null;
+    let idleCountdownLeft = 0;
+    const IDLE_RESET_MS_DEFAULT = 30000;
+    const IDLE_WARN_MS_DEFAULT = 15000;
     let adminTapCount = 0;
     let adminTapTimer = null;
     let lastCartCount = 0;
@@ -1022,11 +1027,12 @@ ${unitHtml}
         if (cartBtn) cartBtn.hidden = true;
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
-        if (!inShopping) idleHint?.classList.remove('totem-idle-hint--visible');
+        if (name === 'welcome') hideIdleWarning();
         if (!inCatalog) {
             totemKeyboard?.hide?.();
             closeCategoriesModal();
         }
+        resetIdleTimer();
         if (name === 'customer' && customerStep === 'register' && !customerSteps.register?.classList.contains('totem-customer__step--active')) {
             startCustomerFlow();
         }
@@ -1080,6 +1086,52 @@ ${unitHtml}
         renderCart();
     };
 
+    const clearIdleTimers = () => {
+        clearTimeout(idleTimer);
+        clearTimeout(idleHintTimer);
+        clearInterval(idleCountdownTimer);
+        idleTimer = null;
+        idleHintTimer = null;
+        idleCountdownTimer = null;
+        idleCountdownLeft = 0;
+    };
+
+    const hideIdleWarning = () => {
+        if (!idleHint) return;
+        idleHint.classList.remove('totem-idle-hint--visible');
+        idleHint.hidden = true;
+        idleHint.setAttribute('aria-hidden', 'true');
+        if (idleCountdownEl) idleCountdownEl.textContent = '15';
+    };
+
+    const updateIdleCountdown = (seconds) => {
+        if (idleCountdownEl) idleCountdownEl.textContent = String(Math.max(0, seconds));
+    };
+
+    const showIdleWarning = () => {
+        if (views.welcome?.classList.contains('totem-view--active')) return;
+        const idleMs = Number(totemConfig.defaults?.idleTimeoutMs) || IDLE_RESET_MS_DEFAULT;
+        const warnMs = Number(totemConfig.defaults?.idleWarnMs) || IDLE_WARN_MS_DEFAULT;
+        idleCountdownLeft = Math.max(1, Math.round((idleMs - warnMs) / 1000));
+        updateIdleCountdown(idleCountdownLeft);
+        if (idleHint) {
+            idleHint.hidden = false;
+            idleHint.setAttribute('aria-hidden', 'false');
+            idleHint.classList.add('totem-idle-hint--visible');
+        }
+        clearInterval(idleCountdownTimer);
+        idleCountdownTimer = window.setInterval(() => {
+            idleCountdownLeft -= 1;
+            if (idleCountdownLeft <= 0) {
+                clearInterval(idleCountdownTimer);
+                idleCountdownTimer = null;
+                updateIdleCountdown(0);
+                return;
+            }
+            updateIdleCountdown(idleCountdownLeft);
+        }, 1000);
+    };
+
     const resetSession = () => {
         closeProductDetail();
         closeCart();
@@ -1087,27 +1139,30 @@ ${unitHtml}
         resetCart();
         resetCustomerForm();
         clearSearch();
-        idleHint?.classList.remove('totem-idle-hint--visible');
+        hideIdleWarning();
+        clearIdleTimers();
         setView('welcome');
-        resetIdleTimer();
     };
 
     const bumpIdle = () => {
+        hideIdleWarning();
         resetIdleTimer();
-        idleHint?.classList.remove('totem-idle-hint--visible');
     };
 
     const resetIdleTimer = () => {
-        const idleMs = Number(totemConfig.defaults?.idleTimeoutMs) || 120000;
-        const hintMs = Math.max(idleMs - 30000, 60000);
-        clearTimeout(idleTimer);
-        clearTimeout(idleHintTimer);
+        clearIdleTimers();
+        hideIdleWarning();
+        // Tela inicial já está “desligada” para o cliente — sem contagem.
+        if (views.welcome?.classList.contains('totem-view--active')) return;
+
+        const idleMs = Number(totemConfig.defaults?.idleTimeoutMs) || IDLE_RESET_MS_DEFAULT;
+        const warnMs = Math.min(
+            Number(totemConfig.defaults?.idleWarnMs) || IDLE_WARN_MS_DEFAULT,
+            Math.max(0, idleMs - 1000),
+        );
+
+        idleHintTimer = window.setTimeout(showIdleWarning, warnMs);
         idleTimer = window.setTimeout(resetSession, idleMs);
-        idleHintTimer = window.setTimeout(() => {
-            if (views.catalog?.classList.contains('totem-view--active') || views.promos?.classList.contains('totem-view--active')) {
-                idleHint?.classList.add('totem-idle-hint--visible');
-            }
-        }, hintMs);
     };
 
     const updateCategoriesBtnLabel = () => {

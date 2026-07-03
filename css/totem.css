@@ -3760,34 +3760,69 @@ html.totem-has-float-cart .totem-cart-toast {
     bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
-html.totem-has-float-cart .totem-idle-hint {
-    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* ——— Idle hint ——— */
+/* ——— Idle timeout (15s aviso + 15s até reset = 30s) ——— */
 .totem-idle-hint {
     position: fixed;
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    left: 50%;
-    transform: translateX(-50%) translateY(12px);
-    background: #14120f;
-    color: #fff;
-    padding: 0.625rem 1.25rem;
-    border-radius: 999px;
-    font-size: 0.875rem;
-    font-weight: 600;
+    inset: 0;
+    z-index: 95;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(20, 18, 15, 0.55);
     opacity: 0;
     pointer-events: none;
-    transition:
-        opacity 0.38s var(--totem-ease-out),
-        transform 0.38s var(--totem-ease-out);
-    z-index: 70;
-    box-shadow: var(--lig-shadow-md);
+    transition: opacity 0.28s var(--totem-ease-out);
 }
 
 .totem-idle-hint--visible {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.totem-idle-hint__card {
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    width: min(100%, 22rem);
+    padding: 1.5rem 1.35rem 1.35rem;
+    border-radius: 1.25rem;
+    background: #fff;
+    color: var(--lig-text);
+    text-align: center;
+    box-shadow: var(--lig-shadow-lg, 0 18px 40px rgba(0, 0, 0, 0.22));
+    transform: translateY(10px) scale(0.98);
+    transition: transform 0.28s var(--totem-ease-out);
+}
+
+.totem-idle-hint--visible .totem-idle-hint__card {
+    transform: translateY(0) scale(1);
+}
+
+.totem-idle-hint__icon {
+    font-size: 2rem;
+    color: var(--lig-yellow, #f5c521);
+}
+
+.totem-idle-hint__title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.totem-idle-hint__countdown {
+    margin: 0.15rem 0 0;
+    font-size: 2.5rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: #b91c1c;
+}
+
+.totem-idle-hint__lead {
+    margin: 0.35rem 0 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--lig-text-muted);
 }
 
 /* ——— Categorias (popup estilo Parceiros) ——— */
@@ -5677,13 +5712,13 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
         transition: none !important;
     }
 
-    .totem-idle-hint {
+    .totem-idle-hint,
+    .totem-idle-hint__card {
         transition: opacity 0.15s ease;
-        transform: translateX(-50%);
     }
 
-    .totem-idle-hint--visible {
-        transform: translateX(-50%);
+    .totem-idle-hint__card {
+        transform: none;
     }
 }
 

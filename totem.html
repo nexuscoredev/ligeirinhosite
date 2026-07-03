@@ -298,7 +298,14 @@
 </div>
 </div>
 
-<div id="totem-idle-hint" class="totem-idle-hint" aria-live="polite">Toque na tela para continuar</div>
+<div id="totem-idle-hint" class="totem-idle-hint" aria-live="assertive" aria-hidden="true" hidden>
+<div class="totem-idle-hint__card" role="alertdialog" aria-labelledby="totem-idle-hint-title" aria-describedby="totem-idle-hint-lead">
+<span class="material-symbols-outlined totem-idle-hint__icon" aria-hidden="true">timer</span>
+<p id="totem-idle-hint-title" class="totem-idle-hint__title">A tela vai desligar</p>
+<p class="totem-idle-hint__countdown"><span id="totem-idle-countdown">15</span>s</p>
+<p id="totem-idle-hint-lead" class="totem-idle-hint__lead">Toque na tela para continuar</p>
+</div>
+</div>
 
 <div id="totem-cart-toast" class="totem-cart-toast" hidden role="status" aria-live="polite" aria-atomic="true">
 <div class="totem-cart-toast__inner">
