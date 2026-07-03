@@ -71,7 +71,7 @@
             if (methods.size >= 2) {
                 return {
                     ok: false,
-                    error: 'Preencha o valor das duas ou três formas de pagamento para finalizar.',
+                    error: 'Preencha o valor das formas de pagamento para finalizar.',
                 };
             }
             return { ok: false, error: 'Selecione pelo menos duas formas de pagamento.' };

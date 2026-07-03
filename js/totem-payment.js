@@ -152,7 +152,7 @@
         return Math.min(parsed, maxAmountForField(id, total));
     };
 
-    const SPLIT_AMOUNTS_MSG = 'Preencha o valor das duas ou três formas de pagamento para finalizar.';
+    const SPLIT_AMOUNTS_MSG = 'Preencha o valor das formas de pagamento para finalizar.';
 
     const isSplitAmountsValid = (total) => {
         if (selectedIds.length < 2) return true;
@@ -209,7 +209,6 @@
     const toggleMethod = (id) => {
         if (!currentOrder) return;
         formError = '';
-        const total = Number(currentOrder.total) || 0;
         if (selectedIds.includes(id)) {
             selectedIds = selectedIds.filter((item) => item !== id);
             delete amountInputs[id];
@@ -217,12 +216,18 @@
         }
         selectedIds.push(id);
         if (selectedIds.length === 1) {
-            amountInputs[id] = splitsApi.formatMoneyInput(total);
+            // Pagamento único: valor = total no confirm; campos de split ainda não aparecem.
+            amountInputs[id] = '';
             return;
         }
-        const first = selectedIds[0];
-        const firstAmount = splitsApi.parseMoneyInput(amountInputs[first]);
-        amountInputs[id] = splitsApi.formatMoneyInput(Math.max(0, total - firstAmount));
+        if (selectedIds.length === 2) {
+            // Campos de valor acabaram de aparecer: todos vazios para o cliente preencher.
+            selectedIds.forEach((sid) => {
+                amountInputs[sid] = '';
+            });
+            return;
+        }
+        amountInputs[id] = '';
     };
 
     const amountsHtml = (total) => {
