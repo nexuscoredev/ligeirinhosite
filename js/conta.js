@@ -22,7 +22,20 @@
         if (local.length === 11) {
             return `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
         }
+        if (local.length === 10) {
+            return `(${local.slice(0, 2)}) ${local.slice(2, 6)}-${local.slice(6)}`;
+        }
         return phone || '';
+    };
+
+    const maskPhoneInput = (value) => {
+        const digits = String(value || '').replace(/\D/g, '').slice(0, 11);
+        if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+        if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+        if (digits.length <= 10) {
+            return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+        }
+        return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
     };
 
     const formatCnpjDisplay = (value) => {
@@ -273,7 +286,9 @@ ${menuItems.map(menuRow).join('')}
     const renderDados = () => {
         const s = session();
         const hasCnpj = sessionHasCnpj(s);
-        const canRegisterCnpj = Boolean(s?.sub && !hasCnpj && !auth?.isTotemSession?.(s));
+        const canEditProfile = Boolean(s?.sub && !auth?.isTotemSession?.(s));
+        const canRegisterCnpj = Boolean(canEditProfile && !hasCnpj);
+        const hasPhone = Boolean(String(s?.phone || '').replace(/\D/g, '').length >= 10);
         const rows = [
             { label: 'Nome', value: s?.name || '—', nav: '' },
             {
@@ -285,7 +300,12 @@ ${menuItems.map(menuRow).join('')}
                 action: canRegisterCnpj ? 'cnpj-modal' : '',
                 editLabel: canRegisterCnpj ? 'Cadastrar CNPJ' : '',
             },
-            { label: 'Telefone celular', value: formatPhoneDisplay(s?.phone) || '—', nav: s?.provider === 'hub' ? 'telefone' : '' },
+            {
+                label: 'Telefone celular',
+                value: formatPhoneDisplay(s?.phone) || '—',
+                nav: canEditProfile ? 'telefone' : '',
+                editLabel: canEditProfile && !hasPhone ? 'Cadastrar telefone' : '',
+            },
             { label: 'E-mail', value: s?.email || '—', nav: s?.provider === 'hub' ? 'email' : '' },
         ];
 
@@ -367,21 +387,40 @@ ${
 
     const renderTelefone = () => {
         const s = session();
+        const hasPhone = Boolean(String(s?.phone || '').replace(/\D/g, '').length >= 10);
+        const pageTitle = hasPhone ? 'Atualizar telefone' : 'Cadastrar telefone';
         const body = `<div class="conta-sub-body">
 <form class="conta-edit-form" id="conta-telefone-form">
-<label class="conta-edit-label">Novo telefone celular</label>
-<input class="conta-edit-input" id="conta-telefone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" value="${esc(formatPhoneDisplay(s?.phone || ''))}">
-<p class="conta-hint">Usado para contato sobre pedidos e entregas.</p>
+<label class="conta-edit-label" for="conta-telefone-input">Telefone celular</label>
+<input class="conta-edit-input" id="conta-telefone-input" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 99999-9999" value="${esc(formatPhoneDisplay(s?.phone || ''))}" maxlength="15">
+<p class="conta-hint">Usado para contato sobre pedidos e entregas. Informe DDD + número.</p>
 <p class="conta-edit-status" id="conta-telefone-status" hidden></p>
-<button type="submit" class="conta-btn conta-btn--primary conta-btn--full">Salvar telefone</button>
+<button type="submit" class="conta-btn conta-btn--primary conta-btn--full">${hasPhone ? 'Salvar telefone' : 'Cadastrar telefone'}</button>
 </form>
 </div>`;
-        wrapPage('Atualizar telefone', 'dados', body, 'dados');
+        wrapPage(pageTitle, 'dados', body, 'dados');
+
+        const input = root.querySelector('#conta-telefone-input');
+        input?.addEventListener('input', () => {
+            input.value = maskPhoneInput(input.value);
+        });
 
         root.querySelector('#conta-telefone-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const status = root.querySelector('#conta-telefone-status');
-            const value = root.querySelector('#conta-telefone-input')?.value || '';
+            const submitBtn = root.querySelector('#conta-telefone-form button[type="submit"]');
+            const value = input?.value || '';
+            const digits = value.replace(/\D/g, '');
+            if (digits.length < 10 || digits.length > 11) {
+                if (status) {
+                    status.hidden = false;
+                    status.textContent = 'Informe um celular válido com DDD (10 ou 11 dígitos).';
+                    status.className = 'conta-edit-status conta-edit-status--error';
+                }
+                input?.focus();
+                return;
+            }
+            if (submitBtn) submitBtn.disabled = true;
             try {
                 const headers = await accountHeaders();
                 const res = await fetch('/api/account/profile', {
@@ -391,10 +430,15 @@ ${
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
-                auth.patchSession(data.profile);
+                const profile = data.profile || {};
+                auth.patchSession({
+                    ...profile,
+                    provider: s?.provider || profile.provider,
+                    phone: profile.phone || digits,
+                });
                 if (status) {
                     status.hidden = false;
-                    status.textContent = 'Telefone atualizado.';
+                    status.textContent = hasPhone ? 'Telefone atualizado.' : 'Telefone cadastrado.';
                     status.className = 'conta-edit-status conta-edit-status--ok';
                 }
                 window.setTimeout(() => navigate('dados'), 700);
@@ -404,6 +448,8 @@ ${
                     status.textContent = err.message;
                     status.className = 'conta-edit-status conta-edit-status--error';
                 }
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
             }
         });
     };

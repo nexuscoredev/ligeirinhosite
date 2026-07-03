@@ -14,6 +14,7 @@ export const config = { maxDuration: 15 };
 
 function publicProfile(usuario, extras = {}) {
     const cnpjDigits = extras.cnpjDigits || '';
+    const provider = extras.provider || 'hub';
     const base = {
         sub: usuario.id,
         email: usuario.email || '',
@@ -23,8 +24,8 @@ function publicProfile(usuario, extras = {}) {
         role: extras.role || 'PARCEIRO',
         hubUserId: usuario.id,
         mustChangePassword: Boolean(usuario.must_change_password),
-        provider: 'hub',
         ...extras,
+        provider,
     };
     return {
         ...base,
@@ -57,11 +58,15 @@ export default async function handler(req, res) {
         return res.status(session.status).json({ error: session.error });
     }
 
+    const profileExtras = async (usuario) => ({
+        ...(await buildParceiroExtras(session.config, usuario)),
+        provider: session.provider || 'hub',
+    });
+
     if (req.method === 'GET') {
         try {
-            const parceiro = await buildParceiroExtras(session.config, session.usuario);
             return res.status(200).json({
-                profile: publicProfile(session.usuario, parceiro),
+                profile: publicProfile(session.usuario, await profileExtras(session.usuario)),
             });
         } catch (err) {
             console.error('account/profile GET', err);
@@ -87,8 +92,9 @@ export default async function handler(req, res) {
                 const usuario = await updateUsuarioFields(session.config, session.userId, {
                     telefone: digits,
                 });
-                const parceiro = await buildParceiroExtras(session.config, usuario);
-                return res.status(200).json({ profile: publicProfile(usuario, parceiro) });
+                return res.status(200).json({
+                    profile: publicProfile(usuario, await profileExtras(usuario)),
+                });
             }
 
             if (field === 'email') {
@@ -96,8 +102,9 @@ export default async function handler(req, res) {
                     return res.status(400).json({ error: 'Informe um e-mail válido.' });
                 }
                 const usuario = await updateUsuarioFields(session.config, session.userId, { email: value });
-                const parceiro = await buildParceiroExtras(session.config, usuario);
-                return res.status(200).json({ profile: publicProfile(usuario, parceiro) });
+                return res.status(200).json({
+                    profile: publicProfile(usuario, await profileExtras(usuario)),
+                });
             }
 
             if (field === 'cnpj') {
@@ -120,8 +127,9 @@ export default async function handler(req, res) {
                           session.usuario,
                           value,
                       );
-                const parceiro = await buildParceiroExtras(session.config, usuario);
-                return res.status(200).json({ profile: publicProfile(usuario, parceiro) });
+                return res.status(200).json({
+                    profile: publicProfile(usuario, await profileExtras(usuario)),
+                });
             }
 
             return res.status(400).json({ error: 'Campo inválido. Use telefone, email ou cnpj.' });
