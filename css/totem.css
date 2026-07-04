@@ -2034,21 +2034,6 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     margin: 0;
 }
 
-.totem-catalog-greeting {
-    margin: 0 0.35rem 0.65rem;
-    padding: 0 0.15rem;
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-size: 1.125rem;
-    font-weight: 700;
-    line-height: 1.25;
-    color: var(--lig-text);
-    letter-spacing: -0.01em;
-}
-
-.totem-catalog-greeting[hidden] {
-    display: none !important;
-}
-
 .totem-categories-btn {
     display: inline-flex;
     align-items: center;
@@ -2255,6 +2240,18 @@ body.totem-keyboard-customer .totem-vk__row--actions {
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--lig-yellow-text);
+}
+
+.totem-products__eyebrow--greeting {
+    font-size: clamp(0.95rem, 2.1dvh, 1.15rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    color: var(--lig-yellow-text);
+}
+
+.totem-products__title[hidden] {
+    display: none !important;
 }
 
 .totem-products__title {

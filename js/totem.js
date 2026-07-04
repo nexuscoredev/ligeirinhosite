@@ -74,7 +74,7 @@
     const productsGrid = document.getElementById('totem-products-grid');
     const productsBody = document.getElementById('totem-products-body');
     const productsHead = document.getElementById('totem-products-head');
-    const catalogGreeting = document.getElementById('totem-catalog-greeting');
+    const productsEyebrow = document.getElementById('totem-products-eyebrow');
     const categoryTitle = document.getElementById('totem-category-title');
     const productsCount = document.getElementById('totem-products-count');
     const productsEmpty = document.getElementById('totem-products-empty');
@@ -1196,16 +1196,19 @@ ${unitHtml}
     };
 
     const updateCatalogGreeting = () => {
-        if (!catalogGreeting) return;
+        if (!productsEyebrow) return;
         const display = formatGreetingName(totemCustomer.name);
-        if (!display) {
-            catalogGreeting.textContent = '';
-            catalogGreeting.hidden = true;
-            return;
+        if (display) {
+            productsEyebrow.textContent = `Olá, ${display}`;
+            productsEyebrow.classList.add('totem-products__eyebrow--greeting');
+        } else {
+            productsEyebrow.textContent = 'Escolha seus produtos';
+            productsEyebrow.classList.remove('totem-products__eyebrow--greeting');
         }
-        catalogGreeting.textContent = `Olá, ${display}`;
-        catalogGreeting.hidden = false;
     };
+
+    const catalogHeadVisible = (catLabel) =>
+        Boolean(catLabel) || Boolean(formatGreetingName(totemCustomer.name));
 
     const submitCustomerAndStart = async () => {
         const name = String(customerNameInput?.value || '').trim().replace(/\s+/g, ' ');
@@ -1576,8 +1579,12 @@ ${bodyHtml}
               ? catalog.formatCategoryLabel(catMeta.name)
               : '';
 
-        if (productsHead) productsHead.hidden = !catLabel;
-        if (categoryTitle) categoryTitle.textContent = catLabel;
+        if (productsHead) productsHead.hidden = !catalogHeadVisible(catLabel);
+        if (categoryTitle) {
+            categoryTitle.textContent = catLabel;
+            categoryTitle.hidden = !catLabel;
+        }
+        updateCatalogGreeting();
         if (productsCount) {
             productsCount.textContent =
                 items.length === 1 ? '1 produto' : `${items.length} produtos`;
