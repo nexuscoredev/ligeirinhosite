@@ -54,6 +54,7 @@ const ADULT_CATEGORY_SLUGS = new Set([
     'cerveja',
     'cervejas',
     'destilados',
+    'licores',
     'whisky',
     'whiskys',
     'vodka',
@@ -64,6 +65,18 @@ const ADULT_CATEGORY_SLUGS = new Set([
     'vinho',
     'espumantes',
 ]);
+
+const SNACK_CATEGORY_SLUGS = new Set(['salgadinho', 'salgadinhos']);
+
+/** Evita licores cadastrados na categoria errada no Hub (ex.: Salgadinhos). */
+export function resolveProductCategorySlug(catInfo, productName) {
+    const slug = catInfo?.slug || 'outros';
+    const name = String(productName || '').trim().toUpperCase();
+    if (SNACK_CATEGORY_SLUGS.has(slug) && /^LICOR\s/.test(name)) {
+        return 'licores';
+    }
+    return slug;
+}
 
 export function inferAdultOnly(categorySlug, name) {
     const slug = String(categorySlug || '').toLowerCase();
@@ -91,7 +104,7 @@ export function buildCatalog(produtos, categorias, options = {}) {
 
     for (const p of produtos) {
         const catInfo = p.categorias_produto || {};
-        const slug = catInfo.slug || 'outros';
+        const slug = resolveProductCategorySlug(catInfo, p.nome);
         if (!categoryMap.has(slug)) {
             const cat = categoryBySlug.get(slug);
             categoryMap.set(slug, {

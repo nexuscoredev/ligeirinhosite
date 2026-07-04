@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-07-04-v211",
+    "date": "2026-07-04",
+    "appVersion": "2.1.1",
+    "title": "Catálogo — licores fora de Salgadinhos",
+    "summary": "Correção para produtos LICOR não aparecerem na categoria Salgadinhos.",
+    "changes": [
+      { "module": "catalog", "type": "fix", "text": "Licores com categoria errada no Hub são exibidos em Licores" }
+    ]
+  },
+  {
     "id": "2026-06-14-v21",
     "date": "2026-06-14",
     "appVersion": "2.1.0",
