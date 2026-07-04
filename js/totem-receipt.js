@@ -7,6 +7,7 @@
 
     const BRIDGE_STORAGE_KEY = 'lig_totem_print_bridge_url';
     const PRINT_MARGIN_LEFT_KEY = 'lig_totem_print_margin_left_mm';
+    const PRINT_MARGIN_RIGHT_KEY = 'lig_totem_print_margin_right_mm';
 
     const resolvePrintMarginLeftMm = (defaults = {}) => {
         try {
@@ -16,7 +17,18 @@
             /* ignore */
         }
         const fromConfig = Number(defaults.printMarginLeftMm);
-        return Number.isFinite(fromConfig) ? fromConfig : 4;
+        return Number.isFinite(fromConfig) ? fromConfig : 3;
+    };
+
+    const resolvePrintMarginRightMm = (defaults = {}) => {
+        try {
+            const fromStorage = String(localStorage.getItem(PRINT_MARGIN_RIGHT_KEY) || '').trim();
+            if (fromStorage && !Number.isNaN(Number(fromStorage))) return Number(fromStorage);
+        } catch {
+            /* ignore */
+        }
+        const fromConfig = Number(defaults.printMarginRightMm);
+        return Number.isFinite(fromConfig) ? fromConfig : 7;
     };
 
     const isMobileTotem = () =>
@@ -52,7 +64,8 @@
                 escposBaudRate: Number(defaults.escposBaudRate) || 9600,
                 escposLineChars: Number(defaults.escposLineChars) || 42,
                 printMarginLeftMm: resolvePrintMarginLeftMm(defaults),
-                printPaperWidthMm: Number(defaults.printPaperWidthMm) || 76,
+                printMarginRightMm: resolvePrintMarginRightMm(defaults),
+                printPaperWidthMm: Number(defaults.printPaperWidthMm) || 70,
                 printFallbackBrowser: defaults.printFallbackBrowser === true,
             };
         } catch {
@@ -64,8 +77,9 @@
                 printBridgeUrl: '',
                 escposBaudRate: 9600,
                 escposLineChars: 42,
-                printMarginLeftMm: 4,
-                printPaperWidthMm: 76,
+                printMarginLeftMm: 3,
+                printMarginRightMm: 7,
+                printPaperWidthMm: 70,
                 printFallbackBrowser: true,
             };
         }
@@ -394,11 +408,13 @@ ${buildPaymentReceiptBlock(order, forPrint)}
 
     const printCss = (opts = {}) => {
         const marginLeft = Number(opts.printMarginLeftMm);
-        const marginLeftMm = Number.isFinite(marginLeft) ? marginLeft : 4;
-        const paperWidth = Number(opts.printPaperWidthMm) || 76;
+        const marginRight = Number(opts.printMarginRightMm);
+        const marginLeftMm = Number.isFinite(marginLeft) ? marginLeft : 3;
+        const marginRightMm = Number.isFinite(marginRight) ? marginRight : 7;
+        const paperWidth = Number(opts.printPaperWidthMm) || 70;
         return `@page{size:80mm auto;margin:0}html,body{width:80mm;max-width:80mm;min-width:80mm;margin:0;padding:0;background:#fff;overflow:hidden;font-family:'Courier New',Courier,ui-monospace,monospace}
 body{display:flex;justify-content:center;align-items:flex-start}
-.totem-receipt__paper{box-sizing:border-box;width:${paperWidth}mm;max-width:${paperWidth}mm;margin:0;padding:2mm 2mm 2mm ${marginLeftMm}mm;font-size:11px;line-height:1.35;color:#000;font-weight:700;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
+.totem-receipt__paper{box-sizing:border-box;width:${paperWidth}mm;max-width:${paperWidth}mm;margin:0 auto;padding:2mm ${marginRightMm}mm 2mm ${marginLeftMm}mm;font-size:11px;line-height:1.35;color:#000;font-weight:700;overflow:hidden;word-wrap:break-word;overflow-wrap:anywhere}
 .totem-receipt__paper *{font-weight:700}
 .totem-receipt__brand{font-size:12px;font-weight:900;text-align:center;letter-spacing:.02em;text-transform:uppercase}
 .totem-receipt__title{margin:2mm 0 0;font-size:13px;font-weight:900;text-align:center;letter-spacing:.04em}
@@ -408,7 +424,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .totem-receipt__code{margin:1.5mm 0 0;font-size:16px;font-weight:900;text-align:center;letter-spacing:.06em;word-break:break-all}
 .totem-receipt__code--compact{letter-spacing:.06em;font-size:16px;font-weight:900}
 .totem-receipt__barcode{margin:2mm auto 0;max-width:100%;text-align:center;line-height:0}
-.totem-receipt__barcode svg{display:block;margin:0 auto;max-width:68mm;height:auto}
+.totem-receipt__barcode svg{display:block;margin:0 auto;max-width:58mm;height:auto}
 .totem-receipt__barcode-hint{margin:1mm 0 0;font-size:10px;font-weight:900;text-align:center;letter-spacing:.08em}
 .totem-receipt__meta{margin:1.5mm 0 0;font-size:11px;font-weight:700;text-align:center}
 .totem-receipt__items{display:flex;flex-direction:column;gap:2mm;width:100%}
@@ -416,12 +432,12 @@ body{display:flex;justify-content:center;align-items:flex-start}
 .totem-receipt__item-head{display:flex;align-items:flex-start;gap:1.5mm;width:100%}
 .totem-receipt__qty{flex-shrink:0;min-width:5mm;font-weight:900}
 .totem-receipt__name{flex:1;min-width:0;font-size:11px;line-height:1.3;font-weight:700}
-.totem-receipt__item-price{margin-top:.5mm;padding-left:6.5mm;font-size:11px;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
+.totem-receipt__item-price{box-sizing:border-box;margin-top:.5mm;padding-left:6.5mm;padding-right:1mm;font-size:11px;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
 .totem-receipt__row{display:flex;align-items:baseline;justify-content:space-between;gap:2mm;width:100%;font-size:11px;margin:1mm 0;font-weight:700}
 .totem-receipt__row>span{flex:1;min-width:0;font-weight:700}
-.totem-receipt__row strong{flex-shrink:0;max-width:48%;text-align:right;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums;word-break:break-word}
+.totem-receipt__row strong{flex-shrink:0;max-width:44%;padding-right:1mm;text-align:right;font-size:11px;font-weight:900;font-variant-numeric:tabular-nums;word-break:break-word}
 .totem-receipt__row--total{margin-top:2mm;font-size:12px;font-weight:900}
-.totem-receipt__row--total strong{font-size:14px;font-weight:900;max-width:55%}
+.totem-receipt__row--total strong{font-size:13px;font-weight:900;max-width:50%;padding-right:1mm}
 .totem-receipt__split-title{margin:1.5mm 0 0;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
 .totem-receipt__row--split{margin:0.5mm 0}
 .totem-receipt__row--troco{margin:0.8mm 0 0;font-weight:900}
@@ -430,7 +446,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
     };
 
     const printOptsKey = (opts = {}) =>
-        `${Number(opts.printMarginLeftMm) || 4}:${Number(opts.printPaperWidthMm) || 76}`;
+        `${Number(opts.printMarginLeftMm) || 3}:${Number(opts.printMarginRightMm) || 7}:${Number(opts.printPaperWidthMm) || 70}`;
 
     const ensureWarmPrintFrame = (opts = {}) => {
         const key = printOptsKey(opts);
@@ -466,6 +482,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
         const config = await loadReceiptConfig();
         ensureWarmPrintFrame({
             printMarginLeftMm: config.printMarginLeftMm,
+            printMarginRightMm: config.printMarginRightMm,
             printPaperWidthMm: config.printPaperWidthMm,
         });
     };
@@ -839,6 +856,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 escposLineChars: config.escposLineChars,
                 printBridgeUrl: opts.printBridgeUrl || config.printBridgeUrl,
                 printMarginLeftMm: opts.printMarginLeftMm ?? config.printMarginLeftMm,
+                printMarginRightMm: opts.printMarginRightMm ?? config.printMarginRightMm,
                 printPaperWidthMm: opts.printPaperWidthMm ?? config.printPaperWidthMm,
             };
 
@@ -913,6 +931,11 @@ body{display:flex;justify-content:center;align-items:flex-start}
             localStorage.setItem(PRINT_MARGIN_LEFT_KEY, String(Number(marginFromUrl)));
             cachedConfig = null;
         }
+        const marginRightFromUrl = params.get('printMarginRight');
+        if (marginRightFromUrl != null && marginRightFromUrl !== '' && !Number.isNaN(Number(marginRightFromUrl))) {
+            localStorage.setItem(PRINT_MARGIN_RIGHT_KEY, String(Number(marginRightFromUrl)));
+            cachedConfig = null;
+        }
     } catch {
         /* ignore */
     }
@@ -957,6 +980,17 @@ body{display:flex;justify-content:center;align-items:flex-start}
             cachedConfig = null;
         },
         getPrintMarginLeftMm: () => resolvePrintMarginLeftMm(),
+        setPrintMarginRightMm(mm) {
+            const value = Number(mm);
+            if (!Number.isFinite(value)) {
+                localStorage.removeItem(PRINT_MARGIN_RIGHT_KEY);
+                cachedConfig = null;
+                return;
+            }
+            localStorage.setItem(PRINT_MARGIN_RIGHT_KEY, String(value));
+            cachedConfig = null;
+        },
+        getPrintMarginRightMm: () => resolvePrintMarginRightMm(),
     };
 
     if (document.body) {

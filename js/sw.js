@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v254';
+const CACHE_NAME = 'ligeirinho-app-v255';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 

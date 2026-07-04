@@ -4,8 +4,8 @@
     position: fixed;
     left: -10000px;
     top: 0;
-    width: 72mm;
-    max-width: 72mm;
+    width: 70mm;
+    max-width: 70mm;
     pointer-events: none;
     z-index: -1;
     overflow: hidden;
@@ -45,9 +45,9 @@ body.totem-is-printing .totem-receipt-print {
 .totem-receipt__paper {
     box-sizing: border-box;
     width: 100%;
-    max-width: 76mm;
+    max-width: 70mm;
     margin: 0 auto;
-    padding: 2mm 2mm 2mm 4mm;
+    padding: 2mm 7mm 2mm 3mm;
     font-family: 'Courier New', Courier, ui-monospace, monospace;
     font-size: 11px;
     font-weight: 700;
@@ -127,7 +127,7 @@ body.totem-is-printing .totem-receipt-print {
 .totem-receipt__barcode svg {
     display: block;
     margin: 0 auto;
-    max-width: 68mm;
+    max-width: 58mm;
     height: auto;
 }
 
@@ -188,8 +188,10 @@ body.totem-is-printing .totem-receipt-print {
 
 .totem-receipt__item-price,
 .totem-receipt__price {
+    box-sizing: border-box;
     margin-top: 0.5mm;
     padding-left: 6.5mm;
+    padding-right: 1mm;
     font-size: 11px;
     font-weight: 900;
     text-align: right;
@@ -215,7 +217,8 @@ body.totem-is-printing .totem-receipt-print {
 
 .totem-receipt__row strong {
     flex-shrink: 0;
-    max-width: 48%;
+    max-width: 44%;
+    padding-right: 1mm;
     text-align: right;
     font-size: 11px;
     font-weight: 900;
@@ -230,9 +233,10 @@ body.totem-is-printing .totem-receipt-print {
 }
 
 .totem-receipt__row--total strong {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 900;
-    max-width: 55%;
+    max-width: 50%;
+    padding-right: 1mm;
 }
 
 .totem-receipt__split-title {
@@ -336,10 +340,10 @@ body.totem-is-printing .totem-receipt-print {
     }
 
     .totem-receipt__paper {
-        width: 76mm !important;
-        max-width: 76mm !important;
+        width: 70mm !important;
+        max-width: 70mm !important;
         margin: 0 !important;
-        padding: 2mm 2mm 2mm 4mm !important;
+        padding: 2mm 7mm 2mm 3mm !important;
         box-sizing: border-box !important;
         font-weight: 700 !important;
         page-break-inside: avoid;
