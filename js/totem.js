@@ -1043,7 +1043,9 @@ ${unitHtml}
         const phone = String(totemCustomer.phone || '').trim();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
-        if (!name || (!phone && !cpf && !cnpj)) return;
+        if (!name || (!phone && !cpf && !cnpj)) {
+            return { ok: false, error: 'Informe nome e telefone para salvar o cadastro.' };
+        }
         try {
             const res = await fetch('/api/totem/customer/register', {
                 method: 'POST',
@@ -1056,41 +1058,35 @@ ${unitHtml}
                     pessoaId: totemCustomer.pessoaId || customerLookupHit?.pessoaId || '',
                 }),
             });
-            const data = await res.json();
-            if (res.ok && data.customer?.pessoaId) {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                return { ok: false, error: data.error || 'Não foi possível salvar o cadastro.' };
+            }
+            if (data.customer?.pessoaId) {
                 totemCustomer.pessoaId = data.customer.pessoaId;
             }
+            if (data.customer?.name) {
+                totemCustomer.name = data.customer.name;
+            }
+            return { ok: true };
         } catch {
-            /* não bloqueia o fluxo do totem */
+            return { ok: false, error: 'Falha de conexão ao salvar cadastro. Tente novamente.' };
         }
     };
 
     const persistTotemCustomer = async () => {
-        if (totemCustomer.pessoaId) {
-            await saveCustomerDocToHub();
-            return;
+        if (totemCustomer.pessoaId || customerLookupHit?.pessoaId) {
+            return saveCustomerDocToHub();
         }
-        if (customerLookupHit?.pessoaId) return;
         const name = String(totemCustomer.name || '').trim();
         const phone = String(totemCustomer.phone || '').trim();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
-        if (!name) return;
-        if (!phone.replace(/\D/g, '') && !cpf.replace(/\D/g, '') && !cnpj.replace(/\D/g, '')) return;
-
-        try {
-            const res = await fetch('/api/totem/customer/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, cpf, cnpj }),
-            });
-            const data = await res.json();
-            if (res.ok && data.customer?.pessoaId) {
-                totemCustomer.pessoaId = data.customer.pessoaId;
-            }
-        } catch {
-            /* não bloqueia o fluxo do totem */
+        if (!name) return { ok: false, error: 'Informe seu nome para salvar o cadastro.' };
+        if (!phone.replace(/\D/g, '') && !cpf.replace(/\D/g, '') && !cnpj.replace(/\D/g, '')) {
+            return { ok: false, error: 'Informe telefone, CPF ou CNPJ para salvar o cadastro.' };
         }
+        return saveCustomerDocToHub();
     };
 
     const showCustomerError = (message) => {
@@ -1222,11 +1218,15 @@ ${unitHtml}
             const label = customerContinueBtn.querySelector('span');
             if (label) label.textContent = 'Salvando cadastro…';
         }
-        await persistTotemCustomer();
+        const saved = await persistTotemCustomer();
         if (customerContinueBtn) {
             customerContinueBtn.disabled = false;
             const label = customerContinueBtn.querySelector('span');
             if (label) label.textContent = 'Continuar';
+        }
+        if (!saved.ok) {
+            showCustomerError(saved.error || 'Não foi possível salvar o cadastro.');
+            return;
         }
         proceedAfterCustomerRegister();
     };
@@ -1244,7 +1244,11 @@ ${unitHtml}
         showCpfError('');
         totemCustomer = { ...totemCustomer, cpf: digits };
         totemKeyboard?.hide?.();
-        await saveCustomerDocToHub();
+        const saved = await saveCustomerDocToHub();
+        if (!saved.ok) {
+            showCpfError(saved.error || 'Não foi possível salvar o CPF.');
+            return;
+        }
         enterCatalog();
     };
 

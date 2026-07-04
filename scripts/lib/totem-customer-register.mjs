@@ -1,6 +1,7 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { normalizeDocDigits, formatCnpj, isValidCnpj } from '../hub-parceiro.mjs';
 import { formatCpf, isValidCpf } from './cpf.mjs';
+import { phoneLocalDigits, phonesMatch, phoneLookupSuffixes } from './phone-match.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -51,7 +52,8 @@ function isValidEmail(raw) {
 
 function displayName(pessoa) {
     const clientes = Array.isArray(pessoa?.clientes) ? pessoa.clientes : pessoa?.clientes ? [pessoa.clientes] : [];
-    const clienteNome = clientes.find((c) => c?.ativo !== false)?.nome;
+    const totemCliente = clientes.find((c) => c?.canal_cliente === 'totem' && c?.ativo !== false);
+    const clienteNome = totemCliente?.nome || clientes.find((c) => c?.ativo !== false)?.nome;
     return String(clienteNome || pessoa?.nome_fantasia || pessoa?.nome || '').trim();
 }
 
@@ -78,14 +80,33 @@ async function fetchPessoaById(config, pessoaId) {
 }
 
 async function findPessoaByPhone(config, phoneLocal) {
-    const rows = await hubRest(
-        config,
-        `pessoas?select=${PESSOA_SELECT}&telefone=ilike.*${encodeURIComponent(phoneLocal)}*&limit=5`,
-    );
-    const list = Array.isArray(rows) ? rows : [];
-    for (const pessoa of list) {
-        const digits = normalizeDocDigits(pessoa.telefone);
-        if (digits.slice(-11) === phoneLocal || digits.slice(-10) === phoneLocal.slice(-10)) {
+    const exactKeys = [...new Set([phoneLocal, phoneLocal.slice(-10)])];
+    for (const key of exactKeys) {
+        try {
+            const rows = await hubRest(
+                config,
+                `pessoas?select=${PESSOA_SELECT}&telefone_digits=eq.${encodeURIComponent(key)}&limit=5`,
+            );
+            const list = Array.isArray(rows) ? rows : [];
+            for (const pessoa of list) {
+                if (phonesMatch(pessoa.telefone, phoneLocal)) return pessoa;
+            }
+        } catch {
+            /* coluna telefone_digits pode não existir ainda */
+        }
+    }
+
+    const seen = new Set();
+    for (const suffix of phoneLookupSuffixes(phoneLocal)) {
+        const rows = await hubRest(
+            config,
+            `pessoas?select=${PESSOA_SELECT}&telefone=ilike.*${encodeURIComponent(suffix)}*&limit=20`,
+        );
+        const list = Array.isArray(rows) ? rows : [];
+        for (const pessoa of list) {
+            if (seen.has(pessoa.id)) continue;
+            if (!phonesMatch(pessoa.telefone, phoneLocal)) continue;
+            seen.add(pessoa.id);
             return pessoa;
         }
     }
@@ -162,7 +183,7 @@ function buildPatch(existing, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid
     const patch = {};
     if (nome && nome !== existing.nome) patch.nome = nome;
     if (nome && !String(existing.nome_fantasia || '').trim()) patch.nome_fantasia = nome;
-    if (phoneLocal && !normalizeDocDigits(existing.telefone)) patch.telefone = phoneLocal;
+    if (phoneLocal && !phonesMatch(existing.telefone, phoneLocal)) patch.telefone = phoneLocal;
     if (emailNorm && !String(existing.email || '').trim()) patch.email = emailNorm;
     if (!normalizeDocDigits(existing.cpf_cnpj_digits || existing.cpf_cnpj)) {
         if (cnpjValid) patch.cpf_cnpj = formatCnpj(cnpjDigits);
@@ -190,7 +211,7 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, cnpj
     }
 
     const phoneDigits = normalizeDocDigits(phone);
-    const phoneLocal = phoneDigits.length >= 10 ? phoneDigits.slice(-11) : '';
+    const phoneLocal = phoneLocalDigits(phone);
     const cpfDigits = normalizeDocDigits(cpf);
     const cpfValid = cpfDigits.length === 11 && isValidCpf(cpfDigits);
     const cnpjDigits = normalizeDocDigits(cnpj);

@@ -1,5 +1,6 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { normalizeDocDigits, fetchPessoaParceiroByCnpj } from '../hub-parceiro.mjs';
+import { phoneLocalDigits, phonesMatch, phoneLookupSuffixes } from './phone-match.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -39,7 +40,8 @@ async function hubRest(config, path, options = {}) {
 
 function displayName(pessoa) {
     const clientes = Array.isArray(pessoa?.clientes) ? pessoa.clientes : pessoa?.clientes ? [pessoa.clientes] : [];
-    const clienteNome = clientes.find((c) => c?.ativo !== false)?.nome;
+    const totemCliente = clientes.find((c) => c?.canal_cliente === 'totem' && c?.ativo !== false);
+    const clienteNome = totemCliente?.nome || clientes.find((c) => c?.ativo !== false)?.nome;
     return String(clienteNome || pessoa?.nome_fantasia || pessoa?.nome || '').trim();
 }
 
@@ -108,15 +110,42 @@ function toPublicHit(pessoa, matchedBy) {
 }
 
 async function lookupByPhone(config, digits) {
-    const local = digits.slice(-11);
-    const rows = await hubRest(
-        config,
-        `pessoas?select=${PESSOA_SELECT}&telefone=ilike.*${encodeURIComponent(local)}*&limit=5`,
-    );
-    const list = Array.isArray(rows) ? rows : [];
-    for (const pessoa of list) {
-        const hit = toPublicHit(pessoa, 'phone');
-        if (hit) return hit;
+    const local = phoneLocalDigits(digits);
+    if (!local) return null;
+
+    const seen = new Set();
+    const exactKeys = [...new Set([local, local.slice(-10)])];
+    for (const key of exactKeys) {
+        let rows = null;
+        try {
+            rows = await hubRest(
+                config,
+                `pessoas?select=${PESSOA_SELECT}&telefone_digits=eq.${encodeURIComponent(key)}&limit=5`,
+            );
+        } catch {
+            rows = null;
+        }
+        const exactList = Array.isArray(rows) ? rows : [];
+        for (const pessoa of exactList) {
+            if (!phonesMatch(pessoa.telefone, local)) continue;
+            const hit = toPublicHit(pessoa, 'phone');
+            if (hit) return hit;
+        }
+    }
+
+    for (const suffix of phoneLookupSuffixes(digits)) {
+        const rows = await hubRest(
+            config,
+            `pessoas?select=${PESSOA_SELECT}&telefone=ilike.*${encodeURIComponent(suffix)}*&limit=20`,
+        );
+        const list = Array.isArray(rows) ? rows : [];
+        for (const pessoa of list) {
+            if (seen.has(pessoa.id)) continue;
+            if (!phonesMatch(pessoa.telefone, local)) continue;
+            seen.add(pessoa.id);
+            const hit = toPublicHit(pessoa, 'phone');
+            if (hit) return hit;
+        }
     }
     return null;
 }
