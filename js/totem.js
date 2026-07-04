@@ -964,14 +964,14 @@ ${unitHtml}
             if (customerManualTitle) customerManualTitle.textContent = 'Vamos identificar você';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e telefone para o pedido no caixa. E-mail, CPF ou CNPJ são opcionais.';
+                    'Informe seu nome e pelo menos um contato: telefone, e-mail, CPF ou CNPJ.';
             }
         } else {
             if (customerManualEyebrow) customerManualEyebrow.textContent = 'Novo cliente';
             if (customerManualTitle) customerManualTitle.textContent = 'Seja bem-vindo!';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e telefone. E-mail, CPF ou CNPJ são opcionais e ajudam a te reconhecer na próxima visita.';
+                    'Informe seu nome e pelo menos um contato: telefone, e-mail, CPF ou CNPJ.';
             }
         }
         if (customerNameInput) customerNameInput.value = '';
@@ -1053,8 +1053,8 @@ ${unitHtml}
         const email = String(totemCustomer.email || '').trim().toLowerCase();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
-        if (!name || (!phone && !cpf && !cnpj && !email)) {
-            return { ok: false, error: 'Informe nome e telefone para salvar o cadastro.' };
+        if (!name || (!phone.replace(/\D/g, '') && !email && !cpf.replace(/\D/g, '') && !cnpj.replace(/\D/g, ''))) {
+            return { ok: false, error: 'Informe nome e pelo menos telefone, e-mail, CPF ou CNPJ.' };
         }
         try {
             const res = await fetch('/api/totem/customer/register', {
@@ -1238,13 +1238,6 @@ ${unitHtml}
             bindCustomerKeyboard(customerNameInput);
             return;
         }
-        if (phoneDigits.length < 10) {
-            customerPhoneInput?.classList.add('totem-customer__input--error');
-            showCustomerError('Informe seu telefone com DDD para salvar o cadastro.');
-            customerPhoneInput?.focus();
-            bindCustomerKeyboard(customerPhoneInput, 'numeric');
-            return;
-        }
         const docs = validateManualDocs();
         if (!docs) return;
         const emailRaw = String(customerManualEmailInput?.value || '').trim();
@@ -1256,12 +1249,34 @@ ${unitHtml}
             bindCustomerKeyboard(customerManualEmailInput, 'email');
             return;
         }
+        if (phoneDigits.length > 0 && phoneDigits.length < 10) {
+            customerPhoneInput?.classList.add('totem-customer__input--error');
+            showCustomerError('Telefone incompleto. Informe DDD + número ou deixe em branco.');
+            customerPhoneInput?.focus();
+            bindCustomerKeyboard(customerPhoneInput, 'numeric');
+            return;
+        }
+        const hasContact =
+            phoneDigits.length >= 10 || Boolean(email) || Boolean(docs.cpf) || Boolean(docs.cnpj);
+        if (!hasContact) {
+            showCustomerError('Informe telefone, e-mail, CPF ou CNPJ para salvar o cadastro.');
+            customerPhoneInput?.focus();
+            bindCustomerKeyboard(customerPhoneInput, 'numeric');
+            return;
+        }
 
         customerNameInput?.classList.remove('totem-customer__input--error');
         customerPhoneInput?.classList.remove('totem-customer__input--error');
         customerManualEmailInput?.classList.remove('totem-customer__input--error');
         showCustomerError('');
-        totemCustomer = { name, phone, email, cpf: docs.cpf, cnpj: docs.cnpj, pessoaId: '' };
+        totemCustomer = {
+            name,
+            phone: phoneDigits.length >= 10 ? phone : '',
+            email,
+            cpf: docs.cpf,
+            cnpj: docs.cnpj,
+            pessoaId: '',
+        };
         totemKeyboard?.hide?.();
         if (customerContinueBtn) {
             customerContinueBtn.disabled = true;
