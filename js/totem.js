@@ -857,6 +857,13 @@ ${unitHtml}
         }
     };
 
+    const lookupPhoneFallback = () => {
+        if (customerLookupMode !== 'doc') return '';
+        const raw = String(customerLookupInput?.value || '').trim();
+        const digits = raw.replace(/\D/g, '');
+        return digits.length >= 10 && digits.length <= 11 ? digits : '';
+    };
+
     const goManualCustomer = ({ fromReject = false } = {}) => {
         if (fromReject) {
             if (customerManualEyebrow) customerManualEyebrow.textContent = 'Outro cadastro';
@@ -872,7 +879,9 @@ ${unitHtml}
             }
         }
         if (customerNameInput) customerNameInput.value = '';
-        if (customerPhoneInput) customerPhoneInput.value = fromReject ? customerLookupHit?.phone || '' : '';
+        if (customerPhoneInput) {
+            customerPhoneInput.value = fromReject ? customerLookupHit?.phone || lookupPhoneFallback() : lookupPhoneFallback();
+        }
         showCustomerError('');
         showCustomerStep('manual');
     };
@@ -988,6 +997,10 @@ ${unitHtml}
             onClose: bumpIdle,
         });
         field.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+        window.requestAnimationFrame(() => {
+            const content = field.closest('.totem-customer__content');
+            if (content) content.scrollLeft = 0;
+        });
         totemKeyboard?.show?.();
     };
 
