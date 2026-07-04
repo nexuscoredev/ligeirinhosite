@@ -1043,7 +1043,7 @@ ${unitHtml}
         bumpIdle();
     };
 
-    const submitCustomerAndStart = () => {
+    const submitCustomerAndStart = async () => {
         const name = String(customerNameInput?.value || '').trim().replace(/\s+/g, ' ');
         const phone = String(customerPhoneInput?.value || '').trim();
         const phoneDigits = phone.replace(/\D/g, '');
@@ -1066,6 +1066,15 @@ ${unitHtml}
         showCustomerError('');
         totemCustomer = { name, phone, cpf: '', pessoaId: '' };
         totemKeyboard?.hide?.();
+        if (customerContinueBtn) {
+            customerContinueBtn.disabled = true;
+            customerContinueBtn.textContent = 'Salvando cadastro…';
+        }
+        await persistTotemCustomer();
+        if (customerContinueBtn) {
+            customerContinueBtn.disabled = false;
+            customerContinueBtn.textContent = 'Continuar';
+        }
         goInvoiceStep();
     };
 
@@ -1824,7 +1833,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
         customerForm?.addEventListener('submit', (e) => {
             e.preventDefault();
-            submitCustomerAndStart();
+            void submitCustomerAndStart();
         });
 
         document.getElementById('totem-customer-invoice-yes')?.addEventListener('click', () => {

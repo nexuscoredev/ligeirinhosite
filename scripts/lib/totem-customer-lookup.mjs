@@ -140,6 +140,10 @@ async function lookupByDoc(config, digits) {
     return toPublicHit(pessoa, digits.length === 14 ? 'cnpj' : 'cpf');
 }
 
+function looksLikeMobilePhone(digits) {
+    return digits.length === 11 && digits[2] === '9';
+}
+
 export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
     const config = hubConfig(env);
     if (!config.serviceKey) {
@@ -167,7 +171,12 @@ export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
         throw err;
     }
 
-    if (digits.length === 11 || digits.length === 14) {
+    if (digits.length === 11 && looksLikeMobilePhone(digits)) {
+        const byPhone = await lookupByPhone(config, digits);
+        if (byPhone) return byPhone;
+        const byDoc = await lookupByDoc(config, digits);
+        if (byDoc) return byDoc;
+    } else if (digits.length === 11 || digits.length === 14) {
         const byDoc = await lookupByDoc(config, digits);
         if (byDoc) return byDoc;
     }

@@ -158,7 +158,6 @@ function buildPatch(existing, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid
     if (emailNorm && !String(existing.email || '').trim()) patch.email = emailNorm;
     if (cpfValid && !normalizeDocDigits(existing.cpf_cnpj_digits || existing.cpf_cnpj)) {
         patch.cpf_cnpj = formatCpf(cpfDigits);
-        patch.cpf_cnpj_digits = cpfDigits;
     }
     return patch;
 }
@@ -233,7 +232,6 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, pess
                 telefone: phoneLocal || null,
                 email: emailNorm || null,
                 cpf_cnpj: cpfValid ? formatCpf(cpfDigits) : null,
-                cpf_cnpj_digits: cpfValid ? cpfDigits : null,
                 canal_cliente: CANAL_TOTEM,
                 tabela_preco: 'padrao',
                 ativo: true,
