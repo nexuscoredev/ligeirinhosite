@@ -1786,6 +1786,7 @@ ${bodyHtml}
     });
 
     const addItem = (cartKey, itemKey, opts = {}) => {
+        totemKeyboard?.hide?.();
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
         const group = item.group;
@@ -1829,6 +1830,7 @@ ${bodyHtml}
     };
 
     const addDetailToCart = (cartKey, itemKey) => {
+        totemKeyboard?.hide?.();
         const qtyToAdd = Math.max(1, detailDraftQty);
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
@@ -1867,6 +1869,7 @@ ${bodyHtml}
     };
 
     const changeQty = (cartKey, delta) => {
+        totemKeyboard?.hide?.();
         const cart = cartApi.loadCart();
         if (!cart[cartKey]) return;
         const line = cart[cartKey];
