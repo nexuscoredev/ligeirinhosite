@@ -1,5 +1,5 @@
 import { hubConfig } from '../hub-auth.mjs';
-import { normalizeDocDigits } from '../hub-parceiro.mjs';
+import { normalizeDocDigits, formatCnpj, isValidCnpj } from '../hub-parceiro.mjs';
 import { formatCpf, isValidCpf } from './cpf.mjs';
 
 const PESSOA_SELECT =
@@ -109,6 +109,14 @@ async function findPessoaByCpf(config, cpfDigits) {
     return Array.isArray(rows) ? rows[0] ?? null : null;
 }
 
+async function findPessoaByCnpj(config, cnpjDigits) {
+    const rows = await hubRest(
+        config,
+        `pessoas?select=${PESSOA_SELECT}&cpf_cnpj_digits=eq.${encodeURIComponent(cnpjDigits)}&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+
 async function syncClienteTotem(config, pessoa) {
     const existing = await hubRest(
         config,
@@ -150,14 +158,15 @@ async function syncClienteTotem(config, pessoa) {
     });
 }
 
-function buildPatch(existing, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid }) {
+function buildPatch(existing, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid, cnpjDigits, cnpjValid }) {
     const patch = {};
     if (nome && nome !== existing.nome) patch.nome = nome;
     if (nome && !String(existing.nome_fantasia || '').trim()) patch.nome_fantasia = nome;
     if (phoneLocal && !normalizeDocDigits(existing.telefone)) patch.telefone = phoneLocal;
     if (emailNorm && !String(existing.email || '').trim()) patch.email = emailNorm;
-    if (cpfValid && !normalizeDocDigits(existing.cpf_cnpj_digits || existing.cpf_cnpj)) {
-        patch.cpf_cnpj = formatCpf(cpfDigits);
+    if (!normalizeDocDigits(existing.cpf_cnpj_digits || existing.cpf_cnpj)) {
+        if (cnpjValid) patch.cpf_cnpj = formatCnpj(cnpjDigits);
+        else if (cpfValid) patch.cpf_cnpj = formatCpf(cpfDigits);
     }
     return patch;
 }
@@ -165,7 +174,7 @@ function buildPatch(existing, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid
 /**
  * Cria ou atualiza cadastro de cliente varejo (totem) no Hub para reconhecimento no próximo pedido.
  */
-export async function registerTotemCustomer(env, { name, phone, email, cpf, pessoaId } = {}) {
+export async function registerTotemCustomer(env, { name, phone, email, cpf, cnpj, pessoaId } = {}) {
     const config = hubConfig(env);
     if (!config.serviceKey) {
         const err = new Error('Cadastro indisponível no momento.');
@@ -184,9 +193,37 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, pess
     const phoneLocal = phoneDigits.length >= 10 ? phoneDigits.slice(-11) : '';
     const cpfDigits = normalizeDocDigits(cpf);
     const cpfValid = cpfDigits.length === 11 && isValidCpf(cpfDigits);
+    const cnpjDigits = normalizeDocDigits(cnpj);
+    const cnpjValid = cnpjDigits.length === 14 && isValidCnpj(cnpjDigits);
     const emailNorm = normalizeEmail(email);
 
-    if (!phoneLocal && !cpfValid && !emailNorm) {
+    if (cpfDigits.length > 0 && cpfDigits.length < 11) {
+        const err = new Error('CPF incompleto. Informe 11 dígitos ou deixe em branco.');
+        err.status = 400;
+        throw err;
+    }
+    if (cpfDigits.length === 11 && !cpfValid) {
+        const err = new Error('CPF inválido. Confira os dígitos.');
+        err.status = 400;
+        throw err;
+    }
+    if (cnpjDigits.length > 0 && cnpjDigits.length < 14) {
+        const err = new Error('CNPJ incompleto. Informe 14 dígitos ou deixe em branco.');
+        err.status = 400;
+        throw err;
+    }
+    if (cnpjDigits.length === 14 && !cnpjValid) {
+        const err = new Error('CNPJ inválido. Confira os dígitos.');
+        err.status = 400;
+        throw err;
+    }
+    if (cpfValid && cnpjValid) {
+        const err = new Error('Informe apenas CPF ou CNPJ, não os dois.');
+        err.status = 400;
+        throw err;
+    }
+
+    if (!phoneLocal && !cpfValid && !cnpjValid && !emailNorm) {
         const err = new Error('Informe telefone, CPF ou e-mail para salvar o cadastro.');
         err.status = 400;
         throw err;
@@ -201,6 +238,9 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, pess
     if (pessoaId) {
         pessoa = await fetchPessoaById(config, pessoaId);
     }
+    if (!pessoa && cnpjValid) {
+        pessoa = await findPessoaByCnpj(config, cnpjDigits);
+    }
     if (!pessoa && cpfValid) {
         pessoa = await findPessoaByCpf(config, cpfDigits);
     }
@@ -212,7 +252,15 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, pess
     }
 
     if (pessoa?.id) {
-        const patch = buildPatch(pessoa, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid });
+        const patch = buildPatch(pessoa, {
+            nome,
+            phoneLocal,
+            emailNorm,
+            cpfDigits,
+            cpfValid,
+            cnpjDigits,
+            cnpjValid,
+        });
         if (Object.keys(patch).length) {
             const rows = await hubRest(config, `pessoas?id=eq.${encodeURIComponent(pessoa.id)}`, {
                 method: 'PATCH',
@@ -231,7 +279,7 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, pess
                 nome_fantasia: nome,
                 telefone: phoneLocal || null,
                 email: emailNorm || null,
-                cpf_cnpj: cpfValid ? formatCpf(cpfDigits) : null,
+                cpf_cnpj: cnpjValid ? formatCnpj(cnpjDigits) : cpfValid ? formatCpf(cpfDigits) : null,
                 canal_cliente: CANAL_TOTEM,
                 tabela_preco: 'padrao',
                 ativo: true,

@@ -17,6 +17,7 @@ export default async function handler(req, res) {
             phone: body.phone,
             email: body.email,
             cpf: body.cpf,
+            cnpj: body.cnpj,
             pessoaId: body.pessoaId,
         });
 

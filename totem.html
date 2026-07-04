@@ -148,7 +148,7 @@
 <div class="totem-customer__hero">
 <p class="totem-customer__eyebrow" id="totem-customer-manual-eyebrow">Novo cliente</p>
 <h2 class="totem-customer__title" id="totem-customer-manual-title">Seja bem-vindo!</h2>
-<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome para identificarmos o pedido no caixa.</p>
+<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome e telefone. CPF ou CNPJ são opcionais e ajudam a te reconhecer na próxima visita.</p>
 </div>
 <form class="totem-customer__form" id="totem-customer-form" novalidate>
 <label class="totem-customer__field" for="totem-customer-name">
@@ -158,6 +158,14 @@
 <label class="totem-customer__field" for="totem-customer-phone">
 <span class="totem-customer__label">Telefone <span class="totem-customer__required" aria-hidden="true">*</span></span>
 <input type="text" id="totem-customer-phone" class="totem-customer__input" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="none" maxlength="20" readonly>
+</label>
+<label class="totem-customer__field" for="totem-customer-manual-cpf">
+<span class="totem-customer__label">CPF <span class="totem-customer__optional">(opcional)</span></span>
+<input type="text" id="totem-customer-manual-cpf" class="totem-customer__input totem-customer__input--lookup" placeholder="000.000.000-00" autocomplete="off" inputmode="none" maxlength="14" readonly>
+</label>
+<label class="totem-customer__field" for="totem-customer-manual-cnpj">
+<span class="totem-customer__label">CNPJ <span class="totem-customer__optional">(opcional)</span></span>
+<input type="text" id="totem-customer-manual-cnpj" class="totem-customer__input totem-customer__input--lookup" placeholder="00.000.000/0000-00" autocomplete="off" inputmode="none" maxlength="18" readonly>
 </label>
 <p class="totem-customer__error" id="totem-customer-error" role="alert" hidden></p>
 <button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-continue">
@@ -401,6 +409,7 @@
 <script src="js/auth-routing.js"></script>
 <script src="js/cart-store.js"></script>
 <script src="js/cpf.js"></script>
+<script src="js/cnpj.js"></script>
 <script src="js/product-pricing.js"></script>
 <script src="js/catalog-utils.js"></script>
 <script src="js/catalog-loader.js"></script>

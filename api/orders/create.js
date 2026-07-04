@@ -142,7 +142,8 @@ export default async function handler(req, res) {
                     name: customer.name,
                     phone: customer.phone,
                     email: customer.email,
-                    cpf: customerCpf,
+                    cpf: customerCpf || customer.cpf,
+                    cnpj: customer.cnpj || customerCnpj,
                 });
             } catch (regErr) {
                 console.warn('orders/create totem customer register', regErr?.message || regErr);
