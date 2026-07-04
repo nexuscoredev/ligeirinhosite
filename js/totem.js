@@ -906,12 +906,17 @@ ${unitHtml}
         };
     };
 
-    const customerHasDocOnFile = () => {
+    const customerHasCpfOnFile = () => {
         const manual = readManualDocs();
-        const cpf = String(totemCustomer.cpf || manual.cpf || '').trim();
-        const cnpj = String(totemCustomer.cnpj || manual.cnpj || '').trim();
-        return Boolean(cpf || cnpj);
+        return Boolean(String(totemCustomer.cpf || manual.cpf || '').trim());
     };
+
+    const customerHasCnpjOnFile = () => {
+        const manual = readManualDocs();
+        return Boolean(String(totemCustomer.cnpj || manual.cnpj || '').trim());
+    };
+
+    const customerHasDocOnFile = () => customerHasCpfOnFile() || customerHasCnpjOnFile();
 
     const proceedAfterCustomerRegister = () => {
         const manual = readManualDocs();
@@ -922,7 +927,7 @@ ${unitHtml}
                 cnpj: manual.cnpj || totemCustomer.cnpj,
             };
         }
-        if (customerHasDocOnFile()) {
+        if (customerHasCnpjOnFile()) {
             enterCatalog();
             return;
         }
@@ -1071,6 +1076,10 @@ ${unitHtml}
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) {
+                const msg = String(data.error || '');
+                if (msg.includes('pessoas_cliente_cpf_cnpj_digits_uidx')) {
+                    return { ok: false, error: 'Este CPF já está vinculado a outro cadastro.' };
+                }
                 return { ok: false, error: data.error || 'Não foi possível salvar o cadastro.' };
             }
             if (data.customer?.pessoaId) {
@@ -2067,6 +2076,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
         document.getElementById('totem-customer-invoice-yes')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
+            if (customerHasCpfOnFile()) {
+                enterCatalog();
+                bumpIdle();
+                return;
+            }
             showCpfError('');
             if (customerCpfInput) customerCpfInput.value = '';
             showCustomerStep('cpf');

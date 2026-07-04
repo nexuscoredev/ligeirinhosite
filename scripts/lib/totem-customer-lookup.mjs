@@ -85,6 +85,102 @@ function docFromPessoa(pessoa) {
     return { cpf: '', cnpj: '' };
 }
 
+function pessoaRichnessScore(pessoa) {
+    let score = 0;
+    if (normalizeDocDigits(pessoa?.cpf_cnpj_digits || pessoa?.cpf_cnpj)) score += 20;
+    if (String(pessoa?.telefone || '').trim()) score += 10;
+    if (normalizeEmail(pessoa?.email)) score += 5;
+    return score;
+}
+
+function mergePessoas(candidates) {
+    const list = (candidates || []).filter(Boolean);
+    if (!list.length) return null;
+    const sorted = [...list].sort((a, b) => pessoaRichnessScore(b) - pessoaRichnessScore(a));
+    const merged = { ...sorted[0] };
+    const clientes = [];
+    for (const pessoa of sorted) {
+        const docDigits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj);
+        if (!normalizeDocDigits(merged.cpf_cnpj_digits || merged.cpf_cnpj) && docDigits) {
+            merged.cpf_cnpj = pessoa.cpf_cnpj;
+            merged.cpf_cnpj_digits = pessoa.cpf_cnpj_digits;
+        }
+        if (!String(merged.telefone || '').trim() && String(pessoa.telefone || '').trim()) {
+            merged.telefone = pessoa.telefone;
+        }
+        if (!normalizeEmail(merged.email) && normalizeEmail(pessoa.email)) {
+            merged.email = pessoa.email;
+        }
+        const rows = Array.isArray(pessoa.clientes) ? pessoa.clientes : pessoa.clientes ? [pessoa.clientes] : [];
+        clientes.push(...rows);
+    }
+    if (clientes.length) merged.clientes = clientes;
+    merged.id = sorted[0].id;
+    return merged;
+}
+
+async function fetchRelatedPessoas(config, pessoa) {
+    const email = normalizeEmail(pessoa?.email);
+    const phoneLocal = phoneLocalDigits(pessoa?.telefone);
+    const byId = new Map();
+
+    const addRows = (rows) => {
+        for (const row of Array.isArray(rows) ? rows : []) {
+            if (row?.id) byId.set(row.id, row);
+        }
+    };
+
+    if (pessoa?.id) {
+        addRows(
+            await hubRest(
+                config,
+                `pessoas?select=${PESSOA_SELECT}&id=eq.${encodeURIComponent(pessoa.id)}&limit=1`,
+            ),
+        );
+    }
+    if (email) {
+        addRows(
+            await hubRest(
+                config,
+                `pessoas?select=${PESSOA_SELECT}&email=ilike.${encodeURIComponent(email)}&limit=10`,
+            ),
+        );
+    }
+    if (phoneLocal) {
+        try {
+            addRows(
+                await hubRest(
+                    config,
+                    `pessoas?select=${PESSOA_SELECT}&telefone_digits=eq.${encodeURIComponent(phoneLocal)}&limit=5`,
+                ),
+            );
+        } catch {
+            /* coluna telefone_digits pode não existir */
+        }
+        for (const suffix of phoneLookupSuffixes(phoneLocal)) {
+            addRows(
+                await hubRest(
+                    config,
+                    `pessoas?select=${PESSOA_SELECT}&telefone=ilike.*${encodeURIComponent(suffix)}*&limit=10`,
+                ),
+            );
+        }
+    }
+
+    return [...byId.values()].filter((row) => {
+        if (pessoa?.id && row.id === pessoa.id) return true;
+        if (email && normalizeEmail(row.email) === email) return true;
+        if (phoneLocal && phonesMatch(row.telefone, phoneLocal)) return true;
+        return false;
+    });
+}
+
+async function resolvePessoaHit(config, pessoa, matchedBy) {
+    const related = await fetchRelatedPessoas(config, pessoa);
+    const merged = mergePessoas(related.length ? related : [pessoa]);
+    return toPublicHit(merged || pessoa, matchedBy);
+}
+
 function toPublicHit(pessoa, matchedBy) {
     const name = displayName(pessoa);
     if (!name) return null;
@@ -128,7 +224,7 @@ async function lookupByPhone(config, digits) {
         const exactList = Array.isArray(rows) ? rows : [];
         for (const pessoa of exactList) {
             if (!phonesMatch(pessoa.telefone, local)) continue;
-            const hit = toPublicHit(pessoa, 'phone');
+            const hit = await resolvePessoaHit(config, pessoa, 'phone');
             if (hit) return hit;
         }
     }
@@ -143,7 +239,7 @@ async function lookupByPhone(config, digits) {
             if (seen.has(pessoa.id)) continue;
             if (!phonesMatch(pessoa.telefone, local)) continue;
             seen.add(pessoa.id);
-            const hit = toPublicHit(pessoa, 'phone');
+            const hit = await resolvePessoaHit(config, pessoa, 'phone');
             if (hit) return hit;
         }
     }
@@ -154,15 +250,14 @@ async function lookupByEmail(config, rawEmail) {
     const email = normalizeEmail(rawEmail);
     const rows = await hubRest(
         config,
-        `pessoas?select=${PESSOA_SELECT}&email=ilike.${encodeURIComponent(email)}&limit=5`,
+        `pessoas?select=${PESSOA_SELECT}&email=ilike.${encodeURIComponent(email)}&limit=10`,
     );
-    const list = Array.isArray(rows) ? rows : [];
-    for (const pessoa of list) {
-        if (normalizeEmail(pessoa.email) !== email) continue;
-        const hit = toPublicHit(pessoa, 'email');
-        if (hit) return hit;
-    }
-    return null;
+    const list = (Array.isArray(rows) ? rows : []).filter(
+        (pessoa) => normalizeEmail(pessoa.email) === email,
+    );
+    if (!list.length) return null;
+    const merged = mergePessoas(list);
+    return toPublicHit(merged, 'email');
 }
 
 async function lookupByDoc(config, digits) {
@@ -174,9 +269,9 @@ async function lookupByDoc(config, digits) {
         );
         const fallback = Array.isArray(rows) ? rows[0] : null;
         if (!fallback) return null;
-        return toPublicHit(fallback, digits.length === 14 ? 'cnpj' : 'cpf');
+        return resolvePessoaHit(config, fallback, digits.length === 14 ? 'cnpj' : 'cpf');
     }
-    return toPublicHit(pessoa, digits.length === 14 ? 'cnpj' : 'cpf');
+    return resolvePessoaHit(config, pessoa, digits.length === 14 ? 'cnpj' : 'cpf');
 }
 
 function looksLikeMobilePhone(digits) {

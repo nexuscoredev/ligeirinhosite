@@ -272,6 +272,15 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, cnpj
         pessoa = await findPessoaByEmail(config, emailNorm);
     }
 
+    if (pessoa?.id && cpfValid && !normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj)) {
+        const cpfOwner = await findPessoaByCpf(config, cpfDigits);
+        if (cpfOwner?.id) pessoa = cpfOwner;
+    }
+    if (pessoa?.id && cnpjValid && !normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj)) {
+        const cnpjOwner = await findPessoaByCnpj(config, cnpjDigits);
+        if (cnpjOwner?.id) pessoa = cnpjOwner;
+    }
+
     if (pessoa?.id) {
         const patch = buildPatch(pessoa, {
             nome,
