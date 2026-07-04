@@ -14,6 +14,7 @@ import {
 } from '../../scripts/supabase-finance.mjs';
 import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
 import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
+import { registerTotemCustomer } from '../../scripts/lib/totem-customer-register.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -134,6 +135,19 @@ export default async function handler(req, res) {
                       : 'pendente';
 
         const db = dbFromPaymentConfig(config);
+
+        if (isTotem && String(customer.name || '').trim()) {
+            try {
+                await registerTotemCustomer(process.env, {
+                    name: customer.name,
+                    phone: customer.phone,
+                    email: customer.email,
+                    cpf: customerCpf,
+                });
+            } catch (regErr) {
+                console.warn('orders/create totem customer register', regErr?.message || regErr);
+            }
+        }
 
         let customerRow = null;
         let settings = null;

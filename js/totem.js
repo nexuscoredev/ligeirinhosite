@@ -119,7 +119,7 @@
     let detailItemKey = null;
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
-    let totemCustomer = { name: '', phone: '', cpf: '' };
+    let totemCustomer = { name: '', phone: '', cpf: '', pessoaId: '' };
     let customerStep = 'register';
     let customerLookupMode = 'doc';
     let customerLookupHit = null;
@@ -779,7 +779,7 @@ ${unitHtml}
     const lookupKeyboardMode = () => (customerLookupMode === 'email' ? 'email' : 'numeric');
 
     const resetCustomerForm = () => {
-        totemCustomer = { name: '', phone: '', cpf: '' };
+        totemCustomer = { name: '', phone: '', cpf: '', pessoaId: '' };
         customerLookupHit = null;
         customerStep = 'register';
         customerLookupMode = 'doc';
@@ -875,7 +875,8 @@ ${unitHtml}
             if (customerManualEyebrow) customerManualEyebrow.textContent = 'Novo cliente';
             if (customerManualTitle) customerManualTitle.textContent = 'Seja bem-vindo!';
             if (customerManualLead) {
-                customerManualLead.textContent = 'Informe seu nome para identificarmos o pedido no caixa.';
+                customerManualLead.textContent =
+                    'Informe seu nome e telefone para identificarmos o pedido e reconhecermos você na próxima visita.';
             }
         }
         if (customerNameInput) customerNameInput.value = '';
@@ -938,9 +939,33 @@ ${unitHtml}
             name: customerLookupHit.name,
             phone: String(customerLookupHit.phone || '').trim(),
             cpf: '',
+            pessoaId: customerLookupHit.pessoaId || '',
         };
         totemKeyboard?.hide?.();
         goInvoiceStep();
+    };
+
+    const persistTotemCustomer = async () => {
+        if (customerLookupHit?.pessoaId || totemCustomer.pessoaId) return;
+        const name = String(totemCustomer.name || '').trim();
+        const phone = String(totemCustomer.phone || '').trim();
+        const cpf = String(totemCustomer.cpf || '').trim();
+        if (!name) return;
+        if (!phone.replace(/\D/g, '') && !cpf.replace(/\D/g, '')) return;
+
+        try {
+            const res = await fetch('/api/totem/customer/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, cpf }),
+            });
+            const data = await res.json();
+            if (res.ok && data.customer?.pessoaId) {
+                totemCustomer.pessoaId = data.customer.pessoaId;
+            }
+        } catch {
+            /* não bloqueia o fluxo do totem */
+        }
     };
 
     const showCustomerError = (message) => {
@@ -1005,6 +1030,7 @@ ${unitHtml}
     };
 
     const enterCatalog = () => {
+        void persistTotemCustomer();
         resetCart();
         clearSearch();
         if (!activeCategory && totemCategories[0]) {
@@ -1020,6 +1046,7 @@ ${unitHtml}
     const submitCustomerAndStart = () => {
         const name = String(customerNameInput?.value || '').trim().replace(/\s+/g, ' ');
         const phone = String(customerPhoneInput?.value || '').trim();
+        const phoneDigits = phone.replace(/\D/g, '');
         if (!name) {
             customerNameInput?.classList.add('totem-customer__input--error');
             showCustomerError('Informe seu nome para continuar.');
@@ -1027,9 +1054,17 @@ ${unitHtml}
             bindCustomerKeyboard(customerNameInput);
             return;
         }
+        if (phoneDigits.length < 10) {
+            customerPhoneInput?.classList.add('totem-customer__input--error');
+            showCustomerError('Informe seu telefone com DDD para salvar o cadastro.');
+            customerPhoneInput?.focus();
+            bindCustomerKeyboard(customerPhoneInput, 'numeric');
+            return;
+        }
         customerNameInput?.classList.remove('totem-customer__input--error');
+        customerPhoneInput?.classList.remove('totem-customer__input--error');
         showCustomerError('');
-        totemCustomer = { name, phone, cpf: '' };
+        totemCustomer = { name, phone, cpf: '', pessoaId: '' };
         totemKeyboard?.hide?.();
         goInvoiceStep();
     };
@@ -1782,6 +1817,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
         document.getElementById('totem-customer-confirm-no')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
+            customerLookupHit = null;
             goManualCustomer({ fromReject: true });
             bumpIdle();
         });
