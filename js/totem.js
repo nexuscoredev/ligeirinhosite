@@ -1179,9 +1179,7 @@ ${unitHtml}
         void persistTotemCustomer();
         resetCart();
         clearSearch();
-        if (!activeCategory && totemCategories[0]) {
-            activeCategory = totemCategories[0].id;
-        }
+        activeCategory = '';
         renderCategories();
         renderProducts();
         updateCatalogGreeting();
@@ -1433,6 +1431,7 @@ ${unitHtml}
         resetCart();
         resetCustomerForm();
         clearSearch();
+        activeCategory = '';
         hideIdleWarning();
         clearIdleTimers();
         setView('welcome');
@@ -1565,7 +1564,7 @@ ${bodyHtml}
     const renderProducts = () => {
         if (!productsGrid) return;
         if (activeCategory && !totemCategories.some((c) => c.id === activeCategory)) {
-            activeCategory = totemCategories[0]?.id || '';
+            activeCategory = '';
         }
         updateCategoriesBtnLabel();
         const searching = Boolean(searchQuery);
@@ -2270,9 +2269,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         normalizeDisplayItems();
         attachSearchIndex(displayItems);
         totemCategories = buildTotemCategories();
-        if (totemCategories[0]) {
-            activeCategory = totemCategories[0].id;
-        }
+        activeCategory = '';
 
         bindEvents();
         renderCategories();
