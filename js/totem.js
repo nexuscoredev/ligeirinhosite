@@ -1825,8 +1825,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         });
 
         logoBtn?.addEventListener('click', () => {
-            if (!isInShopping()) return;
+            totemKeyboard?.hide?.();
+            // Sempre volta à home (tela inicial), em qualquer etapa do fluxo.
+            if (views.welcome?.classList.contains('totem-view--active')) return;
             resetSession();
+            bumpIdle();
         });
         cartBtn?.addEventListener('click', openCart);
         floatCartBtn?.addEventListener('click', openCart);
