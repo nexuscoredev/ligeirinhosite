@@ -1384,9 +1384,6 @@ ${unitHtml}
         }
         if (inPromos) {
             window.LigeirinhoTotemPromos?.refresh?.();
-            window.LigeirinhoTotemPromos?.startAuto?.();
-        } else {
-            window.LigeirinhoTotemPromos?.stopAuto?.();
         }
         updateFloatCart(cartApi.loadCart());
     };

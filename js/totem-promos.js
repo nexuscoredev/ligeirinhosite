@@ -4,10 +4,7 @@
     let mktSlides = [];
     let fetchError = false;
     let slideIndex = 0;
-    let autoTimer = null;
     let touchStartX = 0;
-
-    const AUTO_MS = 7000;
     const mkt = () => window.LigeirinhoMktPromos;
 
     const esc = (value) =>
@@ -142,7 +139,6 @@ ${buildDotsHtml(images, 0)}
         slideIndex = index;
         updateSlide();
         deps?.onBumpIdle?.();
-        restartAuto();
     };
 
     const stepSlide = (delta) => {
@@ -150,23 +146,9 @@ ${buildDotsHtml(images, 0)}
         goToSlide(slideIndex + delta);
     };
 
-    const stopAuto = () => {
-        if (autoTimer) {
-            clearInterval(autoTimer);
-            autoTimer = null;
-        }
-    };
+    const stopAuto = () => {};
 
-    const startAuto = () => {
-        stopAuto();
-        if (mktSlides.length <= 1) return;
-        autoTimer = window.setInterval(() => stepSlide(1), AUTO_MS);
-    };
-
-    const restartAuto = () => {
-        stopAuto();
-        startAuto();
-    };
+    const startAuto = () => {};
 
     const bindCarousel = () => {
         const root = getCarouselEl();
@@ -223,7 +205,6 @@ ${buildDotsHtml(images, 0)}
         deps.gridEl.classList.add('totem-promos__grid--carousel');
         bindCarousel();
         updateSlide();
-        startAuto();
         void api?.preloadImages?.(mktSlides.slice(1, 3).map((s) => s.display), 2);
     };
 
