@@ -97,7 +97,7 @@
 <span class="totem-customer__choice-icon totem-customer__choice-icon--soft" aria-hidden="true"><span class="material-symbols-outlined">person_add</span></span>
 <span class="totem-customer__choice-copy">
 <strong>Ainda não sou cliente</strong>
-<span>Informar nome e telefone</span>
+<span>Informar nome e contato</span>
 </span>
 <span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
 </button>
@@ -148,28 +148,29 @@
 <div class="totem-customer__hero">
 <p class="totem-customer__eyebrow" id="totem-customer-manual-eyebrow">Novo cliente</p>
 <h2 class="totem-customer__title" id="totem-customer-manual-title">Seja bem-vindo!</h2>
-<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome e pelo menos um contato: telefone, e-mail, CPF ou CNPJ.</p>
+<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome e escolha como prefere se identificar.</p>
 </div>
 <form class="totem-customer__form" id="totem-customer-form" novalidate>
 <label class="totem-customer__field" for="totem-customer-name">
 <span class="totem-customer__label">Nome <span class="totem-customer__required" aria-hidden="true">*</span></span>
 <input type="text" id="totem-customer-name" class="totem-customer__input" placeholder="Como podemos te chamar?" autocomplete="name" maxlength="80" required readonly inputmode="none">
 </label>
-<label class="totem-customer__field" for="totem-customer-phone">
-<span class="totem-customer__label">Telefone <span class="totem-customer__optional">(opcional)</span></span>
+<div class="totem-customer__contact-tabs" id="totem-customer-contact-tabs" role="tablist" aria-label="Tipo de contato">
+<button type="button" class="totem-customer__contact-tab totem-customer__contact-tab--active" role="tab" aria-selected="true" data-manual-contact="phone">Telefone</button>
+<button type="button" class="totem-customer__contact-tab" role="tab" aria-selected="false" data-manual-contact="email">E-mail</button>
+<button type="button" class="totem-customer__contact-tab" role="tab" aria-selected="false" data-manual-contact="doc">CPF / CNPJ</button>
+</div>
+<label class="totem-customer__field totem-customer__contact-panel totem-customer__contact-panel--active" id="totem-customer-panel-phone" data-manual-contact-panel="phone" for="totem-customer-phone">
+<span class="totem-customer__label" id="totem-customer-phone-label">Telefone</span>
 <input type="text" id="totem-customer-phone" class="totem-customer__input" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="none" maxlength="20" readonly>
 </label>
-<label class="totem-customer__field" for="totem-customer-manual-email">
-<span class="totem-customer__label">E-mail <span class="totem-customer__optional">(opcional)</span></span>
+<label class="totem-customer__field totem-customer__contact-panel" id="totem-customer-panel-email" data-manual-contact-panel="email" for="totem-customer-manual-email" hidden>
+<span class="totem-customer__label" id="totem-customer-email-label">E-mail</span>
 <input type="email" id="totem-customer-manual-email" class="totem-customer__input totem-customer__input--lookup" placeholder="seu@email.com" autocomplete="email" inputmode="none" maxlength="120" readonly>
 </label>
-<label class="totem-customer__field" for="totem-customer-manual-cpf">
-<span class="totem-customer__label">CPF <span class="totem-customer__optional">(opcional)</span></span>
-<input type="text" id="totem-customer-manual-cpf" class="totem-customer__input totem-customer__input--lookup" placeholder="000.000.000-00" autocomplete="off" inputmode="none" maxlength="14" readonly>
-</label>
-<label class="totem-customer__field" for="totem-customer-manual-cnpj">
-<span class="totem-customer__label">CNPJ <span class="totem-customer__optional">(opcional)</span></span>
-<input type="text" id="totem-customer-manual-cnpj" class="totem-customer__input totem-customer__input--lookup" placeholder="00.000.000/0000-00" autocomplete="off" inputmode="none" maxlength="18" readonly>
+<label class="totem-customer__field totem-customer__contact-panel" id="totem-customer-panel-doc" data-manual-contact-panel="doc" for="totem-customer-manual-doc" hidden>
+<span class="totem-customer__label" id="totem-customer-doc-label">CPF ou CNPJ</span>
+<input type="text" id="totem-customer-manual-doc" class="totem-customer__input totem-customer__input--lookup" placeholder="000.000.000-00 ou 00.000.000/0000-00" autocomplete="off" inputmode="none" maxlength="18" readonly>
 </label>
 <p class="totem-customer__error" id="totem-customer-error" role="alert" hidden></p>
 <button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-continue">

@@ -1427,6 +1427,50 @@ html.totem--phone .totem-btn--promos__icon {
     margin-top: 0.15rem;
     min-height: 3.1rem;
     border-radius: 1rem;
+}
+
+.totem-customer__contact-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.15rem 0 0.65rem;
+    padding: 0.28rem;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--lig-border);
+}
+
+.totem-customer__contact-tab {
+    flex: 1 1 0;
+    min-height: 2.65rem;
+    padding: 0.45rem 0.55rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--lig-text-muted, #64748b);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.totem-customer__contact-tab--active {
+    background: #fff;
+    color: var(--lig-text);
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-customer__contact-panel[hidden] {
+    display: none !important;
+}
+
+.totem-customer__submit {
     flex-shrink: 0;
 }
 
