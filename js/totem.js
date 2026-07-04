@@ -74,6 +74,7 @@
     const productsGrid = document.getElementById('totem-products-grid');
     const productsBody = document.getElementById('totem-products-body');
     const productsHead = document.getElementById('totem-products-head');
+    const catalogGreeting = document.getElementById('totem-catalog-greeting');
     const categoryTitle = document.getElementById('totem-category-title');
     const productsCount = document.getElementById('totem-products-count');
     const productsEmpty = document.getElementById('totem-products-empty');
@@ -800,6 +801,7 @@ ${unitHtml}
         customerManualCpfInput?.classList.remove('totem-customer__input--error');
         customerManualCnpjInput?.classList.remove('totem-customer__input--error');
         customerCpfInput?.classList.remove('totem-customer__input--error');
+        updateCatalogGreeting();
     };
 
     const showLookupError = (message) => {
@@ -1182,9 +1184,29 @@ ${unitHtml}
         }
         renderCategories();
         renderProducts();
+        updateCatalogGreeting();
         setView('catalog');
         initSearchKeyboard();
         bumpIdle();
+    };
+
+    const formatGreetingName = (raw) => {
+        const name = String(raw || '').trim().replace(/\s+/g, ' ');
+        if (!name) return '';
+        const first = name.split(' ')[0];
+        return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+    };
+
+    const updateCatalogGreeting = () => {
+        if (!catalogGreeting) return;
+        const display = formatGreetingName(totemCustomer.name);
+        if (!display) {
+            catalogGreeting.textContent = '';
+            catalogGreeting.hidden = true;
+            return;
+        }
+        catalogGreeting.textContent = `Olá, ${display}`;
+        catalogGreeting.hidden = false;
     };
 
     const submitCustomerAndStart = async () => {
