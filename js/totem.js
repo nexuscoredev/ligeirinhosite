@@ -1068,12 +1068,14 @@ ${unitHtml}
         totemKeyboard?.hide?.();
         if (customerContinueBtn) {
             customerContinueBtn.disabled = true;
-            customerContinueBtn.textContent = 'Salvando cadastro…';
+            const label = customerContinueBtn.querySelector('span');
+            if (label) label.textContent = 'Salvando cadastro…';
         }
         await persistTotemCustomer();
         if (customerContinueBtn) {
             customerContinueBtn.disabled = false;
-            customerContinueBtn.textContent = 'Continuar';
+            const label = customerContinueBtn.querySelector('span');
+            if (label) label.textContent = 'Continuar';
         }
         goInvoiceStep();
     };
