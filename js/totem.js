@@ -36,6 +36,27 @@
     const customerCpfError = document.getElementById('totem-customer-cpf-error');
     const cpfApi = window.LigeirinhoCpf;
     const cnpjApi = window.LigeirinhoCnpj;
+
+    const contactDigits = (value) => String(value || '').replace(/\D/g, '');
+
+    const looksLikePhoneDigits = (digits) => {
+        const d = contactDigits(digits);
+        if (d.length === 10) return true;
+        if (d.length === 11 && d[2] === '9') return true;
+        return false;
+    };
+
+    const sanitizeCustomerPhone = (phone, cpf = '', cnpj = '') => {
+        const raw = String(phone || '').trim();
+        const phoneDigits = contactDigits(raw);
+        if (!phoneDigits || !looksLikePhoneDigits(phoneDigits)) return '';
+        const cpfDigits = contactDigits(cpf);
+        const cnpjDigits = contactDigits(cnpj);
+        if (cpfDigits && phoneDigits === cpfDigits) return '';
+        if (cnpjDigits && phoneDigits === cnpjDigits) return '';
+        return raw;
+    };
+
     const customerLookupForm = document.getElementById('totem-customer-lookup-form');
     const customerLookupInput = document.getElementById('totem-customer-lookup-input');
     const customerLookupError = document.getElementById('totem-customer-lookup-error');
@@ -945,10 +966,17 @@ ${unitHtml}
 
         if (customerManualContactMode === 'phone') {
             const phone = String(customerPhoneInput?.value || '').trim();
-            const phoneDigits = phone.replace(/\D/g, '');
+            const phoneDigits = contactDigits(phone);
             if (phoneDigits.length < 10) {
                 customerPhoneInput?.classList.add('totem-customer__input--error');
                 showCustomerError('Informe telefone com DDD.');
+                customerPhoneInput?.focus();
+                bindCustomerKeyboard(customerPhoneInput, 'numeric');
+                return null;
+            }
+            if (!looksLikePhoneDigits(phoneDigits)) {
+                customerPhoneInput?.classList.add('totem-customer__input--error');
+                showCustomerError('Informe telefone com DDD, não CPF ou CNPJ.');
                 customerPhoneInput?.focus();
                 bindCustomerKeyboard(customerPhoneInput, 'numeric');
                 return null;
@@ -1035,9 +1063,8 @@ ${unitHtml}
 
     const lookupPhoneFallback = () => {
         if (customerLookupMode !== 'doc') return '';
-        const raw = String(customerLookupInput?.value || '').trim();
-        const digits = raw.replace(/\D/g, '');
-        return digits.length >= 10 && digits.length <= 11 ? digits : '';
+        const digits = contactDigits(customerLookupInput?.value);
+        return looksLikePhoneDigits(digits) ? digits : '';
     };
 
     const goManualCustomer = ({ fromReject = false } = {}) => {
@@ -1125,7 +1152,11 @@ ${unitHtml}
         if (!customerLookupHit?.name) return;
         totemCustomer = {
             name: customerLookupHit.name,
-            phone: String(customerLookupHit.phone || '').trim(),
+            phone: sanitizeCustomerPhone(
+                customerLookupHit.phone,
+                customerLookupHit.cpf,
+                customerLookupHit.cnpj,
+            ),
             email: String(customerLookupHit.email || '').trim(),
             cpf: String(customerLookupHit.cpf || '').trim(),
             cnpj: String(customerLookupHit.cnpj || '').trim(),
@@ -1137,7 +1168,11 @@ ${unitHtml}
 
     const saveCustomerDocToHub = async () => {
         const name = String(totemCustomer.name || '').trim();
-        const phone = String(totemCustomer.phone || '').trim();
+        const phone = sanitizeCustomerPhone(
+            totemCustomer.phone,
+            totemCustomer.cpf,
+            totemCustomer.cnpj,
+        );
         const email = String(totemCustomer.email || '').trim().toLowerCase();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
@@ -1182,7 +1217,11 @@ ${unitHtml}
             return saveCustomerDocToHub();
         }
         const name = String(totemCustomer.name || '').trim();
-        const phone = String(totemCustomer.phone || '').trim();
+        const phone = sanitizeCustomerPhone(
+            totemCustomer.phone,
+            totemCustomer.cpf,
+            totemCustomer.cnpj,
+        );
         const email = String(totemCustomer.email || '').trim().toLowerCase();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
@@ -1326,7 +1365,7 @@ ${unitHtml}
         showCustomerError('');
         totemCustomer = {
             name,
-            phone: contact.phone,
+            phone: sanitizeCustomerPhone(contact.phone, contact.cpf, contact.cnpj),
             email: contact.email,
             cpf: contact.cpf,
             cnpj: contact.cnpj,
@@ -2005,7 +2044,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                     unitId: s?.totemUnitId || 'default',
                     customer: {
                         name: totemCustomer.name || s?.totemLabel || s?.name || 'Cliente Totem',
-                        phone: totemCustomer.phone || s?.phone || '',
+                        phone:
+                            sanitizeCustomerPhone(
+                                totemCustomer.phone,
+                                totemCustomer.cpf,
+                                totemCustomer.cnpj,
+                            ) ||
+                            s?.phone ||
+                            '',
                         email: s?.email || '',
                         cpf: totemCustomer.cpf || '',
                         cnpj: totemCustomer.cnpj || '',

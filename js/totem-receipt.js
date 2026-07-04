@@ -326,11 +326,35 @@
         return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
     };
 
+    const contactDigits = (value) => String(value || '').replace(/\D/g, '');
+
+    const looksLikePhoneDigits = (digits) => {
+        const d = contactDigits(digits);
+        if (d.length === 10) return true;
+        if (d.length === 11 && d[2] === '9') return true;
+        return false;
+    };
+
+    const sanitizeReceiptPhone = (phone, cpf = '', cnpj = '') => {
+        const raw = String(phone || '').trim();
+        const phoneDigits = contactDigits(raw);
+        if (!phoneDigits || !looksLikePhoneDigits(phoneDigits)) return '';
+        const cpfDigits = contactDigits(cpf);
+        const cnpjDigits = contactDigits(cnpj);
+        if (cpfDigits && phoneDigits === cpfDigits) return '';
+        if (cnpjDigits && phoneDigits === cnpjDigits) return '';
+        return raw;
+    };
+
     const buildCustomerReceiptBlock = (order, forPrint = false) => {
         const rows = [];
         const name = String(order.customerName || '').trim();
-        const phone = String(order.customerPhone || '').trim();
         const cpf = formatCpfReceipt(order.customerCpf || order.customer_cpf);
+        const phone = sanitizeReceiptPhone(
+            order.customerPhone,
+            order.customerCpf || order.customer_cpf,
+            order.customerCnpj || order.customer_cnpj,
+        );
         if (name) {
             const label = forPrint ? truncateName(name, 28) : esc(name);
             rows.push(`<div class="totem-receipt__row"><span>Cliente</span><strong>${label}</strong></div>`);
@@ -751,8 +775,12 @@ body{display:flex;justify-content:center;align-items:flex-start}
         lines.push(divider());
 
         const customerName = String(order.customerName || '').trim();
-        const customerPhone = String(order.customerPhone || '').trim();
         const customerCpf = formatCpfReceipt(order.customerCpf || order.customer_cpf);
+        const customerPhone = sanitizeReceiptPhone(
+            order.customerPhone,
+            order.customerCpf || order.customer_cpf,
+            order.customerCnpj || order.customer_cnpj,
+        );
         if (customerName) {
             lines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
         }

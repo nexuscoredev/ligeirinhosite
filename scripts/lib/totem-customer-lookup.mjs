@@ -1,6 +1,7 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { normalizeDocDigits, fetchPessoaParceiroByCnpj } from '../hub-parceiro.mjs';
 import { phoneLocalDigits, phonesMatch, phoneLookupSuffixes } from './phone-match.mjs';
+import { sanitizeCustomerPhone } from './customer-phone.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -195,7 +196,7 @@ function toPublicHit(pessoa, matchedBy) {
               : maskDoc(docDigits) || maskPhone(phoneDigits) || 'Cadastro Ligeirinho';
     return {
         name,
-        phone: String(pessoa.telefone || '').trim(),
+        phone: sanitizeCustomerPhone(pessoa.telefone, { cpf, cnpj }),
         email: String(pessoa.email || '').trim(),
         pessoaId: pessoa.id,
         cpf,

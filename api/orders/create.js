@@ -14,6 +14,7 @@ import {
 } from '../../scripts/supabase-finance.mjs';
 import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
 import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
+import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import { registerTotemCustomer } from '../../scripts/lib/totem-customer-register.mjs';
 
 export const config = { maxDuration: 15 };
@@ -140,10 +141,13 @@ export default async function handler(req, res) {
             try {
                 await registerTotemCustomer(process.env, {
                     name: customer.name,
-                    phone: customer.phone,
+                    phone: sanitizeCustomerPhone(customer.phone, {
+                        cpf: customerCpf || customer.cpf,
+                        cnpj: customer.cnpj,
+                    }),
                     email: customer.email,
                     cpf: customerCpf || customer.cpf,
-                    cnpj: customer.cnpj || customerCnpj,
+                    cnpj: customer.cnpj,
                 });
             } catch (regErr) {
                 console.warn('orders/create totem customer register', regErr?.message || regErr);
@@ -189,6 +193,10 @@ export default async function handler(req, res) {
         const dueDays = Number(settings?.default_due_days) || 30;
 
         const customerCnpj = String(customer.cnpj || '').trim();
+        const customerPhone = sanitizeCustomerPhone(customer.phone, {
+            cpf: customerCpf,
+            cnpj: customerCnpj,
+        });
         const notesBase = String(body.notes || '').trim();
         const notesParts = [
             notesBase,
@@ -220,7 +228,7 @@ export default async function handler(req, res) {
             address: deliveryType === 'entrega' ? address : null,
             notes,
             customer_name: String(customer.name || '').trim().slice(0, 120) || null,
-            customer_phone: String(customer.phone || '').trim().slice(0, 32) || null,
+            customer_phone: customerPhone ? customerPhone.slice(0, 32) : null,
             customer_email: String(customer.email || '').trim().slice(0, 120) || null,
             customer_cpf: customerCpf,
             channel,
