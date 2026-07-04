@@ -17,6 +17,7 @@
     const customerForm = document.getElementById('totem-customer-form');
     const customerNameInput = document.getElementById('totem-customer-name');
     const customerPhoneInput = document.getElementById('totem-customer-phone');
+    const customerManualEmailInput = document.getElementById('totem-customer-manual-email');
     const customerManualCpfInput = document.getElementById('totem-customer-manual-cpf');
     const customerManualCnpjInput = document.getElementById('totem-customer-manual-cnpj');
     const customerError = document.getElementById('totem-customer-error');
@@ -123,7 +124,7 @@
     let detailItemKey = null;
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
-    let totemCustomer = { name: '', phone: '', cpf: '', cnpj: '', pessoaId: '' };
+    let totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
     let customerStep = 'register';
     let customerLookupMode = 'doc';
     let customerLookupHit = null;
@@ -783,12 +784,13 @@ ${unitHtml}
     const lookupKeyboardMode = () => (customerLookupMode === 'email' ? 'email' : 'numeric');
 
     const resetCustomerForm = () => {
-        totemCustomer = { name: '', phone: '', cpf: '', cnpj: '', pessoaId: '' };
+        totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
         customerLookupHit = null;
         customerStep = 'register';
         customerLookupMode = 'doc';
         if (customerNameInput) customerNameInput.value = '';
         if (customerPhoneInput) customerPhoneInput.value = '';
+        if (customerManualEmailInput) customerManualEmailInput.value = '';
         if (customerManualCpfInput) customerManualCpfInput.value = '';
         if (customerManualCnpjInput) customerManualCnpjInput.value = '';
         if (customerLookupInput) customerLookupInput.value = '';
@@ -798,6 +800,7 @@ ${unitHtml}
         showCpfError('');
         customerNameInput?.classList.remove('totem-customer__input--error');
         customerPhoneInput?.classList.remove('totem-customer__input--error');
+        customerManualEmailInput?.classList.remove('totem-customer__input--error');
         customerManualCpfInput?.classList.remove('totem-customer__input--error');
         customerManualCnpjInput?.classList.remove('totem-customer__input--error');
         customerCpfInput?.classList.remove('totem-customer__input--error');
@@ -961,19 +964,22 @@ ${unitHtml}
             if (customerManualTitle) customerManualTitle.textContent = 'Vamos identificar você';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e telefone para o pedido no caixa. CPF ou CNPJ são opcionais.';
+                    'Informe seu nome e telefone para o pedido no caixa. E-mail, CPF ou CNPJ são opcionais.';
             }
         } else {
             if (customerManualEyebrow) customerManualEyebrow.textContent = 'Novo cliente';
             if (customerManualTitle) customerManualTitle.textContent = 'Seja bem-vindo!';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e telefone. CPF ou CNPJ são opcionais e ajudam a te reconhecer na próxima visita.';
+                    'Informe seu nome e telefone. E-mail, CPF ou CNPJ são opcionais e ajudam a te reconhecer na próxima visita.';
             }
         }
         if (customerNameInput) customerNameInput.value = '';
         if (customerPhoneInput) {
             customerPhoneInput.value = fromReject ? customerLookupHit?.phone || lookupPhoneFallback() : lookupPhoneFallback();
+        }
+        if (customerManualEmailInput) {
+            customerManualEmailInput.value = fromReject ? customerLookupHit?.email || '' : '';
         }
         if (customerManualCpfInput) customerManualCpfInput.value = '';
         if (customerManualCnpjInput) customerManualCnpjInput.value = '';
@@ -1032,6 +1038,7 @@ ${unitHtml}
         totemCustomer = {
             name: customerLookupHit.name,
             phone: String(customerLookupHit.phone || '').trim(),
+            email: String(customerLookupHit.email || '').trim(),
             cpf: String(customerLookupHit.cpf || '').trim(),
             cnpj: String(customerLookupHit.cnpj || '').trim(),
             pessoaId: customerLookupHit.pessoaId || '',
@@ -1043,9 +1050,10 @@ ${unitHtml}
     const saveCustomerDocToHub = async () => {
         const name = String(totemCustomer.name || '').trim();
         const phone = String(totemCustomer.phone || '').trim();
+        const email = String(totemCustomer.email || '').trim().toLowerCase();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
-        if (!name || (!phone && !cpf && !cnpj)) {
+        if (!name || (!phone && !cpf && !cnpj && !email)) {
             return { ok: false, error: 'Informe nome e telefone para salvar o cadastro.' };
         }
         try {
@@ -1055,6 +1063,7 @@ ${unitHtml}
                 body: JSON.stringify({
                     name,
                     phone,
+                    email,
                     cpf,
                     cnpj,
                     pessoaId: totemCustomer.pessoaId || customerLookupHit?.pessoaId || '',
@@ -1082,11 +1091,12 @@ ${unitHtml}
         }
         const name = String(totemCustomer.name || '').trim();
         const phone = String(totemCustomer.phone || '').trim();
+        const email = String(totemCustomer.email || '').trim().toLowerCase();
         const cpf = String(totemCustomer.cpf || '').trim();
         const cnpj = String(totemCustomer.cnpj || '').trim();
         if (!name) return { ok: false, error: 'Informe seu nome para salvar o cadastro.' };
-        if (!phone.replace(/\D/g, '') && !cpf.replace(/\D/g, '') && !cnpj.replace(/\D/g, '')) {
-            return { ok: false, error: 'Informe telefone, CPF ou CNPJ para salvar o cadastro.' };
+        if (!phone.replace(/\D/g, '') && !email && !cpf.replace(/\D/g, '') && !cnpj.replace(/\D/g, '')) {
+            return { ok: false, error: 'Informe telefone, e-mail, CPF ou CNPJ para salvar o cadastro.' };
         }
         return saveCustomerDocToHub();
     };
@@ -1119,8 +1129,10 @@ ${unitHtml}
             field === customerManualCpfInput ||
             field === customerManualCnpjInput
                 ? 'numeric'
-                : field === customerLookupInput
-                  ? lookupKeyboardMode()
+                : field === customerManualEmailInput || field === customerLookupInput
+                  ? field === customerLookupInput
+                      ? lookupKeyboardMode()
+                      : 'email'
                   : 'full');
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: field,
@@ -1145,7 +1157,12 @@ ${unitHtml}
                     bindCustomerKeyboard(customerPhoneInput, 'numeric');
                     return;
                 }
-                if (field === customerPhoneInput && customerManualCpfInput) {
+                if (field === customerPhoneInput && customerManualEmailInput) {
+                    customerManualEmailInput.focus();
+                    bindCustomerKeyboard(customerManualEmailInput, 'email');
+                    return;
+                }
+                if (field === customerManualEmailInput && customerManualCpfInput) {
                     customerManualCpfInput.focus();
                     bindCustomerKeyboard(customerManualCpfInput, 'numeric');
                     return;
@@ -1230,11 +1247,21 @@ ${unitHtml}
         }
         const docs = validateManualDocs();
         if (!docs) return;
+        const emailRaw = String(customerManualEmailInput?.value || '').trim();
+        const email = emailRaw ? emailRaw.toLowerCase() : '';
+        if (email && !isValidEmail(email)) {
+            customerManualEmailInput?.classList.add('totem-customer__input--error');
+            showCustomerError('Informe um e-mail válido (ex.: nome@gmail.com) ou deixe em branco.');
+            customerManualEmailInput?.focus();
+            bindCustomerKeyboard(customerManualEmailInput, 'email');
+            return;
+        }
 
         customerNameInput?.classList.remove('totem-customer__input--error');
         customerPhoneInput?.classList.remove('totem-customer__input--error');
+        customerManualEmailInput?.classList.remove('totem-customer__input--error');
         showCustomerError('');
-        totemCustomer = { name, phone, cpf: docs.cpf, cnpj: docs.cnpj, pessoaId: '' };
+        totemCustomer = { name, phone, email, cpf: docs.cpf, cnpj: docs.cnpj, pessoaId: '' };
         totemKeyboard?.hide?.();
         if (customerContinueBtn) {
             customerContinueBtn.disabled = true;
@@ -2052,6 +2079,13 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
         customerNameInput?.addEventListener('focus', () => bindCustomerKeyboard(customerNameInput));
         customerPhoneInput?.addEventListener('focus', () => bindCustomerKeyboard(customerPhoneInput, 'numeric'));
+        customerManualEmailInput?.addEventListener('input', () => {
+            customerManualEmailInput.classList.remove('totem-customer__input--error');
+            showCustomerError('');
+        });
+        customerManualEmailInput?.addEventListener('focus', () =>
+            bindCustomerKeyboard(customerManualEmailInput, 'email'),
+        );
         customerManualCpfInput?.addEventListener('focus', () =>
             bindCustomerKeyboard(customerManualCpfInput, 'numeric'),
         );
