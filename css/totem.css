@@ -2243,9 +2243,11 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 .totem-products__eyebrow--greeting {
-    font-size: clamp(0.95rem, 2.1dvh, 1.15rem);
+    margin-bottom: 0.5rem;
+    font-size: clamp(1.35rem, 3.6dvh, 2rem);
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
     text-transform: none;
     color: var(--lig-yellow-text);
 }
