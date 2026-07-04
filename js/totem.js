@@ -893,8 +893,31 @@ ${unitHtml}
         };
     };
 
+    const readManualDocs = () => {
+        const { cpfDigits, cnpjDigits } = parseManualDocs();
+        return {
+            cpf: cpfDigits.length === 11 && cpfApi?.isValidCpf?.(cpfDigits) ? cpfDigits : '',
+            cnpj: cnpjDigits.length === 14 && cnpjApi?.isValidCnpj?.(cnpjDigits) ? cnpjDigits : '',
+        };
+    };
+
+    const customerHasDocOnFile = () => {
+        const manual = readManualDocs();
+        const cpf = String(totemCustomer.cpf || manual.cpf || '').trim();
+        const cnpj = String(totemCustomer.cnpj || manual.cnpj || '').trim();
+        return Boolean(cpf || cnpj);
+    };
+
     const proceedAfterCustomerRegister = () => {
-        if (totemCustomer.cpf || totemCustomer.cnpj) {
+        const manual = readManualDocs();
+        if (manual.cpf || manual.cnpj) {
+            totemCustomer = {
+                ...totemCustomer,
+                cpf: manual.cpf || totemCustomer.cpf,
+                cnpj: manual.cnpj || totemCustomer.cnpj,
+            };
+        }
+        if (customerHasDocOnFile()) {
             enterCatalog();
             return;
         }
@@ -1007,15 +1030,47 @@ ${unitHtml}
         totemCustomer = {
             name: customerLookupHit.name,
             phone: String(customerLookupHit.phone || '').trim(),
-            cpf: '',
+            cpf: String(customerLookupHit.cpf || '').trim(),
+            cnpj: String(customerLookupHit.cnpj || '').trim(),
             pessoaId: customerLookupHit.pessoaId || '',
         };
         totemKeyboard?.hide?.();
-        goInvoiceStep();
+        proceedAfterCustomerRegister();
+    };
+
+    const saveCustomerDocToHub = async () => {
+        const name = String(totemCustomer.name || '').trim();
+        const phone = String(totemCustomer.phone || '').trim();
+        const cpf = String(totemCustomer.cpf || '').trim();
+        const cnpj = String(totemCustomer.cnpj || '').trim();
+        if (!name || (!phone && !cpf && !cnpj)) return;
+        try {
+            const res = await fetch('/api/totem/customer/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    phone,
+                    cpf,
+                    cnpj,
+                    pessoaId: totemCustomer.pessoaId || customerLookupHit?.pessoaId || '',
+                }),
+            });
+            const data = await res.json();
+            if (res.ok && data.customer?.pessoaId) {
+                totemCustomer.pessoaId = data.customer.pessoaId;
+            }
+        } catch {
+            /* não bloqueia o fluxo do totem */
+        }
     };
 
     const persistTotemCustomer = async () => {
-        if (customerLookupHit?.pessoaId || totemCustomer.pessoaId) return;
+        if (totemCustomer.pessoaId) {
+            await saveCustomerDocToHub();
+            return;
+        }
+        if (customerLookupHit?.pessoaId) return;
         const name = String(totemCustomer.name || '').trim();
         const phone = String(totemCustomer.phone || '').trim();
         const cpf = String(totemCustomer.cpf || '').trim();
@@ -1176,7 +1231,7 @@ ${unitHtml}
         proceedAfterCustomerRegister();
     };
 
-    const submitCustomerCpf = () => {
+    const submitCustomerCpf = async () => {
         const digits = cpfApi?.normalizeCpfDigits?.(customerCpfInput?.value) || '';
         if (!cpfApi?.isValidCpf?.(digits)) {
             customerCpfInput?.classList.add('totem-customer__input--error');
@@ -1189,6 +1244,7 @@ ${unitHtml}
         showCpfError('');
         totemCustomer = { ...totemCustomer, cpf: digits };
         totemKeyboard?.hide?.();
+        await saveCustomerDocToHub();
         enterCatalog();
     };
 

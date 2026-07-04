@@ -76,11 +76,19 @@ function maskEmail(raw) {
     return `E-mail ${maskedLocal}@${domain}`;
 }
 
+function docFromPessoa(pessoa) {
+    const digits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj);
+    if (digits.length === 11) return { cpf: digits, cnpj: '' };
+    if (digits.length === 14) return { cpf: '', cnpj: digits };
+    return { cpf: '', cnpj: '' };
+}
+
 function toPublicHit(pessoa, matchedBy) {
     const name = displayName(pessoa);
     if (!name) return null;
     const docDigits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj);
     const phoneDigits = normalizeDocDigits(pessoa.telefone);
+    const { cpf, cnpj } = docFromPessoa(pessoa);
     const hint =
         matchedBy === 'email'
             ? maskEmail(pessoa.email)
@@ -92,6 +100,8 @@ function toPublicHit(pessoa, matchedBy) {
         phone: String(pessoa.telefone || '').trim(),
         email: String(pessoa.email || '').trim(),
         pessoaId: pessoa.id,
+        cpf,
+        cnpj,
         hint,
         matchedBy,
     };
