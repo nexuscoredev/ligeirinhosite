@@ -1,6 +1,6 @@
 {
   "source": "https://ligeirinhohub.vercel.app/admin/produtos",
-  "exportedAt": "2026-07-03T23:15:04.128Z",
+  "exportedAt": "2026-07-06T19:53:00.739Z",
   "storeName": "Ligeirinho Parceiros",
   "syncMode": "export",
   "totalProducts": 945,
@@ -19,7 +19,7 @@
           "priceLabel": "R$ 2,99",
           "description": "CERVEJA AMSTEL 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6ce8a3fa-1d31-4b8e-8dec-d5ab235851da.jpg?v=1781021469170"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6ce8a3fa-1d31-4b8e-8dec-d5ab235851da.png?v=1783358468279"
         },
         {
           "id": "cerveja-amstel-269ml-c-12",
@@ -30,7 +30,7 @@
           "priceLabel": "R$ 32,99",
           "description": "CERVEJA AMSTEL 269ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/5a00fe4c-9d6f-4ad8-829b-56c2535e4a18.jpg?v=1781021471199"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/5a00fe4c-9d6f-4ad8-829b-56c2535e4a18-cx.png?v=1783358493141"
         },
         {
           "id": "cerveja-brahma-chopp-269ml",
@@ -52,7 +52,7 @@
           "priceLabel": "R$ 3,25",
           "description": "CERVEJA BRAHMA ZERO 350ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d6f2222c-5d99-48e7-b6ac-f9630de29e54.jpg?v=1781021477098"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d6f2222c-5d99-48e7-b6ac-f9630de29e54.png?v=1783358624718"
         },
         {
           "id": "cerveja-budweiser-269ml",
@@ -63,7 +63,7 @@
           "priceLabel": "R$ 3,59",
           "description": "CERVEJA BUDWEISER 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/96b00b82-905e-4d94-888f-307530bdda23.jpg?v=1781021479257"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/96b00b82-905e-4d94-888f-307530bdda23.png?v=1783358659981"
         },
         {
           "id": "cerveja-budweiser-330ml",
@@ -85,7 +85,7 @@
           "priceLabel": "R$ 119,79",
           "description": "CERVEJA BUDWEISER 330ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/88f32dd3-2fbd-4681-812a-9ca8bd2d8999.jpg?v=1781021482994"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/88f32dd3-2fbd-4681-812a-9ca8bd2d8999-cx.png?v=1783358688062"
         },
         {
           "id": "cerveja-corona-330ml",
@@ -107,7 +107,7 @@
           "priceLabel": "R$ 159,85",
           "description": "CERVEJA CORONA 330ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2cc4d1e6-99df-4312-85d0-1f08f89a21fe.jpg?v=1781021487074"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2cc4d1e6-99df-4312-85d0-1f08f89a21fe-cx.png?v=1783358709678"
         },
         {
           "id": "cerveja-corona-zero-330ml",
@@ -118,7 +118,7 @@
           "priceLabel": "R$ 7,45",
           "description": "CERVEJA CORONA ZERO 330ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1c08e907-50e7-4293-8879-f4ef73d36af1.jpg?v=1781021489267"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1c08e907-50e7-4293-8879-f4ef73d36af1.png?v=1783358732219"
         },
         {
           "id": "cerveja-corona-zero-330ml-c-24",
@@ -129,7 +129,7 @@
           "priceLabel": "R$ 163,35",
           "description": "CERVEJA CORONA ZERO 330ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/77f3827d-b243-4aae-9e35-b51d77c541f4.jpg?v=1781021491036"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/77f3827d-b243-4aae-9e35-b51d77c541f4-cx.png?v=1783358742985"
         },
         {
           "id": "cerveja-coronita-210ml",
@@ -162,7 +162,7 @@
           "priceLabel": "R$ 3,79",
           "description": "CERVEJA EISENBAHN PILSEN 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/58c8ed6a-5137-409a-bd4b-5e16a7804d86.jpg?v=1781021494746"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/58c8ed6a-5137-409a-bd4b-5e16a7804d86.png?v=1783350411621"
         },
         {
           "id": "cerveja-eisenbahn-pilsen-269ml-c-12",
@@ -173,7 +173,7 @@
           "priceLabel": "R$ 41,69",
           "description": "CERVEJA EISENBAHN PILSEN 269ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/bb494c77-037f-40da-97fa-982c0e78335b.jpg?v=1781021496547"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/bb494c77-037f-40da-97fa-982c0e78335b-cx.png?v=1783358788355"
         },
         {
           "id": "cerveja-heineken-269ml",
@@ -184,7 +184,7 @@
           "priceLabel": "R$ 4,35",
           "description": "CERVEJA HEINEKEN 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2c544c73-e19b-4526-a459-cc66ca318cab.jpg?v=1781021498571"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2c544c73-e19b-4526-a459-cc66ca318cab.png?v=1783350474199"
         },
         {
           "id": "cerveja-heineken-269ml-c-8",
@@ -195,7 +195,7 @@
           "priceLabel": "R$ 31,75",
           "description": "CERVEJA HEINEKEN 269ML C/8",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6106cd11-af1a-45f8-acad-86e43581a000.jpg?v=1781021500823"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6106cd11-af1a-45f8-acad-86e43581a000-cx.png?v=1783358897564"
         },
         {
           "id": "cerveja-heineken-330ml",
@@ -206,7 +206,7 @@
           "priceLabel": "R$ 6,35",
           "description": "CERVEJA HEINEKEN 330ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d4a4ffa7-188b-4221-950c-e12e9c5c22d2.jpg?v=1781021502794"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d4a4ffa7-188b-4221-950c-e12e9c5c22d2.png?v=1783350366822"
         },
         {
           "id": "cerveja-heineken-330ml-c-24",
@@ -228,7 +228,7 @@
           "priceLabel": "R$ 228,25",
           "description": "CERVEJA HEINEKEN 600ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/62b0cdd9-8598-40f0-80db-fc231f4b820b.jpg?v=1781021510892"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/62b0cdd9-8598-40f0-80db-fc231f4b820b-cx.png?v=1783357842596"
         },
         {
           "id": "cerveja-heineken-zero-330ml",
@@ -239,7 +239,7 @@
           "priceLabel": "R$ 6,49",
           "description": "CERVEJA HEINEKEN ZERO 330ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/aa1a6f6e-2306-4f78-b935-47beb7c2ae3f.jpg?v=1781021513136"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/aa1a6f6e-2306-4f78-b935-47beb7c2ae3f.png?v=1783357862854"
         },
         {
           "id": "cerveja-heineken-zero-330ml-c-24",
@@ -250,7 +250,7 @@
           "priceLabel": "R$ 142,15",
           "description": "CERVEJA HEINEKEN ZERO 330ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/5be4a206-2c4a-4c26-85dd-f240c8bdaedb.jpg?v=1781021515297"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/5be4a206-2c4a-4c26-85dd-f240c8bdaedb-cx.png?v=1783357876644"
         },
         {
           "id": "cerveja-imperio-269ml",
@@ -261,7 +261,7 @@
           "priceLabel": "R$ 2,65",
           "description": "CERVEJA IMPERIO 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/9aff5863-9dcb-4334-9089-a7ae21ee6f04.jpg?v=1781021517594"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/9aff5863-9dcb-4334-9089-a7ae21ee6f04.png?v=1783357914060"
         },
         {
           "id": "cerveja-imperio-269ml-c-15",
@@ -272,7 +272,7 @@
           "priceLabel": "R$ 36,05",
           "description": "CERVEJA IMPERIO 269ML C/15",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/63ea396d-2387-4ddd-97ed-3888419fe201.jpg?v=1781021519760"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/63ea396d-2387-4ddd-97ed-3888419fe201-cx.png?v=1783358938454"
         },
         {
           "id": "cerveja-itaipava-269ml",
@@ -283,7 +283,7 @@
           "priceLabel": "R$ 2,45",
           "description": "CERVEJA ITAIPAVA 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/675f215b-1964-45de-bfd3-a45f8fdd13bb.jpg?v=1781021521413"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/675f215b-1964-45de-bfd3-a45f8fdd13bb.png?v=1783357979618"
         },
         {
           "id": "cerveja-itaipava-269ml-c-12",
@@ -294,7 +294,7 @@
           "priceLabel": "R$ 26,55",
           "description": "CERVEJA ITAIPAVA 269ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b790070e-a470-4815-a60d-9946127c61ac.jpg?v=1781021523956"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b790070e-a470-4815-a60d-9946127c61ac-cx.png?v=1783358958178"
         },
         {
           "id": "cerveja-original-269ml",
@@ -305,7 +305,7 @@
           "priceLabel": "R$ 3,55",
           "description": "CERVEJA ORIGINAL 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/15fd9c99-7cfa-4ee5-82ba-414b600ef3c9.jpg?v=1781021525696"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/15fd9c99-7cfa-4ee5-82ba-414b600ef3c9.png?v=1783358021628"
         },
         {
           "id": "cerveja-original-269ml-c-15",
@@ -316,7 +316,7 @@
           "priceLabel": "R$ 48,35",
           "description": "CERVEJA ORIGINAL 269ML C/15",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/755bf334-a44a-4b5d-9efa-cef1c9552cf6.jpg?v=1781021527254"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/755bf334-a44a-4b5d-9efa-cef1c9552cf6-cx.png?v=1783358994764"
         },
         {
           "id": "cerveja-original-350ml",
@@ -338,7 +338,7 @@
           "priceLabel": "R$ 186,35",
           "description": "CERVEJA ORIGINAL 600ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/4e25610d-e505-4d4c-92e5-eb7230466167.jpg?v=1781021533610"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/4e25610d-e505-4d4c-92e5-eb7230466167-cx.png?v=1783358096696"
         },
         {
           "id": "cerveja-petra-269ml",
@@ -349,7 +349,7 @@
           "priceLabel": "R$ 2,59",
           "description": "CERVEJA PETRA 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/fd938d49-b682-4994-9cbd-0b9e30d6057d.jpg?v=1781021535206"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/fd938d49-b682-4994-9cbd-0b9e30d6057d.png?v=1783358128496"
         },
         {
           "id": "cerveja-petra-269ml-c-12",
@@ -360,7 +360,7 @@
           "priceLabel": "R$ 28,29",
           "description": "CERVEJA PETRA 269ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/75b09b30-edf0-483f-b188-bfa7ef88cc2b.jpg?v=1781021536723"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/75b09b30-edf0-483f-b188-bfa7ef88cc2b-cx.png?v=1783359042891"
         },
         {
           "id": "cerveja-skol-269ml",
@@ -382,7 +382,7 @@
           "priceLabel": "R$ 37,95",
           "description": "CERVEJA SKOL 269ML C/15",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/44c5ac44-cc2b-40fd-9ad2-f62ebf131d27.jpg?v=1781021541262"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/44c5ac44-cc2b-40fd-9ad2-f62ebf131d27-cx.png?v=1783358189256"
         },
         {
           "id": "cerveja-spaten-269ml",
@@ -393,7 +393,7 @@
           "priceLabel": "R$ 3,49",
           "description": "CERVEJA SPATEN 269ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/094da24c-6369-4760-a51f-4c9373d8e4f6.jpg?v=1781021542908"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/094da24c-6369-4760-a51f-4c9373d8e4f6.png?v=1783358211796"
         },
         {
           "id": "cerveja-stella-269ml",
@@ -415,7 +415,7 @@
           "priceLabel": "R$ 5,89",
           "description": "CERVEJA STELLA 330ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/abd62867-f286-4bd5-89bd-b85bc6983d39.jpg?v=1781021546759"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/abd62867-f286-4bd5-89bd-b85bc6983d39.png?v=1783358255612"
         },
         {
           "id": "cerveja-stella-330ml-c-24",
@@ -426,7 +426,7 @@
           "priceLabel": "R$ 129,95",
           "description": "CERVEJA STELLA 330ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f3ded93f-4977-4696-b9ec-a05c26eb5093.jpg?v=1781021548899"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f3ded93f-4977-4696-b9ec-a05c26eb5093-cx.png?v=1783359103893"
         },
         {
           "id": "cerveja-stella-sem-gluten-330ml",
@@ -437,7 +437,7 @@
           "priceLabel": "R$ 6,69",
           "description": "CERVEJA STELLA SEM GLUTEN 330ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2c983c0b-699e-428b-abdb-4fee5ebf6a64.jpg?v=1781021550574"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2c983c0b-699e-428b-abdb-4fee5ebf6a64.png?v=1783358296814"
         },
         {
           "id": "cerveja-stella-sem-gluten-330ml-c-24",
@@ -448,7 +448,7 @@
           "priceLabel": "R$ 147,25",
           "description": "CERVEJA STELLA SEM GLUTEN 330ML C/24",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d3f9aa8e-040d-4cf0-8d80-feb7035d1747.jpg?v=1781025139395"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d3f9aa8e-040d-4cf0-8d80-feb7035d1747-cx.png?v=1783358329925"
         },
         {
           "id": "skol-beats-sense-long-neck-269ml",
@@ -1929,7 +1929,7 @@
           "price": 49.89,
           "priceLabel": "R$ 49,89",
           "description": "APEROL 750ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c36931f2-a497-4530-8de4-79ab3d50ead7.jpg?v=1781021307964"
         },
         {
@@ -1940,7 +1940,7 @@
           "price": 41.25,
           "priceLabel": "R$ 41,25",
           "description": "CAMPARI 748ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6df62c45-7f39-475e-8373-d3179510ab52.jpg?v=1781021448836"
         },
         {
@@ -1962,7 +1962,7 @@
           "price": 49.99,
           "priceLabel": "R$ 49,99",
           "description": "CAMPARI 998ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/0678d647-b185-4047-9872-0517951ee9e2.jpg?v=1781021452090"
         },
         {
@@ -1974,7 +1974,7 @@
           "priceLabel": "R$ 551,89",
           "description": "CAMPARI 998ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b05a3f37-f0d2-4742-96d7-89c71737c12f.jpg?v=1781021453832"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b05a3f37-f0d2-4742-96d7-89c71737c12f-cx.png?v=1783358268005"
         },
         {
           "id": "cinzano-rosso-1l",
@@ -1984,7 +1984,7 @@
           "price": 37.39,
           "priceLabel": "R$ 37,39",
           "description": "CINZANO ROSSO 1L",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/335238c9-8780-43c7-aee1-340c98bd8f24.jpg?v=1781025179545"
         },
         {
@@ -1995,7 +1995,7 @@
           "price": 33.15,
           "priceLabel": "R$ 33,15",
           "description": "CONHAQUE DOMECQ 1 L",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/009dbadf-bc2a-4664-936d-98888142e4d7.jpg?v=1781021601087"
         },
         {
@@ -2017,7 +2017,7 @@
           "price": 14.39,
           "priceLabel": "R$ 14,39",
           "description": "CONHAQUE DOMUS 900ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3b6dd905-8c1d-46a2-8f79-f2c70015704a.jpg?v=1781025189638"
         },
         {
@@ -2028,8 +2028,8 @@
           "price": 18.05,
           "priceLabel": "R$ 18,05",
           "description": "CONHAQUE DREHER 900 ML",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/566e9455-99cc-4fef-be2e-b072b87faa31.jpg?v=1781021604802"
+          "adultOnly": true,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/566e9455-99cc-4fef-be2e-b072b87faa31.png?v=1783358528279"
         },
         {
           "id": "conhaque-dreher-900-ml-c-12",
@@ -2050,7 +2050,7 @@
           "price": 13.65,
           "priceLabel": "R$ 13,65",
           "description": "CONHAQUE PRESIDENTE 900 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/8cea0b3d-beea-4172-a500-e13329be3f8a.jpg?v=1781021608257"
         },
         {
@@ -2061,7 +2061,7 @@
           "price": 17.05,
           "priceLabel": "R$ 17,05",
           "description": "CONHAQUE PRESIDENTE MEL 900ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3cf059bd-1b2f-4203-8469-4e9ad838af46.jpg?v=1781021609778"
         },
         {
@@ -2072,7 +2072,7 @@
           "price": 25.79,
           "priceLabel": "R$ 25,79",
           "description": "GOLF LICOR CREME DE MENTA 900 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d5d148c4-20ce-43d5-b5c7-5f598825f7ed.jpg?v=1781022059966"
         },
         {
@@ -2083,7 +2083,7 @@
           "price": 59.99,
           "priceLabel": "R$ 59,99",
           "description": "LICOR 1922 DOCE DE LEITE 700ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a008a61c-025e-401b-9c4e-3f99b0593dc4.jpg?v=1781022175564"
         },
         {
@@ -2094,7 +2094,7 @@
           "price": 135.65,
           "priceLabel": "R$ 135,65",
           "description": "LICOR 43 700ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ceb1b0ef-87bc-4be9-aa99-4da61d050dd1.jpg?v=1781022176956"
         },
         {
@@ -2109,6 +2109,17 @@
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/18d07cb0-e92d-4521-a356-2611b39735d9.jpg?v=1781022178523"
         },
         {
+          "id": "licor-43-chocolate-700ml",
+          "hubId": "cb16a158-47fc-47de-956f-d4f3f8128459",
+          "sku": "8410221902915",
+          "name": "LICOR 43 CHOCOLATE 700ML",
+          "price": 178.25,
+          "priceLabel": "R$ 178,25",
+          "description": "LICOR 43 CHOCOLATE 700ML",
+          "adultOnly": true,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/cb16a158-47fc-47de-956f-d4f3f8128459.jpg?v=1781022179989"
+        },
+        {
           "id": "licor-43-creme-brulee-700ml",
           "hubId": "fe6c0ccf-e448-46d8-b8fb-d1127d428fc6",
           "sku": "8410221903035",
@@ -2116,7 +2127,7 @@
           "price": 186.25,
           "priceLabel": "R$ 186,25",
           "description": "LICOR 43 CREME BRULEE 700ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/fe6c0ccf-e448-46d8-b8fb-d1127d428fc6.jpg?v=1781022182892"
         },
         {
@@ -2127,7 +2138,7 @@
           "price": 148.25,
           "priceLabel": "R$ 148,25",
           "description": "LICOR 43 HORCHATA 700ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1c9258e9-8028-4ee5-8370-9c062eb201e0.jpg?v=1781022184898"
         },
         {
@@ -2138,7 +2149,7 @@
           "price": 57.49,
           "priceLabel": "R$ 57,49",
           "description": "LICOR AMARULA 375ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/febf2f11-568e-4e71-ab0f-456a93aeee58.jpg?v=1781022186826"
         },
         {
@@ -2149,8 +2160,19 @@
           "price": 94.19,
           "priceLabel": "R$ 94,19",
           "description": "LICOR AMARULA 750 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2028e704-5737-447a-9496-c14c548bd1de.jpg?v=1781022188694"
+        },
+        {
+          "id": "licor-amarula-chocolate-750-ml",
+          "hubId": "3a0ee8f3-505a-4926-9b4a-1e4cf7a56179",
+          "sku": "6001108108685",
+          "name": "LICOR AMARULA CHOCOLATE 750 ML",
+          "price": 97.39,
+          "priceLabel": "R$ 97,39",
+          "description": "LICOR AMARULA CHOCOLATE 750 ML",
+          "adultOnly": true,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3a0ee8f3-505a-4926-9b4a-1e4cf7a56179.jpg?v=1781022190195"
         },
         {
           "id": "licor-amarula-mini-50-ml",
@@ -2160,7 +2182,7 @@
           "price": 13.25,
           "priceLabel": "R$ 13,25",
           "description": "LICOR AMARULA MINI 50 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/552bf71b-f555-4615-8a16-d6cf8b267149.jpg?v=1781022191749"
         },
         {
@@ -2171,7 +2193,7 @@
           "price": 98.49,
           "priceLabel": "R$ 98,49",
           "description": "LICOR AMARULA RASPBERRY 750 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/68fc5376-f5d1-4793-9801-d7809ae28d26.jpg?v=1781022193954"
         },
         {
@@ -2182,7 +2204,7 @@
           "price": 85.05,
           "priceLabel": "R$ 85,05",
           "description": "LICOR BALLENA 750ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/dcd8b8cc-1ae0-40b0-8680-c9713de97f3e.jpg?v=1781022197486"
         },
         {
@@ -2197,6 +2219,28 @@
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/5f00ae62-8f04-4a04-91ba-b1293202b553.jpg?v=1781022199987"
         },
         {
+          "id": "licor-ballena-chocolate-750ml",
+          "hubId": "f5d61494-c7f8-4ec9-b45a-f19ab70f1782",
+          "sku": "7898726150023",
+          "name": "LICOR BALLENA CHOCOLATE 750ML",
+          "price": 124.99,
+          "priceLabel": "R$ 124,99",
+          "description": "LICOR BALLENA CHOCOLATE 750ML",
+          "adultOnly": true,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f5d61494-c7f8-4ec9-b45a-f19ab70f1782.jpg?v=1781022201731"
+        },
+        {
+          "id": "licor-ballena-chocolate-750ml-c-6",
+          "hubId": "f4214bd5-16e8-4745-8ac7-8708dee91361",
+          "sku": null,
+          "name": "LICOR BALLENA CHOCOLATE 750ML C/6",
+          "price": 689.95,
+          "priceLabel": "R$ 689,95",
+          "description": "LICOR BALLENA CHOCOLATE 750ML C/6",
+          "adultOnly": false,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f4214bd5-16e8-4745-8ac7-8708dee91361.jpg?v=1781022203704"
+        },
+        {
           "id": "licor-ballena-coco-750ml",
           "hubId": "3b5005c3-f02b-4cd8-a25f-ad587ad70bff",
           "sku": "7898726150030",
@@ -2204,7 +2248,7 @@
           "price": 124.89,
           "priceLabel": "R$ 124,89",
           "description": "LICOR BALLENA COCO 750ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3b5005c3-f02b-4cd8-a25f-ad587ad70bff.jpg?v=1781022205221"
         },
         {
@@ -2226,7 +2270,7 @@
           "price": 62.49,
           "priceLabel": "R$ 62,49",
           "description": "LICOR BARDERA ALFAJOR 500ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/8526318c-35d3-4051-bf1f-f26425c5e2f9.jpg?v=1781022209279"
         },
         {
@@ -2237,7 +2281,7 @@
           "price": 62.49,
           "priceLabel": "R$ 62,49",
           "description": "LICOR BARDERA AVELLANA 500ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/0a5cd933-96cf-425b-8b46-6a877fd85548.jpg?v=1781022211208"
         },
         {
@@ -2248,7 +2292,7 @@
           "price": 62.49,
           "priceLabel": "R$ 62,49",
           "description": "LICOR BARDERA BANOFFEE 500ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/27f361df-a84a-42eb-ae55-43ef8e74c45d.jpg?v=1781025579499"
         },
         {
@@ -2259,7 +2303,7 @@
           "price": 62.49,
           "priceLabel": "R$ 62,49",
           "description": "LICOR BARDERA CAFE 500ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3af9f95c-245b-475c-9f94-af305506921e.jpg?v=1781022212648"
         },
         {
@@ -2270,7 +2314,7 @@
           "price": 62.49,
           "priceLabel": "R$ 62,49",
           "description": "LICOR BARDERA DOCE/LEITE 500ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/07ee495e-bdaf-4c28-b9c6-55a19aa6f025.jpg?v=1781025586029"
         },
         {
@@ -2281,7 +2325,7 @@
           "price": 47.39,
           "priceLabel": "R$ 47,39",
           "description": "LICOR BEM CASADO DOCE DE LEITE 1L",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/91186952-6c08-4de2-94a5-005226d72621.jpg?v=1781022214058"
         },
         {
@@ -2292,7 +2336,7 @@
           "price": 25.79,
           "priceLabel": "R$ 25,79",
           "description": "LICOR CACAU GOLF 900 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7a167cd9-d982-4de9-8e83-4673f5df72ef.jpg?v=1781022216065"
         },
         {
@@ -2303,7 +2347,7 @@
           "price": 128.65,
           "priceLabel": "R$ 128,65",
           "description": "LICOR COINTREAU 700 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ade31073-1de5-4cc0-94b8-fc232d742de4.jpg?v=1781022217810"
         },
         {
@@ -2314,7 +2358,7 @@
           "price": 48.89,
           "priceLabel": "R$ 48,89",
           "description": "LICOR DE COCO MALIBU 750 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/59e318ef-553b-4cc6-b807-6d440825b836.jpg?v=1781022220006"
         },
         {
@@ -2325,7 +2369,7 @@
           "price": 148.25,
           "priceLabel": "R$ 148,25",
           "description": "LICOR FIREBALL 750ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1d3aa9f0-56a7-4fe4-bfa7-0eeec8473e11.jpg?v=1781022230669"
         },
         {
@@ -2336,7 +2380,7 @@
           "price": 7.89,
           "priceLabel": "R$ 7,89",
           "description": "LICOR JAGERMEISTER MINI 20ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/af621bea-0776-46e6-a828-46536c7717fa.jpg?v=1781022237593"
         },
         {
@@ -2347,7 +2391,7 @@
           "price": 44.89,
           "priceLabel": "R$ 44,89",
           "description": "LICOR STOCK ANISETTE 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f17d229e-3335-40ed-aacb-6862ee548673.jpg?v=1781022242107"
         },
         {
@@ -2358,7 +2402,7 @@
           "price": 40.15,
           "priceLabel": "R$ 40,15",
           "description": "LICOR STOCK APRICOT720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b3249c9e-ae05-487b-8e1c-c03f4d293297.jpg?v=1781022243666"
         },
         {
@@ -2369,7 +2413,7 @@
           "price": 40.45,
           "priceLabel": "R$ 40,45",
           "description": "LICOR STOCK CAFE 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/8058d619-b29e-4927-be24-3fe4b1f41a68.jpg?v=1781022245344"
         },
         {
@@ -2380,8 +2424,19 @@
           "price": 39.89,
           "priceLabel": "R$ 39,89",
           "description": "LICOR STOCK CEREJA 750 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a062e4a2-50fc-4035-bb66-4c483b2dfc9b.jpg?v=1781022247285"
+        },
+        {
+          "id": "licor-stock-chocolate-720ml",
+          "hubId": "a1360893-f7da-4198-9164-814a147e6f99",
+          "sku": "7891121212006",
+          "name": "LICOR STOCK CHOCOLATE 720ML",
+          "price": 44.89,
+          "priceLabel": "R$ 44,89",
+          "description": "LICOR STOCK CHOCOLATE 720ML",
+          "adultOnly": true,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a1360893-f7da-4198-9164-814a147e6f99.jpg?v=1781025604967"
         },
         {
           "id": "licor-stock-creme-de-cacao-720-ml",
@@ -2391,7 +2446,7 @@
           "price": 43.45,
           "priceLabel": "R$ 43,45",
           "description": "LICOR STOCK CREME DE CACAO 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f0394d10-91e6-4962-8402-5e03334f620c.jpg?v=1781022249069"
         },
         {
@@ -2402,7 +2457,7 @@
           "price": 44.89,
           "priceLabel": "R$ 44,89",
           "description": "LICOR STOCK CREME DE CASSIS 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/494ff198-99ff-4158-a94b-39ebf7b828f9.jpg?v=1781022250753"
         },
         {
@@ -2413,7 +2468,7 @@
           "price": 43.45,
           "priceLabel": "R$ 43,45",
           "description": "LICOR STOCK CREME DE MENTA 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/82ff1a08-f4a7-4e90-9ccf-dbb3f7927fcf.jpg?v=1781025612332"
         },
         {
@@ -2424,7 +2479,7 @@
           "price": 44.89,
           "priceLabel": "R$ 44,89",
           "description": "LICOR STOCK CURACAU 720ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6b1a8974-2940-4d77-a5ea-3ac09e084428.jpg?v=1781022252642"
         },
         {
@@ -2435,7 +2490,7 @@
           "price": 44.39,
           "priceLabel": "R$ 44,39",
           "description": "LICOR STOCK CURACAU BLUE 720ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7c0747a2-1bbe-4975-b924-c70802ea9a82.jpg?v=1781022254228"
         },
         {
@@ -2446,7 +2501,7 @@
           "price": 40.45,
           "priceLabel": "R$ 40,45",
           "description": "LICOR STOCK CURACAU RED 720ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/0e4e5cb6-427e-4e2e-abab-fec04955cacf.jpg?v=1781022255965"
         },
         {
@@ -2457,7 +2512,7 @@
           "price": 59.99,
           "priceLabel": "R$ 59,99",
           "description": "LICOR STOCK DOCE DE LEITE 720ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/66dc25d5-0f14-49e6-9647-3936d8333f9b.jpg?v=1781022258329"
         },
         {
@@ -2468,7 +2523,7 @@
           "price": 41.85,
           "priceLabel": "R$ 41,85",
           "description": "LICOR STOCK KIWI 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/35dca50a-ee15-449f-b5ec-9972a0e5d2a2.jpg?v=1781022259900"
         },
         {
@@ -2479,8 +2534,19 @@
           "price": 62.39,
           "priceLabel": "R$ 62,39",
           "description": "LICOR STOCK MARULA 720 ML UN",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/aaa44bf1-9e86-41fe-97e8-eb344140119a.jpg?v=1781022261626"
+        },
+        {
+          "id": "licor-stock-mint-chocolate-720-ml",
+          "hubId": "7356963d-c5c1-4c93-a99b-eb0c561ef553",
+          "sku": "7891121286007",
+          "name": "LICOR STOCK MINT CHOCOLATE 720 ML",
+          "price": 59.99,
+          "priceLabel": "R$ 59,99",
+          "description": "LICOR STOCK MINT CHOCOLATE 720 ML",
+          "adultOnly": true,
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7356963d-c5c1-4c93-a99b-eb0c561ef553.jpg?v=1781022263572"
         },
         {
           "id": "licor-stock-morango-720-ml",
@@ -2490,7 +2556,7 @@
           "price": 41.85,
           "priceLabel": "R$ 41,85",
           "description": "LICOR STOCK MORANGO 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/076e7e2c-33f2-478d-a699-3bdee09ec068.jpg?v=1781022265097"
         },
         {
@@ -2501,7 +2567,7 @@
           "price": 44.39,
           "priceLabel": "R$ 44,39",
           "description": "LICOR STOCK PESSEGO UN",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/5ec22997-fe81-4669-b972-2dedd056a803.jpg?v=1781022266594"
         },
         {
@@ -2512,7 +2578,7 @@
           "price": 56.25,
           "priceLabel": "R$ 56,25",
           "description": "LICOR STOCK PINA COLADA CREAM 720 ML",
-          "adultOnly": false,
+          "adultOnly": true,
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/95926d80-30d0-4b53-aaa7-5cb563c83966.jpg?v=1781022268365"
         }
       ]
@@ -2563,7 +2629,7 @@
           "priceLabel": "R$ 10,05",
           "description": "CACHACA 7 ERVAS 965ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/8638e3f9-a412-4e52-8087-839cd5afa8d4.jpg?v=1781021331648"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/8638e3f9-a412-4e52-8087-839cd5afa8d4.png?v=1783348899213"
         },
         {
           "id": "cachaca-7-ervas-965ml-c-6",
@@ -2574,7 +2640,7 @@
           "priceLabel": "R$ 55,25",
           "description": "CACHACA 7 ERVAS 965ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1c27ef53-9d20-45fe-b015-e0603a36be52.jpg?v=1781021333616"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1c27ef53-9d20-45fe-b015-e0603a36be52-cx.png?v=1783348927382"
         },
         {
           "id": "cachaca-acainha-750ml",
@@ -2585,7 +2651,7 @@
           "priceLabel": "R$ 31,25",
           "description": "CACHACA ACAINHA 750ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/81b06388-a57f-4868-a871-04806ed0c4f1.jpg?v=1781021335149"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/81b06388-a57f-4868-a871-04806ed0c4f1.png?v=1783348942358"
         },
         {
           "id": "cachaca-alambique-700ml",
@@ -2728,7 +2794,7 @@
           "priceLabel": "R$ 2,19",
           "description": "CACHACA CALDENSE 490ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/e9a7344f-e61e-4950-8938-71af08f90664.jpg?v=1781021362013"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/e9a7344f-e61e-4950-8938-71af08f90664.png?v=1783349052484"
         },
         {
           "id": "cachaca-caldense-490ml-c-12",
@@ -2739,7 +2805,7 @@
           "priceLabel": "R$ 24,29",
           "description": "CACHACA CALDENSE 490ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/bc4fc514-e025-4268-9c99-a38374d0cd92.jpg?v=1781021363919"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/bc4fc514-e025-4268-9c99-a38374d0cd92-cx.png?v=1783349060227"
         },
         {
           "id": "cachaca-canelinha-750ml",
@@ -2761,7 +2827,7 @@
           "priceLabel": "R$ 42,65",
           "description": "CACHACA CANELINHA DA ROCHA 275ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a5f6a30d-2b96-447e-bd42-a1379d29955a.jpg?v=1781021371445"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a5f6a30d-2b96-447e-bd42-a1379d29955a-cx.png?v=1783349098609"
         },
         {
           "id": "cachaca-canelinha-da-rocha-900ml-c-12",
@@ -2772,7 +2838,7 @@
           "priceLabel": "R$ 124,25",
           "description": "CACHACA CANELINHA DA ROCHA 900ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6089a517-b58c-4f6d-9633-c6715d2e71fb.jpg?v=1781021373262"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/6089a517-b58c-4f6d-9633-c6715d2e71fb-cx.png?v=1783349162703"
         },
         {
           "id": "cachaca-cynar-900-ml",
@@ -2805,7 +2871,7 @@
           "priceLabel": "R$ 63,75",
           "description": "CACHACA D'GUSTA DICAFÉ 750ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2d58dda0-5f17-4b63-b53a-254297cc8461.jpg?v=1781025102740"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2d58dda0-5f17-4b63-b53a-254297cc8461.png?v=1783349192463"
         },
         {
           "id": "cachaca-fernet-fenetti",
@@ -2827,7 +2893,7 @@
           "priceLabel": "R$ 16,89",
           "description": "CACHACA KARIRI 960 ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/cfc3271f-119e-416a-ae02-d8ce8e1f801c.jpg?v=1781021381292"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/cfc3271f-119e-416a-ae02-d8ce8e1f801c.png?v=1783349219126"
         },
         {
           "id": "cachaca-old-cesar-88-965ml",
@@ -2838,7 +2904,7 @@
           "priceLabel": "R$ 12,75",
           "description": "CACHACA OLD CESAR 88 965ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/78bc1266-9ac8-48a8-9ed1-a150b89df12d.jpg?v=1781021383928"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/78bc1266-9ac8-48a8-9ed1-a150b89df12d.png?v=1783349235083"
         },
         {
           "id": "cachaca-pitu-350ml",
@@ -2860,7 +2926,7 @@
           "priceLabel": "R$ 53,69",
           "description": "CACHACA PITU 350ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/40178569-981e-4834-b0e4-9c4c54750ad1.jpg?v=1781021388057"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/40178569-981e-4834-b0e4-9c4c54750ad1-cx.png?v=1783349258244"
         },
         {
           "id": "cachaca-presidente-900ml",
@@ -3069,7 +3135,7 @@
           "priceLabel": "R$ 13,25",
           "description": "CACHACA VELHO BARREIRO 910ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/14f210d5-22b6-4658-83f6-a3dc4587ca5a.jpg?v=1781025120189"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/14f210d5-22b6-4658-83f6-a3dc4587ca5a.png?v=1783358140625"
         },
         {
           "id": "cachaca-velho-barreiro-910ml-c-12",
@@ -3500,11 +3566,11 @@
           "hubId": "c20c2d1d-ee5f-472f-ab6b-89c340e7a662",
           "sku": null,
           "name": "AGUA DE COCO COCO QUADRADO 1L C/12",
-          "price": 77.19,
-          "priceLabel": "R$ 77,19",
+          "price": 77.15,
+          "priceLabel": "R$ 77,15",
           "description": "AGUA DE COCO COCO QUADRADO 1L C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c20c2d1d-ee5f-472f-ab6b-89c340e7a662.jpg?v=1781021263345"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c20c2d1d-ee5f-472f-ab6b-89c340e7a662-cx.png?v=1783348150554"
         },
         {
           "id": "agua-de-coco-coco-quadrado-200ml",
@@ -3522,11 +3588,11 @@
           "hubId": "435423b2-c255-4544-986b-ae75822612b0",
           "sku": null,
           "name": "AGUA DE COCO COCO QUADRADO 200ML C/27",
-          "price": 40.55,
-          "priceLabel": "R$ 40,55",
+          "price": 40.05,
+          "priceLabel": "R$ 40,05",
           "description": "AGUA DE COCO COCO QUADRADO 200ML C/27",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/435423b2-c255-4544-986b-ae75822612b0.jpg?v=1781021266275"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/435423b2-c255-4544-986b-ae75822612b0-cx.png?v=1783348200603"
         },
         {
           "id": "agua-de-coco-kero-coco-1l",
@@ -3537,7 +3603,7 @@
           "priceLabel": "R$ 11,95",
           "description": "AGUA DE COCO KERO COCO 1L",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/256481a7-254d-4f2f-b413-01b324448b7b.jpg?v=1781021274173"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/256481a7-254d-4f2f-b413-01b324448b7b.png?v=1783348236698"
         },
         {
           "id": "agua-de-coco-kero-coco-1l-c-12",
@@ -3548,7 +3614,7 @@
           "priceLabel": "R$ 131,89",
           "description": "AGUA DE COCO KERO COCO 1L C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/510ecd34-863b-4d7e-a091-85609bca61e6.jpg?v=1781021276864"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/510ecd34-863b-4d7e-a091-85609bca61e6-cx.png?v=1783356087026"
         },
         {
           "id": "agua-de-coco-kero-coco-200ml",
@@ -3559,7 +3625,7 @@
           "priceLabel": "R$ 2,45",
           "description": "AGUA DE COCO KERO COCO 200ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/de5342d9-c773-409e-a746-967db251beb0.jpg?v=1781021278849"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/de5342d9-c773-409e-a746-967db251beb0.png?v=1783348436714"
         },
         {
           "id": "agua-de-coco-kero-coco-200ml-c-27",
@@ -3570,7 +3636,7 @@
           "priceLabel": "R$ 59,65",
           "description": "AGUA DE COCO KERO COCO 200ML C/27",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f9dae724-b536-40be-8c9e-9c182d66092a.jpg?v=1781021281286"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f9dae724-b536-40be-8c9e-9c182d66092a-cx.png?v=1783356213510"
         },
         {
           "id": "agua-de-coco-kero-coco-330ml",
@@ -3581,7 +3647,7 @@
           "priceLabel": "R$ 5,29",
           "description": "AGUA DE COCO KERO COCO 330ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7aa34e53-eb50-444c-8545-d8761f8fb1cb.jpg?v=1781021283288"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7aa34e53-eb50-444c-8545-d8761f8fb1cb.png?v=1783348333619"
         },
         {
           "id": "agua-de-coco-kero-coco-330ml-c-12",
@@ -4555,7 +4621,7 @@
           "priceLabel": "R$ 12,99",
           "description": "BAIANINHA MARACUJA 900ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1923a0fd-6fbd-40d1-96f3-7cd2829083e6.jpg?v=1781021311619"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1923a0fd-6fbd-40d1-96f3-7cd2829083e6.png?v=1783348765132"
         },
         {
           "id": "cachaca-canelinha-da-rocha-275ml",
@@ -4566,7 +4632,7 @@
           "priceLabel": "R$ 3,89",
           "description": "CACHACA CANELINHA DA ROCHA 275ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c583d827-8ebb-4aa6-85d8-0a80acea532d.jpg?v=1781021369665"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c583d827-8ebb-4aa6-85d8-0a80acea532d.png?v=1783349091018"
         },
         {
           "id": "cachaca-canelinha-da-rocha-900ml",
@@ -4577,7 +4643,7 @@
           "priceLabel": "R$ 11,25",
           "description": "CACHACA CANELINHA DA ROCHA 900ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d331a924-8b6b-4115-b9c1-87523cc29ae7.jpg?v=1781025094353"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d331a924-8b6b-4115-b9c1-87523cc29ae7.png?v=1783349170271"
         },
         {
           "id": "chopp-de-vinho-draft-0-0-600ml",
@@ -4588,7 +4654,7 @@
           "priceLabel": "R$ 9,45",
           "description": "CHOPP DE VINHO DRAFT 0,0%  600ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/cb87f9de-771c-443d-88c8-95cb4ee648be.jpg?v=1781021564422"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/cb87f9de-771c-443d-88c8-95cb4ee648be.png?v=1783353347802"
         },
         {
           "id": "chopp-de-vinho-draft-0-0-600ml-c-6",
@@ -4599,7 +4665,7 @@
           "priceLabel": "R$ 52,85",
           "description": "CHOPP DE VINHO DRAFT 0,0% 600ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d5a605fa-2179-4789-ad1f-70b98948a4e4.jpg?v=1781021565939"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d5a605fa-2179-4789-ad1f-70b98948a4e4-cx.png?v=1783353355922"
         },
         {
           "id": "chopp-de-vinho-draft-600ml",
@@ -4610,7 +4676,7 @@
           "priceLabel": "R$ 10,25",
           "description": "CHOPP DE VINHO DRAFT 600ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/772eeb14-f716-418b-becb-99117f6d5681.jpg?v=1781021568425"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/772eeb14-f716-418b-becb-99117f6d5681.png?v=1783352979175"
         },
         {
           "id": "chopp-de-vinho-draft-600ml-c-6",
@@ -4621,7 +4687,7 @@
           "priceLabel": "R$ 61,45",
           "description": "CHOPP DE VINHO DRAFT 600ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2b99d9de-ac71-4d43-8ef6-b82b8fde7b71.jpg?v=1781021570094"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/2b99d9de-ac71-4d43-8ef6-b82b8fde7b71.png?v=1783353022659"
         },
         {
           "id": "contini-branco-900-ml",
@@ -4643,7 +4709,7 @@
           "priceLabel": "R$ 343,09",
           "description": "CONTINI BRANCO 900 ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/996be455-5a97-4f3b-a440-82dd7a7537d7.jpg?v=1781021613293"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/996be455-5a97-4f3b-a440-82dd7a7537d7-cx.png?v=1783358691748"
         },
         {
           "id": "contini-rose-900-ml-c-6",
@@ -4654,7 +4720,7 @@
           "priceLabel": "R$ 102,35",
           "description": "CONTINI ROSE 900 ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3add4437-cb07-42eb-bd99-0b0e199c2c9a.jpg?v=1781021616460"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3add4437-cb07-42eb-bd99-0b0e199c2c9a-cx.png?v=1783358711889"
         },
         {
           "id": "contini-vibe-acai-750ml",
@@ -4665,7 +4731,7 @@
           "priceLabel": "R$ 23,75",
           "description": "CONTINI VIBE ACAI 750ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a8c9e4ac-c52a-4ba8-963f-ae92280247a8.jpg?v=1781021618573"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a8c9e4ac-c52a-4ba8-963f-ae92280247a8.png?v=1783358738184"
         },
         {
           "id": "contini-vibe-limao-750ml",
@@ -4676,7 +4742,7 @@
           "priceLabel": "R$ 23,75",
           "description": "CONTINI VIBE LIMAO 750ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/9ce5a69c-6e69-4b7a-a251-6e771e7aa055.jpg?v=1781021620347"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/9ce5a69c-6e69-4b7a-a251-6e771e7aa055.png?v=1783358748957"
         },
         {
           "id": "cooler-vilena-abacaxi-750ml",
@@ -4687,7 +4753,7 @@
           "priceLabel": "R$ 14,75",
           "description": "COOLER VILENA ABACAXI 750ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ec8920f6-0a96-4802-a324-a7aa84c55724.jpg?v=1781021622047"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ec8920f6-0a96-4802-a324-a7aa84c55724.png?v=1783358764914"
         },
         {
           "id": "espumante-chuva-de-prata-bca-660-ml",
@@ -4887,11 +4953,11 @@
           "hubId": "c6a7fabe-35ee-4273-a451-18fafc0ccd7a",
           "sku": null,
           "name": "AGUA BIO 500 ML C/12",
-          "price": 9.25,
-          "priceLabel": "R$ 9,25",
+          "price": 9.15,
+          "priceLabel": "R$ 9,15",
           "description": "AGUA BIO 500 ML PCT C/12 UN",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c6a7fabe-35ee-4273-a451-18fafc0ccd7a.jpg?v=1781021250956"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/c6a7fabe-35ee-4273-a451-18fafc0ccd7a-cx.png?v=1783122491354"
         },
         {
           "id": "agua-bio-500-ml-un",
@@ -4902,7 +4968,7 @@
           "priceLabel": "R$ 0,85",
           "description": "AGUA BIO 500 ML UN",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/80c4d6f1-6ef8-4fe8-814b-77d5e8f0f5df.jpg?v=1781021253297"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/80c4d6f1-6ef8-4fe8-814b-77d5e8f0f5df.png?v=1783346334879"
         },
         {
           "id": "agua-bio-c-gas-500-ml",
@@ -4913,18 +4979,18 @@
           "priceLabel": "R$ 1,29",
           "description": "AGUA BIO C/ GAS 500 ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/52a18003-8fa5-45f5-8f9a-d8a6c8421e14.jpg?v=1781021254626"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/52a18003-8fa5-45f5-8f9a-d8a6c8421e14.png?v=1783347173234"
         },
         {
           "id": "agua-bio-c-gas-500-ml-pct-c-12-un",
           "hubId": "39f65876-717e-4f1d-9fb2-519de984591b",
           "sku": null,
           "name": "AGUA BIO C/ GAS 500 ML PCT C/ 12 UN",
-          "price": 14.29,
-          "priceLabel": "R$ 14,29",
+          "price": 14.25,
+          "priceLabel": "R$ 14,25",
           "description": "AGUA BIO C/ GAS 500 ML PCT C/ 12 UN",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/39f65876-717e-4f1d-9fb2-519de984591b.jpg?v=1781021256530"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/39f65876-717e-4f1d-9fb2-519de984591b-cx.png?v=1783347202086"
         },
         {
           "id": "agua-levissima-1-5l",
@@ -4946,7 +5012,7 @@
           "priceLabel": "R$ 12,25",
           "description": "AGUA LEVISSIMA 1,5L C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ab368aa5-bf8f-4c72-a7ef-203c8a503d3c.jpg?v=1781021289578"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ab368aa5-bf8f-4c72-a7ef-203c8a503d3c-cx.png?v=1783356126574"
         },
         {
           "id": "agua-levissima-510ml",
@@ -4968,7 +5034,7 @@
           "priceLabel": "R$ 13,69",
           "description": "AGUA LEVISSIMA 510ML C/12",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7ec7a296-f9f3-47f8-ba89-057f4ec5f6c5.jpg?v=1781021297565"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7ec7a296-f9f3-47f8-ba89-057f4ec5f6c5-cx.png?v=1783357890576"
         },
         {
           "id": "agua-levissima-510ml-c-gas",
@@ -5001,7 +5067,7 @@
           "priceLabel": "R$ 8,55",
           "description": "AGUA LEVISSIMA 6L",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/86fb3b26-51f5-4d7b-801d-e1a85a1d945c.jpg?v=1781021302301"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/86fb3b26-51f5-4d7b-801d-e1a85a1d945c.png?v=1783357936260"
         }
       ]
     },
@@ -5189,7 +5255,7 @@
           "priceLabel": "R$ 8,25",
           "description": "ENERGETICO BALY TROPICAL 2L",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d2f56ce3-962e-4dd7-a40e-ad477c3db7fe.jpg?v=1781021692213"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d2f56ce3-962e-4dd7-a40e-ad477c3db7fe.png?v=1783358882455"
         },
         {
           "id": "energetico-baly-tropical-2l-c-6",
@@ -5200,7 +5266,7 @@
           "priceLabel": "R$ 45,49",
           "description": "ENERGETICO BALY TROPICAL 2L C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/892b1b59-8584-4712-a879-dd28e312da94.jpg?v=1781021694212"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/892b1b59-8584-4712-a879-dd28e312da94-cx.png?v=1783358889008"
         },
         {
           "id": "energetico-monster-473ml",
@@ -5211,7 +5277,7 @@
           "priceLabel": "R$ 9,95",
           "description": "ENERGETICO MONSTER 473ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f01ab4d2-67da-4e62-b070-d14213ecf307.jpg?v=1781021696451"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f01ab4d2-67da-4e62-b070-d14213ecf307.png?v=1783358905266"
         },
         {
           "id": "energetico-monster-absolutely-473ml",
@@ -5255,7 +5321,7 @@
           "priceLabel": "R$ 9,95",
           "description": "ENERGETICO MONSTER BRANCO 473ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/39cd3949-afca-4265-b2b5-c00468042d36.jpg?v=1781021704497"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/39cd3949-afca-4265-b2b5-c00468042d36.png?v=1783358928636"
         },
         {
           "id": "energetico-monster-dragon-473ml",
@@ -5277,7 +5343,7 @@
           "priceLabel": "R$ 9,95",
           "description": "ENERGETICO MONSTER DRAGON ICE LEMON 473ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3979d213-b02b-40dc-a431-96c692255afa.jpg?v=1781021708472"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3979d213-b02b-40dc-a431-96c692255afa.png?v=1783358943690"
         },
         {
           "id": "energetico-monster-dragon-ice-lemon-473ml-c-6",
@@ -5288,7 +5354,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER DRAGON ICE LEMON 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/15a68a8b-a043-4549-a68a-ebc58c69af0e.jpg?v=1781021710445"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/15a68a8b-a043-4549-a68a-ebc58c69af0e-cx.png?v=1783358952052"
         },
         {
           "id": "energetico-monster-dragon-ice-peach-473ml",
@@ -5310,7 +5376,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER DRAGON ICE PEACH 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/efd38948-b609-40b8-91cf-f83700d1a8e7.jpg?v=1781021714348"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/efd38948-b609-40b8-91cf-f83700d1a8e7-cx.png?v=1783358969815"
         },
         {
           "id": "energetico-monster-khaos-473ml",
@@ -5332,7 +5398,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER KHAOS 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/16a44b11-1da4-4b83-a31f-608c552f7f57.jpg?v=1781021719218"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/16a44b11-1da4-4b83-a31f-608c552f7f57-cx.png?v=1783358980136"
         },
         {
           "id": "energetico-monster-khaos-ultra-473ml-c-6",
@@ -5343,7 +5409,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER KHAOS ULTRA 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/0a5b4d56-3d19-475e-9867-23c90135b4fa.jpg?v=1781021721432"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/0a5b4d56-3d19-475e-9867-23c90135b4fa-cx.png?v=1783358994376"
         },
         {
           "id": "energetico-monster-mango-loco-473ml",
@@ -5409,7 +5475,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER PACIFIC 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f3454ea4-1d6f-4317-9456-b512edc13020.jpg?v=1781021732323"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f3454ea4-1d6f-4317-9456-b512edc13020-cx.png?v=1783359008701"
         },
         {
           "id": "energetico-monster-pipeline-puch-473ml",
@@ -5420,7 +5486,7 @@
           "priceLabel": "R$ 9,95",
           "description": "ENERGETICO MONSTER PIPELINE PUCH 473ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/59490168-3300-492c-8dee-2b68d17760df.jpg?v=1781021734417"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/59490168-3300-492c-8dee-2b68d17760df.png?v=1783359049375"
         },
         {
           "id": "energetico-monster-pipeline-punch-473ml-c-6",
@@ -5431,7 +5497,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER PIPELINE PUNCH 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/200c4da4-c5fd-4fa9-9000-9b8faaa1da31.jpg?v=1781021736886"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/200c4da4-c5fd-4fa9-9000-9b8faaa1da31-cx.png?v=1783359053004"
         },
         {
           "id": "energetico-monster-rio-punch-473ml",
@@ -5453,7 +5519,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER RIO PUNCH 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/fe4d88bd-43c5-42ab-a8e3-5dfa14a5cc80.jpg?v=1781021739403"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/fe4d88bd-43c5-42ab-a8e3-5dfa14a5cc80-cx.png?v=1783359068511"
         },
         {
           "id": "energetico-monster-rossi-473ml",
@@ -5486,7 +5552,7 @@
           "priceLabel": "R$ 9,95",
           "description": "ENERGETICO MONSTER TROPICAL ORANGE 473ML",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b0456934-0cf8-4574-a355-530ab690bd7e.jpg?v=1781025242470"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/b0456934-0cf8-4574-a355-530ab690bd7e.png?v=1783359090509"
         },
         {
           "id": "energetico-monster-tropical-orange-473ml-c-6",
@@ -5497,7 +5563,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER TROPICAL ORANGE 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/18f21d1a-dbef-4735-af68-a45fa5e74662.jpg?v=1781021744922"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/18f21d1a-dbef-4735-af68-a45fa5e74662-cx.png?v=1783359097875"
         },
         {
           "id": "energetico-monster-ultra-473ml",
@@ -5519,7 +5585,7 @@
           "priceLabel": "R$ 54,65",
           "description": "ENERGETICO MONSTER ULTRA 473ML C/6",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/699634fe-bd1b-40de-b3f0-baa976606f13.jpg?v=1781021746696"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/699634fe-bd1b-40de-b3f0-baa976606f13-cx.png?v=1783359137182"
         },
         {
           "id": "energetico-monster-ultra-fiesta-mango-473ml",
@@ -6053,7 +6119,7 @@
           "priceLabel": "R$ 19,35",
           "description": "CONTINI ROSE 900 ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3106f5ce-759d-4a12-8246-bc11b4fc0916.jpg?v=1781021614953"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3106f5ce-759d-4a12-8246-bc11b4fc0916.png?v=1783358706544"
         },
         {
           "id": "contini-tinto-900-ml",
@@ -6064,7 +6130,7 @@
           "priceLabel": "R$ 18,85",
           "description": "CONTINI TINTO 900 ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/e833a842-a3d2-4f68-ade3-b6f9a6d19891.jpg?v=1781025204439"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/e833a842-a3d2-4f68-ade3-b6f9a6d19891.png?v=1783358726300"
         },
         {
           "id": "cooler-vilena-morango-750ml",
@@ -6075,7 +6141,7 @@
           "priceLabel": "R$ 14,75",
           "description": "COOLER VILENA MORANGO 750ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1229cfc9-8c19-436f-baf7-17a3049a1a47.jpg?v=1781021624025"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/1229cfc9-8c19-436f-baf7-17a3049a1a47.png?v=1783358787337"
         },
         {
           "id": "cooler-vilena-pessego-750ml",
@@ -6086,7 +6152,7 @@
           "priceLabel": "R$ 14,75",
           "description": "COOLER VILENA PESSEGO 750ML",
           "adultOnly": true,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/e2a2e368-71c8-4fa1-8140-eb1283c7ce6f.jpg?v=1781021625963"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/e2a2e368-71c8-4fa1-8140-eb1283c7ce6f.png?v=1783358776319"
         },
         {
           "id": "cortezano-branco-900-ml",
@@ -9324,15 +9390,15 @@
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/4e67370f-3198-4a4f-b2d2-19b60b27f41a.jpg?v=1781025126900"
         },
         {
-          "id": "canundo-flexivel-shake-100un",
+          "id": "canudo-flexivel-shake-100un",
           "hubId": "d0373d0b-3594-4fcd-bc74-fd0437bff958",
           "sku": "7898202614643",
-          "name": "CANUNDO FLEXIVEL SHAKE 100UN",
+          "name": "CANUDO FLEXIVEL SHAKE 100UN",
           "price": 9.35,
           "priceLabel": "R$ 9,35",
-          "description": "CANUNDO FLEXIVEL SHAKE 100UN",
+          "description": "CANUDO FLEXIVEL SHAKE 100UN",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d0373d0b-3594-4fcd-bc74-fd0437bff958.png?v=1781038013972"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/d0373d0b-3594-4fcd-bc74-fd0437bff958.png?v=1783358409928"
         },
         {
           "id": "chapatex",
@@ -9880,72 +9946,6 @@
           "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a3d5e93b-b90f-41ea-b4a6-825f5f919c5e.jpg?v=1781021562577"
         },
         {
-          "id": "licor-43-chocolate-700ml",
-          "hubId": "cb16a158-47fc-47de-956f-d4f3f8128459",
-          "sku": "8410221902915",
-          "name": "LICOR 43 CHOCOLATE 700ML",
-          "price": 178.25,
-          "priceLabel": "R$ 178,25",
-          "description": "LICOR 43 CHOCOLATE 700ML",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/cb16a158-47fc-47de-956f-d4f3f8128459.jpg?v=1781022179989"
-        },
-        {
-          "id": "licor-amarula-chocolate-750-ml",
-          "hubId": "3a0ee8f3-505a-4926-9b4a-1e4cf7a56179",
-          "sku": "6001108108685",
-          "name": "LICOR AMARULA CHOCOLATE 750 ML",
-          "price": 97.39,
-          "priceLabel": "R$ 97,39",
-          "description": "LICOR AMARULA CHOCOLATE 750 ML",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/3a0ee8f3-505a-4926-9b4a-1e4cf7a56179.jpg?v=1781022190195"
-        },
-        {
-          "id": "licor-ballena-chocolate-750ml",
-          "hubId": "f5d61494-c7f8-4ec9-b45a-f19ab70f1782",
-          "sku": "7898726150023",
-          "name": "LICOR BALLENA CHOCOLATE 750ML",
-          "price": 124.99,
-          "priceLabel": "R$ 124,99",
-          "description": "LICOR BALLENA CHOCOLATE 750ML",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f5d61494-c7f8-4ec9-b45a-f19ab70f1782.jpg?v=1781022201731"
-        },
-        {
-          "id": "licor-ballena-chocolate-750ml-c-6",
-          "hubId": "f4214bd5-16e8-4745-8ac7-8708dee91361",
-          "sku": null,
-          "name": "LICOR BALLENA CHOCOLATE 750ML C/6",
-          "price": 689.95,
-          "priceLabel": "R$ 689,95",
-          "description": "LICOR BALLENA CHOCOLATE 750ML C/6",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/f4214bd5-16e8-4745-8ac7-8708dee91361.jpg?v=1781022203704"
-        },
-        {
-          "id": "licor-stock-chocolate-720ml",
-          "hubId": "a1360893-f7da-4198-9164-814a147e6f99",
-          "sku": "7891121212006",
-          "name": "LICOR STOCK CHOCOLATE 720ML",
-          "price": 44.89,
-          "priceLabel": "R$ 44,89",
-          "description": "LICOR STOCK CHOCOLATE 720ML",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/a1360893-f7da-4198-9164-814a147e6f99.jpg?v=1781025604967"
-        },
-        {
-          "id": "licor-stock-mint-chocolate-720-ml",
-          "hubId": "7356963d-c5c1-4c93-a99b-eb0c561ef553",
-          "sku": "7891121286007",
-          "name": "LICOR STOCK MINT CHOCOLATE 720 ML",
-          "price": 59.99,
-          "priceLabel": "R$ 59,99",
-          "description": "LICOR STOCK MINT CHOCOLATE 720 ML",
-          "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/7356963d-c5c1-4c93-a99b-eb0c561ef553.jpg?v=1781022263572"
-        },
-        {
           "id": "salgadinho-bacon-60g",
           "hubId": "85886f7f-9258-4a4e-9fd3-e714c1d4a261",
           "sku": "7898540920093",
@@ -10308,7 +10308,7 @@
           "priceLabel": "R$ 9,75",
           "description": "CANUDO FLEXIVEL 100UN",
           "adultOnly": false,
-          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ebe2272e-bd9c-4198-98d7-3e9d8ba9962c.jpg?v=1781021455494"
+          "image": "https://liszpwocwvkytzyaxvit.supabase.co/storage/v1/object/public/produtos-imagens/ebe2272e-bd9c-4198-98d7-3e9d8ba9962c.png?v=1783358325984"
         },
         {
           "id": "canudo-plastgel-100un",

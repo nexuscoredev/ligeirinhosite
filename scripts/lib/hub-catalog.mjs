@@ -86,6 +86,30 @@ export function inferAdultOnly(categorySlug, name) {
     return false;
 }
 
+function normalizarUnidadeProduto(unidade) {
+    const raw = String(unidade || 'UN').trim().toUpperCase();
+    if (['PC', 'FARDO', 'FD', 'CX'].includes(raw)) return 'CX';
+    if (['PLT', 'PL', 'PALLET'].includes(raw)) return 'PL';
+    return 'UN';
+}
+
+function inferPackType(nome, unidade) {
+    const u = normalizarUnidadeProduto(unidade);
+    if (u === 'CX' || u === 'PL') return u;
+    const name = String(nome || '').toUpperCase();
+    if (/\bPL\b|PALLET/.test(name)) return 'PL';
+    if (/\bCX\b|\bC\/\s*\d+/.test(name)) return 'CX';
+    return 'UN';
+}
+
+/** Mesma regra do Hub: CX/PL usam imagem da embalagem, com fallback para unidade. */
+export function productImageForCatalog(produto) {
+    const pack = inferPackType(produto?.nome, produto?.unidade);
+    if (pack === 'CX' && produto?.imagem_cx_url) return produto.imagem_cx_url;
+    if (pack === 'PL' && produto?.imagem_pl_url) return produto.imagem_pl_url;
+    return produto?.imagem_url || null;
+}
+
 export function buildCatalog(produtos, categorias, options = {}) {
     const categoryBySlug = new Map(categorias.map((c) => [c.slug, c]));
     const categoryMap = new Map();
@@ -125,7 +149,7 @@ export function buildCatalog(produtos, categorias, options = {}) {
             priceLabel: formatPriceLabel(Number.isFinite(price) ? price : 0),
             description: p.descricao_resumida || null,
             adultOnly: inferAdultOnly(slug, p.nome),
-            image: p.imagem_url || null,
+            image: productImageForCatalog(p),
         });
     }
 
@@ -232,7 +256,7 @@ export async function fetchHubCatalogData(config) {
         fetchAll(
             hub,
             'produtos',
-            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,imagem_url,categorias_produto(slug,nome)',
+            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,imagem_url,imagem_cx_url,imagem_pl_url,categorias_produto(slug,nome)',
             '&ativo=eq.true&visivel_catalogo=eq.true'
         ),
     ]);
