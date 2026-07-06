@@ -130,7 +130,7 @@
     };
 
     const appNavItems = [
-        { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
+        { id: 'ofertas', href: 'ofertas.html', label: 'Promoções', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
         { id: 'meus-pedidos', href: 'meus-pedidos.html', label: 'Pedidos', icon: 'inventory_2' },
     ];
@@ -291,7 +291,7 @@ ${navMobileLinksHtml}
 
     const bottomTabItems = [
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
-        { id: 'ofertas', href: 'ofertas.html', label: 'Ofertas', icon: 'sell' },
+        { id: 'ofertas', href: 'ofertas.html', label: 'Promoções', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
         { id: 'meus-pedidos', href: 'meus-pedidos.html', label: 'Pedidos', icon: 'inventory_2' },
         { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
@@ -337,7 +337,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <h4 class="lig-footer-title">Navegação</h4>
 <nav class="lig-footer-nav" aria-label="Links do site">
 <a class="lig-footer-link" href="inicio.html">Início</a>
-<a class="lig-footer-link" href="ofertas.html">Ofertas</a>
+<a class="lig-footer-link" href="ofertas.html">Promoções</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
 <a class="lig-footer-link" href="meus-pedidos.html">Pedidos</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>

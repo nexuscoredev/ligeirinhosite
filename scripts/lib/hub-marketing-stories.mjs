@@ -17,7 +17,7 @@ const RING_COLORS = {
 const DEFAULT_RING_COLORS = ['#F7D53C', '#e91e63', '#009ee3', '#00c853', '#ff6d00'];
 
 const CTA_BY_FOLDER = {
-    ofertas: { label: 'Ver ofertas', href: 'ofertas.html' },
+    ofertas: { label: 'Ver promoções', href: 'ofertas.html' },
     destilados: { label: 'Ver catálogo', href: 'pedidos.html?categoria=destilados' },
     refri: { label: 'Comprar', href: 'pedidos.html?categoria=refrigerantes' },
     refrigerantes: { label: 'Comprar', href: 'pedidos.html?categoria=refrigerantes' },

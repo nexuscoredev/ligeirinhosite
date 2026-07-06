@@ -200,7 +200,7 @@ ${catalog.qtyStepperHtml(cartKey, qty, { dark: false })}
     const renderShell = () => {
         root.innerHTML = `<div class="ofertas-shell">
 <header class="ofertas-header">
-<h1 class="ofertas-header__title">Ofertas</h1>
+<h1 class="ofertas-header__title">Promoções</h1>
 <p class="ofertas-header__lead">Promoções ativas cadastradas no Ligeirinho Hub</p>
 </header>
 <div class="ofertas-toolbar">
@@ -272,7 +272,7 @@ ${(catalogData?.categories || [])
             list.innerHTML = items.map(offerProductRow).join('');
         } else if (!mktGalleryImages.length) {
             list.innerHTML =
-                '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre ofertas no Ligeirinho Hub.</p>';
+                '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre promoções no Ligeirinho Hub.</p>';
         } else {
             list.innerHTML = '';
         }

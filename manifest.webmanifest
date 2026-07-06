@@ -39,8 +39,8 @@
       "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Ofertas",
-      "short_name": "Ofertas",
+      "name": "Promoções",
+      "short_name": "Promoções",
       "url": "/ofertas",
       "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
     },

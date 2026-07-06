@@ -55,9 +55,7 @@
         return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
     };
 
-    const sessionHasCnpj = (s) => {
-        const fromCnpj = String(s?.cnpj || '').replace(/\D/g, '');
-        if (fromCnpj.length === 14) return true;
+    const accountHasCnpj = (s) => {
         const fromLogin = String(s?.login || '').replace(/\D/g, '');
         return fromLogin.length === 14;
     };
@@ -270,7 +268,7 @@ ${menuItems.map(menuRow).join('')}
 
     const openCnpjModal = () => {
         const s = session();
-        if (sessionHasCnpj(s)) return;
+        if (accountHasCnpj(s)) return;
         void auth?.ensureAccountSession?.();
         window.LigeirinhoContaCnpjModal?.open?.({
             getHeaders: accountHeaders,
@@ -285,7 +283,7 @@ ${menuItems.map(menuRow).join('')}
 
     const renderDados = () => {
         const s = session();
-        const hasCnpj = sessionHasCnpj(s);
+        const hasCnpj = accountHasCnpj(s);
         const canEditProfile = Boolean(s?.sub && !auth?.isTotemSession?.(s));
         const canRegisterCnpj = Boolean(canEditProfile && !hasCnpj);
         const hasPhone = Boolean(String(s?.phone || '').replace(/\D/g, '').length >= 10);

@@ -98,7 +98,7 @@
 
     const quickChipsHtml = () => {
         const chips = [
-            { href: 'ofertas.html', icon: 'local_offer', label: 'Ofertas' },
+            { href: 'ofertas.html', icon: 'local_offer', label: 'Promoções' },
             { href: 'pedidos.html', icon: 'inventory_2', label: 'Catálogo' },
             { href: 'conta.html#ajuda', icon: 'headset_mic', label: 'Ajuda' },
         ];

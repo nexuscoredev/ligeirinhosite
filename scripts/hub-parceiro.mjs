@@ -43,9 +43,7 @@ export function isValidCnpj(value) {
     return checkDigit(c.slice(0, 12)) === Number(c[12]) && checkDigit(c.slice(0, 13)) === Number(c[13]);
 }
 
-export function usuarioHasCnpj(usuario, extras = {}) {
-    const fromExtras = normalizeDocDigits(extras.cnpjDigits || extras.cnpj);
-    if (fromExtras.length === 14 && isValidCnpj(fromExtras)) return true;
+export function usuarioHasCnpj(usuario, _extras = {}) {
     const loginDigits = normalizeDocDigits(usuario?.login);
     return loginDigits.length === 14 && isValidCnpj(loginDigits);
 }

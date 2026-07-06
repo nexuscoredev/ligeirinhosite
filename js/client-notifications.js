@@ -15,7 +15,7 @@
         },
         {
             id: 'seed-ofertas',
-            title: 'Ofertas da semana',
+            title: 'Promoções da semana',
             body: 'Confira descontos em cervejas, destilados e refrigerantes.',
             href: 'ofertas.html',
         },
