@@ -25,39 +25,23 @@ function normalizePromoRow(row, produto = null) {
             ? Math.max(0, Math.round((1 - promo / original) * 100))
             : 0;
 
+    const nome = String(row.produto_nome || produto?.nome || '').trim();
+    const imageUrl = row.arte_url || produto?.imagem_url || null;
+
     return {
         id: row.id,
         sku: String(row.produto_sku || '').trim(),
-        name: String(row.produto_nome || produto?.nome || '').trim(),
+        name: nome,
         originalPrice: Number.isFinite(original) ? original : null,
         promoPrice: Number.isFinite(promo) ? promo : null,
         discountPct,
         validFrom: String(row.validade_inicio || '').slice(0, 10),
         validTo: String(row.validade_fim || '').slice(0, 10),
-        imageUrl: row.arte_url || produto?.imagem_url || null,
-        catalogProductId: produto?.nome ? slugifyId(produto.nome) : null,
-        hubProductName: produto?.nome ? String(produto.nome).trim() : null,
+        imageUrl,
+        catalogProductId: nome ? slugifyId(nome) : produto?.nome ? slugifyId(produto.nome) : null,
+        hubProductName: nome || (produto?.nome ? String(produto.nome).trim() : null),
         active: row.ativo !== false,
     };
-}
-
-async function fetchProdutosBySku(config, token, skus) {
-    const map = new Map();
-    const unique = [...new Set(skus.map((s) => String(s || '').trim()).filter(Boolean))];
-    if (!unique.length) return map;
-
-    const quoted = unique.map((s) => `"${s.replace(/"/g, '')}"`).join(',');
-    const url =
-        `${config.url}/rest/v1/produtos?select=sku,nome,imagem_url` +
-        `&sku=in.(${quoted})&ativo=eq.true&limit=${unique.length}`;
-    const res = await fetch(url, { headers: hubHeaders(config, token) });
-    if (!res.ok) return map;
-    const rows = await res.json().catch(() => []);
-    if (!Array.isArray(rows)) return map;
-    rows.forEach((row) => {
-        if (row?.sku) map.set(String(row.sku).trim(), row);
-    });
-    return map;
 }
 
 export async function getHubPromocoes(env = process.env) {
@@ -68,29 +52,24 @@ export async function getHubPromocoes(env = process.env) {
     }
 
     const today = todayIsoDate();
-    const url =
-        `${config.url}/rest/v1/promocoes?select=*` +
-        `&ativo=eq.true&validade_inicio=lte.${today}&validade_fim=gte.${today}` +
-        `&order=validade_fim.asc`;
-
-    const res = await fetch(url, { headers: hubHeaders(config, token) });
+    const url = `${config.url}/rest/v1/rpc/rpc_listar_promocoes_vitrine`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: hubHeaders(config, token),
+        body: '{}',
+    });
     const text = await res.text();
     if (!res.ok) {
-        throw new Error(text || `promocoes HTTP ${res.status}`);
+        throw new Error(text || `rpc_listar_promocoes_vitrine HTTP ${res.status}`);
     }
 
     const rows = text ? JSON.parse(text) : [];
     const list = Array.isArray(rows) ? rows : [];
-    const produtos = await fetchProdutosBySku(
-        config,
-        token,
-        list.map((row) => row.produto_sku)
-    );
 
     return {
-        source: 'hub:promocoes',
+        source: 'hub:rpc_listar_promocoes_vitrine',
         fetchedAt: new Date().toISOString(),
         date: today,
-        promocoes: list.map((row) => normalizePromoRow(row, produtos.get(String(row.produto_sku || '').trim()))),
+        promocoes: list.map((row) => normalizePromoRow(row)),
     };
 }

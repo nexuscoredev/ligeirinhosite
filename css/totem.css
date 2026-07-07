@@ -700,6 +700,60 @@ body.totem-kiosk > main {
     height: 100%;
 }
 
+.totem-promos__grid--products,
+.totem-promos__grid:not(.totem-promos__grid--carousel) {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.35rem 0.65rem 1rem;
+}
+
+.totem-promos__grid .totem-grid--promos {
+    overflow: visible;
+    padding: 0.1rem 0.15rem 1.25rem;
+    align-content: start;
+    align-items: stretch;
+    grid-auto-rows: 1fr;
+    min-width: 0;
+}
+
+.totem-product--promo .totem-product__price-old {
+    font-size: 0.72em;
+    font-weight: 600;
+    color: var(--lig-text-subtle);
+    text-decoration: line-through;
+    margin-right: 0.35rem;
+}
+
+.totem-product--promo .totem-product__promo-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.35rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: linear-gradient(135deg, #e85d04, #dc2f02);
+}
+
+.totem-product--promo .totem-product__promo-valid {
+    margin: 0.15rem 0 0;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
+.totem-product--promo .totem-price-card__main {
+    flex-wrap: wrap;
+    gap: 0.15rem 0.25rem;
+}
+
 .totem-promos__carousel {
     position: relative;
     flex: 1 1 auto;

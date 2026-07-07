@@ -1480,7 +1480,7 @@ ${unitHtml}
 
     const refreshPromosIfOpen = () => {
         if (views.promos?.classList.contains('totem-view--active')) {
-            window.LigeirinhoTotemPromos?.refresh?.();
+            window.LigeirinhoTotemPromos?.syncCart?.();
         }
     };
 
@@ -2264,6 +2264,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 promosReturnView = 'welcome';
             }
             setView('promos');
+            void window.LigeirinhoTotemPromos?.render?.();
             bumpIdle();
         });
 
@@ -2487,6 +2488,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             loadingEl: document.getElementById('totem-promos-loading'),
             errorEl: document.getElementById('totem-promos-error'),
             retryBtn: document.getElementById('totem-promos-retry'),
+            getDisplayItems: () => displayItems,
+            formatPrice,
+            getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
+            addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
+            changeQty,
             onBumpIdle: bumpIdle,
         });
         if (promosBtn) promosBtn.hidden = false;
