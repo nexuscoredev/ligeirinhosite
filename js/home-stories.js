@@ -268,23 +268,7 @@ ${
         });
     };
 
-    const loadConfig = () => {
-        const mkt = window.LigeirinhoMktPromos;
-        if (!mkt?.loadMarketingStories) {
-            return Promise.resolve({ stories: [], source: 'hub:marketing-drive:vertical-parceiros' });
-        }
-
-        return mkt
-            .loadMarketingStories()
-            .then((payload) => {
-                if (payload?.stories?.length) {
-                    void mkt.preloadImages(mkt.collectThumbUrls(payload.stories), 4);
-                    return payload;
-                }
-                return { stories: [], source: payload?.source || 'hub:marketing-drive:vertical-parceiros' };
-            })
-            .catch(() => ({ stories: [], source: 'hub:marketing-drive:vertical-parceiros' }));
-    };
+    const loadConfig = () => Promise.resolve({ stories: [], source: 'disabled:marketing-drive' });
 
     window.LigeirinhoHomeStories = {
         loadConfig,

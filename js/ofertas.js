@@ -9,8 +9,6 @@
     const promoCatalog = window.LigeirinhoPromoCatalog;
     if (!cartApi || !catalog || !pricing || !promoCatalog) return;
 
-    void window.LigeirinhoMktPromos?.warmCache?.();
-
     let catalogData = null;
     let displayItems = [];
     let promoEntries = [];
@@ -19,7 +17,6 @@
     let filterOpen = false;
     let loading = true;
     let loadError = false;
-    let mktGalleryImages = [];
 
     const promoLoader = promoCatalog.createHubPromoLoader('/api/promocoes');
 
@@ -117,36 +114,6 @@
         return items;
     };
 
-    const loadMktGallery = async () => {
-        const api = window.LigeirinhoMktPromos;
-        if (!api?.loadMarketingStories) {
-            mktGalleryImages = [];
-            return;
-        }
-        try {
-            const data = await api.loadMarketingStories();
-            mktGalleryImages = api.collectImageUrls(data.stories);
-            void api.preloadImages(mktGalleryImages.slice(0, 3), 3);
-        } catch {
-            mktGalleryImages = [];
-        }
-    };
-
-    const mktGalleryHtml = () => {
-        if (!mktGalleryImages.length) return '';
-        return `<section class="ofertas-mkt-gallery" aria-label="Encartes promocionais">
-<h2 class="ofertas-mkt-gallery__title">Promoções do dia</h2>
-<div class="ofertas-mkt-gallery__grid">
-${mktGalleryImages
-    .map(
-        (url, index) =>
-            `<figure class="ofertas-mkt-gallery__item"><img src="${esc(url)}" alt="Promoção ${index + 1}" class="ofertas-mkt-gallery__img" loading="${index < 3 ? 'eager' : 'lazy'}" decoding="async"${index < 2 ? ' fetchpriority="high"' : ''}></figure>`
-    )
-    .join('')}
-</div>
-</section>`;
-    };
-
     const offerProductRow = (entry) => {
         const ctx = buildCartCtx(entry);
         const { group, product, tier, variant, cartKey, originalPrice, promoPrice, discountPct, promo } = ctx;
@@ -231,7 +198,6 @@ ${(catalogData?.categories || [])
     .join('')}
 </select>
 </div>
-<div id="ofertas-mkt-gallery"></div>
 <div id="ofertas-status" class="ofertas-status" hidden></div>
 <div id="ofertas-list" class="ofertas-list" role="list"></div>
 </div>`;
@@ -240,10 +206,7 @@ ${(catalogData?.categories || [])
     const renderList = () => {
         const list = root.querySelector('#ofertas-list');
         const status = root.querySelector('#ofertas-status');
-        const gallery = root.querySelector('#ofertas-mkt-gallery');
         if (!list) return;
-
-        if (gallery) gallery.innerHTML = mktGalleryHtml();
 
         if (loading) {
             if (status) {
@@ -254,7 +217,7 @@ ${(catalogData?.categories || [])
             return;
         }
 
-        if (loadError && !promoEntries.length && !mktGalleryImages.length) {
+        if (loadError && !promoEntries.length) {
             if (status) {
                 status.hidden = false;
                 status.innerHTML =
@@ -270,11 +233,9 @@ ${(catalogData?.categories || [])
 
         if (items.length) {
             list.innerHTML = items.map(offerProductRow).join('');
-        } else if (!mktGalleryImages.length) {
+        } else {
             list.innerHTML =
                 '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre promoções no Ligeirinho Hub.</p>';
-        } else {
-            list.innerHTML = '';
         }
 
         bindListActions();
@@ -329,7 +290,6 @@ ${(catalogData?.categories || [])
         loading = true;
         loadError = false;
         renderList();
-        await loadMktGallery();
         const promos = await promoLoader.load(true);
         loadError = promoLoader.hadError();
         promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });

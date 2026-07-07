@@ -1,11 +1,14 @@
 (function () {
-    const STORAGE_KEY = 'ligeirinho-mkt-stories-v2';
+    const STORAGE_KEY = 'ligeirinho-mkt-stories-v3';
     const CACHE_MS = 5 * 60_000;
     const HUB_STORAGE = 'liszpwocwvkytzyaxvit.supabase.co';
+    const DISABLED_SOURCE = 'disabled:marketing-drive';
+
+    const EMPTY_PAYLOAD = () => ({ stories: [], source: DISABLED_SOURCE });
 
     let inflight = null;
-    let memoryCache = null;
-    let memoryAt = 0;
+    let memoryCache = EMPTY_PAYLOAD();
+    let memoryAt = Date.now();
 
     const slideImage = (slide) => slide?.image || slide?.imageFull || '';
 
@@ -29,69 +32,19 @@
         return urls;
     };
 
-    const readStorage = () => {
+    const clearCache = () => {
+        memoryCache = EMPTY_PAYLOAD();
+        memoryAt = Date.now();
+        inflight = null;
         try {
-            const raw = sessionStorage.getItem(STORAGE_KEY);
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            if (!parsed?.payload?.stories || Date.now() - parsed.savedAt > CACHE_MS) return null;
-            return parsed.payload;
+            sessionStorage.removeItem(STORAGE_KEY);
+            sessionStorage.removeItem('ligeirinho-mkt-stories-v2');
         } catch {
-            return null;
+            /* ignore */
         }
     };
 
-    const writeStorage = (payload) => {
-        try {
-            sessionStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify({
-                    savedAt: Date.now(),
-                    payload,
-                })
-            );
-        } catch {
-            /* quota */
-        }
-    };
-
-    const fetchStories = async () => {
-        const res = await fetch('/api/marketing-stories');
-        if (!res.ok) throw new Error(`marketing-stories HTTP ${res.status}`);
-        return res.json();
-    };
-
-    const loadMarketingStories = async ({ force = false } = {}) => {
-        const now = Date.now();
-        if (!force && memoryCache?.stories?.length && now - memoryAt < CACHE_MS) {
-            return memoryCache;
-        }
-
-        if (!force) {
-            const stored = readStorage();
-            if (stored?.stories?.length) {
-                memoryCache = stored;
-                memoryAt = now;
-                return stored;
-            }
-        }
-
-        if (!force && inflight) return inflight;
-
-        inflight = fetchStories()
-            .then((payload) => {
-                const data = payload?.stories ? payload : { stories: [], ...payload };
-                memoryCache = data;
-                memoryAt = Date.now();
-                if (data.stories?.length) writeStorage(data);
-                return data;
-            })
-            .finally(() => {
-                inflight = null;
-            });
-
-        return inflight;
-    };
+    const loadMarketingStories = async () => EMPTY_PAYLOAD();
 
     const preloadImage = (url) =>
         new Promise((resolve) => {
@@ -111,29 +64,9 @@
         await Promise.all(list.map((url) => preloadImage(url)));
     };
 
-    const warmCache = async () => {
-        try {
-            const data = await loadMarketingStories();
-            const thumbs = collectThumbUrls(data.stories);
-            const displays = collectImageUrls(data.stories);
-            void preloadImages(thumbs, 4);
-            void preloadImages(displays, 2);
-            return data;
-        } catch {
-            return { stories: [] };
-        }
-    };
+    const warmCache = async () => EMPTY_PAYLOAD();
 
-    const clearCache = () => {
-        memoryCache = null;
-        memoryAt = 0;
-        inflight = null;
-        try {
-            sessionStorage.removeItem(STORAGE_KEY);
-        } catch {
-            /* ignore */
-        }
-    };
+    clearCache();
 
     window.LigeirinhoMktPromos = {
         HUB_STORAGE,

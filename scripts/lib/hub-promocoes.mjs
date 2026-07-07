@@ -17,6 +17,16 @@ function todayIsoDate(timezone = 'America/Sao_Paulo') {
     }
 }
 
+function isDrivePromoImage(url) {
+    const value = String(url || '').trim().toLowerCase();
+    if (!value) return false;
+    return (
+        value.includes('drive.google.com') ||
+        value.includes('/marketing-artes/drive/') ||
+        value.includes('/storage/v1/object/') && value.includes('/drive/')
+    );
+}
+
 function normalizePromoRow(row, produto = null) {
     const original = Number(row.preco_original);
     const promo = Number(row.preco_promo);
@@ -26,7 +36,8 @@ function normalizePromoRow(row, produto = null) {
             : 0;
 
     const nome = String(row.produto_nome || produto?.nome || '').trim();
-    const imageUrl = row.arte_url || produto?.imagem_url || null;
+    const rawImage = row.arte_url || produto?.imagem_url || null;
+    const imageUrl = isDrivePromoImage(rawImage) ? produto?.imagem_url || null : rawImage;
 
     return {
         id: row.id,
