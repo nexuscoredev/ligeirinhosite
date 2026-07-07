@@ -2350,12 +2350,6 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     const bindEvents = () => {
         startBtn?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
-            skipCustomerIdentification();
-            bumpIdle();
-        });
-
-        document.getElementById('totem-identify-btn')?.addEventListener('click', () => {
-            totemKeyboard?.hide?.();
             setView('customer');
             startCustomerFlow();
             bumpIdle();
