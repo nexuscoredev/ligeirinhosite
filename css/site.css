@@ -5468,13 +5468,21 @@ html.lig-story-open {
     letter-spacing: 0.02em;
     padding: 0.15rem 0.35rem;
     border-radius: 0.2rem;
-    background: #2e7d32;
     color: #fff;
 }
 
 .ofertas-product-row__badge--pack {
     top: 0.25rem;
     right: 0.25rem;
+    padding: 0.22rem 0.38rem 0.2rem;
+    border-radius: 0.45rem;
+    background: linear-gradient(165deg, #14120f 0%, #2b2720 100%);
+    color: #fde047;
+    border: 1.5px solid rgba(240, 201, 41, 0.72);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .ofertas-product-row__badge--pct {

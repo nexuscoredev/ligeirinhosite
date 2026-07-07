@@ -82,13 +82,15 @@
     };
 
     const formatValidade = (promo) => {
-        if (!promo?.validTo) return '';
-        try {
-            const d = new Date(`${promo.validTo}T12:00:00`);
-            return `Até ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}`;
-        } catch {
-            return '';
-        }
+        const iso = String(promo?.validTo || '').slice(0, 10);
+        if (!iso) return 'Oferta por tempo limitado';
+        const parts = iso.split('-').map(Number);
+        const y = parts[0];
+        const m = parts[1];
+        const d = parts[2];
+        if (!y || !m || !d) return 'Oferta por tempo limitado';
+        const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+        return `Até ${d} de ${meses[m - 1]}.`;
     };
 
     const createHubPromoLoader = (apiUrl = '/api/promocoes') => {

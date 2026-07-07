@@ -132,12 +132,7 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
         const validade = promoCatalog()?.formatValidade?.(promo) || '';
         const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
 
-        const packSize = Number(ctx.variant?.packSize) || 0;
-        const packQtyLine =
-            packSize > 1
-                ? `<span class="totem-product__pack-tag-qty">c/ ${packSize}</span>`
-                : '';
-        const packTag = `<span class="totem-product__pack-tag" aria-label="Embalagem Caixa${packSize > 1 ? ` com ${packSize} unidades` : ''}"><span class="totem-product__pack-tag-label">Caixa</span>${packQtyLine}</span>`;
+        const packTag = `<span class="totem-product__pack-tag" aria-label="Embalagem Caixa"><span class="totem-product__pack-tag-label">Caixa</span></span>`;
 
         const mediaHtml = `<div class="totem-product__media">
 ${packTag}

@@ -129,8 +129,15 @@
         const imgSrc = promo.imageUrl
             ? catalog.productImageUrl(promo.imageUrl)
             : catalog.productImageUrl(group && pricing ? pricing.getTierImage(group, tier) : product?.image);
-        const packLabel = variant?.packSize ? `CAIXA × ${variant.packSize}` : 'CAIXA';
+        const packLabel = variant
+            ? tier === 'pallet'
+                ? 'Pallet'
+                : tier === 'unidade'
+                  ? 'Unidade'
+                  : 'Caixa'
+            : '';
         const validade = promoCatalog.formatValidade(promo);
+        const showOldPrice = discountPct > 0 && unitOriginal > unitPrice;
         const name = promo.name || group?.baseName || product?.name || 'Promoção';
         const groupAttr = group ? ` data-group-key="${esc(group.key)}" data-price-tier="${esc(tier)}"` : '';
         const sub =
@@ -145,18 +152,18 @@
         return `<article class="ofertas-product-row" data-product-id="${esc(product?.id || '')}" data-cart-key="${esc(cartKey)}"${groupAttr}>
 <div class="ofertas-product-row__media">
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" class="ofertas-product-row__img" loading="lazy">` : '<span class="material-symbols-outlined">liquor</span>'}
-<span class="ofertas-product-row__badge ofertas-product-row__badge--pack">${esc(packLabel)}</span>
+${packLabel ? `<span class="ofertas-product-row__badge ofertas-product-row__badge--pack">${esc(packLabel)}</span>` : ''}
 ${discountPct > 0 ? `<span class="ofertas-product-row__badge ofertas-product-row__badge--pct">-${discountPct}%</span>` : ''}
 </div>
 <div class="ofertas-product-row__body">
 <h3 class="ofertas-product-row__name">${esc(catalog.shortName(name, 56))}</h3>
 ${sub ? `<p class="ofertas-product-row__sub">${esc(sub)}</p>` : ''}
 <p class="ofertas-product-row__prices">
-<span class="ofertas-product-row__old">${catalog.formatPrice(unitOriginal)}</span>
+${showOldPrice ? `<span class="ofertas-product-row__old">${catalog.formatPrice(unitOriginal)}</span>` : ''}
 <span class="ofertas-product-row__price">${catalog.formatPrice(unitPrice)}</span>
 </p>
 <p class="ofertas-product-row__seller"><span class="material-symbols-outlined">store</span> Promoção Ligeirinho Hub</p>
-${validade ? `<p class="ofertas-product-row__promo">${esc(validade)}</p>` : ''}
+<p class="ofertas-product-row__promo">${esc(validade)}</p>
 <div class="ofertas-product-row__actions">
 ${catalog.qtyStepperHtml(cartKey, qty, { dark: false })}
 </div>

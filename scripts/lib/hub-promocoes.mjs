@@ -56,6 +56,46 @@ function normalizePromoRow(row, produto = null) {
     };
 }
 
+async function fetchPromoCatalogValidadeMap(config, token) {
+    const url = `${config.url}/rest/v1/rpc/gf_promocao_catalogo`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: hubHeaders(config, token),
+        body: JSON.stringify({ p_canal: 'parceiros' }),
+    });
+    const text = await res.text();
+    if (!res.ok) return new Map();
+
+    const rows = text ? JSON.parse(text) : [];
+    const list = Array.isArray(rows) ? rows : [];
+    const map = new Map();
+
+    for (const row of list) {
+        const validade = String(row.validade_fim || '').slice(0, 10);
+        if (!validade) continue;
+        const sku = String(row.sku || '').trim().toLowerCase();
+        const id = String(row.produto_id || '').trim();
+        const nome = String(row.nome || '').trim().toLowerCase();
+        if (sku) map.set(`sku:${sku}`, validade);
+        if (id) map.set(`id:${id}`, validade);
+        if (nome) map.set(`nome:${nome}`, validade);
+    }
+
+    return map;
+}
+
+function resolveValidadeFim(row, validadeMap) {
+    const sku = String(row.produto_sku || '').trim().toLowerCase();
+    const id = String(row.produto_id || '').trim();
+    const nome = String(row.produto_nome || '').trim().toLowerCase();
+    return (
+        (sku && validadeMap.get(`sku:${sku}`)) ||
+        (id && validadeMap.get(`id:${id}`)) ||
+        (nome && validadeMap.get(`nome:${nome}`)) ||
+        String(row.validade_fim || '').slice(0, 10)
+    );
+}
+
 export async function getHubPromocoes(env = process.env) {
     const config = hubConfig(env);
     const token = config.serviceKey || config.anonKey;
@@ -65,11 +105,14 @@ export async function getHubPromocoes(env = process.env) {
 
     const today = todayIsoDate();
     const url = `${config.url}/rest/v1/rpc/rpc_listar_promocoes_vitrine`;
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: hubHeaders(config, token),
-        body: '{}',
-    });
+    const [res, validadeMap] = await Promise.all([
+        fetch(url, {
+            method: 'POST',
+            headers: hubHeaders(config, token),
+            body: '{}',
+        }),
+        fetchPromoCatalogValidadeMap(config, token),
+    ]);
     const text = await res.text();
     if (!res.ok) {
         throw new Error(text || `rpc_listar_promocoes_vitrine HTTP ${res.status}`);
@@ -82,6 +125,9 @@ export async function getHubPromocoes(env = process.env) {
         source: 'hub:rpc_listar_promocoes_vitrine',
         fetchedAt: new Date().toISOString(),
         date: today,
-        promocoes: list.map((row) => normalizePromoRow(row)),
+        promocoes: list.map((row) => {
+            const validTo = resolveValidadeFim(row, validadeMap);
+            return normalizePromoRow({ ...row, validade_fim: validTo || row.validade_fim });
+        }),
     };
 }

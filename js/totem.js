@@ -291,16 +291,8 @@
         const activeTier = tier || variant.tier || 'caixa';
         const label =
             activeTier === 'pallet' ? 'Pallet' : activeTier === 'caixa' ? 'Caixa' : 'Unidade';
-        const packSize = Number(variant.packSize) || 0;
-        const qtyLine =
-            packSize > 1
-                ? `<span class="totem-product__pack-tag-qty">c/ ${packSize}</span>`
-                : '';
-        const aria =
-            packSize > 1
-                ? `Embalagem ${label} com ${packSize} unidades`
-                : `Embalagem ${label}`;
-        return `<span class="totem-product__pack-tag" aria-label="${esc(aria)}"><span class="totem-product__pack-tag-label">${esc(label)}</span>${qtyLine}</span>`;
+        const aria = `Embalagem ${label}`;
+        return `<span class="totem-product__pack-tag" aria-label="${esc(aria)}"><span class="totem-product__pack-tag-label">${esc(label)}</span></span>`;
     };
 
     const mediaCartBadgeHtml = (qty) =>
