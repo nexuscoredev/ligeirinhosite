@@ -89,5 +89,16 @@
         }
     };
 
-    window.LigeirinhoCatalogLoader = { load };
+    const clear = () => {
+        cache = null;
+        cacheAt = 0;
+        inflight = null;
+        try {
+            sessionStorage.removeItem(STORAGE_KEY);
+        } catch {
+            /* quota or private mode */
+        }
+    };
+
+    window.LigeirinhoCatalogLoader = { load, clear };
 })();

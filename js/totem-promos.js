@@ -273,16 +273,23 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         await render();
     };
 
-    const refresh = async () => {
-        getLoader()?.clear?.();
+    const refresh = async (options = {}) => {
+        const force = Boolean(options?.force);
+        if (force) getLoader()?.clear?.();
         fetchError = false;
         await render({ force: true });
+    };
+
+    const invalidate = () => {
+        getLoader()?.clear?.();
+        fetchError = false;
     };
 
     window.LigeirinhoTotemPromos = {
         init,
         render,
         refresh,
+        invalidate,
         syncCart,
         closeLightbox: () => {},
         stopAuto: () => {},

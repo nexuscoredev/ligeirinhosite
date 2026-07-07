@@ -251,7 +251,7 @@ body.totem-kiosk > main {
 }
 
 .totem-header__actions {
-    display: flex;
+    display: none;
     align-items: center;
     gap: 0.35rem;
     padding: 0.2rem;
@@ -259,6 +259,18 @@ body.totem-kiosk > main {
     background: rgba(255, 255, 255, 0.88);
     border: 1px solid rgba(20, 18, 15, 0.07);
     box-shadow: 0 1px 2px rgba(20, 18, 15, 0.04);
+}
+
+.totem-header__actions.totem-header__actions--visible {
+    display: flex;
+}
+
+.totem-header__actions[hidden] {
+    display: none !important;
+}
+
+.totem-header__actions [hidden] {
+    display: none !important;
 }
 
 .totem-btn--icon {
@@ -336,6 +348,21 @@ body.totem-kiosk > main {
 .totem-btn--ghost:hover {
     color: var(--lig-text);
     background: rgba(20, 18, 15, 0.04);
+}
+
+.totem-btn--refreshing .totem-refresh-btn__icon {
+    animation: totem-refresh-spin 0.85s linear infinite;
+}
+
+@keyframes totem-refresh-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.totem-btn--refreshing {
+    pointer-events: none;
+    opacity: 0.82;
 }
 
 /* ——— Promoções (nav + página) ——— */
@@ -1245,6 +1272,15 @@ body.totem-kiosk > main {
 
 html.totem--phone .totem-btn--promos .totem-btn__label {
     display: none;
+}
+
+html.totem--phone #totem-refresh-btn .totem-btn__label {
+    display: none;
+}
+
+html.totem--phone #totem-refresh-btn {
+    padding-inline: 0.62rem;
+    min-width: 44px;
 }
 
 html.totem--phone .totem-btn--promos {

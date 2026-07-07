@@ -72,6 +72,7 @@
     const customerManualLead = document.getElementById('totem-customer-manual-lead');
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
+    const refreshBtn = document.getElementById('totem-refresh-btn');
     const promosBackBtn = document.getElementById('totem-promos-back');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
@@ -82,6 +83,7 @@
     const floatCartTotal = document.getElementById('totem-float-cart-total');
     const cartPanel = document.getElementById('totem-cart-panel');
     const totemHeader = document.querySelector('.totem-header');
+    const headerActions = document.getElementById('totem-header-actions');
     const cartList = document.getElementById('totem-cart-list');
     const cartTotalEl = document.getElementById('totem-cart-total');
     const cartCountEl = document.getElementById('totem-cart-count');
@@ -144,6 +146,7 @@
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
     let customerIdentified = false;
+    let refreshBusy = false;
     let totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
     let customerStep = 'register';
     let customerLookupMode = 'doc';
@@ -1463,7 +1466,12 @@ ${unitHtml}
         const inCatalog = views.catalog?.classList.contains('totem-view--active');
         const inPromos = views.promos?.classList.contains('totem-view--active');
         const inShopping = inCatalog || inPromos;
-        const showActions = customerIdentified && inShopping;
+        const showActions = Boolean(customerIdentified && inShopping);
+
+        if (headerActions) {
+            headerActions.hidden = !showActions;
+            headerActions.classList.toggle('totem-header__actions--visible', showActions);
+        }
 
         if (promosBtn) {
             promosBtn.hidden = !showActions;
@@ -1475,6 +1483,55 @@ ${unitHtml}
 
         if (cartBtn) {
             cartBtn.hidden = !showActions;
+        }
+
+        if (refreshBtn) {
+            refreshBtn.hidden = !showActions;
+            refreshBtn.disabled = refreshBusy;
+        }
+
+        document.documentElement.classList.toggle('totem--shopping-chrome', showActions);
+    };
+
+    const refreshTotemData = async () => {
+        if (refreshBusy) return;
+        refreshBusy = true;
+        refreshBtn?.classList.add('totem-btn--refreshing');
+        refreshBtn?.setAttribute('aria-busy', 'true');
+        refreshBtn?.setAttribute('aria-label', 'Atualizando catálogo e promoções…');
+        bumpIdle();
+
+        try {
+            window.LigeirinhoCatalogLoader?.clear?.();
+            const rawCatalog = await window.LigeirinhoCatalogLoader.load({ force: true });
+            catalogData = filterCatalog(rawCatalog);
+            pricing.rebuildGroups?.(catalogData);
+            displayItems = buildDisplayItems();
+            promoCatalogItems = buildPromoCatalogItems();
+            normalizeDisplayItems();
+            attachSearchIndex(displayItems);
+            totemCategories = buildTotemCategories();
+            renderCategories();
+            updateCategoriesBtnLabel();
+            renderProducts();
+            refreshProductGrid();
+            refreshDetailIfOpen();
+
+            if (isInPromos()) {
+                await window.LigeirinhoTotemPromos?.refresh?.({ force: true });
+            } else {
+                window.LigeirinhoTotemPromos?.invalidate?.();
+            }
+
+            updateFloatCart(cartApi.loadCart());
+        } catch {
+            window.alert('Não foi possível atualizar. Verifique a conexão e tente novamente.');
+        } finally {
+            refreshBusy = false;
+            refreshBtn?.classList.remove('totem-btn--refreshing');
+            refreshBtn?.setAttribute('aria-busy', 'false');
+            refreshBtn?.setAttribute('aria-label', 'Atualizar catálogo e promoções');
+            updateShoppingChrome();
         }
     };
 
@@ -2329,6 +2386,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             setView('promos');
             void window.LigeirinhoTotemPromos?.render?.();
             bumpIdle();
+        });
+
+        refreshBtn?.addEventListener('click', () => {
+            if (!customerIdentified || refreshBusy) return;
+            void refreshTotemData();
         });
 
         promosBackBtn?.addEventListener('click', () => {
