@@ -3135,7 +3135,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 
 .totem-product__badge {
     position: absolute;
-    top: 0.55rem;
+    bottom: 0.55rem;
     right: 0.55rem;
     z-index: 2;
     min-width: 1.65rem;
