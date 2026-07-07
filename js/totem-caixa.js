@@ -124,17 +124,19 @@ ${rows.join('')}
 
     let pollTimer = null;
     let screenTimeout = null;
-    let countdownTimer = null;
+    let unbindActivity = null;
     let currentOrder = null;
     let totemLabel = 'Ligeirinho Totem';
     let autoPrintEnabled = false;
     let autoPrintTriggered = false;
     let printMode = 'kiosk';
-    const SCREEN_TIMEOUT_MS = 10000;
+    let IDLE_BEFORE_MS = 15000;
+    let COUNTDOWN_MS = 10000;
 
     const bindActions = () => {
         document.getElementById('totem-caixa-novo-pedido')?.addEventListener('click', goNovoPedido);
         document.getElementById('totem-caixa-reprint')?.addEventListener('click', async () => {
+            bumpScreenIdle();
             if (!currentOrder) return;
             let orderToPrint = currentOrder;
             try {
@@ -149,7 +151,12 @@ ${rows.join('')}
                 printMode: 'kiosk',
             });
             showPrintNote();
+            bumpScreenIdle();
         });
+
+        const activity = window.LigeirinhoTotemActivity;
+        unbindActivity?.();
+        unbindActivity = activity?.bind?.(bumpScreenIdle, document);
     };
 
     const showPrintNote = () => {
@@ -184,35 +191,50 @@ ${rows.join('')}
 
     const clearTimers = () => {
         if (pollTimer) clearInterval(pollTimer);
-        if (screenTimeout) clearTimeout(screenTimeout);
-        if (countdownTimer) clearInterval(countdownTimer);
+        screenTimeout?.cancel();
         pollTimer = null;
         screenTimeout = null;
-        countdownTimer = null;
     };
 
     const goNovoPedido = () => {
         clearTimers();
+        unbindActivity?.();
         window.LigeirinhoCart?.clearTotemSession?.();
         window.location.replace('totem.html');
     };
 
+    const hideCountdown = () => {
+        const wrap = document.getElementById('totem-caixa-timeout-wrap');
+        if (wrap) wrap.hidden = true;
+    };
+
+    const showCountdown = () => {
+        const wrap = document.getElementById('totem-caixa-timeout-wrap');
+        if (wrap) wrap.hidden = false;
+    };
+
+    const updateCountdownTick = (remaining) => {
+        const el = document.getElementById('totem-caixa-countdown');
+        if (el) el.textContent = String(Math.max(0, remaining));
+    };
+
+    const bumpScreenIdle = () => {
+        screenTimeout?.bump();
+    };
+
     const startScreenTimeout = () => {
-        let remaining = Math.round(SCREEN_TIMEOUT_MS / 1000);
-        const countdownEl = document.getElementById('totem-caixa-countdown');
-
-        const tick = () => {
-            if (countdownEl) countdownEl.textContent = String(remaining);
-            if (remaining <= 0 && countdownTimer) {
-                clearInterval(countdownTimer);
-                countdownTimer = null;
-            }
-            remaining -= 1;
-        };
-
-        tick();
-        countdownTimer = window.setInterval(tick, 1000);
-        screenTimeout = window.setTimeout(goNovoPedido, SCREEN_TIMEOUT_MS);
+        const activity = window.LigeirinhoTotemActivity;
+        screenTimeout?.cancel();
+        screenTimeout = activity?.createCountdownTimeout?.({
+            idleBeforeCountdownMs: IDLE_BEFORE_MS,
+            countdownMs: COUNTDOWN_MS,
+            onReset: hideCountdown,
+            onCountdownStart: showCountdown,
+            onTick: updateCountdownTick,
+            onComplete: goNovoPedido,
+        });
+        screenTimeout?.arm();
+        hideCountdown();
     };
 
     const showError = (msg) => {
@@ -251,8 +273,8 @@ Aguardando confirmação no PDV…
 <span class="material-symbols-outlined" aria-hidden="true">print</span>
 Imprimir comprovante
 </button>
-<p class="totem-caixa-card__timeout" id="totem-caixa-timeout-wrap" aria-live="polite">
-Nova tela em <strong id="totem-caixa-countdown">${Math.round(SCREEN_TIMEOUT_MS / 1000)}</strong>s para o próximo cliente.
+<p class="totem-caixa-card__timeout" id="totem-caixa-timeout-wrap" hidden aria-live="polite">
+Nova tela em <strong id="totem-caixa-countdown">${Math.round(COUNTDOWN_MS / 1000)}</strong>s para o próximo cliente.
 </p>
 <button type="button" class="totem-btn totem-btn--primary totem-btn--xl totem-caixa-card__novo" id="totem-caixa-novo-pedido">
 <span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
@@ -294,12 +316,17 @@ Nova tela em <strong id="totem-caixa-countdown">${Math.round(SCREEN_TIMEOUT_MS /
         }
 
         try {
-            const [res, receiptConfig] = await Promise.all([
+            const [res, receiptConfig, totemCfg] = await Promise.all([
                 fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`),
                 receipt?.loadReceiptConfig?.() ?? Promise.resolve(null),
+                fetch('data/totem-units.json').then((r) => r.json()).catch(() => null),
             ]);
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Pedido não encontrado');
+
+            const cfg = totemCfg?.defaults || {};
+            IDLE_BEFORE_MS = Number(cfg.idleBeforeCountdownMs) || 15000;
+            COUNTDOWN_MS = Number(cfg.countdownMs) || 10000;
 
             if (receiptConfig) {
                 autoPrintEnabled = receiptConfig.autoPrint === true;

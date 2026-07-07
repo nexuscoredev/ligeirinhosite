@@ -1,8 +1,7 @@
 {
   "defaults": {
-    "idleTimeoutMs": 30000,
-    "idleWarnMs": 15000,
-    "successTimeoutMs": 18000,
+    "idleBeforeCountdownMs": 15000,
+    "countdownMs": 10000,
     "adminPin": "123456",
     "autoPrintReceipt": true,
     "autoPrintDelayMs": 0,

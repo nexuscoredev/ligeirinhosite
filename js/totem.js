@@ -125,12 +125,9 @@
     let activeCategory = '';
     let totemConfig = { defaults: {}, units: {}, loginUnitMap: {} };
     let unitSettings = null;
-    let idleTimer = null;
-    let idleHintTimer = null;
-    let idleCountdownTimer = null;
-    let idleCountdownLeft = 0;
-    const IDLE_RESET_MS_DEFAULT = 30000;
-    const IDLE_WARN_MS_DEFAULT = 15000;
+    let idlePaused = false;
+    let unbindActivity = null;
+    let sessionTimeout = null;
     let adminTapCount = 0;
     let adminTapTimer = null;
     let lastCartCount = 0;
@@ -1243,6 +1240,7 @@ ${unitHtml}
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: searchInput,
             onInput: (value) => {
+                bumpIdle();
                 if (searchTimer) clearTimeout(searchTimer);
                 searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
             },
@@ -1271,16 +1269,19 @@ ${unitHtml}
             onInput:
                 field === customerCpfInput
                     ? (value) => {
+                          bumpIdle();
                           if (!customerCpfInput) return;
                           customerCpfInput.value = cpfApi?.formatCpf?.(value) || value;
                       }
                     : field === customerManualDocInput
                       ? (value) => {
+                            bumpIdle();
                             if (!customerManualDocInput) return;
                             customerManualDocInput.value = formatManualDocInput(value);
                         }
-                      : undefined,
+                      : () => bumpIdle(),
             onSubmit: () => {
+                bumpIdle();
                 if (field === customerNameInput) {
                     const contactField = manualContactField();
                     contactField?.focus();
@@ -1515,13 +1516,7 @@ ${unitHtml}
     };
 
     const clearIdleTimers = () => {
-        clearTimeout(idleTimer);
-        clearTimeout(idleHintTimer);
-        clearInterval(idleCountdownTimer);
-        idleTimer = null;
-        idleHintTimer = null;
-        idleCountdownTimer = null;
-        idleCountdownLeft = 0;
+        sessionTimeout?.cancel();
     };
 
     const hideIdleWarning = () => {
@@ -1529,7 +1524,11 @@ ${unitHtml}
         idleHint.classList.remove('totem-idle-hint--visible');
         idleHint.hidden = true;
         idleHint.setAttribute('aria-hidden', 'true');
-        if (idleCountdownEl) idleCountdownEl.textContent = '15';
+        if (idleCountdownEl) {
+            idleCountdownEl.textContent = String(
+                Math.round((Number(totemConfig.defaults?.countdownMs) || 10000) / 1000),
+            );
+        }
     };
 
     const updateIdleCountdown = (seconds) => {
@@ -1538,26 +1537,11 @@ ${unitHtml}
 
     const showIdleWarning = () => {
         if (views.welcome?.classList.contains('totem-view--active')) return;
-        const idleMs = Number(totemConfig.defaults?.idleTimeoutMs) || IDLE_RESET_MS_DEFAULT;
-        const warnMs = Number(totemConfig.defaults?.idleWarnMs) || IDLE_WARN_MS_DEFAULT;
-        idleCountdownLeft = Math.max(1, Math.round((idleMs - warnMs) / 1000));
-        updateIdleCountdown(idleCountdownLeft);
         if (idleHint) {
             idleHint.hidden = false;
             idleHint.setAttribute('aria-hidden', 'false');
             idleHint.classList.add('totem-idle-hint--visible');
         }
-        clearInterval(idleCountdownTimer);
-        idleCountdownTimer = window.setInterval(() => {
-            idleCountdownLeft -= 1;
-            if (idleCountdownLeft <= 0) {
-                clearInterval(idleCountdownTimer);
-                idleCountdownTimer = null;
-                updateIdleCountdown(0);
-                return;
-            }
-            updateIdleCountdown(idleCountdownLeft);
-        }, 1000);
     };
 
     const resetSession = () => {
@@ -1573,25 +1557,68 @@ ${unitHtml}
         setView('welcome');
     };
 
+    const isIdleBlocked = () => {
+        if (detailPanel?.classList.contains('totem-detail--open')) return true;
+        if (isCartOpen()) return true;
+        if (categoriesModal?.classList.contains('totem-categories-modal--open')) return true;
+        if (totemKeyboard?.isOpen?.()) return true;
+        if (adminModal?.classList.contains('totem-admin-modal--open')) return true;
+        return false;
+    };
+
+    const timeoutDefaults = () => ({
+        idleBeforeCountdownMs: Number(totemConfig.defaults?.idleBeforeCountdownMs) || 15000,
+        countdownMs: Number(totemConfig.defaults?.countdownMs) || 10000,
+    });
+
     const bumpIdle = () => {
-        hideIdleWarning();
-        resetIdleTimer();
+        if (idlePaused) return;
+        sessionTimeout?.bump();
     };
 
     const resetIdleTimer = () => {
-        clearIdleTimers();
+        if (views.welcome?.classList.contains('totem-view--active')) {
+            sessionTimeout?.cancel();
+            hideIdleWarning();
+            return;
+        }
+
+        const cfg = timeoutDefaults();
+        const activity = window.LigeirinhoTotemActivity;
+        sessionTimeout?.cancel();
+        sessionTimeout = activity?.createCountdownTimeout?.({
+            idleBeforeCountdownMs: cfg.idleBeforeCountdownMs,
+            countdownMs: cfg.countdownMs,
+            canStartCountdown: () =>
+                !idlePaused &&
+                !isIdleBlocked() &&
+                !views.welcome?.classList.contains('totem-view--active'),
+            onCountdownStart: () => {
+                if (
+                    views.catalog?.classList.contains('totem-view--active') ||
+                    views.promos?.classList.contains('totem-view--active') ||
+                    views.customer?.classList.contains('totem-view--active')
+                ) {
+                    updateIdleCountdown(Math.ceil(cfg.countdownMs / 1000));
+                    showIdleWarning();
+                }
+            },
+            onTick: (remaining) => {
+                updateIdleCountdown(remaining);
+            },
+            onReset: () => {
+                hideIdleWarning();
+            },
+            onComplete: () => {
+                if (idlePaused || isIdleBlocked()) {
+                    resetIdleTimer();
+                    return;
+                }
+                resetSession();
+            },
+        });
+        sessionTimeout?.arm();
         hideIdleWarning();
-        // Tela inicial já está “desligada” para o cliente — sem contagem.
-        if (views.welcome?.classList.contains('totem-view--active')) return;
-
-        const idleMs = Number(totemConfig.defaults?.idleTimeoutMs) || IDLE_RESET_MS_DEFAULT;
-        const warnMs = Math.min(
-            Number(totemConfig.defaults?.idleWarnMs) || IDLE_WARN_MS_DEFAULT,
-            Math.max(0, idleMs - 1000),
-        );
-
-        idleHintTimer = window.setTimeout(showIdleWarning, warnMs);
-        idleTimer = window.setTimeout(resetSession, idleMs);
     };
 
     const updateCategoriesBtnLabel = () => {
@@ -2004,6 +2031,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
     const closeCart = () => {
         if (!cartPanel?.classList.contains('totem-cart-panel--open')) return;
+        bumpIdle();
         cartPanel.classList.add('totem-cart-panel--closing');
         window.setTimeout(() => {
             cartPanel.classList.remove('totem-cart-panel--open', 'totem-cart-panel--closing');
@@ -2017,6 +2045,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         if (!cartApi.cartItemCount(cart)) return;
         checkoutBtn.disabled = true;
         checkoutBtn.textContent = 'Enviando pedido…';
+        idlePaused = true;
+        bumpIdle();
 
         const s = session();
         const items = cartApi.cartEntries(cart).map((item) => ({
@@ -2063,6 +2093,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             cartApi.saveLastOrder(cart, cartApi.loadCheckout());
             window.location.href = `totem-pagamento.html?order=${encodeURIComponent(data.orderId)}`;
         } catch (err) {
+            idlePaused = false;
+            resetIdleTimer();
             window.alert(err.message || 'Erro ao iniciar pagamento.');
             checkoutBtn.disabled = false;
             checkoutBtn.textContent = 'Ir para pagamento';
@@ -2194,9 +2226,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         customerCpfInput?.addEventListener('focus', () => bindCustomerKeyboard(customerCpfInput, 'numeric'));
 
         customerNameInput?.addEventListener('input', () => {
+            bumpIdle();
             customerNameInput.classList.remove('totem-customer__input--error');
             if (customerError?.textContent) showCustomerError('');
         });
+
+        customerPhoneInput?.addEventListener('input', () => bumpIdle());
 
         customerNameInput?.addEventListener('focus', () => bindCustomerKeyboard(customerNameInput));
         customerPhoneInput?.addEventListener('focus', () => bindCustomerKeyboard(customerPhoneInput, 'numeric'));
@@ -2393,14 +2428,15 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
         initSearchKeyboard();
 
+        const activity = window.LigeirinhoTotemActivity;
+        unbindActivity?.();
+        unbindActivity = activity?.bind?.(bumpIdle, document);
+        activity?.bindScroll?.(bumpIdle, productsBody, productsGrid, cartList, detailSheet);
+
         document.getElementById('totem-admin-cancel')?.addEventListener('click', closeAdminModal);
         document.getElementById('totem-admin-confirm')?.addEventListener('click', confirmAdminLogout);
         adminPin?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') confirmAdminLogout();
-        });
-
-        ['pointerdown', 'keydown', 'touchstart'].forEach((evt) => {
-            document.addEventListener(evt, bumpIdle, { passive: true });
         });
 
         window.addEventListener('resize', () => updateViewSwitcher(), { passive: true });
