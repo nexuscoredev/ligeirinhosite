@@ -1,7 +1,8 @@
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
-import { dbFromPaymentConfig, publicOrderView } from '../../scripts/supabase-orders.mjs';
+import { dbFromPaymentConfig, publicOrderView, fetchOrderById } from '../../scripts/supabase-orders.mjs';
 import { ensureHubPedidoForTotem } from '../../scripts/hub-totem-pedido.mjs';
 import { selectTotemPayment, normalizeTotemPaymentMethod } from '../../scripts/supabase-caixa.mjs';
+import { validarPagamentoTotemSemCartaoComPromo } from '../../scripts/lib/totem-promo-payment.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -34,6 +35,15 @@ export default async function handler(req, res) {
         }
 
         const db = dbFromPaymentConfig(config);
+        const orderPreview = await fetchOrderById(db.url, db.key, id, { useRpc: db.useRpc });
+        if (!orderPreview) {
+            return res.status(404).json({ error: 'Pedido não encontrado' });
+        }
+        const promoCheck = validarPagamentoTotemSemCartaoComPromo(orderPreview, rawMethod, paymentSplits);
+        if (!promoCheck.ok) {
+            return res.status(400).json({ error: promoCheck.error });
+        }
+
         const order = await selectTotemPayment(db.url, db.key, id, rawMethod, {
             useRpc: db.useRpc,
             paymentSplits,

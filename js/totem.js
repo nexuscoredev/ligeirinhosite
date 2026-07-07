@@ -2003,6 +2003,7 @@ ${bodyHtml}
             opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))
                 ? Number(opts.promoPrice)
                 : (variant || product).price;
+        const basePrice = Number((variant || product).price);
         const cart = cartApi.loadCart();
         if (!cart[key]) {
             cart[key] = {
@@ -2013,11 +2014,29 @@ ${bodyHtml}
                 qty: 0,
                 packType,
                 ...cartCategoryFields(item),
-                ...(opts.promoId ? { promoId: opts.promoId } : {}),
+                ...(opts.promoId
+                    ? {
+                          promoId: opts.promoId,
+                          isPromo: true,
+                          originalPrice: basePrice,
+                          discountPct:
+                              basePrice > price
+                                  ? Math.max(0, Math.round((1 - price / basePrice) * 100))
+                                  : 0,
+                      }
+                    : {}),
             };
         } else if (opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))) {
             cart[key].price = Number(opts.promoPrice);
-            if (opts.promoId) cart[key].promoId = opts.promoId;
+            if (opts.promoId) {
+                cart[key].promoId = opts.promoId;
+                cart[key].isPromo = true;
+                cart[key].originalPrice = basePrice;
+                cart[key].discountPct =
+                    basePrice > Number(opts.promoPrice)
+                        ? Math.max(0, Math.round((1 - Number(opts.promoPrice) / basePrice) * 100))
+                        : 0;
+            }
         }
         cart[key].qty += 1;
         cartApi.saveCart(cart);
@@ -2196,6 +2215,9 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             packType: item.packType,
             categoryId: item.categoryId || '',
             categoryName: item.categoryName || '',
+            ...(item.promoId ? { promoId: item.promoId, isPromo: true } : {}),
+            ...(item.originalPrice != null ? { originalPrice: item.originalPrice } : {}),
+            ...(item.discountPct != null ? { discountPct: item.discountPct } : {}),
         }));
 
         try {

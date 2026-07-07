@@ -40,6 +40,16 @@ const normalizeItems = (raw) => {
                 packType: item.packType || null,
                 categoryId: String(item.categoryId || '').trim().slice(0, 80) || null,
                 categoryName: String(item.categoryName || '').trim().slice(0, 120) || null,
+                promoId: String(item.promoId || '').trim().slice(0, 64) || null,
+                isPromo: Boolean(item.promoId || item.isPromo),
+                originalPrice:
+                    item.originalPrice != null && Number.isFinite(Number(item.originalPrice))
+                        ? roundMoney(item.originalPrice)
+                        : null,
+                discountPct:
+                    item.discountPct != null && Number.isFinite(Number(item.discountPct))
+                        ? Math.max(0, Math.round(Number(item.discountPct)))
+                        : null,
             };
         })
         .filter(Boolean);

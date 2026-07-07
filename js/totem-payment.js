@@ -6,6 +6,7 @@
     const orderId = params.get('order');
     const caixaUrl = (id) => `totem-caixa.html?order=${encodeURIComponent(id)}`;
     const splitsApi = window.LigeirinhoPaymentSplits;
+    const promoPay = () => window.LigeirinhoTotemPromoPayment;
 
     const TOTEM_METHODS = [
         { id: 'pix', label: 'Pix', brand: 'img/icon-pix.svg' },
@@ -30,6 +31,18 @@
     let formError = '';
 
     const methodLabel = (id) => TOTEM_METHODS.find((m) => m.id === id)?.label || id;
+
+    const orderHasPromo = (order) => promoPay()?.pedidoTemItemPromocional?.(order) ?? false;
+
+    const methodsForOrder = (order) => promoPay()?.metodosPermitidosTotem?.(order, TOTEM_METHODS) ?? TOTEM_METHODS;
+
+    const stripCardFromSelection = (order) => {
+        if (!promoPay()?.pagamentoUsaCartao?.(selectedIds)) return;
+        selectedIds = selectedIds.filter((id) => !promoPay().metodoUsaCartao(id));
+        Object.keys(amountInputs).forEach((key) => {
+            if (promoPay().metodoUsaCartao(key)) delete amountInputs[key];
+        });
+    };
 
     const showError = (msg) => {
         root.innerHTML = `<div class="lig-payment-card lig-payment-card--error totem-pay-card">
@@ -132,6 +145,7 @@
             selectedIds = [method.split('+')[0]];
             amountInputs[selectedIds[0]] = splitsApi.formatMoneyInput(order.total);
         }
+        stripCardFromSelection(order);
     };
 
     const isCashMethod = (id) => splitsApi?.isCashMethod?.(id) || id === 'dinheiro';
@@ -236,6 +250,10 @@
 
     const toggleMethod = (id) => {
         if (!currentOrder) return;
+        if (orderHasPromo(currentOrder) && promoPay()?.metodoUsaCartao?.(id)) {
+            formError = promoPay().mensagemCartaoBloqueadoPromo();
+            return;
+        }
         formError = '';
         if (selectedIds.includes(id)) {
             selectedIds = selectedIds.filter((item) => item !== id);
@@ -354,6 +372,10 @@ ${icon}
 
     const renderMethodPicker = (order) => {
         const total = Number(order.total) || 0;
+        const methods = methodsForOrder(order);
+        const promoHint = orderHasPromo(order)
+            ? `<p class="totem-pay-promo-hint">${esc(promoPay()?.mensagemCartaoBloqueadoPromo?.() || 'Cartão indisponível para promoções.')}</p>`
+            : '';
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-pay-card--picker">
 <div class="totem-pay-card__head">
 <h1 class="lig-payment-title">Formas de pagamento</h1>
@@ -362,8 +384,9 @@ ${icon}
 ${renderSummary(order)}
 <div class="totem-pay-card__footer">
 <h2 class="totem-pay-methods__title">Escolha as formas</h2>
+${promoHint}
 <div class="totem-pay-methods totem-pay-methods--multi" role="group" aria-label="Formas de pagamento">
-${TOTEM_METHODS.map(methodButtonHtml).join('')}
+${methods.map(methodButtonHtml).join('')}
 </div>
 ${amountsHtml(total)}
 ${formError ? `<p class="totem-pay-error">${esc(formError)}</p>` : ''}
@@ -395,7 +418,15 @@ Confirmar pagamento
             return null;
         }
         if (selectedIds.length === 1) {
+            if (orderHasPromo(order) && promoPay()?.metodoUsaCartao?.(selectedIds[0])) {
+                formError = promoPay().mensagemCartaoBloqueadoPromo();
+                return null;
+            }
             return { orderId: order.id, method: selectedIds[0] };
+        }
+        if (orderHasPromo(order) && promoPay()?.pagamentoUsaCartao?.(selectedIds)) {
+            formError = promoPay().mensagemCartaoBloqueadoPromo();
+            return null;
         }
         const splits = selectedIds.map((method) => ({
             method,
