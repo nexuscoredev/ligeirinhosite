@@ -1527,6 +1527,36 @@ html.totem--phone .totem-btn--promos__icon {
     color: var(--lig-text-subtle);
 }
 
+.totem-customer__skip {
+    width: 100%;
+    min-height: 2.85rem;
+    margin-top: 0.35rem;
+    padding: 0.55rem 0.85rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--lig-text-muted);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.totem-customer__skip:hover,
+.totem-customer__skip:focus-visible {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--lig-text);
+    outline: none;
+}
+
+.totem-welcome__identify {
+    margin-top: 0.65rem;
+    color: var(--lig-text-muted);
+}
+
 .totem-customer__input {
     box-sizing: border-box;
     display: block;

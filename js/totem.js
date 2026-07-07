@@ -61,7 +61,7 @@
     const customerLookupInput = document.getElementById('totem-customer-lookup-input');
     const customerLookupError = document.getElementById('totem-customer-lookup-error');
     const customerLookupLead = document.getElementById('totem-customer-lookup-lead');
-    const customerLookupLabel = document.getElementById('totem-customer-lookup-label');
+    const customerLookupLabel = document.getElementById('totem-customer-lookup-label-text');
     const customerLookupTitle = document.getElementById('totem-customer-lookup-title');
     const customerLookupSubmit = document.getElementById('totem-customer-lookup-submit');
     const customerConfirmName = document.getElementById('totem-customer-confirm-name');
@@ -966,11 +966,12 @@ ${unitHtml}
         return { cpfDigits: '', cnpjDigits: cnpjApi?.normalizeCnpjDigits?.(raw) || digits };
     };
 
-    const validateManualDocs = () => {
+    const validateManualDocs = ({ optional = false } = {}) => {
         const { cpfDigits, cnpjDigits } = parseManualDocs();
         customerManualDocInput?.classList.remove('totem-customer__input--error');
 
         if (!cpfDigits && !cnpjDigits) {
+            if (optional) return { cpf: '', cnpj: '' };
             customerManualDocInput?.classList.add('totem-customer__input--error');
             showCustomerError('Informe CPF ou CNPJ válido.');
             customerManualDocInput?.focus();
@@ -1012,7 +1013,7 @@ ${unitHtml}
         };
     };
 
-    const validateActiveManualContact = () => {
+    const validateActiveManualContact = ({ optional = false } = {}) => {
         customerPhoneInput?.classList.remove('totem-customer__input--error');
         customerManualEmailInput?.classList.remove('totem-customer__input--error');
         customerManualDocInput?.classList.remove('totem-customer__input--error');
@@ -1020,6 +1021,14 @@ ${unitHtml}
         if (customerManualContactMode === 'phone') {
             const phone = String(customerPhoneInput?.value || '').trim();
             const phoneDigits = contactDigits(phone);
+            if (!phoneDigits) {
+                if (optional) return { phone: '', email: '', cpf: '', cnpj: '' };
+                customerPhoneInput?.classList.add('totem-customer__input--error');
+                showCustomerError('Informe telefone com DDD.');
+                customerPhoneInput?.focus();
+                bindCustomerKeyboard(customerPhoneInput, 'numeric');
+                return null;
+            }
             if (phoneDigits.length < 10) {
                 customerPhoneInput?.classList.add('totem-customer__input--error');
                 showCustomerError('Informe telefone com DDD.');
@@ -1040,7 +1049,15 @@ ${unitHtml}
         if (customerManualContactMode === 'email') {
             const emailRaw = String(customerManualEmailInput?.value || '').trim();
             const email = emailRaw ? emailRaw.toLowerCase() : '';
-            if (!email || !isValidEmail(email)) {
+            if (!email) {
+                if (optional) return { phone: '', email: '', cpf: '', cnpj: '' };
+                customerManualEmailInput?.classList.add('totem-customer__input--error');
+                showCustomerError('Informe um e-mail válido (ex.: nome@gmail.com).');
+                customerManualEmailInput?.focus();
+                bindCustomerKeyboard(customerManualEmailInput, 'email');
+                return null;
+            }
+            if (!isValidEmail(email)) {
                 customerManualEmailInput?.classList.add('totem-customer__input--error');
                 showCustomerError('Informe um e-mail válido (ex.: nome@gmail.com).');
                 customerManualEmailInput?.focus();
@@ -1050,9 +1067,33 @@ ${unitHtml}
             return { phone: '', email, cpf: '', cnpj: '' };
         }
 
-        const docs = validateManualDocs();
+        const docs = validateManualDocs({ optional });
         if (!docs) return null;
         return { phone: '', email: '', cpf: docs.cpf, cnpj: docs.cnpj };
+    };
+
+    const manualFormHasInput = () => {
+        const name = String(customerNameInput?.value || '').trim();
+        const phone = String(customerPhoneInput?.value || '').trim();
+        const email = String(customerManualEmailInput?.value || '').trim();
+        const doc = String(customerManualDocInput?.value || '').trim();
+        return Boolean(name || phone || email || doc);
+    };
+
+    const customerHasPersistData = (customer = totemCustomer) => {
+        const name = String(customer?.name || '').trim();
+        const phone = sanitizeCustomerPhone(customer?.phone, customer?.cpf, customer?.cnpj);
+        const email = String(customer?.email || '').trim().toLowerCase();
+        const cpf = String(customer?.cpf || '').replace(/\D/g, '');
+        const cnpj = String(customer?.cnpj || '').replace(/\D/g, '');
+        return Boolean(name && (phone.replace(/\D/g, '') || email || cpf || cnpj));
+    };
+
+    const skipCustomerIdentification = () => {
+        totemKeyboard?.hide?.();
+        customerLookupHit = null;
+        totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
+        enterCatalog({ guest: true });
     };
 
     const readManualDocs = () => {
@@ -1126,14 +1167,14 @@ ${unitHtml}
             if (customerManualTitle) customerManualTitle.textContent = 'Vamos identificar você';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e escolha como prefere se identificar.';
+                    'Informe seu nome e, se quiser, um contato para reconhecermos você depois.';
             }
         } else {
             if (customerManualEyebrow) customerManualEyebrow.textContent = 'Novo cliente';
             if (customerManualTitle) customerManualTitle.textContent = 'Seja bem-vindo!';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e escolha como prefere se identificar.';
+                    'Informe seu nome e, se quiser, um contato para reconhecermos você depois.';
             }
         }
         if (customerNameInput) customerNameInput.value = '';
@@ -1371,9 +1412,11 @@ ${unitHtml}
         totemKeyboard?.show?.();
     };
 
-    const enterCatalog = () => {
+    const enterCatalog = ({ guest = false } = {}) => {
         customerIdentified = true;
-        void persistTotemCustomer();
+        if (!guest && customerHasPersistData()) {
+            void persistTotemCustomer();
+        }
         resetCart();
         clearSearch();
         activeCategory = '';
@@ -1409,15 +1452,13 @@ ${unitHtml}
 
     const submitCustomerAndStart = async () => {
         const name = String(customerNameInput?.value || '').trim().replace(/\s+/g, ' ');
-        if (!name) {
-            customerNameInput?.classList.add('totem-customer__input--error');
-            showCustomerError('Informe seu nome para continuar.');
-            customerNameInput?.focus();
-            bindCustomerKeyboard(customerNameInput);
+        const contact = validateActiveManualContact({ optional: true });
+        if (!contact) return;
+
+        if (!manualFormHasInput()) {
+            skipCustomerIdentification();
             return;
         }
-        const contact = validateActiveManualContact();
-        if (!contact) return;
 
         customerNameInput?.classList.remove('totem-customer__input--error');
         showCustomerError('');
@@ -1430,6 +1471,12 @@ ${unitHtml}
             pessoaId: '',
         };
         totemKeyboard?.hide?.();
+
+        if (!customerHasPersistData()) {
+            proceedAfterCustomerRegister();
+            return;
+        }
+
         if (customerContinueBtn) {
             customerContinueBtn.disabled = true;
             const label = customerContinueBtn.querySelector('span');
@@ -2303,9 +2350,22 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     const bindEvents = () => {
         startBtn?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
+            skipCustomerIdentification();
+            bumpIdle();
+        });
+
+        document.getElementById('totem-identify-btn')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
             setView('customer');
             startCustomerFlow();
             bumpIdle();
+        });
+
+        document.querySelectorAll('[data-customer-skip]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                skipCustomerIdentification();
+                bumpIdle();
+            });
         });
 
         customerBackBtn?.addEventListener('click', () => {
@@ -2705,9 +2765,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`,
             );
             if (!customerIdentified) {
-                setView('customer');
-                startCustomerFlow();
-                return;
+                skipCustomerIdentification();
             }
             if (!cartApi.cartItemCount(cartApi.loadCart())) {
                 cartApi.restoreLastOrder?.();
