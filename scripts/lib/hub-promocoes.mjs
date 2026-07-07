@@ -31,6 +31,7 @@ function normalizePromoRow(row, produto = null) {
     return {
         id: row.id,
         sku: String(row.produto_sku || '').trim(),
+        hubProductId: row.produto_id ? String(row.produto_id).trim() : null,
         name: nome,
         originalPrice: Number.isFinite(original) ? original : null,
         promoPrice: Number.isFinite(promo) ? promo : null,

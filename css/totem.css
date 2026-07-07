@@ -773,6 +773,19 @@ body.totem-kiosk > main {
     gap: 0.15rem 0.25rem;
 }
 
+.totem-product--promo-unlinked {
+    opacity: 0.82;
+}
+
+.totem-product__promo-note {
+    margin: 0.2rem 0 0;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
 .totem-promos__carousel {
     position: relative;
     flex: 1 1 auto;

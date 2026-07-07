@@ -121,6 +121,7 @@
 
     let catalogData = null;
     let displayItems = [];
+    let promoCatalogItems = [];
     let totemCategories = [];
     let activeCategory = '';
     let totemConfig = { defaults: {}, units: {}, loginUnitMap: {} };
@@ -664,6 +665,31 @@ ${unitHtml}
     const buildDisplayItems = () => {
         if (!catalogData) return [];
         return pricing.getTotemDisplayProducts(catalogData);
+    };
+
+    const buildPromoCatalogItems = () => {
+        if (!catalogData) return [];
+        const items = [];
+        catalogData.categories.forEach((cat) => {
+            cat.products.forEach((product) => {
+                items.push({
+                    product: {
+                        id: product.id,
+                        hubId: product.hubId,
+                        sku: product.sku,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image,
+                        adultOnly: product.adultOnly,
+                        description: product.description,
+                    },
+                    categoryId: canonCategoryId(cat.id),
+                    categoryName: canonCategoryName(cat.id, cat.name),
+                    group: null,
+                });
+            });
+        });
+        return items;
     };
 
     const activeCategoryMeta = () =>
@@ -1437,13 +1463,18 @@ ${unitHtml}
         const inCatalog = views.catalog?.classList.contains('totem-view--active');
         const inPromos = views.promos?.classList.contains('totem-view--active');
         const inShopping = inCatalog || inPromos;
+        const showActions = customerIdentified && inShopping;
 
         if (promosBtn) {
-            promosBtn.hidden = !customerIdentified || !inShopping;
-            if (!promosBtn.hidden) {
+            promosBtn.hidden = !showActions;
+            if (showActions) {
                 promosBtn.classList.toggle('totem-btn--promos-active', inPromos);
                 promosBtn.setAttribute('aria-pressed', inPromos ? 'true' : 'false');
             }
+        }
+
+        if (cartBtn) {
+            cartBtn.hidden = !showActions;
         }
     };
 
@@ -1471,7 +1502,6 @@ ${unitHtml}
         const inPromos = name === 'promos';
         const inShopping = inCatalog || inPromos;
         updateShoppingChrome();
-        if (cartBtn) cartBtn.hidden = true;
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
         if (name === 'welcome') hideIdleWarning();
@@ -1823,20 +1853,23 @@ ${bodyHtml}
     };
 
     const findDisplayItem = (cartKey, itemKey) => {
-        if (itemKey) {
-            const byGroup = displayItems.find((i) => (i.group?.key || i.product.id) === itemKey);
-            if (byGroup) return byGroup;
-        }
-        if (cartKey) {
-            const match = displayItems.find((i) => {
-                const group = i.group;
-                if (!group) return i.product.id === cartKey;
-                return pricing.getAvailableTiers(group).some((tier) => {
-                    const variant = pricing.getVariant(group, tier);
-                    return variant && catalog.cartKeyFor(variant) === cartKey;
+        const pools = [displayItems, promoCatalogItems];
+        for (const pool of pools) {
+            if (itemKey) {
+                const byGroup = pool.find((i) => (i.group?.key || i.product.id) === itemKey);
+                if (byGroup) return byGroup;
+            }
+            if (cartKey) {
+                const match = pool.find((i) => {
+                    const group = i.group;
+                    if (!group) return i.product.id === cartKey;
+                    return pricing.getAvailableTiers(group).some((tier) => {
+                        const variant = pricing.getVariant(group, tier);
+                        return variant && catalog.cartKeyFor(variant) === cartKey;
+                    });
                 });
-            });
-            if (match) return match;
+                if (match) return match;
+            }
         }
         return null;
     };
@@ -2509,6 +2542,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         catalogData = filterCatalog(rawCatalog);
         pricing.rebuildGroups?.(catalogData);
         displayItems = buildDisplayItems();
+        promoCatalogItems = buildPromoCatalogItems();
         normalizeDisplayItems();
         attachSearchIndex(displayItems);
         totemCategories = buildTotemCategories();
@@ -2525,6 +2559,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             errorEl: document.getElementById('totem-promos-error'),
             retryBtn: document.getElementById('totem-promos-retry'),
             getDisplayItems: () => displayItems,
+            getPromoCatalogItems: () => promoCatalogItems,
             formatPrice,
             getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
             addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),

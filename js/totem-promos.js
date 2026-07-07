@@ -26,14 +26,23 @@
         const { promo, item } = entry;
         const group = item?.group || null;
         const product = item?.product;
-        const tier = group ? pricing()?.getDefaultTier?.(group) : item?.defaultTier || 'caixa';
-        const variant = group ? pricing()?.getVariant?.(group, tier) : null;
+        const tier = group ? pricing()?.getDefaultTier?.(group) : item?.defaultTier || null;
+        const variant = group && tier ? pricing()?.getVariant?.(group, tier) : null;
         const cartKey = variant ? catalog()?.cartKeyFor?.(variant) : product?.id || '';
-        const originalPrice = promo.originalPrice ?? variant?.price ?? product?.price ?? 0;
-        const promoPrice = promo.promoPrice ?? originalPrice;
+        const originalPrice =
+            promo.originalPrice != null && Number.isFinite(Number(promo.originalPrice))
+                ? Number(promo.originalPrice)
+                : variant?.price ?? product?.price ?? 0;
+        const promoPrice =
+            promo.promoPrice != null && Number.isFinite(Number(promo.promoPrice))
+                ? Number(promo.promoPrice)
+                : originalPrice;
         const discountPct =
-            promo.discountPct ||
-            (originalPrice > 0 ? Math.max(0, Math.round((1 - promoPrice / originalPrice) * 100)) : 0);
+            promo.discountPct != null && Number.isFinite(Number(promo.discountPct))
+                ? Number(promo.discountPct)
+                : originalPrice > 0
+                  ? Math.max(0, Math.round((1 - promoPrice / originalPrice) * 100))
+                  : 0;
         return {
             group,
             product,
@@ -71,14 +80,8 @@
     const formatPrice = (value) => deps?.formatPrice?.(value) ?? catalog()?.formatPrice?.(value) ?? String(value ?? '');
 
     const buildPromoPriceHtml = (ctx) => {
-        const unitPrice =
-            ctx.variant && pricing()?.getUnitPrice
-                ? pricing().getUnitPrice({ ...ctx.variant, price: ctx.promoPrice, tier: ctx.tier })
-                : ctx.promoPrice;
-        const unitOriginal =
-            ctx.variant && pricing()?.getUnitPrice
-                ? pricing().getUnitPrice({ ...ctx.variant, price: ctx.originalPrice, tier: ctx.tier })
-                : ctx.originalPrice;
+        const unitPrice = ctx.promoPrice;
+        const unitOriginal = ctx.originalPrice;
         const showOld = ctx.discountPct > 0 && unitOriginal > unitPrice;
         return `<div class="totem-price-card ze-price-block totem-product__price-block totem-product__price-block--promo" data-price-display>
 <div class="totem-price-card__main">
@@ -89,14 +92,39 @@ ${ctx.discountPct > 0 ? `<span class="totem-product__promo-badge">-${ctx.discoun
 </div>`;
     };
 
-    const buildPromoCardHtml = (entry, index) => {
+    const buildPromoOnlyCardHtml = (entry, index) => {
+        const { promo } = entry;
         const ctx = buildCartCtx(entry);
-        const { group, product, tier, variant, cartKey, promo } = ctx;
-        if (!product || !cartKey) return '';
+        const name = promo.name || promo.hubProductName || 'Promoção';
+        const imgSrc = promo.imageUrl ? catalog().productImageUrl(promo.imageUrl) : '';
+        const validade = promoCatalog()?.formatValidade?.(promo) || '';
+        const attrs = `role="listitem" data-promo-id="${esc(promo.id || '')}" data-promo-unlinked="true" style="--totem-card-i:${Math.min(index, 14)}"`;
+
+        return `<article class="totem-product totem-product--promo totem-product--promo-unlinked" ${attrs}>
+<div class="totem-product__media">
+${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
+</div>
+<div class="totem-product__body">
+<div class="totem-product__name">${esc(catalog().shortName?.(name, 56) || name)}</div>
+<div class="totem-product__pricing">
+<div class="totem-product__meta">${buildPromoPriceHtml(ctx)}</div>
+${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
+</div>
+<p class="totem-product__promo-note">Indisponível no catálogo do totem</p>
+</div>
+</article>`;
+    };
+
+    const buildPromoCardHtml = (entry, index) => {
+        if (!entry?.item) return buildPromoOnlyCardHtml(entry, index);
+
+        const ctx = buildCartCtx(entry);
+        const { group, product, tier, cartKey, promo } = ctx;
+        if (!product || !cartKey) return buildPromoOnlyCardHtml(entry, index);
 
         const qty = deps?.getCartQty?.(cartKey) || 0;
         const itemKey = group?.key || product.id;
-        const name = promo.name || group?.baseName || product.name || 'Promoção';
+        const name = promo.name || promo.hubProductName || group?.baseName || product.name || 'Promoção';
         const imgSrc = promo.imageUrl
             ? catalog().productImageUrl(promo.imageUrl)
             : catalog().productImageUrl(group && pricing() ? pricing().getTierImage(group, tier) : product.image);
@@ -167,8 +195,7 @@ ${bodyHtml}
 
     const renderGrid = () => {
         if (!deps?.gridEl) return;
-        const matched = promoEntries.filter((e) => e.item);
-        if (!matched.length) {
+        if (!promoEntries.length) {
             setPanelVisibility({ showEmpty: true });
             deps.gridEl.innerHTML = '';
             deps.gridEl.classList.remove('totem-promos__grid--carousel');
@@ -178,9 +205,12 @@ ${bodyHtml}
         setPanelVisibility({ showGrid: true });
         deps.gridEl.classList.remove('totem-promos__grid--carousel');
         deps.gridEl.innerHTML = `<div class="totem-grid totem-grid--grid-m totem-grid--promos" role="list">
-${matched.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
+${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
 </div>`;
     };
+
+    const getPromoCatalogItems = () =>
+        deps?.getPromoCatalogItems?.() || deps?.getDisplayItems?.() || [];
 
     const loadPromos = async (force = false) => {
         const loader = getLoader();
@@ -189,10 +219,10 @@ ${matched.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
             promoEntries = [];
             return;
         }
-        const displayItems = deps?.getDisplayItems?.() || [];
+        const catalogItems = getPromoCatalogItems();
         const promocoes = await loader.load(force);
         fetchError = loader.hadError?.() && !promocoes.length;
-        promoEntries = promoCatalog().buildPromoEntries(promocoes, displayItems, { matchedOnly: true });
+        promoEntries = promoCatalog().buildPromoEntries(promocoes, catalogItems, { matchedOnly: false });
     };
 
     const render = async (options = {}) => {
@@ -221,7 +251,7 @@ ${matched.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
             const minus = e.target.closest('.totem-minus');
             if (plus) {
                 const entry = promoEntries.find((item) => buildCartCtx(item).cartKey === plus.dataset.cartKey);
-                if (!entry) return;
+                if (!entry?.item) return;
                 const ctx = buildCartCtx(entry);
                 deps.addPromoItem?.(ctx.cartKey, ctx.group?.key || ctx.product?.id, {
                     promoPrice: ctx.promoPrice,

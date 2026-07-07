@@ -16,54 +16,69 @@
 
     const productSku = (product) => normalizeSku(product?.sku);
 
-    const resolveDisplayItem = (promo, displayItems = []) => {
+    const isIndefinidoSku = (sku) => !sku || sku === 'indefinido';
+
+    const preferVarejoItem = (hits = []) => {
+        if (hits.length <= 1) return hits[0] || null;
+        const unHit = hits.find((item) => /\bUN\b/i.test(item.product?.name || ''));
+        if (unHit) return unHit;
+        const nonCxHit = hits.find((item) => !/\bC\/\d+\b/i.test(item.product?.name || '') && !/\bCX\b/i.test(item.product?.name || ''));
+        if (nonCxHit) return nonCxHit;
+        return hits[0];
+    };
+
+    const resolveDisplayItem = (promo, catalogItems = []) => {
+        const hubProductId = String(promo.hubProductId || promo.produtoId || '').trim();
         const sku = normalizeSku(promo.sku);
         const catalogId = String(promo.catalogProductId || '').trim().toLowerCase();
         const promoName = normalizeName(promo.name || promo.hubProductName);
 
-        for (const item of displayItems) {
-            const group = item.group || null;
-            const product = item.product;
+        if (hubProductId) {
+            const hit = catalogItems.find((item) => String(item.product?.hubId || '').trim() === hubProductId);
+            if (hit) return hit;
+        }
 
-            if (catalogId) {
-                if (product.id === catalogId || group?.primaryId === catalogId) return item;
-                if (group?.variants) {
+        if (!isIndefinidoSku(sku)) {
+            const skuHits = catalogItems.filter((item) => productSku(item.product) === sku);
+            const hit = preferVarejoItem(skuHits);
+            if (hit) return hit;
+        }
+
+        if (catalogId) {
+            const hit = catalogItems.find((item) => String(item.product?.id || '').toLowerCase() === catalogId);
+            if (hit) return hit;
+
+            for (const item of catalogItems) {
+                const group = item.group || null;
+                const product = item.product;
+                if (!group) continue;
+                if (group.primaryId === catalogId) return item;
+                if (group.variants) {
                     for (const variant of Object.values(group.variants)) {
                         if (variant?.id === catalogId) return item;
                     }
                 }
-            }
-
-            if (sku) {
-                if (productSku(product) === sku) return item;
-                if (group?.variants) {
-                    for (const variant of Object.values(group.variants)) {
-                        if (productSku(variant) === sku) return item;
-                    }
-                }
-                if (product.id === sku || product.id.includes(sku)) return item;
-            }
-
-            const base = normalizeName(group?.baseName || product.name);
-            if (promoName && base && (base === promoName || base.includes(promoName) || promoName.includes(base))) {
-                return item;
+                if (product?.id === catalogId) return item;
             }
         }
+
+        if (promoName) {
+            const exactHits = catalogItems.filter((item) => normalizeName(item.product?.name) === promoName);
+            const hit = preferVarejoItem(exactHits);
+            if (hit) return hit;
+        }
+
         return null;
     };
 
-    const buildPromoEntries = (promocoes, displayItems, { matchedOnly = false } = {}) => {
-        const entries = (promocoes || []).map((promo) => ({
+    const buildPromoEntries = (promocoes, catalogItems, { matchedOnly = false } = {}) => {
+        const entries = (promocoes || []).map((promo, index) => ({
             promo,
-            item: resolveDisplayItem(promo, displayItems),
+            item: resolveDisplayItem(promo, catalogItems),
+            hubIndex: index,
         }));
         const filtered = matchedOnly ? entries.filter((e) => e.item) : entries;
-        return filtered.sort((a, b) => {
-            const aMatch = a.item ? 1 : 0;
-            const bMatch = b.item ? 1 : 0;
-            if (bMatch !== aMatch) return bMatch - aMatch;
-            return (b.promo.discountPct || 0) - (a.promo.discountPct || 0);
-        });
+        return filtered.sort((a, b) => a.hubIndex - b.hubIndex);
     };
 
     const formatValidade = (promo) => {
