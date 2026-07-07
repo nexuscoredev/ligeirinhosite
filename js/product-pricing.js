@@ -259,6 +259,10 @@
 
         catalogData.categories.forEach((cat) => {
             cat.products.forEach((product) => {
+                if (product.vendaParceiros === false) return;
+                const price = Number(product.price);
+                if (!Number.isFinite(price) || price <= 0) return;
+
                 const pack = parsePack(product.name);
                 if (!isCaixaPack(pack)) return;
 

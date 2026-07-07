@@ -222,7 +222,7 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         const catalogItems = getPromoCatalogItems();
         const promocoes = await loader.load(force);
         fetchError = loader.hadError?.() && !promocoes.length;
-        promoEntries = promoCatalog().buildPromoEntries(promocoes, catalogItems, { matchedOnly: false });
+        promoEntries = promoCatalog().buildPromoEntries(promocoes, catalogItems, { matchedOnly: true });
     };
 
     const render = async (options = {}) => {

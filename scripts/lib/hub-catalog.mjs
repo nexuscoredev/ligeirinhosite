@@ -150,6 +150,7 @@ export function buildCatalog(produtos, categorias, options = {}) {
             description: p.descricao_resumida || null,
             adultOnly: inferAdultOnly(slug, p.nome),
             image: productImageForCatalog(p),
+            vendaParceiros: p.venda_parceiros !== false,
         });
     }
 
@@ -256,8 +257,8 @@ export async function fetchHubCatalogData(config) {
         fetchAll(
             hub,
             'produtos',
-            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,imagem_url,imagem_cx_url,imagem_pl_url,categorias_produto(slug,nome)',
-            '&ativo=eq.true&visivel_catalogo=eq.true'
+            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,categorias_produto(slug,nome)',
+            '&ativo=eq.true&visivel_catalogo=eq.true&venda_parceiros=eq.true'
         ),
     ]);
 

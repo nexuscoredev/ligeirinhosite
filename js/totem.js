@@ -652,6 +652,15 @@ ${unitHtml}
         }));
     };
 
+    const isTotemSellableProduct = (product) => {
+        if (!product) return false;
+        if (product.vendaParceiros === false) return false;
+        const price = Number(product.price);
+        if (!Number.isFinite(price) || price <= 0) return false;
+        const pack = pricing.parsePack?.(product.name);
+        return pack?.type === 'caixa';
+    };
+
     const filterCatalog = (data) => {
         const hiddenCats = new Set((unitSettings?.hiddenCategories || []).map((c) => String(c).toLowerCase()));
         const hiddenIds = new Set(unitSettings?.hiddenProductIds || []);
@@ -659,7 +668,9 @@ ${unitHtml}
             .filter((cat) => !hiddenCats.has(String(cat.id).toLowerCase()))
             .map((cat) => ({
                 ...cat,
-                products: (cat.products || []).filter((p) => !hiddenIds.has(p.id)),
+                products: (cat.products || []).filter(
+                    (p) => !hiddenIds.has(p.id) && isTotemSellableProduct(p),
+                ),
             }))
             .filter((cat) => cat.products.length > 0);
         return { ...data, categories, totalProducts: categories.reduce((n, c) => n + c.products.length, 0) };
@@ -675,6 +686,7 @@ ${unitHtml}
         const items = [];
         catalogData.categories.forEach((cat) => {
             cat.products.forEach((product) => {
+                if (!isTotemSellableProduct(product)) return;
                 items.push({
                     product: {
                         id: product.id,
