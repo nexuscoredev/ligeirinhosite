@@ -286,6 +286,28 @@
         return pricing.TIER_SHORT?.[tier]?.toUpperCase() || '';
     };
 
+    const mediaPackTagHtml = (variant, tier) => {
+        if (!variant) return '';
+        const activeTier = tier || variant.tier || 'caixa';
+        const label =
+            activeTier === 'pallet' ? 'Pallet' : activeTier === 'caixa' ? 'Caixa' : 'Unidade';
+        const packSize = Number(variant.packSize) || 0;
+        const qtyLine =
+            packSize > 1
+                ? `<span class="totem-product__pack-tag-qty">c/ ${packSize}</span>`
+                : '';
+        const aria =
+            packSize > 1
+                ? `Embalagem ${label} com ${packSize} unidades`
+                : `Embalagem ${label}`;
+        return `<span class="totem-product__pack-tag" aria-label="${esc(aria)}"><span class="totem-product__pack-tag-label">${esc(label)}</span>${qtyLine}</span>`;
+    };
+
+    const mediaCartBadgeHtml = (qty) =>
+        qty
+            ? `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>`
+            : '';
+
     const getDetailContext = () => {
         if (!detailItemKey) return null;
         const item = displayItems.find((i) => (i.group?.key || i.product.id) === detailItemKey);
@@ -455,7 +477,7 @@ adicionar ao pedido
             (variant.tier === 'pallet' ? 'Pallet' : variant.tier === 'caixa' ? 'Caixa' : 'Unidade');
         const packHtml = opts.hidePackLabel
             ? ''
-            : `<span class="totem-price-card__pack">${esc(packLabel)}</span>`;
+            : `<span class="totem-price-card__pack totem-price-card__pack--inline">${esc(packLabel)}</span>`;
 
         const detailHtml = `<p class="totem-price-card__detail">${units > 1 && meta.detail ? esc(meta.detail) : ''}</p>`;
         const unitHtml = `<p class="totem-price-card__unit">${
@@ -503,7 +525,7 @@ ${unitHtml}
         const imgSrc = catalog.productImageUrl(pricing.getTierImage(group, tier));
         if (imgEl && imgSrc) imgEl.src = imgSrc;
 
-        const badge = card.querySelector('.totem-product__badge');
+        const badge = card.querySelector('.totem-product__cart-badge');
         if (qty > 0) {
             if (badge) {
                 badge.textContent = String(qty);
@@ -512,8 +534,8 @@ ${unitHtml}
                 const media = card.querySelector('.totem-product__media');
                 if (media) {
                     media.insertAdjacentHTML(
-                        'afterbegin',
-                        `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>`
+                        'beforeend',
+                        `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>`
                     );
                 }
             }
@@ -526,7 +548,7 @@ ${unitHtml}
             priceEl.textContent = formatPrice(variant.price);
         } else {
             const tiers = pricing.getAvailableTiers(group);
-            updatePriceBlock(card, variant, { hidePackLabel: tiers.length > 1 });
+            updatePriceBlock(card, variant, { hidePackLabel: true });
         }
 
         const minus = card.querySelector('.totem-minus');
@@ -1809,9 +1831,8 @@ ${unitHtml}
         const name = group?.baseName || product.name;
         const itemKey = group?.key || product.id;
         const tiersHtml = group ? priceTiersHtml(group, tier) : '';
-        const tierCount = group ? pricing.getAvailableTiers(group).length : 0;
         const priceHtml = variant
-            ? priceBlockHtml(variant, { hidePackLabel: tierCount > 1 })
+            ? priceBlockHtml(variant, { hidePackLabel: true })
             : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
 <div class="totem-price-card__main">
 <span class="totem-product__price totem-price-card__value">${formatPrice(product.price)}</span>
@@ -1827,7 +1848,8 @@ ${unitHtml}
         const selectedClass = qty ? ' totem-product--selected' : '';
         const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}"`;
         const mediaHtml = `<div class="totem-product__media">
-${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
+${variant ? mediaPackTagHtml(variant, tier) : ''}
+${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>`;
         const bodyHtml = `<div class="totem-product__body">
@@ -1927,7 +1949,7 @@ ${bodyHtml}
             productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`) ||
             productsGrid?.querySelector(`.totem-plus[data-cart-key="${cartKey}"]`)?.closest('.totem-product');
         pulseClass(card, 'totem-product--pulse');
-        const badge = card?.querySelector('.totem-product__badge');
+        const badge = card?.querySelector('.totem-product__cart-badge');
         if (badge) pulseClass(badge, 'totem-product__badge--pop');
         const qtyEl = card?.querySelector('.totem-qty-value');
         if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');

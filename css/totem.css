@@ -2820,6 +2820,23 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     display: none;
 }
 
+.totem-grid--list .totem-product__pack-tag {
+    top: 0.3rem;
+    right: 0.3rem;
+    min-width: 2.35rem;
+    padding: 0.22rem 0.38rem 0.2rem;
+    border-radius: 0.45rem;
+}
+
+.totem-grid--list .totem-product__pack-tag-label {
+    font-size: 0.5625rem;
+}
+
+.totem-grid--list .totem-product__cart-badge {
+    bottom: 0.3rem;
+    left: 0.3rem;
+}
+
 .totem-grid--list .totem-product__placeholder {
     font-size: 2.15rem;
 }
@@ -3078,6 +3095,44 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     pointer-events: none;
 }
 
+.totem-product__pack-tag {
+    position: absolute;
+    top: 0.42rem;
+    right: 0.42rem;
+    z-index: 3;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.04rem;
+    min-width: 2.65rem;
+    padding: 0.3rem 0.5rem 0.28rem;
+    border-radius: 0.55rem;
+    background: linear-gradient(165deg, #14120f 0%, #2b2720 100%);
+    color: #fde047;
+    border: 1.5px solid rgba(240, 201, 41, 0.72);
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.24),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+}
+
+.totem-product__pack-tag-label {
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.totem-product__pack-tag-qty {
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: rgba(253, 224, 71, 0.92);
+}
+
 .totem-product__badge {
     position: absolute;
     top: 0.55rem;
@@ -3095,6 +3150,14 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.totem-product__cart-badge {
+    top: auto;
+    right: auto;
+    bottom: 0.45rem;
+    left: 0.45rem;
+    z-index: 4;
 }
 
 .totem-product__badge--pop {

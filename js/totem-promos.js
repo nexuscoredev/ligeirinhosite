@@ -132,8 +132,16 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
         const validade = promoCatalog()?.formatValidade?.(promo) || '';
         const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
 
+        const packSize = Number(ctx.variant?.packSize) || 0;
+        const packQtyLine =
+            packSize > 1
+                ? `<span class="totem-product__pack-tag-qty">c/ ${packSize}</span>`
+                : '';
+        const packTag = `<span class="totem-product__pack-tag" aria-label="Embalagem Caixa${packSize > 1 ? ` com ${packSize} unidades` : ''}"><span class="totem-product__pack-tag-label">Caixa</span>${packQtyLine}</span>`;
+
         const mediaHtml = `<div class="totem-product__media">
-${qty ? `<span class="totem-product__badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
+${packTag}
+${qty ? `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>`;
 
@@ -161,14 +169,14 @@ ${bodyHtml}
     const updateCardQty = (card, qty) => {
         if (!card) return;
         card.classList.toggle('totem-product--selected', qty > 0);
-        const badge = card.querySelector('.totem-product__badge');
+        const badge = card.querySelector('.totem-product__cart-badge');
         if (qty > 0) {
             if (badge) badge.textContent = String(qty);
             else {
                 const media = card.querySelector('.totem-product__media');
                 if (media) {
                     const span = document.createElement('span');
-                    span.className = 'totem-product__badge';
+                    span.className = 'totem-product__badge totem-product__cart-badge';
                     span.setAttribute('aria-label', `${qty} no carrinho`);
                     span.textContent = String(qty);
                     media.prepend(span);
