@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v275';
+const CACHE_NAME = 'ligeirinho-app-v276';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -25,6 +25,7 @@ const NETWORK_FIRST_JS = new Set([
     '/js/totem-viewport.js',
     '/js/totem-keyboard.js',
     '/js/totem-kiosk-guard.js',
+    '/js/totem-pwa-update.js',
     '/js/resumo-pedido.js',
     '/js/caminhao.js',
     '/js/delivery-schedule.js',
@@ -118,6 +119,7 @@ const APP_SHELL = [
     '/js/totem-viewport.js',
     '/js/totem-keyboard.js',
     '/js/totem-kiosk-guard.js',
+    '/js/totem-pwa-update.js',
     '/js/order-status.js',
     '/js/payment-methods.js',
     '/css/totem.css',
@@ -166,9 +168,13 @@ function cacheShellUrls(cache, urls) {
 }
 
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cacheShellUrls(cache, APP_SHELL)).then(() => self.skipWaiting())
-    );
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheShellUrls(cache, APP_SHELL)));
+});
+
+self.addEventListener('message', (event) => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('activate', (event) => {

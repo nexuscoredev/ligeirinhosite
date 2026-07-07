@@ -265,6 +265,31 @@ body.totem-kiosk > main {
     display: flex;
 }
 
+.totem-header__actions.totem-header__actions--update-only {
+    position: fixed;
+    top: max(0.65rem, env(safe-area-inset-top, 0px));
+    right: max(0.65rem, env(safe-area-inset-right, 0px));
+    z-index: 40;
+}
+
+.totem-btn--update-pending {
+    position: relative;
+    border-color: rgba(234, 179, 8, 0.45);
+    background: rgba(254, 243, 199, 0.92);
+}
+
+.totem-btn--update-pending::after {
+    content: '';
+    position: absolute;
+    top: 0.2rem;
+    right: 0.2rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: #eab308;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
+}
+
 .totem-header__actions[hidden] {
     display: none !important;
 }

@@ -1466,31 +1466,43 @@ ${unitHtml}
         const inCatalog = views.catalog?.classList.contains('totem-view--active');
         const inPromos = views.promos?.classList.contains('totem-view--active');
         const inShopping = inCatalog || inPromos;
-        const showActions = Boolean(customerIdentified && inShopping);
+        const showShoppingActions = Boolean(customerIdentified && inShopping);
+        const pendingSystemUpdate = Boolean(window.LigeirinhoTotemPwaUpdate?.isPending?.());
+        const showHeaderActions = showShoppingActions || pendingSystemUpdate;
 
         if (headerActions) {
-            headerActions.hidden = !showActions;
-            headerActions.classList.toggle('totem-header__actions--visible', showActions);
+            headerActions.hidden = !showHeaderActions;
+            headerActions.classList.toggle('totem-header__actions--visible', showHeaderActions);
+            headerActions.classList.toggle(
+                'totem-header__actions--update-only',
+                pendingSystemUpdate && !showShoppingActions,
+            );
         }
 
         if (promosBtn) {
-            promosBtn.hidden = !showActions;
-            if (showActions) {
+            promosBtn.hidden = !showShoppingActions;
+            if (showShoppingActions) {
                 promosBtn.classList.toggle('totem-btn--promos-active', inPromos);
                 promosBtn.setAttribute('aria-pressed', inPromos ? 'true' : 'false');
             }
         }
 
         if (cartBtn) {
-            cartBtn.hidden = !showActions;
+            cartBtn.hidden = !showShoppingActions;
         }
 
         if (refreshBtn) {
-            refreshBtn.hidden = !showActions;
-            refreshBtn.disabled = refreshBusy;
+            refreshBtn.hidden = !pendingSystemUpdate;
+            refreshBtn.disabled = refreshBusy || window.LigeirinhoTotemPwaUpdate?.status?.() === 'checking';
+            refreshBtn.classList.toggle('totem-btn--update-pending', pendingSystemUpdate);
+            refreshBtn.setAttribute(
+                'aria-label',
+                pendingSystemUpdate ? 'Aplicar atualização do sistema' : 'Atualizar',
+            );
         }
 
-        document.documentElement.classList.toggle('totem--shopping-chrome', showActions);
+        document.documentElement.classList.toggle('totem--shopping-chrome', showShoppingActions);
+        document.documentElement.classList.toggle('totem--system-update-pending', pendingSystemUpdate);
     };
 
     const refreshTotemData = async () => {
@@ -2389,8 +2401,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         });
 
         refreshBtn?.addEventListener('click', () => {
-            if (!customerIdentified || refreshBusy) return;
-            void refreshTotemData();
+            if (refreshBusy || !window.LigeirinhoTotemPwaUpdate?.isPending?.()) return;
+            refreshBusy = true;
+            refreshBtn.classList.add('totem-btn--refreshing');
+            refreshBtn.setAttribute('aria-busy', 'true');
+            void window.LigeirinhoTotemPwaUpdate.aplicar();
         });
 
         promosBackBtn?.addEventListener('click', () => {
@@ -2611,6 +2626,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         activeCategory = '';
 
         bindEvents();
+        window.LigeirinhoTotemPwaUpdate?.onStatusChange?.(() => updateShoppingChrome());
+        window.addEventListener('lig-totem-pwa', () => updateShoppingChrome());
         renderCategories();
         renderProducts();
         renderCart();
