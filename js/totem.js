@@ -142,6 +142,7 @@
     let detailItemKey = null;
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
+    let customerIdentified = false;
     let totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
     let customerStep = 'register';
     let customerLookupMode = 'doc';
@@ -1316,6 +1317,7 @@ ${unitHtml}
     };
 
     const enterCatalog = () => {
+        customerIdentified = true;
         void persistTotemCustomer();
         resetCart();
         clearSearch();
@@ -1431,7 +1433,24 @@ ${unitHtml}
         updateCategoriesBtnLabel();
     };
 
+    const updateShoppingChrome = () => {
+        const inCatalog = views.catalog?.classList.contains('totem-view--active');
+        const inPromos = views.promos?.classList.contains('totem-view--active');
+        const inShopping = inCatalog || inPromos;
+
+        if (promosBtn) {
+            promosBtn.hidden = !customerIdentified || !inShopping;
+            if (!promosBtn.hidden) {
+                promosBtn.classList.toggle('totem-btn--promos-active', inPromos);
+                promosBtn.setAttribute('aria-pressed', inPromos ? 'true' : 'false');
+            }
+        }
+    };
+
     const setView = (name) => {
+        if ((name === 'catalog' || name === 'promos') && !customerIdentified) {
+            name = 'customer';
+        }
         Object.entries(views).forEach(([key, el]) => {
             if (!el) return;
             const active = key === name;
@@ -1451,11 +1470,7 @@ ${unitHtml}
         const inCatalog = name === 'catalog';
         const inPromos = name === 'promos';
         const inShopping = inCatalog || inPromos;
-        if (promosBtn) {
-            promosBtn.hidden = false;
-            promosBtn.classList.toggle('totem-btn--promos-active', inPromos);
-            promosBtn.setAttribute('aria-pressed', inPromos ? 'true' : 'false');
-        }
+        updateShoppingChrome();
         if (cartBtn) cartBtn.hidden = true;
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
@@ -1504,10 +1519,13 @@ ${unitHtml}
             );
         }
 
-        const visible = count > 0 && isInShopping() && !isCartOpen();
+        const visible = customerIdentified && count > 0 && isInShopping() && !isCartOpen();
         floatCart?.classList.toggle('totem-float-cart--visible', visible);
         floatCart?.setAttribute('aria-hidden', visible ? 'false' : 'true');
-        document.documentElement.classList.toggle('totem-has-float-cart', count > 0 && isInShopping());
+        document.documentElement.classList.toggle(
+            'totem-has-float-cart',
+            customerIdentified && count > 0 && isInShopping(),
+        );
     };
 
     const resetCart = () => {
@@ -1545,6 +1563,7 @@ ${unitHtml}
     };
 
     const resetSession = () => {
+        customerIdentified = false;
         closeProductDetail();
         closeCart();
         window.LigeirinhoTotemPromos?.closeLightbox?.();
@@ -1852,6 +1871,7 @@ ${bodyHtml}
     });
 
     const addItem = (cartKey, itemKey, opts = {}) => {
+        if (!customerIdentified) return;
         totemKeyboard?.hide?.();
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
@@ -1896,6 +1916,7 @@ ${bodyHtml}
     };
 
     const addDetailToCart = (cartKey, itemKey) => {
+        if (!customerIdentified) return;
         totemKeyboard?.hide?.();
         const qtyToAdd = Math.max(1, detailDraftQty);
         const item = findDisplayItem(cartKey, itemKey);
@@ -1935,6 +1956,7 @@ ${bodyHtml}
     };
 
     const changeQty = (cartKey, delta) => {
+        if (!customerIdentified && delta > 0) return;
         totemKeyboard?.hide?.();
         const cart = cartApi.loadCart();
         if (!cart[cartKey]) return;
@@ -2022,6 +2044,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     };
 
     const openCart = () => {
+        if (!customerIdentified) return;
         cartPanel?.classList.add('totem-cart-panel--open');
         cartPanel?.setAttribute('aria-hidden', 'false');
         updateFloatCart(cartApi.loadCart());
@@ -2041,6 +2064,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
     };
 
     const startCheckout = async () => {
+        if (!customerIdentified) return;
         const cart = cartApi.loadCart();
         if (!cartApi.cartItemCount(cart)) return;
         checkoutBtn.disabled = true;
@@ -2258,6 +2282,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         });
 
         promosBtn?.addEventListener('click', () => {
+            if (!customerIdentified) {
+                setView('customer');
+                startCustomerFlow();
+                bumpIdle();
+                return;
+            }
             if (views.catalog?.classList.contains('totem-view--active')) {
                 promosReturnView = 'catalog';
             } else {
@@ -2281,8 +2311,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             resetSession();
             bumpIdle();
         });
-        cartBtn?.addEventListener('click', openCart);
-        floatCartBtn?.addEventListener('click', openCart);
+        cartBtn?.addEventListener('click', () => {
+            if (!customerIdentified) return;
+            openCart();
+        });
+        floatCartBtn?.addEventListener('click', () => {
+            if (!customerIdentified) return;
+            openCart();
+        });
         document.getElementById('totem-cart-toast-open')?.addEventListener('click', () => {
             hideCartToast();
             openCart();
@@ -2495,24 +2531,29 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             changeQty,
             onBumpIdle: bumpIdle,
         });
-        if (promosBtn) promosBtn.hidden = false;
+        updateShoppingChrome();
         resetIdleTimer();
 
         const returnParams = new URLSearchParams(window.location.search);
         if (returnParams.get('cart') === 'open') {
+            returnParams.delete('cart');
+            const qs = returnParams.toString();
+            window.history.replaceState(
+                null,
+                '',
+                `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`,
+            );
+            if (!customerIdentified) {
+                setView('customer');
+                startCustomerFlow();
+                return;
+            }
             if (!cartApi.cartItemCount(cartApi.loadCart())) {
                 cartApi.restoreLastOrder?.();
             }
             renderCart();
             setView('catalog');
             openCart();
-            returnParams.delete('cart');
-            const qs = returnParams.toString();
-            window.history.replaceState(
-                null,
-                '',
-                `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`
-            );
         }
     };
 
