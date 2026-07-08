@@ -188,6 +188,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
         .join('\n');
 
     const showAppChrome = page === 'inicio' || page === 'pedidos';
+    const showCatalogSync = page === 'inicio' || page === 'pedidos' || page === 'ofertas';
     const searchPlaceholder =
         page === 'pedidos' ? 'Buscar produtos…' : page === 'inicio' ? 'O que você procura?' : 'Buscar…';
 
@@ -205,6 +206,9 @@ ${desktopNavHtml}
 <span class="lig-nav-account__label">Minha conta</span>
 </a>
 <div id="lig-notifications-mount" class="shrink-0"></div>
+${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Sincronizar catálogo com o Hub" title="Sincronizar produtos e preços">
+<span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">sync</span>
+</button>` : ''}
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
@@ -780,6 +784,36 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     window.LigeirinhoCart?.updateNavCartBadge();
     window.LigeirinhoCartUI?.init();
     window.LigeirinhoCartUI?.bindNavToggle();
+
+    const bindCatalogSyncButton = () => {
+        const syncBtn = document.getElementById('lig-catalog-sync-btn');
+        if (!syncBtn || syncBtn.dataset.bound === '1') return;
+        if (!window.LigeirinhoCatalogSync?.sync) return;
+        syncBtn.dataset.bound = '1';
+        syncBtn.addEventListener('click', async () => {
+            if (window.LigeirinhoCatalogSync.isBusy?.()) return;
+            syncBtn.classList.add('lig-sync-nav-btn--busy');
+            syncBtn.disabled = true;
+            syncBtn.setAttribute('aria-busy', 'true');
+            syncBtn.setAttribute('aria-label', 'Sincronizando catálogo…');
+            const result = await window.LigeirinhoCatalogSync.sync();
+            syncBtn.classList.remove('lig-sync-nav-btn--busy');
+            syncBtn.disabled = false;
+            syncBtn.setAttribute('aria-busy', 'false');
+            syncBtn.setAttribute('aria-label', 'Sincronizar catálogo com o Hub');
+            if (!result?.ok && !result?.busy) {
+                window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
+            }
+        });
+    };
+
+    if (showCatalogSync) {
+        if (window.LigeirinhoCatalogSync?.sync) {
+            bindCatalogSyncButton();
+        } else {
+            ensureScript('js/catalog-sync.js').then(bindCatalogSyncButton);
+        }
+    }
 
     const caminhaoParam = new URLSearchParams(window.location.search).get('caminhao');
     if (caminhaoParam === 'open' && window.LigeirinhoCartUI) {

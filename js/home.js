@@ -271,4 +271,13 @@ ${sectionOrder()
             renderHome(catalogData, pricing.getDisplayProducts(catalogData, groups), groups);
         }
     });
+
+    window.addEventListener('ligeirinho-catalog-synced', (event) => {
+        const catalogJson = event.detail?.catalogData;
+        if (!catalogJson) return;
+        catalogData = catalogJson;
+        const groups = pricing.buildGroups(catalogJson);
+        window.__ligProductGroups = groups;
+        renderHome(catalogJson, pricing.getDisplayProducts(catalogJson, groups), groups);
+    });
 })();

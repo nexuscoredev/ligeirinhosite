@@ -72,6 +72,7 @@
     const customerManualLead = document.getElementById('totem-customer-manual-lead');
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
+    const syncBtn = document.getElementById('totem-sync-btn');
     const refreshBtn = document.getElementById('totem-refresh-btn');
     const promosBackBtn = document.getElementById('totem-promos-back');
     const cartBtn = document.getElementById('totem-cart-btn');
@@ -152,6 +153,7 @@
     let promosReturnView = 'welcome';
     let customerIdentified = false;
     let customerSkippedIdentification = false;
+    let syncBusy = false;
     let refreshBusy = false;
     let totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
     let customerStep = 'register';
@@ -1575,6 +1577,17 @@ ${unitHtml}
             cartBtn.hidden = !showShoppingActions;
         }
 
+        if (syncBtn) {
+            syncBtn.hidden = !showShoppingActions;
+            syncBtn.disabled = syncBusy;
+            syncBtn.classList.toggle('totem-btn--refreshing', syncBusy);
+            syncBtn.setAttribute('aria-busy', syncBusy ? 'true' : 'false');
+            syncBtn.setAttribute(
+                'aria-label',
+                syncBusy ? 'Sincronizando catálogo…' : 'Sincronizar catálogo com o Hub',
+            );
+        }
+
         if (refreshBtn) {
             refreshBtn.hidden = !pendingSystemUpdate;
             refreshBtn.disabled = refreshBusy || window.LigeirinhoTotemPwaUpdate?.status?.() === 'checking';
@@ -1590,17 +1603,25 @@ ${unitHtml}
     };
 
     const refreshTotemData = async () => {
-        if (refreshBusy) return;
-        refreshBusy = true;
-        refreshBtn?.classList.add('totem-btn--refreshing');
-        refreshBtn?.setAttribute('aria-busy', 'true');
-        refreshBtn?.setAttribute('aria-label', 'Atualizando catálogo e promoções…');
+        if (syncBusy) return;
+        syncBusy = true;
+        syncBtn?.classList.add('totem-btn--refreshing');
+        syncBtn?.setAttribute('aria-busy', 'true');
+        syncBtn?.setAttribute('aria-label', 'Sincronizando catálogo…');
+        updateShoppingChrome();
         bumpIdle();
 
         try {
-            window.LigeirinhoCatalogLoader?.clear?.();
-            const rawCatalog = await loadTotemCatalog({ force: true });
-            catalogData = filterCatalog(rawCatalog);
+            const result = await window.LigeirinhoCatalogSync?.sync?.({
+                apiUrl: CATALOG_API_URL,
+                promoApiUrl: '/api/totem/promocoes',
+            });
+            if (!result?.ok) {
+                if (result?.busy) return;
+                throw new Error(result?.error || 'sync failed');
+            }
+
+            catalogData = filterCatalog(result.catalogData);
             pricing.rebuildGroups?.(catalogData);
             displayItems = buildDisplayItems();
             promoCatalogItems = buildPromoCatalogItems();
@@ -1621,12 +1642,11 @@ ${unitHtml}
 
             updateFloatCart(cartApi.loadCart());
         } catch {
-            window.alert('Não foi possível atualizar. Verifique a conexão e tente novamente.');
+            window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
         } finally {
-            refreshBusy = false;
-            refreshBtn?.classList.remove('totem-btn--refreshing');
-            refreshBtn?.setAttribute('aria-busy', 'false');
-            refreshBtn?.setAttribute('aria-label', 'Atualizar catálogo e promoções');
+            syncBusy = false;
+            syncBtn?.classList.remove('totem-btn--refreshing');
+            syncBtn?.setAttribute('aria-busy', 'false');
             updateShoppingChrome();
         }
     };
@@ -2550,6 +2570,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             }
             setView('promos');
             void window.LigeirinhoTotemPromos?.render?.();
+            bumpIdle();
+        });
+
+        syncBtn?.addEventListener('click', () => {
+            void refreshTotemData();
             bumpIdle();
         });
 

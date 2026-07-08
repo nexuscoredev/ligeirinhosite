@@ -294,4 +294,15 @@
         });
 
     window.addEventListener('ligeirinho-cart-changed', refreshCards);
+
+    window.addEventListener('ligeirinho-catalog-synced', (event) => {
+        const data = event.detail?.catalogData;
+        if (!data) return;
+        catalogData = data;
+        const groups = pricing.buildGroups(data);
+        window.__ligProductGroups = groups;
+        displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
+        renderFilters();
+        renderProducts();
+    });
 })();

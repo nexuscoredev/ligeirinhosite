@@ -192,7 +192,7 @@ ${catalog.qtyStepperHtml(cartKey, qty, { dark: false })}
 </select>
 <span class="material-symbols-outlined ofertas-toolbar__sort-icon">sort</span>
 </div>
-<button type="button" class="ofertas-toolbar__btn" id="ofertas-refresh" title="Atualizar promoções">
+<button type="button" class="ofertas-toolbar__btn" id="ofertas-refresh" title="Sincronizar com o Hub" aria-label="Sincronizar catálogo e promoções">
 <span class="material-symbols-outlined">refresh</span>
 </button>
 </div>
@@ -293,13 +293,43 @@ ${(catalogData?.categories || [])
         if (filterEl) filterEl.value = filterCategory;
     };
 
+    const reloadPromos = async () => {
+        loading = true;
+        loadError = false;
+        renderList();
+        try {
+            const promos = await promoLoader.load(true);
+            loadError = promoLoader.hadError();
+            promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });
+        } catch {
+            loadError = true;
+        }
+        loading = false;
+        renderList();
+    };
+
     const refreshAll = async () => {
         loading = true;
         loadError = false;
         renderList();
-        const promos = await promoLoader.load(true);
-        loadError = promoLoader.hadError();
-        promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });
+        try {
+            if (window.LigeirinhoCatalogSync?.sync) {
+                const result = await window.LigeirinhoCatalogSync.sync();
+                if (result?.ok && result.catalogData) {
+                    catalogData = result.catalogData;
+                    displayItems = pricing.getDisplayProducts(catalogData);
+                    window.__ligProductGroups = pricing.buildGroups(catalogData);
+                } else if (!result?.busy) {
+                    loadError = true;
+                }
+            }
+            promoLoader.clear();
+            const promos = await promoLoader.load(true);
+            loadError = loadError || promoLoader.hadError();
+            promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });
+        } catch {
+            loadError = true;
+        }
         loading = false;
         renderList();
     };
@@ -325,6 +355,20 @@ ${(catalogData?.categories || [])
 
     window.addEventListener('ligeirinho-cart-changed', () => {
         renderList();
+    });
+
+    window.addEventListener('ligeirinho-catalog-sync-start', () => {
+        promoLoader.clear();
+    });
+
+    window.addEventListener('ligeirinho-catalog-synced', (event) => {
+        const catalogJson = event.detail?.catalogData;
+        if (!catalogJson) return;
+        catalogData = catalogJson;
+        displayItems = pricing.getDisplayProducts(catalogJson);
+        window.__ligProductGroups = pricing.buildGroups(catalogJson);
+        promoLoader.clear();
+        void reloadPromos();
     });
 
     init();

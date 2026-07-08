@@ -8628,6 +8628,47 @@ html.lig-login-modal-open {
     border-color: rgba(166, 124, 0, 0.35) !important;
 }
 
+/* ── Sincronizar catálogo (Hub) ── */
+.lig-sync-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-yellow-text);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.lig-sync-nav-btn:hover {
+    border-color: rgba(247, 213, 60, 0.45);
+    background: var(--lig-yellow-light);
+}
+
+.lig-sync-nav-btn:disabled {
+    opacity: 0.72;
+    cursor: wait;
+}
+
+.lig-sync-nav-btn__icon {
+    font-size: 1.15rem;
+}
+
+.lig-sync-nav-btn--busy .lig-sync-nav-btn__icon {
+    animation: lig-sync-spin 0.85s linear infinite;
+}
+
+@keyframes lig-sync-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* ── PWA: instalar app ── */
 .lig-install-nav-btn {
     display: inline-flex;

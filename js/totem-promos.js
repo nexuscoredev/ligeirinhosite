@@ -295,6 +295,10 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         fetchError = false;
     };
 
+    window.addEventListener('ligeirinho-catalog-sync-start', () => {
+        invalidate();
+    });
+
     window.LigeirinhoTotemPromos = {
         init,
         render,
