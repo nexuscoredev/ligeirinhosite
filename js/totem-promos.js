@@ -17,7 +17,7 @@
 
     const getLoader = () => {
         if (!promoLoader && promoCatalog()?.createHubPromoLoader) {
-            promoLoader = promoCatalog().createHubPromoLoader('/api/promocoes');
+            promoLoader = promoCatalog().createHubPromoLoader('/api/totem/promocoes');
         }
         return promoLoader;
     };
@@ -226,6 +226,13 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         const promocoes = await loader.load(force);
         fetchError = loader.hadError?.() && !promocoes.length;
         promoEntries = promoCatalog().buildPromoEntries(promocoes, catalogItems, { matchedOnly: true });
+        const seenCartKeys = new Set();
+        promoEntries = promoEntries.filter((entry) => {
+            const cartKey = buildCartCtx(entry).cartKey;
+            if (!cartKey || seenCartKeys.has(cartKey)) return false;
+            seenCartKeys.add(cartKey);
+            return true;
+        });
     };
 
     const render = async (options = {}) => {

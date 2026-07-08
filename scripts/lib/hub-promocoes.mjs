@@ -1,6 +1,8 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { slugifyId } from './hub-catalog.mjs';
 
+const INDEFINIDO_SKU = 'indefinido';
+
 function hubHeaders(config, token) {
     return {
         apikey: config.anonKey,
@@ -27,7 +29,16 @@ function isDrivePromoImage(url) {
     );
 }
 
-function normalizePromoRow(row, produto = null) {
+export function isCaixaPromoUnidade(unidade) {
+    const u = String(unidade || '').trim().toUpperCase();
+    return u === 'CX' || u === 'FD';
+}
+
+function normalizePromoLookupName(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function normalizePromoRow(row, meta = null, produto = null) {
     const original = Number(row.preco_original);
     const promo = Number(row.preco_promo);
     const discountPct =
@@ -38,17 +49,19 @@ function normalizePromoRow(row, produto = null) {
     const nome = String(row.produto_nome || produto?.nome || '').trim();
     const rawImage = row.arte_url || produto?.imagem_url || null;
     const imageUrl = isDrivePromoImage(rawImage) ? produto?.imagem_url || null : rawImage;
+    const unidade = String(meta?.unidade || row.unidade || '').trim().toUpperCase();
 
     return {
         id: row.id,
         sku: String(row.produto_sku || '').trim(),
-        hubProductId: row.produto_id ? String(row.produto_id).trim() : null,
+        hubProductId: meta?.produto_id || (row.produto_id ? String(row.produto_id).trim() : null),
         name: nome,
+        unidade,
         originalPrice: Number.isFinite(original) ? original : null,
         promoPrice: Number.isFinite(promo) ? promo : null,
         discountPct,
         validFrom: String(row.validade_inicio || '').slice(0, 10),
-        validTo: String(row.validade_fim || '').slice(0, 10),
+        validTo: String(meta?.validade_fim || row.validade_fim || '').slice(0, 10),
         imageUrl,
         catalogProductId: nome ? slugifyId(nome) : produto?.nome ? slugifyId(produto.nome) : null,
         hubProductName: nome || (produto?.nome ? String(produto.nome).trim() : null),
@@ -56,47 +69,54 @@ function normalizePromoRow(row, produto = null) {
     };
 }
 
-async function fetchPromoCatalogValidadeMap(config, token) {
+async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
     const url = `${config.url}/rest/v1/rpc/gf_promocao_catalogo`;
     const res = await fetch(url, {
         method: 'POST',
         headers: hubHeaders(config, token),
-        body: JSON.stringify({ p_canal: 'parceiros' }),
+        body: JSON.stringify({ p_canal: canal }),
     });
     const text = await res.text();
-    if (!res.ok) return new Map();
+    if (!res.ok) {
+        return { bySku: new Map(), byNome: new Map(), byId: new Map() };
+    }
 
     const rows = text ? JSON.parse(text) : [];
     const list = Array.isArray(rows) ? rows : [];
-    const map = new Map();
+    const bySku = new Map();
+    const byNome = new Map();
+    const byId = new Map();
 
     for (const row of list) {
-        const validade = String(row.validade_fim || '').slice(0, 10);
-        if (!validade) continue;
+        const meta = {
+            validade_fim: String(row.validade_fim || '').slice(0, 10),
+            unidade: String(row.unidade || '').trim().toUpperCase(),
+            produto_id: String(row.produto_id || '').trim(),
+        };
         const sku = String(row.sku || '').trim().toLowerCase();
-        const id = String(row.produto_id || '').trim();
-        const nome = String(row.nome || '').trim().toLowerCase();
-        if (sku) map.set(`sku:${sku}`, validade);
-        if (id) map.set(`id:${id}`, validade);
-        if (nome) map.set(`nome:${nome}`, validade);
+        const id = meta.produto_id;
+        const nome = normalizePromoLookupName(row.nome);
+        if (sku) bySku.set(sku, meta);
+        if (id) byId.set(id, meta);
+        if (nome) byNome.set(nome, meta);
     }
 
-    return map;
+    return { bySku, byNome, byId };
 }
 
-function resolveValidadeFim(row, validadeMap) {
+function resolvePromoMeta(row, maps) {
     const sku = String(row.produto_sku || '').trim().toLowerCase();
     const id = String(row.produto_id || '').trim();
-    const nome = String(row.produto_nome || '').trim().toLowerCase();
-    return (
-        (sku && validadeMap.get(`sku:${sku}`)) ||
-        (id && validadeMap.get(`id:${id}`)) ||
-        (nome && validadeMap.get(`nome:${nome}`)) ||
-        String(row.validade_fim || '').slice(0, 10)
-    );
+    const nome = normalizePromoLookupName(row.produto_nome);
+
+    if (id && maps.byId.has(id)) return maps.byId.get(id);
+    if (sku && sku !== INDEFINIDO_SKU && maps.bySku.has(sku)) return maps.bySku.get(sku);
+    if (nome && maps.byNome.has(nome)) return maps.byNome.get(nome);
+    if (sku && maps.bySku.has(sku)) return maps.bySku.get(sku);
+    return null;
 }
 
-export async function getHubPromocoes(env = process.env) {
+export async function getHubPromocoes(env = process.env, { caixaOnly = false, canal = 'parceiros' } = {}) {
     const config = hubConfig(env);
     const token = config.serviceKey || config.anonKey;
     if (!config.url || !token) {
@@ -105,13 +125,14 @@ export async function getHubPromocoes(env = process.env) {
 
     const today = todayIsoDate();
     const url = `${config.url}/rest/v1/rpc/rpc_listar_promocoes_vitrine`;
-    const [res, validadeMap] = await Promise.all([
+    const catalogCanal = caixaOnly ? 'totem' : canal;
+    const [res, metaMaps] = await Promise.all([
         fetch(url, {
             method: 'POST',
             headers: hubHeaders(config, token),
             body: '{}',
         }),
-        fetchPromoCatalogValidadeMap(config, token),
+        fetchPromoCatalogMetaMaps(config, token, catalogCanal),
     ]);
     const text = await res.text();
     if (!res.ok) {
@@ -121,13 +142,25 @@ export async function getHubPromocoes(env = process.env) {
     const rows = text ? JSON.parse(text) : [];
     const list = Array.isArray(rows) ? rows : [];
 
+    let promocoes = list.map((row) => {
+        const meta = resolvePromoMeta(row, metaMaps);
+        return normalizePromoRow(row, meta);
+    });
+
+    if (caixaOnly) {
+        promocoes = promocoes.filter((promo) => isCaixaPromoUnidade(promo.unidade));
+    }
+
     return {
-        source: 'hub:rpc_listar_promocoes_vitrine',
+        source: caixaOnly
+            ? 'hub:rpc_listar_promocoes_vitrine+caixa'
+            : 'hub:rpc_listar_promocoes_vitrine',
         fetchedAt: new Date().toISOString(),
         date: today,
-        promocoes: list.map((row) => {
-            const validTo = resolveValidadeFim(row, validadeMap);
-            return normalizePromoRow({ ...row, validade_fim: validTo || row.validade_fim });
-        }),
+        promocoes,
     };
+}
+
+export async function getHubPromocoesTotem(env = process.env) {
+    return getHubPromocoes(env, { caixaOnly: true, canal: 'totem' });
 }
