@@ -8,3 +8,5 @@ data/auth-config.local.json
 .vercel
 .env.vercel.pull
 .env*
+
+tmp/
