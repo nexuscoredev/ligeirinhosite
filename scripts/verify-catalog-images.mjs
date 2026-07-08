@@ -72,7 +72,8 @@ async function main() {
         process.exit(1);
     }
 
-    const [{ categorias, produtos }, liveCatalog, localCatalog] = await Promise.all([
+    const [{ categorias, produtos, tabelaPadrao, priceMap }, liveCatalog, localCatalog] =
+        await Promise.all([
         fetchHubCatalogData(config),
         fetchLiveCatalog(),
         Promise.resolve(
@@ -80,7 +81,11 @@ async function main() {
         ),
     ]);
 
-    const builtCatalog = buildCatalog(produtos, categorias, { syncMode: 'live' });
+    const builtCatalog = buildCatalog(produtos, categorias, {
+        syncMode: 'live',
+        tabelaPadrao,
+        priceMap,
+    });
     const hubById = new Map(produtos.map((p) => [p.id, p]));
     const builtProducts = flattenCatalog(builtCatalog);
     const liveProducts = flattenCatalog(liveCatalog);

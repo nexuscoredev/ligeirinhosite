@@ -802,7 +802,20 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             syncBtn.setAttribute('aria-busy', 'false');
             syncBtn.setAttribute('aria-label', 'Sincronizar catálogo com o Hub');
             if (result?.ok) {
-                showCatalogSyncToast('Catálogo sincronizado com o Hub.');
+                const hubAt = result.catalogData?.exportedAt
+                    ? new Date(result.catalogData.exportedAt).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                      })
+                    : null;
+                const promoCount = Array.isArray(result.promoData) ? result.promoData.length : null;
+                const promoLabel =
+                    promoCount != null ? ` · ${promoCount} promoções` : '';
+                showCatalogSyncToast(
+                    hubAt
+                        ? `Catálogo do Hub (${hubAt})${promoLabel}.`
+                        : 'Catálogo sincronizado com o Hub.',
+                );
             } else if (!result?.busy) {
                 window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
             }

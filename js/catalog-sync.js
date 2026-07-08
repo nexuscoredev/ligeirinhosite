@@ -31,13 +31,21 @@
                 window.LigeirinhoPricing?.loadTierImages?.() ?? Promise.resolve(),
             ]);
 
+            let promoData = null;
+            const promoLoaderFactory = window.LigeirinhoPromoCatalog?.createHubPromoLoader;
+            if (promoLoaderFactory) {
+                const promoLoader = promoLoaderFactory(promoApiUrl);
+                promoLoader.clear?.();
+                promoData = await promoLoader.load(true);
+            }
+
             window.dispatchEvent(
                 new CustomEvent(EVENT, {
-                    detail: { catalogData, apiUrl, promoApiUrl },
+                    detail: { catalogData, promoData, apiUrl, promoApiUrl },
                 }),
             );
 
-            return { ok: true, catalogData };
+            return { ok: true, catalogData, promoData };
         } catch (err) {
             return { ok: false, error: err?.message || 'Falha na sincronização.' };
         } finally {

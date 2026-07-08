@@ -1665,7 +1665,14 @@ ${unitHtml}
                     hour: '2-digit',
                     minute: '2-digit',
                 });
-                categoriesStats.textContent = `Sincronizado às ${syncedAt} · ${totemCategories.length} categorias · ${displayItems.length} produtos`;
+                const hubAt = rawCatalog?.exportedAt
+                    ? new Date(rawCatalog.exportedAt).toLocaleTimeString('pt-BR', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                      })
+                    : null;
+                const hubLabel = hubAt ? ` · Hub ${hubAt}` : '';
+                categoriesStats.textContent = `Sincronizado às ${syncedAt}${hubLabel} · ${totemCategories.length} categorias · ${displayItems.length} produtos`;
             }
         } catch (err) {
             const msg = err?.message || '';

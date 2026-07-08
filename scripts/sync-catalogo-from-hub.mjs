@@ -27,14 +27,18 @@ async function main() {
     if (auth.error) throw new Error(auth.error);
 
     console.log('Login OK. Buscando categorias e produtos…');
-    const { categorias, produtos } = await fetchHubCatalogData({
+    const { categorias, produtos, tabelaPadrao, priceMap } = await fetchHubCatalogData({
         ...config,
         accessToken: auth.accessToken,
     });
 
     console.log(`Encontrados: ${produtos.length} produtos, ${categorias.length} categorias.`);
 
-    const catalog = buildCatalog(produtos, categorias, { syncMode: 'export' });
+    const catalog = buildCatalog(produtos, categorias, {
+        syncMode: 'export',
+        tabelaPadrao,
+        priceMap,
+    });
     const outPath = path.join(__dirname, '..', 'data', 'catalogo.json');
     fs.writeFileSync(outPath, JSON.stringify(catalog, null, 2), 'utf8');
 

@@ -25,8 +25,8 @@ const config = hubConfig({
 
 const norm = (u) => String(u || '').split('?')[0];
 
-const { categorias, produtos } = await fetchHubCatalogData(config);
-const catalog = buildCatalog(produtos, categorias);
+const { categorias, produtos, tabelaPadrao, priceMap } = await fetchHubCatalogData(config);
+const catalog = buildCatalog(produtos, categorias, { tabelaPadrao, priceMap });
 
 const cxDiff = [];
 for (const p of produtos) {

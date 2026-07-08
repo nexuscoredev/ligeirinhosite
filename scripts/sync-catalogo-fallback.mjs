@@ -41,10 +41,14 @@ async function main() {
     }
 
     console.log('Buscando catálogo no Hub…');
-    const { categorias, produtos } = await fetchHubCatalogData(config);
+    const { categorias, produtos, tabelaPadrao, priceMap } = await fetchHubCatalogData(config);
     console.log(`Encontrados: ${produtos.length} produtos, ${categorias.length} categorias.`);
 
-    const catalog = buildCatalog(produtos, categorias, { syncMode: 'export' });
+    const catalog = buildCatalog(produtos, categorias, {
+        syncMode: 'export',
+        tabelaPadrao,
+        priceMap,
+    });
     const outPath = path.join(__dirname, '..', 'data', 'catalogo.json');
     fs.writeFileSync(outPath, JSON.stringify(catalog, null, 2), 'utf8');
     console.log(`Salvo ${catalog.totalProducts} produtos em ${outPath}`);
