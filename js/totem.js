@@ -1419,7 +1419,8 @@ ${unitHtml}
         }
         resetCart();
         clearSearch();
-        activeCategory = '';
+        // Abre na 1ª categoria com itens — evita pintar 200+ caixas no "Todos" de uma vez.
+        activeCategory = totemCategories[0]?.id || '';
         renderCategories();
         renderProducts();
         updateCatalogGreeting();
@@ -1858,14 +1859,19 @@ ${unitHtml}
         bumpIdle();
     };
 
-    const buildProductCardHtml = (item, index) => {
+    /** Limite inicial: evita ~5s ao pintar todas as CX de uma vez no "Todos". */
+    const PRODUCT_GRID_INITIAL = 36;
+    const PRODUCT_GRID_BATCH = 36;
+    let productGridRenderToken = 0;
+
+    const buildProductCardHtml = (item, index, cart = null) => {
         const group = item.group || null;
         const product = item.product;
         const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
         const variant = group ? pricing.getVariant(group, tier) : null;
         const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
-        const cart = cartApi.loadCart();
-        const qty = cart[cartKey]?.qty || 0;
+        const cartMap = cart || cartApi.loadCart();
+        const qty = cartMap[cartKey]?.qty || 0;
         const img = catalog.productImageUrl(group ? pricing.getTierImage(group, tier) : product.image);
         const name = group?.baseName || product.name;
         const itemKey = group?.key || product.id;
@@ -1974,13 +1980,46 @@ ${bodyHtml}
         syncListHead(!isEmpty && catalogView === 'list');
 
         if (isEmpty) {
+            productGridRenderToken += 1;
             productsGrid.innerHTML = '';
             return;
         }
 
-        productsGrid.innerHTML = items.map((item, index) => buildProductCardHtml(item, index)).join('');
+        const cart = cartApi.loadCart();
+        const token = ++productGridRenderToken;
+        const paintSlice = (from, to) =>
+            items
+                .slice(from, to)
+                .map((item, i) => buildProductCardHtml(item, from + i, cart))
+                .join('');
+
+        // Primeiro paint rápido; restante em batches no idle para não travar o totem.
+        const firstEnd = Math.min(items.length, PRODUCT_GRID_INITIAL);
+        productsGrid.innerHTML = paintSlice(0, firstEnd);
         refreshDetailIfOpen();
         window.requestAnimationFrame(() => updateViewSwitcher());
+
+        if (firstEnd >= items.length) return;
+
+        let cursor = firstEnd;
+        const appendNext = () => {
+            if (token !== productGridRenderToken || !productsGrid) return;
+            const next = Math.min(cursor + PRODUCT_GRID_BATCH, items.length);
+            productsGrid.insertAdjacentHTML('beforeend', paintSlice(cursor, next));
+            cursor = next;
+            if (cursor < items.length) {
+                if (typeof window.requestIdleCallback === 'function') {
+                    window.requestIdleCallback(appendNext, { timeout: 120 });
+                } else {
+                    window.requestAnimationFrame(appendNext);
+                }
+            }
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(appendNext, { timeout: 80 });
+        } else {
+            window.requestAnimationFrame(appendNext);
+        }
     };
 
     const pulseProduct = (cartKey) => {
