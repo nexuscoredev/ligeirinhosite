@@ -105,7 +105,14 @@
                 return hubPromos;
             }
             try {
-                const res = await fetch(apiUrl, { credentials: 'same-origin' });
+                const fetchUrl = force
+                    ? `${apiUrl}${apiUrl.includes('?') ? '&' : '?'}sync=${Date.now()}`
+                    : apiUrl;
+                const res = await fetch(fetchUrl, {
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : undefined,
+                });
                 if (!res.ok) throw new Error('fetch failed');
                 const data = await res.json();
                 hubPromos = Array.isArray(data?.promocoes) ? data.promocoes : [];

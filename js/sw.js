@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ligeirinho-app-v292';
+const CACHE_NAME = 'ligeirinho-app-v293';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
 const NETWORK_FIRST_JS = new Set([
     '/js/mkt-promo-images.js',
     '/js/layout.js',
+    '/js/catalog-loader.js',
     '/js/catalog-sync.js',
     '/js/conta.js',
     '/js/home-stories.js',

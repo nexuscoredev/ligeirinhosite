@@ -39,6 +39,12 @@
         }
     };
 
+    const buildFetchUrl = (apiUrl, force) => {
+        if (!force) return apiUrl;
+        const sep = apiUrl.includes('?') ? '&' : '?';
+        return `${apiUrl}${sep}sync=${Date.now()}`;
+    };
+
     const load = async (options = {}) => {
         const force = Boolean(options.force);
         const apiUrl = String(options.apiUrl || API_URL);
@@ -64,10 +70,12 @@
 
         lastApiUrl = apiUrl;
         inflight = (async () => {
+            const fetchUrl = buildFetchUrl(apiUrl, force);
             try {
-                const res = await fetch(apiUrl, {
+                const res = await fetch(fetchUrl, {
                     credentials: 'same-origin',
                     cache: 'no-store',
+                    headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : undefined,
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -77,8 +85,17 @@
                         writeStorageCache(data, apiUrl);
                         return data;
                     }
+                    if (force) {
+                        throw new Error(data?.error || 'Catálogo vazio ou indisponível.');
+                    }
+                } else if (force) {
+                    const data = await res.json().catch(() => ({}));
+                    throw new Error(data?.error || `Catálogo indisponível (HTTP ${res.status}).`);
                 }
-            } catch {
+            } catch (err) {
+                if (force) {
+                    throw err instanceof Error ? err : new Error('Catálogo indisponível.');
+                }
                 /* offline ou servidor estático local */
             }
 

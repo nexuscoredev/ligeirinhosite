@@ -1641,6 +1641,13 @@ ${unitHtml}
             }
 
             updateFloatCart(cartApi.loadCart());
+            if (categoriesStats) {
+                const syncedAt = new Date().toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                });
+                categoriesStats.textContent = `Sincronizado às ${syncedAt} · ${totemCategories.length} categorias · ${displayItems.length} produtos`;
+            }
         } catch {
             window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
         } finally {
