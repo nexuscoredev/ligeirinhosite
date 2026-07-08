@@ -17,7 +17,10 @@
         window.dispatchEvent(new CustomEvent(START_EVENT, { detail: { apiUrl, promoApiUrl } }));
 
         try {
+            window.__ligCatalogSyncTs = Date.now();
             window.LigeirinhoCatalogLoader.clear?.();
+            if (window.__ligPackConfig) window.__ligPackConfig = null;
+            if (window.__ligTierImages) window.__ligTierImages = null;
             const catalogData = await window.LigeirinhoCatalogLoader.load({ force: true, apiUrl });
             if (!catalogData?.categories?.length) {
                 throw new Error('Catálogo vazio ou indisponível.');

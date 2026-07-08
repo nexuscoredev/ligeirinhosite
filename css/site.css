@@ -8669,6 +8669,37 @@ html.lig-login-modal-open {
     }
 }
 
+.lig-catalog-sync-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    z-index: 80;
+    transform: translate(-50%, 12px);
+    opacity: 0;
+    pointer-events: none;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    background: rgba(20, 18, 15, 0.92);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.lig-catalog-sync-toast--visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+@media (min-width: 768px) {
+    .lig-catalog-sync-toast {
+        bottom: auto;
+        top: calc(4.5rem + env(safe-area-inset-top, 0px));
+    }
+}
+
 /* ── PWA: instalar app ── */
 .lig-install-nav-btn {
     display: inline-flex;

@@ -29,13 +29,22 @@
 
 
     const productImageUrl = (url) => {
-
         if (!url) return null;
 
-        if (/\.(webp|jpg|jpeg|png|gif)(\?|$)/i.test(url)) return url;
+        let normalized = String(url).trim();
+        if (!/\.(webp|jpg|jpeg|png|gif|svg)(\?|$)/i.test(normalized)) {
+            normalized = `${normalized}.webp`;
+        }
 
-        return `${url}.webp`;
+        const syncTs = window.__ligCatalogSyncTs;
+        if (syncTs && /^https?:\/\//i.test(normalized)) {
+            const base = normalized.split('#')[0].split('?')[0];
+            const params = new URLSearchParams(normalized.includes('?') ? normalized.split('?')[1].split('#')[0] : '');
+            params.set('_sync', String(syncTs));
+            return `${base}?${params.toString()}`;
+        }
 
+        return normalized;
     };
 
 

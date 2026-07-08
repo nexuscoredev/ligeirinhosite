@@ -294,7 +294,7 @@ export async function fetchHubCatalogData(config) {
         fetchAll(
             hub,
             'produtos',
-            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,updated_at,categorias_produto(slug,nome)',
+            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,imagem_atualizada_em,venda_parceiros,updated_at,categorias_produto(slug,nome)',
             '&ativo=eq.true&visivel_catalogo=eq.true&venda_parceiros=eq.true'
         ),
     ]);

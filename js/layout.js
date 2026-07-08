@@ -801,10 +801,33 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             syncBtn.disabled = false;
             syncBtn.setAttribute('aria-busy', 'false');
             syncBtn.setAttribute('aria-label', 'Sincronizar catálogo com o Hub');
-            if (!result?.ok && !result?.busy) {
+            if (result?.ok) {
+                showCatalogSyncToast('Catálogo sincronizado com o Hub.');
+            } else if (!result?.busy) {
                 window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
             }
         });
+    };
+
+    const showCatalogSyncToast = (message) => {
+        let toast = document.getElementById('lig-catalog-sync-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'lig-catalog-sync-toast';
+            toast.className = 'lig-catalog-sync-toast';
+            toast.setAttribute('role', 'status');
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.hidden = false;
+        toast.classList.add('lig-catalog-sync-toast--visible');
+        window.clearTimeout(showCatalogSyncToast._timer);
+        showCatalogSyncToast._timer = window.setTimeout(() => {
+            toast.classList.remove('lig-catalog-sync-toast--visible');
+            window.setTimeout(() => {
+                toast.hidden = true;
+            }, 220);
+        }, 2600);
     };
 
     if (showCatalogSync) {

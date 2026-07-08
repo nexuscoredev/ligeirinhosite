@@ -1611,17 +1611,8 @@ ${unitHtml}
         updateShoppingChrome();
         bumpIdle();
 
-        try {
-            const result = await window.LigeirinhoCatalogSync?.sync?.({
-                apiUrl: CATALOG_API_URL,
-                promoApiUrl: '/api/totem/promocoes',
-            });
-            if (!result?.ok) {
-                if (result?.busy) return;
-                throw new Error(result?.error || 'sync failed');
-            }
-
-            catalogData = filterCatalog(result.catalogData);
+        const applyCatalogRefresh = (rawCatalog) => {
+            catalogData = filterCatalog(rawCatalog);
             pricing.rebuildGroups?.(catalogData);
             displayItems = buildDisplayItems();
             promoCatalogItems = buildPromoCatalogItems();
@@ -1633,6 +1624,34 @@ ${unitHtml}
             renderProducts();
             refreshProductGrid();
             refreshDetailIfOpen();
+        };
+
+        try {
+            window.__ligCatalogSyncTs = Date.now();
+            let rawCatalog = null;
+
+            if (window.LigeirinhoCatalogSync?.sync) {
+                const result = await window.LigeirinhoCatalogSync.sync({
+                    apiUrl: CATALOG_API_URL,
+                    promoApiUrl: '/api/totem/promocoes',
+                });
+                if (!result?.ok) {
+                    if (result?.busy) return;
+                    throw new Error(result?.error || 'sync failed');
+                }
+                rawCatalog = result.catalogData;
+            } else {
+                window.LigeirinhoCatalogLoader?.clear?.();
+                if (window.__ligPackConfig) window.__ligPackConfig = null;
+                if (window.__ligTierImages) window.__ligTierImages = null;
+                rawCatalog = await loadTotemCatalog({ force: true });
+                await Promise.all([
+                    pricing.loadPackConfig?.() ?? Promise.resolve(),
+                    pricing.loadTierImages?.() ?? Promise.resolve(),
+                ]);
+            }
+
+            applyCatalogRefresh(rawCatalog);
 
             if (isInPromos()) {
                 await window.LigeirinhoTotemPromos?.refresh?.({ force: true });
@@ -1648,8 +1667,13 @@ ${unitHtml}
                 });
                 categoriesStats.textContent = `Sincronizado às ${syncedAt} · ${totemCategories.length} categorias · ${displayItems.length} produtos`;
             }
-        } catch {
-            window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
+        } catch (err) {
+            const msg = err?.message || '';
+            window.alert(
+                msg && !msg.includes('sync failed')
+                    ? msg
+                    : 'Não foi possível sincronizar. Verifique a conexão e tente novamente.',
+            );
         } finally {
             syncBusy = false;
             syncBtn?.classList.remove('totem-btn--refreshing');
