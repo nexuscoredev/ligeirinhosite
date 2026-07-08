@@ -213,11 +213,15 @@
     };
 
     const applyTierImages = (groups, config) => {
+        const isHubProductImage = (url) =>
+            typeof url === 'string' &&
+            (url.includes('produtos-imagens') || url.includes('supabase.co/storage'));
+
         groups.forEach((group) => {
             const variant = group.variants.caixa;
             if (!variant) return;
             const override = resolveTierImageOverride(group, 'caixa', config);
-            if (override) variant.image = override;
+            if (override && !isHubProductImage(variant.image)) variant.image = override;
             if (group.variants.caixa?.image) group.image = group.variants.caixa.image;
             else if (group.variants.unidade?.image) group.image = group.variants.unidade.image;
         });

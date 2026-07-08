@@ -26,6 +26,10 @@
     {
       "path": "/api/catalog",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/totem/catalog",
+      "schedule": "*/2 * * * *"
     }
   ],
   "headers": [

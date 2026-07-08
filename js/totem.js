@@ -123,7 +123,12 @@
 
     let catalogData = null;
     let displayItems = [];
+    const CATALOG_API_URL = '/api/totem/catalog';
     let promoCatalogItems = [];
+
+    const loadTotemCatalog = (options = {}) =>
+        window.LigeirinhoCatalogLoader.load({ ...options, apiUrl: CATALOG_API_URL });
+
     let totemCategories = [];
     let activeCategory = '';
     let totemConfig = { defaults: {}, units: {}, loginUnitMap: {} };
@@ -1589,7 +1594,7 @@ ${unitHtml}
 
         try {
             window.LigeirinhoCatalogLoader?.clear?.();
-            const rawCatalog = await window.LigeirinhoCatalogLoader.load({ force: true });
+            const rawCatalog = await loadTotemCatalog({ force: true });
             catalogData = filterCatalog(rawCatalog);
             pricing.rebuildGroups?.(catalogData);
             displayItems = buildDisplayItems();
@@ -2749,7 +2754,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         }
 
         const [rawCatalog, configRes, packCfg, tierCfg] = await Promise.all([
-            window.LigeirinhoCatalogLoader.load(),
+            loadTotemCatalog(),
             fetch('data/totem-units.json'),
             pricing.loadPackConfig(),
             pricing.loadTierImages(),

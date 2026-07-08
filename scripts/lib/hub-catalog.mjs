@@ -102,12 +102,42 @@ function inferPackType(nome, unidade) {
     return 'UN';
 }
 
-/** Mesma regra do Hub: CX/PL usam imagem da embalagem, com fallback para unidade. */
+/** Mesma regra do Hub (`imagemCatalogoUrl`): extensão e cache-bust em URLs do storage. */
+export function imagemCatalogoUrl(url, cacheBust) {
+    if (!url) return null;
+    if (url.startsWith('/')) return url;
+
+    let normalized = String(url).trim();
+    if (!/\.(webp|jpg|jpeg|png|gif|svg)(\?|$)/i.test(normalized)) {
+        normalized = `${normalized}.webp`;
+    }
+
+    if (cacheBust && normalized.includes('supabase.co')) {
+        const base = normalized.split('?')[0];
+        const ts =
+            typeof cacheBust === 'number'
+                ? cacheBust
+                : new Date(String(cacheBust)).getTime();
+        if (Number.isFinite(ts) && ts > 0) return `${base}?v=${ts}`;
+    }
+
+    return normalized;
+}
+
+/** Mesma regra do Hub: foto por unidade de venda (`imagemProdutoPorUnidade`). */
 export function productImageForCatalog(produto) {
-    const pack = inferPackType(produto?.nome, produto?.unidade);
-    if (pack === 'CX' && produto?.imagem_cx_url) return produto.imagem_cx_url;
-    if (pack === 'PL' && produto?.imagem_pl_url) return produto.imagem_pl_url;
-    return produto?.imagem_url || null;
+    const u = normalizarUnidadeProduto(produto?.unidade);
+    let raw = null;
+    if (u === 'CX') raw = produto?.imagem_cx_url ?? produto?.imagem_url;
+    else if (u === 'PL') raw = produto?.imagem_pl_url ?? produto?.imagem_url;
+    else raw = produto?.imagem_url;
+
+    const cacheBust =
+        produto?.updated_at ||
+        produto?.imagem_atualizada_em ||
+        null;
+
+    return imagemCatalogoUrl(raw, cacheBust);
 }
 
 export function buildCatalog(produtos, categorias, options = {}) {
@@ -264,7 +294,7 @@ export async function fetchHubCatalogData(config) {
         fetchAll(
             hub,
             'produtos',
-            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,categorias_produto(slug,nome)',
+            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,updated_at,categorias_produto(slug,nome)',
             '&ativo=eq.true&visivel_catalogo=eq.true&venda_parceiros=eq.true'
         ),
     ]);
