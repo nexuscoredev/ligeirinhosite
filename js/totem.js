@@ -1131,10 +1131,6 @@ ${unitHtml}
                 cnpj: manual.cnpj || totemCustomer.cnpj,
             };
         }
-        if (customerHasCnpjOnFile()) {
-            enterCatalog();
-            return;
-        }
         goInvoiceStep();
     };
 
@@ -2472,13 +2468,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
 
         document.getElementById('totem-customer-invoice-yes')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
-            if (customerHasCpfOnFile()) {
-                enterCatalog();
-                bumpIdle();
-                return;
-            }
             showCpfError('');
-            if (customerCpfInput) customerCpfInput.value = '';
+            if (customerCpfInput) {
+                const digits = cpfApi?.normalizeCpfDigits?.(totemCustomer.cpf) || String(totemCustomer.cpf || '').replace(/\D/g, '');
+                customerCpfInput.value = digits ? cpfApi?.formatCpf?.(digits) || digits : '';
+            }
             showCustomerStep('cpf');
             bumpIdle();
         });
