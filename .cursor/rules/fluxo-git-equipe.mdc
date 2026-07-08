@@ -1,0 +1,35 @@
+---
+description: Fluxo Git em equipe — main direto, pull antes de push, sem OneDrive/Drive
+alwaysApply: true
+---
+
+# Fluxo Git — Ligeirinho Site (ligeirinhosite)
+
+## Contexto do projeto
+
+- **Local:** `C:\dev\Ligeirinho\ligeirinhosite`
+- **GitHub:** https://github.com/nexuscoredev/ligeirinhosite
+- **Vercel:** projeto `ligeirinhosite` → https://ligeirinhoparceiros.vercel.app
+- **Supabase:** `ligeirinhoparceiros` (`tugbsnjyvfhyvtivfhea`)
+- Site estático — sem build de produção (`npm run build` é no-op)
+
+## Antes de codar
+
+1. `git pull origin main`
+2. Se `package-lock.json` mudou: `npm install`
+
+## Ao publicar
+
+1. `git pull --rebase origin main`
+2. Commit com mensagem clara (`feat:` / `fix:` / `chore:`)
+3. `git push origin main` (dispara deploy automático na Vercel)
+
+Confirmar deploy com MCP Vercel (team `team_rIF5nQ4kiddAUYnHt6Fzv3c6`, project `prj_ujXd63XhpVhq62hZ0L9mrkL9lzgB`). Fallback: `npx vercel --prod --yes`.
+
+## Regras
+
+- Trabalhar sempre em **main** — sem PR, sem branch, sem merge
+- Nunca push sem pull antes
+- Nunca commitar `.env`, `data/auth-config.local.json` ou segredos
+- Código versionado só via Git/GitHub — não usar OneDrive ou Google Drive
+- Em conflito: parar e avisar, não apagar código de ninguém

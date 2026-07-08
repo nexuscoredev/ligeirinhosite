@@ -671,7 +671,7 @@ ${unitHtml}
         if (product.vendaParceiros === false) return false;
         const price = Number(product.price);
         if (!Number.isFinite(price) || price <= 0) return false;
-        const pack = pricing.parsePack?.(product.name);
+        const pack = pricing.parsePack?.(product);
         return pack?.type === 'caixa';
     };
 

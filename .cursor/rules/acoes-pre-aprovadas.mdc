@@ -1,0 +1,24 @@
+---
+description: Ações pré-aprovadas — push main, deploy prod, git rebase/stash
+alwaysApply: true
+---
+
+# Ações pré-aprovadas (Ligeirinho Site)
+
+Executar **sem pedir confirmação extra**, salvo conflito de git ou working tree suja (parar e perguntar).
+
+## Git & deploy
+
+- `git push origin main`
+- `git pull --rebase origin main` (stash/pop quando necessário)
+- `npx vercel --prod --yes` e deploy via MCP Vercel
+- Fluxo completo de `fluxo-git-equipe.mdc` quando pedir commit/deploy
+
+## Assets
+
+- Copiar imagens do cache/workspace do Cursor para `img/` ou paths do repo quando necessário
+
+## Não abrandar
+
+- Nunca commitar `.env`, tokens ou `data/auth-config.local.json`
+- Em conflito de rebase ou working tree ambígua: parar e perguntar

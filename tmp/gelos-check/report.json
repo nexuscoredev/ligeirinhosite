@@ -1,0 +1,130 @@
+{
+  "url": "https://ligeirinhoparceiros.vercel.app/inicio",
+  "gelosInfo": {
+    "found": true,
+    "headingText": "Gelos",
+    "headingTag": "H2",
+    "sectionClass": "ze-section home-desktop-only",
+    "scrollInnerHtml": null,
+    "scrollIsEmpty": true,
+    "productCards": 0,
+    "sectionVisible": true,
+    "sectionHeight": 90.5,
+    "sectionWidth": 1280,
+    "isEmpty": true
+  },
+  "snapshot": {
+    "sections": [
+      {
+        "title": "Pedido sugerido",
+        "id": "",
+        "className": "home-suggested ze-section",
+        "productCount": 36,
+        "display": "block",
+        "visibility": "visible",
+        "height": 433.5,
+        "hidden": false
+      },
+      {
+        "title": "Cervejas",
+        "id": "",
+        "className": "home-mobile-sections",
+        "productCount": 57,
+        "display": "none",
+        "visibility": "visible",
+        "height": 0,
+        "hidden": true
+      },
+      {
+        "title": "Cervejas",
+        "id": "",
+        "className": "home-suggested ze-section",
+        "productCount": 19,
+        "display": "block",
+        "visibility": "visible",
+        "height": 0,
+        "hidden": false
+      },
+      {
+        "title": "Destilados",
+        "id": "",
+        "className": "home-suggested ze-section",
+        "productCount": 19,
+        "display": "block",
+        "visibility": "visible",
+        "height": 0,
+        "hidden": false
+      },
+      {
+        "title": "Vinhos",
+        "id": "",
+        "className": "home-suggested ze-section",
+        "productCount": 19,
+        "display": "block",
+        "visibility": "visible",
+        "height": 0,
+        "hidden": false
+      },
+      {
+        "title": "Cervejas",
+        "id": "",
+        "className": "ze-section home-desktop-only",
+        "productCount": 65,
+        "display": "block",
+        "visibility": "visible",
+        "height": 329.5,
+        "hidden": false
+      },
+      {
+        "title": "Destilados",
+        "id": "",
+        "className": "ze-section home-desktop-only",
+        "productCount": 65,
+        "display": "block",
+        "visibility": "visible",
+        "height": 356.5,
+        "hidden": false
+      },
+      {
+        "title": "Vinhos",
+        "id": "",
+        "className": "ze-section home-desktop-only",
+        "productCount": 65,
+        "display": "block",
+        "visibility": "visible",
+        "height": 356.5,
+        "hidden": false
+      },
+      {
+        "title": "Gelos",
+        "id": "",
+        "className": "ze-section home-desktop-only",
+        "productCount": 1,
+        "display": "block",
+        "visibility": "visible",
+        "height": 90.5,
+        "hidden": false
+      }
+    ],
+    "bodyScrollHeight": 1932,
+    "title": "Ligeirinho Parceiros - Início"
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "consoleWarnings": [
+    {
+      "type": "warning",
+      "text": "cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation",
+      "location": {
+        "url": "https://cdn.tailwindcss.com/?plugins=forms,container-queries",
+        "line": 63,
+        "column": 13404,
+        "lineNumber": 63,
+        "columnNumber": 13404
+      }
+    }
+  ],
+  "allConsoleTypes": {
+    "warning": 1
+  }
+}

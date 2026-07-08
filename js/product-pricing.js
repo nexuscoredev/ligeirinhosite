@@ -37,25 +37,58 @@
             .replace(CAIXA_PREFIX_RE, '')
             .trim();
 
-    const parsePack = (name) => {
-        const raw = String(name || '').trim();
-        let match = raw.match(PACK_PL_RE);
-        if (match) return { type: 'pallet', packSize: parseInt(match[1], 10) || 1 };
+    const packSizeFromProduct = (product, nameHint = 1) => {
+        const fator = Number(product?.fatorMultiplicacao ?? product?.fator_multiplicacao);
+        if (Number.isFinite(fator) && fator > 0) return fator;
+        const hint = Number(nameHint);
+        return Number.isFinite(hint) && hint > 0 ? hint : 1;
+    };
 
-        match = raw.match(PACK_UN_RE);
-        if (match) return { type: 'unidade', packSize: parseInt(match[1], 10) || 1 };
+    /**
+     * Classifica embalagem. Preferência: campo `unidade` do Hub (CX/PL/UN).
+     * Sem unidade, cai no sufixo do nome (C/12, CX, PL, UN, prefixo CAIXA).
+     */
+    const parsePack = (nameOrProduct, maybeProduct) => {
+        const product =
+            maybeProduct && typeof maybeProduct === 'object'
+                ? maybeProduct
+                : nameOrProduct && typeof nameOrProduct === 'object'
+                  ? nameOrProduct
+                  : null;
+        const rawName = product
+            ? String(product.name || nameOrProduct || '').trim()
+            : String(nameOrProduct || '').trim();
 
-        match = raw.match(PACK_CX_RE);
-        if (match) return { type: 'caixa', packSize: parseInt(match[1], 10) || 1 };
-
-        match = raw.match(PACK_C_SLASH_RE);
-        if (match) return { type: 'caixa', packSize: parseInt(match[1], 10) || 1 };
-
-        if (CAIXA_PREFIX_RE.test(raw)) {
-            return { type: 'caixa', packSize: 1 };
+        const unidade = String(product?.unidade || product?.unit || '')
+            .trim()
+            .toUpperCase();
+        if (unidade === 'PL' || unidade === 'PLT' || unidade === 'PALLET') {
+            return { type: 'pallet', packSize: packSizeFromProduct(product, 1) };
+        }
+        if (unidade === 'CX' || unidade === 'FD' || unidade === 'PC' || unidade === 'FARDO') {
+            return { type: 'caixa', packSize: packSizeFromProduct(product, 1) };
+        }
+        if (unidade === 'UN') {
+            return { type: 'unidade', packSize: 1 };
         }
 
-        // Sem sufixo explícito: trata como unidade (não entra no Totem/Parceiros atacado).
+        let match = rawName.match(PACK_PL_RE);
+        if (match) return { type: 'pallet', packSize: packSizeFromProduct(product, parseInt(match[1], 10) || 1) };
+
+        match = rawName.match(PACK_UN_RE);
+        if (match) return { type: 'unidade', packSize: 1 };
+
+        match = rawName.match(PACK_CX_RE);
+        if (match) return { type: 'caixa', packSize: packSizeFromProduct(product, parseInt(match[1], 10) || 1) };
+
+        match = rawName.match(PACK_C_SLASH_RE);
+        if (match) return { type: 'caixa', packSize: packSizeFromProduct(product, parseInt(match[1], 10) || 1) };
+
+        if (CAIXA_PREFIX_RE.test(rawName)) {
+            return { type: 'caixa', packSize: packSizeFromProduct(product, 1) };
+        }
+
+        // Sem unidade do Hub e sem sufixo no nome: trata como unidade.
         return { type: 'unidade', packSize: 1 };
     };
 
@@ -80,6 +113,7 @@
                 packSize: pack.packSize,
                 adultOnly: product.adultOnly,
                 image: product.image,
+                unidade: product.unidade || 'CX',
             },
         },
     });
@@ -106,7 +140,7 @@
 
         catalogData.categories.forEach((cat) => {
             cat.products.forEach((product) => {
-                const pack = parsePack(product.name);
+                const pack = parsePack(product);
                 const key = `${cat.id}::${normalizeKey(product.name, cat.id)}`;
 
                 if (!groups.has(key)) {
@@ -133,6 +167,7 @@
                     packSize: pack.packSize,
                     adultOnly: product.adultOnly,
                     image: product.image,
+                    unidade: product.unidade || null,
                 };
 
                 if (pack.type === 'caixa') {
@@ -224,7 +259,7 @@
 
         catalogData.categories.forEach((cat) => {
             cat.products.forEach((product) => {
-                const pack = parsePack(product.name);
+                const pack = parsePack(product);
                 if (!isCaixaPack(pack)) return;
 
                 const group = caixaVariantFromProduct(product, pack, cat);
@@ -232,11 +267,14 @@
                     group,
                     product: {
                         id: product.id,
+                        hubId: product.hubId,
+                        sku: product.sku,
                         name: group.baseName,
                         price: product.price,
                         image: product.image,
                         adultOnly: product.adultOnly,
                         description: product.description,
+                        unidade: product.unidade || 'CX',
                     },
                     categoryName: cat.name,
                     categoryId: cat.id,
@@ -263,7 +301,7 @@
                 const price = Number(product.price);
                 if (!Number.isFinite(price) || price <= 0) return;
 
-                const pack = parsePack(product.name);
+                const pack = parsePack(product);
                 if (!isCaixaPack(pack)) return;
 
                 const group = caixaVariantFromProduct(product, pack, cat);
@@ -271,11 +309,14 @@
                     group,
                     product: {
                         id: product.id,
+                        hubId: product.hubId,
+                        sku: product.sku,
                         name: group.baseName,
                         price: product.price,
                         image: product.image,
                         adultOnly: product.adultOnly,
                         description: product.description,
+                        unidade: product.unidade || 'CX',
                     },
                     categoryName: cat.name,
                     categoryId: cat.id,

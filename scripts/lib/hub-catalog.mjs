@@ -139,12 +139,19 @@ export function buildCatalog(produtos, categorias, options = {}) {
         }
 
         const price = Number(p.preco_base ?? p.preco_atacado ?? 0);
+        const unidade = normalizarUnidadeProduto(p.unidade);
+        const fatorRaw = Number(p.fator_multiplicacao);
+        const fatorMultiplicacao =
+            Number.isFinite(fatorRaw) && fatorRaw > 0 ? fatorRaw : null;
 
         categoryMap.get(slug).products.push({
             id: uniqueProductId(p),
             hubId: p.id,
             sku: String(p.sku || '').trim() || null,
             name: String(p.nome || '').trim().toUpperCase(),
+            /** Unidade canônica do Hub (UN/CX/PL) — Totem/Parceiros usam isso, não só o sufixo do nome. */
+            unidade,
+            fatorMultiplicacao,
             price: Number.isFinite(price) ? price : 0,
             priceLabel: formatPriceLabel(Number.isFinite(price) ? price : 0),
             description: p.descricao_resumida || null,
@@ -257,7 +264,7 @@ export async function fetchHubCatalogData(config) {
         fetchAll(
             hub,
             'produtos',
-            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,categorias_produto(slug,nome)',
+            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,categorias_produto(slug,nome)',
             '&ativo=eq.true&visivel_catalogo=eq.true&venda_parceiros=eq.true'
         ),
     ]);
