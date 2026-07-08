@@ -82,6 +82,7 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
     const bySku = new Map();
     const byNome = new Map();
     const byId = new Map();
+    const byNomePreco = new Map();
 
     for (const row of list) {
         const meta = {
@@ -97,19 +98,29 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
         const nome = normalizePromoLookupName(row.nome);
         if (sku) bySku.set(sku, meta);
         if (id) byId.set(id, meta);
-        if (nome) byNome.set(nome, meta);
+        if (nome) {
+            byNome.set(nome, meta);
+            if (Number.isFinite(meta.preco_promo)) {
+                byNomePreco.set(`${nome}::${meta.preco_promo.toFixed(2)}`, meta);
+            }
+        }
     }
 
-    return { bySku, byNome, byId };
+    return { bySku, byNome, byId, byNomePreco };
 }
 
 function resolvePromoMeta(row, maps) {
     const sku = String(row.produto_sku || '').trim().toLowerCase();
     const id = String(row.produto_id || '').trim();
     const nome = normalizePromoLookupName(row.produto_nome);
+    const precoPromo = Number(row.preco_promo);
 
     if (id && maps.byId.has(id)) return maps.byId.get(id);
     if (sku && sku !== INDEFINIDO_SKU && maps.bySku.has(sku)) return maps.bySku.get(sku);
+    if (nome && Number.isFinite(precoPromo)) {
+        const key = `${nome}::${precoPromo.toFixed(2)}`;
+        if (maps.byNomePreco?.has(key)) return maps.byNomePreco.get(key);
+    }
     if (nome && maps.byNome.has(nome)) return maps.byNome.get(nome);
     if (sku && maps.bySku.has(sku)) return maps.bySku.get(sku);
     return null;
