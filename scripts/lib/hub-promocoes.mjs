@@ -1,5 +1,6 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { slugifyId } from './hub-catalog.mjs';
+import { resolvePromoVitrinePrices } from './hub-promo-precos.mjs';
 
 const INDEFINIDO_SKU = 'indefinido';
 
@@ -39,27 +40,22 @@ function normalizePromoLookupName(value) {
 }
 
 function normalizePromoRow(row, meta = null, produto = null) {
-    const original = Number(row.preco_original);
-    const promo = Number(row.preco_promo);
-    const discountPct =
-        Number.isFinite(original) && original > 0 && Number.isFinite(promo)
-            ? Math.max(0, Math.round((1 - promo / original) * 100))
-            : 0;
+    const prices = resolvePromoVitrinePrices(row, meta);
 
     const nome = String(row.produto_nome || produto?.nome || '').trim();
     const rawImage = row.arte_url || produto?.imagem_url || null;
     const imageUrl = isDrivePromoImage(rawImage) ? produto?.imagem_url || null : rawImage;
-    const unidade = String(meta?.unidade || row.unidade || '').trim().toUpperCase();
 
     return {
         id: row.id,
         sku: String(row.produto_sku || '').trim(),
         hubProductId: meta?.produto_id || (row.produto_id ? String(row.produto_id).trim() : null),
         name: nome,
-        unidade,
-        originalPrice: Number.isFinite(original) ? original : null,
-        promoPrice: Number.isFinite(promo) ? promo : null,
-        discountPct,
+        unidade: prices.unidade,
+        fatorMultiplicacao: prices.fatorMultiplicacao,
+        originalPrice: prices.originalPrice,
+        promoPrice: prices.promoPrice,
+        discountPct: prices.discountPct,
         validFrom: String(row.validade_inicio || '').slice(0, 10),
         validTo: String(meta?.validade_fim || row.validade_fim || '').slice(0, 10),
         imageUrl,
@@ -92,6 +88,9 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
             validade_fim: String(row.validade_fim || '').slice(0, 10),
             unidade: String(row.unidade || '').trim().toUpperCase(),
             produto_id: String(row.produto_id || '').trim(),
+            preco_base: Number(row.preco_base),
+            preco_promo: Number(row.preco_promo),
+            fator_multiplicacao: Number(row.fator_multiplicacao),
         };
         const sku = String(row.sku || '').trim().toLowerCase();
         const id = meta.produto_id;
