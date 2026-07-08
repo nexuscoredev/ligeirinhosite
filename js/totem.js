@@ -151,6 +151,7 @@
     let detailDraftQty = 1;
     let promosReturnView = 'welcome';
     let customerIdentified = false;
+    let customerSkippedIdentification = false;
     let refreshBusy = false;
     let totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
     let customerStep = 'register';
@@ -900,6 +901,7 @@ ${unitHtml}
         totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
         customerLookupHit = null;
         customerStep = 'register';
+        customerSkippedIdentification = false;
         customerLookupMode = 'doc';
         customerManualContactMode = 'phone';
         if (customerNameInput) customerNameInput.value = '';
@@ -1094,11 +1096,16 @@ ${unitHtml}
         return Boolean(name && (phone.replace(/\D/g, '') || email || cpf || cnpj));
     };
 
-    const skipCustomerIdentification = () => {
+    const skipCustomerIdentification = ({ skipInvoice = false } = {}) => {
         totemKeyboard?.hide?.();
         customerLookupHit = null;
         totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
-        enterCatalog({ guest: true });
+        customerSkippedIdentification = true;
+        if (skipInvoice) {
+            enterCatalog({ guest: true });
+            return;
+        }
+        goInvoiceStep();
     };
 
     const readManualDocs = () => {
@@ -1510,12 +1517,14 @@ ${unitHtml}
         showCpfError('');
         totemCustomer = { ...totemCustomer, cpf: digits };
         totemKeyboard?.hide?.();
-        const saved = await saveCustomerDocToHub();
-        if (!saved.ok) {
-            showCpfError(saved.error || 'Não foi possível salvar o CPF.');
-            return;
+        if (customerHasPersistData()) {
+            const saved = await saveCustomerDocToHub();
+            if (!saved.ok) {
+                showCpfError(saved.error || 'Não foi possível salvar o CPF.');
+                return;
+            }
         }
-        enterCatalog();
+        enterCatalog({ guest: customerSkippedIdentification });
     };
 
     const renderCategories = () => {
@@ -2411,7 +2420,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             } else if (customerStep === 'confirm') {
                 showCustomerStep('lookup');
             } else if (customerStep === 'invoice') {
-                showCustomerStep(customerLookupHit?.name ? 'confirm' : 'manual');
+                if (customerSkippedIdentification) {
+                    showCustomerStep('register');
+                } else {
+                    showCustomerStep(customerLookupHit?.name ? 'confirm' : 'manual');
+                }
             } else if (customerStep === 'cpf') {
                 showCustomerStep('invoice');
             } else if (customerStep === 'manual') {
@@ -2480,7 +2493,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         document.getElementById('totem-customer-invoice-no')?.addEventListener('click', () => {
             totemCustomer = { ...totemCustomer, cpf: '' };
             totemKeyboard?.hide?.();
-            enterCatalog();
+            enterCatalog({ guest: customerSkippedIdentification });
             bumpIdle();
         });
 
@@ -2797,7 +2810,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`,
             );
             if (!customerIdentified) {
-                skipCustomerIdentification();
+                skipCustomerIdentification({ skipInvoice: true });
             }
             if (!cartApi.cartItemCount(cartApi.loadCart())) {
                 cartApi.restoreLastOrder?.();
