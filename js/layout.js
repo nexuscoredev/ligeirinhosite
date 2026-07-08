@@ -800,6 +800,10 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         document.body.appendChild(versionScript);
     }
 
+    if (page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso' && page !== 'totem-caixa') {
+        ensureScript('js/pwa-update.js');
+    }
+
     if (page !== 'login' && page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso') {
         ensureScript('js/motion.js').then(() => {
             window.LigeirinhoMotion?.refresh?.();

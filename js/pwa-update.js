@@ -1,0 +1,281 @@
+/**
+ * Atualização sistêmica do Ligeirinho Parceiros (service worker).
+ */
+(function () {
+    'use strict';
+
+    const STORAGE_KEY = 'lig-parceiros-pwa-update-pending-v1';
+    const SW_URL = '/js/sw.js';
+    const SW_SCOPE = '/';
+
+    /** @type {'idle' | 'pending' | 'checking'} */
+    let status = 'idle';
+    let started = false;
+    let aplicando = false;
+    let oculto = false;
+    /** @type {ServiceWorkerRegistration | null} */
+    let lastRegistration = null;
+    const listeners = new Set();
+    const registrationsWithListeners = new WeakSet();
+
+    function lerPersistido() {
+        try {
+            return sessionStorage.getItem(STORAGE_KEY) === '1';
+        } catch {
+            return false;
+        }
+    }
+
+    function persistirPendente(pendente) {
+        try {
+            if (pendente) sessionStorage.setItem(STORAGE_KEY, '1');
+            else sessionStorage.removeItem(STORAGE_KEY);
+        } catch {
+            /* ignore */
+        }
+    }
+
+    function isTotemPage() {
+        return (
+            document.documentElement.classList.contains('totem-kiosk') ||
+            document.body?.dataset?.page === 'totem' ||
+            document.body?.dataset?.page === 'totem-pagamento' ||
+            document.body?.dataset?.page === 'totem-sucesso' ||
+            document.body?.dataset?.page === 'totem-caixa'
+        );
+    }
+
+    function ensureBanner() {
+        if (document.getElementById('lig-pwa-update')) return;
+
+        const root = document.createElement('div');
+        root.id = 'lig-pwa-update';
+        root.className = 'lig-pwa-update';
+        root.setAttribute('role', 'status');
+        root.setAttribute('aria-live', 'polite');
+        root.hidden = true;
+        root.innerHTML =
+            '<div class="lig-pwa-update__card">' +
+            '<div class="lig-pwa-update__text">' +
+            '<strong class="lig-pwa-update__title" id="lig-pwa-update-title">Atualização disponível</strong>' +
+            '<span class="lig-pwa-update__lead" id="lig-pwa-update-lead">Uma versão nova do app está pronta. Toque em atualizar para aplicar.</span>' +
+            '</div>' +
+            '<div class="lig-pwa-update__actions">' +
+            '<button type="button" class="lig-pwa-update__primary" id="lig-pwa-update-apply">Atualizar agora</button>' +
+            '<button type="button" class="lig-pwa-update__ghost" id="lig-pwa-update-later">Depois</button>' +
+            '</div>' +
+            '</div>';
+
+        document.body.appendChild(root);
+
+        document.getElementById('lig-pwa-update-apply')?.addEventListener('click', () => {
+            void aplicar();
+        });
+        document.getElementById('lig-pwa-update-later')?.addEventListener('click', () => {
+            oculto = true;
+            syncBanner();
+        });
+    }
+
+    function syncBanner() {
+        ensureBanner();
+        const root = document.getElementById('lig-pwa-update');
+        if (!root) return;
+
+        const pendente = status === 'pending' || lerPersistido();
+        const visivel = (pendente || status === 'checking') && !oculto;
+        root.hidden = !visivel;
+        document.body.classList.toggle('lig-pwa-update-open', visivel);
+
+        const title = document.getElementById('lig-pwa-update-title');
+        const lead = document.getElementById('lig-pwa-update-lead');
+        const applyBtn = document.getElementById('lig-pwa-update-apply');
+        const laterBtn = document.getElementById('lig-pwa-update-later');
+
+        if (status === 'checking') {
+            if (title) title.textContent = 'Verificando…';
+            if (lead) lead.textContent = 'Consultando se há versão nova no servidor.';
+            if (applyBtn) applyBtn.hidden = true;
+            if (laterBtn) laterBtn.hidden = true;
+            return;
+        }
+
+        if (pendente) {
+            if (title) title.textContent = 'Atualização disponível';
+            if (lead) lead.textContent = 'Uma versão nova do app está pronta. Toque em atualizar para aplicar.';
+            if (applyBtn) {
+                applyBtn.hidden = false;
+                applyBtn.textContent = 'Atualizar agora';
+            }
+            if (laterBtn) laterBtn.hidden = false;
+        }
+    }
+
+    function emitir() {
+        const detail = { status, pendente: status === 'pending' || lerPersistido() };
+        window.dispatchEvent(new CustomEvent('lig-pwa-update', { detail }));
+        for (const fn of listeners) fn(detail);
+        syncBanner();
+    }
+
+    function definirStatus(next) {
+        status = next;
+        if (next === 'pending') oculto = false;
+        emitir();
+    }
+
+    function sinalizarPendente() {
+        persistirPendente(true);
+        definirStatus('pending');
+    }
+
+    async function detectarSwAguardando() {
+        if (!('serviceWorker' in navigator)) return false;
+        const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
+        if (!reg?.waiting || !navigator.serviceWorker.controller) return false;
+        sinalizarPendente();
+        return true;
+    }
+
+    function vincularListenersRegistro(reg) {
+        if (registrationsWithListeners.has(reg)) return;
+        registrationsWithListeners.add(reg);
+
+        reg.addEventListener('updatefound', () => {
+            const installing = reg.installing;
+            if (!installing) return;
+            installing.addEventListener('statechange', () => {
+                if (installing.state === 'installed' && reg.waiting && navigator.serviceWorker.controller) {
+                    sinalizarPendente();
+                }
+            });
+        });
+    }
+
+    async function registrarSw() {
+        if (!('serviceWorker' in navigator)) return null;
+        try {
+            const reg = await navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
+            lastRegistration = reg;
+            vincularListenersRegistro(reg);
+            await detectarSwAguardando();
+            return reg;
+        } catch {
+            return null;
+        }
+    }
+
+    async function verificar(opcoes) {
+        const silencioso = opcoes?.silencioso ?? false;
+        if (!('serviceWorker' in navigator)) return 'indisponivel';
+        if (!silencioso) definirStatus('checking');
+
+        try {
+            const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
+            if (!reg) {
+                if (!silencioso) definirStatus('idle');
+                return 'indisponivel';
+            }
+
+            await reg.update();
+
+            if (reg.waiting && navigator.serviceWorker.controller) {
+                sinalizarPendente();
+                return 'pendente';
+            }
+
+            if (await detectarSwAguardando()) return 'pendente';
+
+            const pendente = status === 'pending' || lerPersistido();
+            if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
+            return pendente ? 'pendente' : 'em-dia';
+        } catch {
+            const pendente = status === 'pending' || lerPersistido();
+            if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
+            return 'indisponivel';
+        }
+    }
+
+    async function aplicar() {
+        if (aplicando) return;
+        aplicando = true;
+        persistirPendente(false);
+        definirStatus('idle');
+
+        const applyBtn = document.getElementById('lig-pwa-update-apply');
+        if (applyBtn) {
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Atualizando…';
+        }
+
+        try {
+            const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
+            reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
+        } finally {
+            window.setTimeout(() => {
+                if (document.visibilityState !== 'hidden') window.location.reload();
+            }, 400);
+        }
+    }
+
+    function init() {
+        if (started || isTotemPage()) return;
+        started = true;
+        ensureBanner();
+
+        if (lerPersistido()) definirStatus('pending');
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!aplicando) return;
+                persistirPendente(false);
+                window.location.reload();
+            });
+        }
+
+        void registrarSw().then(() => {
+            window.setTimeout(() => void verificar({ silencioso: true }), 2000);
+
+            const onVis = () => {
+                if (document.visibilityState === 'visible') {
+                    if (status === 'pending' || lerPersistido()) oculto = false;
+                    void verificar({ silencioso: true });
+                }
+            };
+            document.addEventListener('visibilitychange', onVis);
+
+            window.addEventListener('pageshow', (ev) => {
+                if (ev.persisted) void verificar({ silencioso: true });
+            });
+
+            const id = window.setInterval(() => void verificar({ silencioso: true }), 30_000);
+            window.addEventListener(
+                'beforeunload',
+                () => {
+                    document.removeEventListener('visibilitychange', onVis);
+                    window.clearInterval(id);
+                },
+                { once: true },
+            );
+        });
+    }
+
+    window.LigeirinhoPwaUpdate = {
+        init,
+        isPending: () => status === 'pending' || lerPersistido(),
+        status: () => status,
+        verificar,
+        aplicar,
+        onStatusChange(fn) {
+            listeners.add(fn);
+            fn({ status, pendente: status === 'pending' || lerPersistido() });
+            return () => listeners.delete(fn);
+        },
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init, { once: true });
+    } else {
+        init();
+    }
+})();

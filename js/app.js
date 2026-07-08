@@ -26,12 +26,6 @@
     ensureLink('manifest', 'manifest.webmanifest');
     ensureLink('stylesheet', 'css/theme-forms.css');
 
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/js/sw.js', { scope: '/' }).catch(() => {});
-        });
-    }
-
     const isStandalone =
         window.matchMedia('(display-mode: standalone)').matches ||
         window.matchMedia('(display-mode: fullscreen)').matches ||
