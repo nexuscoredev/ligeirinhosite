@@ -1009,22 +1009,28 @@ html.totem--admin-edit .totem-product::after {
     min-width: 4.6rem;
     min-height: 1.75rem;
     padding: 0.28rem 0.55rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--lig-text-muted);
+    background: rgba(20, 18, 15, 0.5);
+    color: rgba(255, 255, 255, 0.72);
     font-size: 0.62rem;
     font-weight: 800;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
 }
 
 .totem-promo-unit-btn--active {
-    border-color: rgba(240, 201, 41, 0.55);
-    background: rgba(240, 201, 41, 0.14);
-    color: #fde68a;
-    box-shadow: 0 0 0 1px rgba(240, 201, 41, 0.18) inset;
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    background: linear-gradient(165deg, #f7d53c 0%, #f3c614 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+.totem-promo-unit-btn:hover:not(.totem-promo-unit-btn--active) {
+    border-color: rgba(247, 213, 60, 0.55);
+    color: #ffffff;
 }
 
 .totem-promo-unit-btn:active {

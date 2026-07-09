@@ -146,6 +146,12 @@ ${grupo.unidadesDisponiveis
 </div>`;
     };
 
+    const mediaPackTagHtml = (promoUnit) => {
+        const packLabel = promoCatalog().tagEmbalagemPromoTotem(promoUnit);
+        if (!packLabel) return '';
+        return `<span class="totem-product__pack-tag" aria-label="Embalagem ${esc(packLabel)}"><span class="totem-product__pack-tag-label">${esc(packLabel)}</span></span>`;
+    };
+
     const buildPromoOnlyCardHtml = (grupo, entry, index) => {
         const { promo } = entry;
         const ctx = buildCartCtx(entry);
@@ -156,6 +162,7 @@ ${grupo.unidadesDisponiveis
 
         return `<article class="totem-product totem-product--promo totem-product--promo-unlinked" ${attrs}>
 <div class="totem-product__media">
+${mediaPackTagHtml(ctx.promoUnit)}
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>
 <div class="totem-product__body">
@@ -187,12 +194,8 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
             : catalog().productImageUrl(group && pricing() ? pricing().getTierImage(group, tier) : product.image);
         const selectedClass = qty ? ' totem-product--selected' : '';
         const validade = promoCatalog()?.formatValidade?.(promo) || '';
-        const packLabel = promoCatalog().tagEmbalagemPromoTotem(ctx.promoUnit);
+        const packTag = mediaPackTagHtml(ctx.promoUnit);
         const attrs = `role="listitem" data-promo-group-key="${esc(grupo.chave)}" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
-
-        const packTag = packLabel
-            ? `<span class="totem-product__pack-tag" aria-label="Embalagem ${esc(packLabel)}"><span class="totem-product__pack-tag-label">${esc(packLabel)}</span></span>`
-            : '';
 
         const mediaHtml = `<div class="totem-product__media">
 ${packTag}

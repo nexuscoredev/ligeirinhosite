@@ -176,7 +176,7 @@
     };
 
     const tagEmbalagemPromoTotem = (unit) => {
-        if (unit === 'UN') return null;
+        if (unit === 'UN') return 'UNIDADE';
         if (unit === 'CX') return 'Caixa';
         if (unit === 'PL') return 'Pallet';
         return null;
