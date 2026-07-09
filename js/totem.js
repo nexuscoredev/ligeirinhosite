@@ -128,6 +128,7 @@
     let displayItems = [];
     const CATALOG_API_URL = '/api/totem/catalog';
     let promoCatalogItems = [];
+    let promoDisplayItems = [];
 
     const loadTotemCatalog = (options = {}) =>
         window.LigeirinhoCatalogLoader.load({ ...options, apiUrl: CATALOG_API_URL });
@@ -740,29 +741,51 @@ ${unitHtml}
     };
 
     const buildPromoCatalogItems = () => {
-        if (!catalogData) return [];
+        if (!rawCatalogData) return [];
         const items = [];
-        catalogData.categories.forEach((cat) => {
+        rawCatalogData.categories.forEach((cat) => {
             cat.products.forEach((product) => {
-                if (!isTotemSellableProduct(product)) return;
-                items.push({
-                    product: {
-                        id: product.id,
-                        hubId: product.hubId,
-                        sku: product.sku,
-                        name: product.name,
-                        price: product.price,
-                        image: product.image,
-                        adultOnly: product.adultOnly,
-                        description: product.description,
-                    },
+                const price = Number(product.price);
+                if (!Number.isFinite(price) || price <= 0) return;
+                const pack = pricing.parsePack?.(product);
+                const baseProduct = {
+                    id: product.id,
+                    hubId: product.hubId,
+                    sku: product.sku,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    adultOnly: product.adultOnly,
+                    description: product.description,
+                    unidade: product.unidade,
+                    fatorMultiplicacao: product.fatorMultiplicacao,
+                };
+                const categoryFields = {
                     categoryId: canonCategoryId(cat.id),
                     categoryName: canonCategoryName(cat.id, cat.name),
+                };
+                if (pack?.type === 'unidade') {
+                    items.push({
+                        product: baseProduct,
+                        group: null,
+                        defaultTier: 'unidade',
+                        ...categoryFields,
+                    });
+                    return;
+                }
+                if (!isTotemSellableProduct(product)) return;
+                items.push({
+                    product: baseProduct,
                     group: null,
+                    ...categoryFields,
                 });
             });
         });
         return items;
+    };
+
+    const registerPromoDisplayItems = (items = []) => {
+        promoDisplayItems = Array.isArray(items) ? items.filter(Boolean) : [];
     };
 
     const activeCategoryMeta = () =>
@@ -2140,7 +2163,7 @@ ${bodyHtml}
     };
 
     const findDisplayItem = (cartKey, itemKey) => {
-        const pools = [displayItems, promoCatalogItems];
+        const pools = [displayItems, promoCatalogItems, promoDisplayItems];
         for (const pool of pools) {
             if (itemKey) {
                 const byGroup = pool.find((i) => (i.group?.key || i.product.id) === itemKey);
@@ -2197,7 +2220,11 @@ ${bodyHtml}
         if (!item) return;
         const group = item.group;
         const card = itemKey ? productsGrid?.querySelector(`[data-item-key="${itemKey}"]`) : null;
-        const tier = card?.dataset?.priceTier || (group ? activeTierFor(group) : 'caixa');
+        const tier =
+            opts.tier ||
+            card?.dataset?.priceTier ||
+            item?.defaultTier ||
+            (group ? activeTierFor(group) : 'caixa');
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
@@ -2933,6 +2960,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 storeHiddenProductIds.has(String(productId || '').trim()),
             formatPrice,
             getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
+            registerPromoDisplayItems,
             addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
             changeQty,
             onBumpIdle: bumpIdle,

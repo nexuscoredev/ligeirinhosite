@@ -164,7 +164,9 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
     return {
         source: caixaOnly
             ? 'hub:rpc_listar_promocoes_vitrine+caixa'
-            : 'hub:rpc_listar_promocoes_vitrine',
+            : canal === 'totem'
+              ? 'hub:rpc_listar_promocoes_vitrine+totem'
+              : 'hub:rpc_listar_promocoes_vitrine',
         fetchedAt: new Date().toISOString(),
         date: today,
         promocoes,
@@ -172,5 +174,5 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
 }
 
 export async function getHubPromocoesTotem(env = process.env) {
-    return getHubPromocoes(env, { caixaOnly: true, canal: 'totem' });
+    return getHubPromocoes(env, { caixaOnly: false, canal: 'totem' });
 }

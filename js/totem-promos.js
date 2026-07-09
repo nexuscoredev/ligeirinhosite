@@ -5,7 +5,8 @@
 
     let deps = null;
     let bound = false;
-    let promoEntries = [];
+    let promoGroups = [];
+    let selectedUnits = new Map();
     let fetchError = false;
     let promoLoader = null;
 
@@ -22,23 +23,39 @@
         return promoLoader;
     };
 
+    const activeUnitForGroup = (grupo) =>
+        selectedUnits.get(grupo.chave) || promoCatalog().unidadePadraoPromoGrupo(grupo);
+
+    const activeEntryForGroup = (grupo) =>
+        promoCatalog().entryAtivoPromoGrupo(grupo, activeUnitForGroup(grupo));
+
+    const resolveTier = (entry) => {
+        const promoUnit = promoCatalog().normalizePromoUnit(entry?.promo?.unidade);
+        const preferred = promoCatalog().tierForPromoUnit(promoUnit);
+        const group = entry?.item?.group || null;
+        if (group) {
+            return pricing()?.resolveActiveTier?.(group, preferred) || preferred;
+        }
+        return entry?.item?.defaultTier || preferred;
+    };
+
     const buildCartCtx = (entry) => {
-        const { promo, item } = entry;
+        const { promo, item } = entry || {};
         const group = item?.group || null;
         const product = item?.product;
-        const tier = group ? pricing()?.getDefaultTier?.(group) : item?.defaultTier || null;
+        const tier = resolveTier(entry);
         const variant = group && tier ? pricing()?.getVariant?.(group, tier) : null;
         const cartKey = variant ? catalog()?.cartKeyFor?.(variant) : product?.id || '';
         const originalPrice =
-            promo.originalPrice != null && Number.isFinite(Number(promo.originalPrice))
+            promo?.originalPrice != null && Number.isFinite(Number(promo.originalPrice))
                 ? Number(promo.originalPrice)
                 : variant?.price ?? product?.price ?? 0;
         const promoPrice =
-            promo.promoPrice != null && Number.isFinite(Number(promo.promoPrice))
+            promo?.promoPrice != null && Number.isFinite(Number(promo.promoPrice))
                 ? Number(promo.promoPrice)
                 : originalPrice;
         const discountPct =
-            promo.discountPct != null && Number.isFinite(Number(promo.discountPct))
+            promo?.discountPct != null && Number.isFinite(Number(promo.discountPct))
                 ? Number(promo.discountPct)
                 : originalPrice > 0
                   ? Math.max(0, Math.round((1 - promoPrice / originalPrice) * 100))
@@ -54,6 +71,7 @@
             discountPct,
             promo,
             item,
+            promoUnit: promoCatalog().normalizePromoUnit(promo?.unidade),
         };
     };
 
@@ -115,13 +133,26 @@ ${unitHtml}
 </div>`;
     };
 
-    const buildPromoOnlyCardHtml = (entry, index) => {
+    const buildUnitToggleHtml = (grupo) => {
+        if (!grupo.multiplo) return '';
+        const active = activeUnitForGroup(grupo);
+        return `<div class="totem-promo-unit-toggle" role="group" aria-label="Escolher unidade ou caixa">
+${grupo.unidadesDisponiveis
+    .map((unit) => {
+        const isActive = unit === active;
+        return `<button type="button" class="totem-promo-unit-btn${isActive ? ' totem-promo-unit-btn--active' : ''}" data-promo-group-key="${esc(grupo.chave)}" data-promo-unit="${esc(unit)}" aria-pressed="${isActive ? 'true' : 'false'}">${esc(promoCatalog().rotuloUnidadePromoTotem(unit))}</button>`;
+    })
+    .join('')}
+</div>`;
+    };
+
+    const buildPromoOnlyCardHtml = (grupo, entry, index) => {
         const { promo } = entry;
         const ctx = buildCartCtx(entry);
-        const name = promo.name || promo.hubProductName || 'Promoção';
+        const name = grupo.nomeExibicao || promo.name || promo.hubProductName || 'Promoção';
         const imgSrc = promo.imageUrl ? catalog().productImageUrl(promo.imageUrl) : '';
         const validade = promoCatalog()?.formatValidade?.(promo) || '';
-        const attrs = `role="listitem" data-promo-id="${esc(promo.id || '')}" data-promo-unlinked="true" style="--totem-card-i:${Math.min(index, 14)}"`;
+        const attrs = `role="listitem" data-promo-group-key="${esc(grupo.chave)}" data-promo-id="${esc(promo.id || '')}" data-promo-unlinked="true" style="--totem-card-i:${Math.min(index, 14)}"`;
 
         return `<article class="totem-product totem-product--promo totem-product--promo-unlinked" ${attrs}>
 <div class="totem-product__media">
@@ -129,6 +160,7 @@ ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="ma
 </div>
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(catalog().shortName?.(name, 56) || name)}</div>
+${buildUnitToggleHtml(grupo)}
 <div class="totem-product__pricing">
 <div class="totem-product__meta">${buildPromoPriceHtml(ctx)}</div>
 ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
@@ -138,24 +170,29 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
 </article>`;
     };
 
-    const buildPromoCardHtml = (entry, index) => {
-        if (!entry?.item) return buildPromoOnlyCardHtml(entry, index);
+    const buildPromoCardHtml = (grupo, index) => {
+        const entry = activeEntryForGroup(grupo);
+        if (!entry) return '';
+        if (!entry.item) return buildPromoOnlyCardHtml(grupo, entry, index);
 
         const ctx = buildCartCtx(entry);
         const { group, product, tier, cartKey, promo } = ctx;
-        if (!product || !cartKey) return buildPromoOnlyCardHtml(entry, index);
+        if (!product || !cartKey) return buildPromoOnlyCardHtml(grupo, entry, index);
 
         const qty = deps?.getCartQty?.(cartKey) || 0;
         const itemKey = group?.key || product.id;
-        const name = promo.name || promo.hubProductName || group?.baseName || product.name || 'Promoção';
+        const name = grupo.nomeExibicao || promo.name || promo.hubProductName || group?.baseName || product.name || 'Promoção';
         const imgSrc = promo.imageUrl
             ? catalog().productImageUrl(promo.imageUrl)
             : catalog().productImageUrl(group && pricing() ? pricing().getTierImage(group, tier) : product.image);
         const selectedClass = qty ? ' totem-product--selected' : '';
         const validade = promoCatalog()?.formatValidade?.(promo) || '';
-        const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
+        const packLabel = promoCatalog().tagEmbalagemPromoTotem(ctx.promoUnit);
+        const attrs = `role="listitem" data-promo-group-key="${esc(grupo.chave)}" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
 
-        const packTag = `<span class="totem-product__pack-tag" aria-label="Embalagem Caixa"><span class="totem-product__pack-tag-label">Caixa</span></span>`;
+        const packTag = packLabel
+            ? `<span class="totem-product__pack-tag" aria-label="Embalagem ${esc(packLabel)}"><span class="totem-product__pack-tag-label">${esc(packLabel)}</span></span>`
+            : '';
 
         const mediaHtml = `<div class="totem-product__media">
 ${packTag}
@@ -166,11 +203,12 @@ ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="ma
         const qtyHtml = `<div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
 <span class="totem-qty-value">${qty}</span>
-<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" aria-label="Aumentar">+</button>
+<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Aumentar">+</button>
 </div>`;
 
         const bodyHtml = `<div class="totem-product__body">
 <div class="totem-product__name">${esc(catalog().shortName?.(name, 56) || name)}</div>
+${buildUnitToggleHtml(grupo)}
 <div class="totem-product__pricing">
 <div class="totem-product__meta">${buildPromoPriceHtml(ctx)}</div>
 ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
@@ -209,19 +247,38 @@ ${bodyHtml}
         if (minus) minus.disabled = qty <= 0;
     };
 
+    const findPromoCard = (groupKey) => {
+        if (!deps?.gridEl || !groupKey) return null;
+        return [...deps.gridEl.querySelectorAll('[data-promo-group-key]')].find(
+            (el) => el.dataset.promoGroupKey === groupKey,
+        );
+    };
+
+    const replacePromoCard = (grupo, index) => {
+        if (!deps?.gridEl) return;
+        const card = findPromoCard(grupo.chave);
+        if (!card) return;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = buildPromoCardHtml(grupo, index);
+        const next = wrapper.firstElementChild;
+        if (next) card.replaceWith(next);
+    };
+
     const syncCart = () => {
-        if (!deps?.gridEl || !promoEntries.length) return;
-        promoEntries.forEach((entry) => {
+        if (!deps?.gridEl || !promoGroups.length) return;
+        promoGroups.forEach((grupo) => {
+            const entry = activeEntryForGroup(grupo);
+            if (!entry) return;
             const ctx = buildCartCtx(entry);
             if (!ctx.cartKey) return;
-            const card = deps.gridEl.querySelector(`[data-cart-key="${ctx.cartKey}"]`);
+            const card = findPromoCard(grupo.chave);
             updateCardQty(card, deps.getCartQty?.(ctx.cartKey) || 0);
         });
     };
 
     const renderGrid = () => {
         if (!deps?.gridEl) return;
-        if (!promoEntries.length) {
+        if (!promoGroups.length) {
             setPanelVisibility({ showEmpty: true });
             deps.gridEl.innerHTML = '';
             deps.gridEl.classList.remove('totem-promos__grid--carousel');
@@ -231,7 +288,7 @@ ${bodyHtml}
         setPanelVisibility({ showGrid: true });
         deps.gridEl.classList.remove('totem-promos__grid--carousel');
         deps.gridEl.innerHTML = `<div class="totem-grid totem-grid--grid-m totem-grid--promos" role="list">
-${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
+${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
 </div>`;
     };
 
@@ -242,21 +299,36 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         const loader = getLoader();
         if (!loader) {
             fetchError = true;
-            promoEntries = [];
+            promoGroups = [];
             return;
         }
-        const catalogItems = getPromoCatalogItems();
+        const catalogItems = [
+            ...getPromoCatalogItems(),
+            ...(deps?.getDisplayItems?.() || []),
+        ];
         const promocoes = await loader.load(force);
         fetchError = loader.hadError?.() && !promocoes.length;
-        promoEntries = promoCatalog().buildPromoEntries(promocoes, catalogItems, { matchedOnly: true });
-        const seenCartKeys = new Set();
-        promoEntries = promoEntries.filter((entry) => {
-            const cartKey = buildCartCtx(entry).cartKey;
-            if (!cartKey || seenCartKeys.has(cartKey)) return false;
-            if (deps.isProductHidden?.(cartKey)) return false;
-            seenCartKeys.add(cartKey);
-            return true;
+        const entries = promoCatalog()
+            .buildPromoEntries(promocoes, catalogItems, { matchedOnly: false })
+            .map((entry) => promoCatalog().enrichPromoEntry(entry, catalogItems))
+            .filter((entry) => entry.item);
+        deps.registerPromoDisplayItems?.(entries.map((entry) => entry.item));
+        promoGroups = promoCatalog().agruparPromocoesTotem(entries);
+        promoGroups = promoGroups.filter((grupo) => {
+            const entry = activeEntryForGroup(grupo);
+            if (!entry) return false;
+            const ctx = buildCartCtx(entry);
+            return ctx.cartKey && !deps.isProductHidden?.(ctx.cartKey);
         });
+        const nextSelected = new Map();
+        promoGroups.forEach((grupo) => {
+            const prev = selectedUnits.get(grupo.chave);
+            nextSelected.set(
+                grupo.chave,
+                prev && grupo.byUnit[prev] ? prev : promoCatalog().unidadePadraoPromoGrupo(grupo),
+            );
+        });
+        selectedUnits = nextSelected;
     };
 
     const render = async (options = {}) => {
@@ -264,11 +336,11 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         const force = Boolean(options.force);
         setPanelVisibility({ showLoading: true });
         await loadPromos(force);
-        if (fetchError && !promoEntries.length) {
+        if (fetchError && !promoGroups.length) {
             setPanelVisibility({ showError: true });
             return;
         }
-        if (!promoEntries.length) {
+        if (!promoGroups.length) {
             setPanelVisibility({ showEmpty: true });
             deps.gridEl.innerHTML = '';
             return;
@@ -281,15 +353,31 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         bound = true;
         deps.retryBtn?.addEventListener('click', () => refresh());
         deps.gridEl.addEventListener('click', (e) => {
+            const unitBtn = e.target.closest('[data-promo-unit]');
+            if (unitBtn) {
+                const groupKey = unitBtn.dataset.promoGroupKey;
+                const unit = unitBtn.dataset.promoUnit;
+                const grupo = promoGroups.find((item) => item.chave === groupKey);
+                if (!grupo || !unit || !grupo.byUnit[unit]) return;
+                selectedUnits.set(groupKey, unit);
+                const index = promoGroups.indexOf(grupo);
+                replacePromoCard(grupo, index);
+                deps.onBumpIdle?.();
+                return;
+            }
+
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
             if (plus) {
-                const entry = promoEntries.find((item) => buildCartCtx(item).cartKey === plus.dataset.cartKey);
+                const card = plus.closest('[data-promo-group-key]');
+                const grupo = promoGroups.find((item) => item.chave === card?.dataset?.promoGroupKey);
+                const entry = grupo ? activeEntryForGroup(grupo) : null;
                 if (!entry?.item) return;
                 const ctx = buildCartCtx(entry);
                 deps.addPromoItem?.(ctx.cartKey, ctx.group?.key || ctx.product?.id, {
                     promoPrice: ctx.promoPrice,
                     promoId: ctx.promo?.id,
+                    tier: ctx.tier,
                 });
                 syncCart();
                 return;

@@ -998,6 +998,39 @@ html.totem--admin-edit .totem-product::after {
     opacity: 0.82;
 }
 
+.totem-promo-unit-toggle {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.2rem 0 0.1rem;
+}
+
+.totem-promo-unit-btn {
+    min-width: 4.6rem;
+    min-height: 1.75rem;
+    padding: 0.28rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--lig-text-muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.totem-promo-unit-btn--active {
+    border-color: rgba(240, 201, 41, 0.55);
+    background: rgba(240, 201, 41, 0.14);
+    color: #fde68a;
+    box-shadow: 0 0 0 1px rgba(240, 201, 41, 0.18) inset;
+}
+
+.totem-promo-unit-btn:active {
+    transform: scale(0.98);
+}
+
 .totem-product__promo-note {
     margin: 0.2rem 0 0;
     font-size: 0.58rem;

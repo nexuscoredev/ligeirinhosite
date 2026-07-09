@@ -81,6 +81,107 @@
         return filtered.sort((a, b) => a.hubIndex - b.hubIndex);
     };
 
+    const normalizePromoUnit = (value) => {
+        const unit = String(value || 'UN').trim().toUpperCase();
+        if (unit === 'CX' || unit === 'FD') return 'CX';
+        if (unit === 'PL' || unit === 'PLT') return 'PL';
+        return 'UN';
+    };
+
+    const tierForPromoUnit = (unit) => {
+        if (unit === 'CX') return 'caixa';
+        if (unit === 'PL') return 'pallet';
+        return 'unidade';
+    };
+
+    const promoGroupKey = (promo) =>
+        normalizeName(promo?.name || promo?.hubProductName || '') ||
+        String(promo?.hubProductId || promo?.id || '').trim();
+
+    const synthesizePromoDisplayItem = (promo, catalogItem) => {
+        if (catalogItem) return catalogItem;
+        const unit = normalizePromoUnit(promo?.unidade);
+        const id = String(promo?.catalogProductId || promo?.hubProductId || promo?.id || '').trim();
+        if (!id) return null;
+        return {
+            product: {
+                id: promo.catalogProductId || id,
+                hubId: String(promo.hubProductId || '').trim(),
+                sku: String(promo.sku || '').trim(),
+                name: String(promo.name || promo.hubProductName || 'Promoção').trim(),
+                price: Number(promo.originalPrice ?? promo.promoPrice ?? 0) || 0,
+                image: promo.imageUrl || '',
+                unidade: unit,
+                fatorMultiplicacao: Number(promo.fatorMultiplicacao) || 1,
+            },
+            group: null,
+            categoryId: '',
+            categoryName: '',
+            defaultTier: tierForPromoUnit(unit),
+        };
+    };
+
+    const enrichPromoEntry = (entry, catalogItems = []) => {
+        const item = entry.item || resolveDisplayItem(entry.promo, catalogItems);
+        const resolved = synthesizePromoDisplayItem(entry.promo, item);
+        return { ...entry, item: resolved };
+    };
+
+    const agruparPromocoesTotem = (entries = []) => {
+        const map = new Map();
+        const order = new Map();
+
+        entries.forEach((entry, index) => {
+            const key = promoGroupKey(entry.promo);
+            if (!key) return;
+            if (!order.has(key)) order.set(key, index);
+            const list = map.get(key);
+            if (list) list.push(entry);
+            else map.set(key, [entry]);
+        });
+
+        return [...map.entries()]
+            .map(([chave, lista]) => {
+                const byUnit = {};
+                lista.forEach((entry) => {
+                    const unit = normalizePromoUnit(entry.promo?.unidade);
+                    byUnit[unit] = entry;
+                });
+                const unidadesDisponiveis = ['UN', 'CX', 'PL'].filter((unit) => byUnit[unit]);
+                const principal = byUnit.UN || byUnit.CX || byUnit.PL || lista[0];
+                return {
+                    chave,
+                    nomeExibicao: normalizeName(principal?.promo?.name || principal?.promo?.hubProductName || chave),
+                    byUnit,
+                    unidadesDisponiveis,
+                    multiplo: unidadesDisponiveis.length > 1,
+                    hubIndex: order.get(chave) ?? 0,
+                };
+            })
+            .sort((a, b) => a.hubIndex - b.hubIndex);
+    };
+
+    const unidadePadraoPromoGrupo = (grupo) => {
+        if (grupo?.byUnit?.UN) return 'UN';
+        return grupo?.unidadesDisponiveis?.[0] || 'UN';
+    };
+
+    const entryAtivoPromoGrupo = (grupo, unit) =>
+        grupo?.byUnit?.[unit] || grupo?.byUnit?.[grupo.unidadesDisponiveis?.[0]] || null;
+
+    const rotuloUnidadePromoTotem = (unit) => {
+        if (unit === 'CX') return 'Caixa';
+        if (unit === 'PL') return 'Pallet';
+        return 'Unidade';
+    };
+
+    const tagEmbalagemPromoTotem = (unit) => {
+        if (unit === 'UN') return null;
+        if (unit === 'CX') return 'Caixa';
+        if (unit === 'PL') return 'Pallet';
+        return null;
+    };
+
     const formatValidade = (promo) => {
         const iso = String(promo?.validTo || '').slice(0, 10);
         if (!iso) return 'Oferta por tempo limitado';
@@ -143,6 +244,15 @@
         productSku,
         resolveDisplayItem,
         buildPromoEntries,
+        normalizePromoUnit,
+        tierForPromoUnit,
+        synthesizePromoDisplayItem,
+        enrichPromoEntry,
+        agruparPromocoesTotem,
+        unidadePadraoPromoGrupo,
+        entryAtivoPromoGrupo,
+        rotuloUnidadePromoTotem,
+        tagEmbalagemPromoTotem,
         formatValidade,
         createHubPromoLoader,
     };
