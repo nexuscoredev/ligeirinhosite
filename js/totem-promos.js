@@ -152,7 +152,7 @@ ${grupo.unidadesDisponiveis
         const name = grupo.nomeExibicao || promo.name || promo.hubProductName || 'Promoção';
         const imgSrc = promo.imageUrl ? catalog().productImageUrl(promo.imageUrl) : '';
         const validade = promoCatalog()?.formatValidade?.(promo) || '';
-        const attrs = `role="listitem" data-promo-group-key="${esc(grupo.chave)}" data-promo-id="${esc(promo.id || '')}" data-promo-unlinked="true" style="--totem-card-i:${Math.min(index, 14)}"`;
+        const attrs = `role="listitem" data-promo-group-key="${esc(grupo.chave)}" data-item-key="${esc(ctx.product?.id || '')}" data-promo-id="${esc(promo.id || '')}" data-promo-unlinked="true" style="--totem-card-i:${Math.min(index, 14)}"`;
 
         return `<article class="totem-product totem-product--promo totem-product--promo-unlinked" ${attrs}>
 <div class="totem-product__media">
@@ -385,6 +385,24 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
             if (minus) {
                 deps.changeQty?.(minus.dataset.cartKey, -1);
                 syncCart();
+                return;
+            }
+
+            const card = e.target.closest('.totem-product');
+            if (card?.dataset?.itemKey) {
+                const grupo = promoGroups.find((item) => item.chave === card.dataset.promoGroupKey);
+                const entry = grupo ? activeEntryForGroup(grupo) : null;
+                if (!entry?.item) return;
+                const ctx = buildCartCtx(entry);
+                const itemKey = ctx.group?.key || ctx.product?.id;
+                if (!itemKey) return;
+                deps.openProductDetail?.(itemKey, {
+                    promoPrice: ctx.promoPrice,
+                    promoId: ctx.promo?.id,
+                    tier: ctx.tier,
+                    originalPrice: ctx.originalPrice,
+                });
+                deps.onBumpIdle?.();
             }
         });
     };

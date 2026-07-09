@@ -6056,6 +6056,25 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     font-weight: 500;
 }
 
+.totem-detail__price-old {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-decoration: line-through;
+}
+
+.totem-detail__promo-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #14120f;
+    background: linear-gradient(165deg, #fde047 0%, #f0c929 55%, #d4a81a 100%);
+}
+
 .totem-detail__media {
     position: relative;
     margin: 0.25rem auto;

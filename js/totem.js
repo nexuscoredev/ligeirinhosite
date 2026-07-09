@@ -154,6 +154,7 @@
     let cachedQueryInfo = null;
     let detailItemKey = null;
     let detailDraftQty = 1;
+    let detailPromoOpts = null;
     let promosReturnView = 'welcome';
     let customerIdentified = false;
     let customerSkippedIdentification = false;
@@ -314,10 +315,11 @@
 
     const getDetailContext = () => {
         if (!detailItemKey) return null;
-        const item = displayItems.find((i) => (i.group?.key || i.product.id) === detailItemKey);
+        const item = findDisplayItem(null, detailItemKey);
         if (!item) return null;
         const group = item.group;
-        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
+        const tier =
+            detailPromoOpts?.tier || (group ? activeTierFor(group) : item.defaultTier || 'caixa');
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
@@ -327,7 +329,16 @@
         const displayName = group
             ? pricing.cartItemName({ ...variant, tier }, group)
             : product.name;
-        return { item, group, tier, variant, product, cartKey, qty, img, displayName };
+        const catalogPrice = Number((variant || product).price);
+        const price =
+            detailPromoOpts?.promoPrice != null && Number.isFinite(Number(detailPromoOpts.promoPrice))
+                ? Number(detailPromoOpts.promoPrice)
+                : catalogPrice;
+        const promoOriginal =
+            detailPromoOpts?.promoPrice != null
+                ? Number(detailPromoOpts.originalPrice ?? catalogPrice)
+                : null;
+        return { item, group, tier, variant, product, cartKey, qty, img, displayName, price, promoOriginal };
     };
 
     const closeProductDetail = () => {
@@ -339,6 +350,7 @@
             detailPanel.setAttribute('aria-hidden', 'true');
             detailItemKey = null;
             detailDraftQty = 1;
+            detailPromoOpts = null;
             if (detailSheet) detailSheet.innerHTML = '';
         }, 280);
     };
@@ -351,13 +363,14 @@
             return;
         }
 
-        const { group, tier, variant, product, cartKey, img, displayName } = ctx;
-        const price = (variant || product).price;
+        const { group, tier, variant, product, cartKey, img, displayName, price, promoOriginal } = ctx;
         const subtitle = productDetailSubtitle(group, variant, tier);
         const returnable = isReturnable(group?.baseName || displayName);
         const vol = extractVolume(group?.baseName || displayName);
         const packBadge = tierPackBadge(tier, variant);
-        const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+        const tiersHtml = detailPromoOpts ? '' : group ? priceTiersHtml(group, tier) : '';
+        const showPromoOld =
+            promoOriginal != null && Number.isFinite(promoOriginal) && promoOriginal > price;
 
         detailSheet.innerHTML = `<header class="totem-detail__header">
 <button type="button" class="totem-detail__back" id="totem-detail-back" aria-label="Voltar">
@@ -369,8 +382,10 @@
 <h2 class="totem-detail__name">${esc(displayName)}</h2>
 <p class="totem-detail__subtitle">${esc(subtitle)}${returnable ? '<span class="material-symbols-outlined" aria-label="Retornável">recycling</span>' : ''}</p>
 <div class="totem-detail__pricing">
+${showPromoOld ? `<span class="totem-detail__price-old">${formatPrice(promoOriginal)}</span>` : ''}
 <strong class="totem-detail__price-main">${formatPrice(price)}</strong>
 ${unitPriceSuffix(variant, tier) ? `<span class="totem-detail__price-unit">${esc(unitPriceSuffix(variant, tier))}</span>` : ''}
+${detailPromoOpts ? '<span class="totem-detail__promo-badge">PROMO</span>' : ''}
 </div>
 <div class="totem-detail__media">
 ${returnable ? '<span class="totem-detail__badge totem-detail__badge--return">Retornável</span>' : ''}
@@ -392,10 +407,11 @@ adicionar ao pedido
 </div>`;
     };
 
-    const openProductDetail = (itemKey) => {
+    const openProductDetail = (itemKey, promoOpts = null) => {
         if (!detailPanel || !detailSheet || !itemKey) return;
         totemKeyboard?.hide?.();
         detailItemKey = itemKey;
+        detailPromoOpts = promoOpts;
         detailDraftQty = 1;
         renderProductDetail();
         detailPanel.setAttribute('aria-hidden', 'false');
@@ -2285,6 +2301,18 @@ ${bodyHtml}
         if (!customerIdentified) return;
         totemKeyboard?.hide?.();
         const qtyToAdd = Math.max(1, detailDraftQty);
+        if (detailPromoOpts?.promoId) {
+            for (let i = 0; i < qtyToAdd; i += 1) {
+                addItem(cartKey, itemKey, {
+                    promoPrice: detailPromoOpts.promoPrice,
+                    promoId: detailPromoOpts.promoId,
+                    tier: detailPromoOpts.tier,
+                });
+            }
+            detailDraftQty = 1;
+            refreshDetailIfOpen();
+            return;
+        }
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
         const group = item.group;
@@ -2961,6 +2989,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             formatPrice,
             getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
             registerPromoDisplayItems,
+            openProductDetail,
             addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
             changeQty,
             onBumpIdle: bumpIdle,
