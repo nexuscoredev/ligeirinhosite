@@ -838,6 +838,12 @@ body.totem-kiosk > main {
     gap: 0.15rem 0.25rem;
 }
 
+.totem-product--promo .totem-price-card__unit {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--lig-text-muted);
+}
+
 .totem-product--promo-unlinked {
     opacity: 0.82;
 }

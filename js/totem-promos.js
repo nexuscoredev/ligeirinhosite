@@ -80,15 +80,38 @@
     const formatPrice = (value) => deps?.formatPrice?.(value) ?? catalog()?.formatPrice?.(value) ?? String(value ?? '');
 
     const buildPromoPriceHtml = (ctx) => {
-        const unitPrice = ctx.promoPrice;
-        const unitOriginal = ctx.originalPrice;
-        const showOld = ctx.discountPct > 0 && unitOriginal > unitPrice;
+        const packPrice = ctx.promoPrice;
+        const packOriginal = ctx.originalPrice;
+        const showOld = ctx.discountPct > 0 && packOriginal > packPrice;
+        const packSize = Math.max(
+            1,
+            Number(ctx.variant?.packSize) ||
+                Number(ctx.promo?.fatorMultiplicacao) ||
+                Number(ctx.product?.fatorMultiplicacao) ||
+                1,
+        );
+        let unitPrice = null;
+        if (ctx.variant && pricing()?.getUnitPrice) {
+            unitPrice = pricing().getUnitPrice({
+                ...ctx.variant,
+                price: packPrice,
+                tier: ctx.tier,
+            });
+        } else if (packSize > 1) {
+            unitPrice = Math.round((packPrice / packSize) * 100) / 100;
+        }
+        const showUnitBreakdown = packSize > 1 && unitPrice != null;
+        const unitHtml = `<p class="totem-price-card__unit">${
+            showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
+        }</p>`;
+
         return `<div class="totem-price-card ze-price-block totem-product__price-block totem-product__price-block--promo" data-price-display>
 <div class="totem-price-card__main">
-${showOld ? `<span class="totem-product__price-old">${formatPrice(unitOriginal)}</span>` : ''}
-<span class="totem-product__price totem-price-card__value">${formatPrice(unitPrice)}</span>
+${showOld ? `<span class="totem-product__price-old">${formatPrice(packOriginal)}</span>` : ''}
+<span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
 ${ctx.discountPct > 0 ? `<span class="totem-product__promo-badge">-${ctx.discountPct}%</span>` : ''}
 </div>
+${unitHtml}
 </div>`;
     };
 
