@@ -43,6 +43,7 @@ function publicProfile(profile) {
         datasEntrega: profile.datasEntrega || [],
         diasEntregaLabel: profile.diasEntregaLabel || '',
         razaoSocial: profile.razaoSocial || '',
+        totemAdmin: Boolean(profile.totemAdmin),
     };
 }
 

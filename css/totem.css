@@ -403,6 +403,150 @@ body.totem-kiosk > main {
     font-size: 1.25rem;
 }
 
+.totem-btn--admin-edit {
+    color: var(--lig-text-muted);
+}
+
+.totem-btn--admin-edit:hover,
+.totem-btn--admin-edit.totem-btn--admin-active {
+    color: var(--lig-brand);
+}
+
+.totem-btn--admin-edit .totem-admin-edit-btn__icon {
+    font-size: 1.2rem;
+}
+
+html.totem--admin-edit .totem-product {
+    cursor: pointer;
+    position: relative;
+}
+
+html.totem--admin-edit .totem-product::after {
+    content: 'edit';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    z-index: 2;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--lig-brand);
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(20, 18, 15, 0.12);
+    pointer-events: none;
+}
+
+.totem-store-admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+}
+
+.totem-store-admin-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 18, 15, 0.45);
+}
+
+.totem-store-admin-modal__sheet {
+    position: relative;
+    width: min(100%, 26rem);
+    max-height: min(88vh, 40rem);
+    overflow: auto;
+    background: var(--lig-surface);
+    border-radius: 1rem;
+    box-shadow: 0 18px 48px rgba(20, 18, 15, 0.18);
+    padding: 1rem 1rem 1.25rem;
+}
+
+.totem-store-admin-modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.totem-store-admin-modal__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.totem-store-admin-modal__close {
+    border: 0;
+    background: transparent;
+    color: var(--lig-text-muted);
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.totem-store-admin-modal__media {
+    display: grid;
+    place-items: center;
+    min-height: 8rem;
+    border-radius: 0.75rem;
+    background: rgba(20, 18, 15, 0.04);
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+}
+
+.totem-store-admin-modal__media img {
+    width: 100%;
+    max-height: 10rem;
+    object-fit: contain;
+}
+
+.totem-store-admin-modal__name {
+    margin: 0 0 0.25rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.totem-store-admin-modal__price {
+    margin: 0 0 0.85rem;
+    color: var(--lig-text-muted);
+    font-weight: 600;
+}
+
+.totem-store-admin-modal__toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+.totem-store-admin-modal__toggle input {
+    margin-top: 0.15rem;
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.totem-store-admin-modal__hint {
+    margin: 0 0 0.85rem;
+    font-size: 0.9rem;
+}
+
+.totem-store-admin-modal__error {
+    margin: 0 0 0.75rem;
+    color: #b42318;
+    font-size: 0.9rem;
+}
+
+.totem-store-admin-modal__actions {
+    display: flex;
+    gap: 0.65rem;
+}
+
 /* ——— Promoções (nav + página) ——— */
 .totem-btn--promos {
     position: relative;

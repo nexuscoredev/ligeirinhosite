@@ -73,6 +73,7 @@
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
     const syncBtn = document.getElementById('totem-sync-btn');
+    const adminEditBtn = document.getElementById('totem-admin-edit-btn');
     const refreshBtn = document.getElementById('totem-refresh-btn');
     const promosBackBtn = document.getElementById('totem-promos-back');
     const cartBtn = document.getElementById('totem-cart-btn');
@@ -123,6 +124,7 @@
     const esc = (s) => catalog.escapeHtml(String(s ?? ''));
 
     let catalogData = null;
+    let rawCatalogData = null;
     let displayItems = [];
     const CATALOG_API_URL = '/api/totem/catalog';
     let promoCatalogItems = [];
@@ -134,6 +136,7 @@
     let activeCategory = '';
     let totemConfig = { defaults: {}, units: {}, loginUnitMap: {} };
     let unitSettings = null;
+    let storeHiddenProductIds = new Set();
     let idlePaused = false;
     let unbindActivity = null;
     let sessionTimeout = null;
@@ -596,6 +599,36 @@ ${unitHtml}
 
     const session = () => auth.loadSession();
 
+    const resolveStoreKey = () => {
+        const s = session();
+        const login = String(s?.login || '').trim();
+        if (login) return login.toLowerCase().replace(/\s+/g, '-');
+        const mapped = totemConfig.loginUnitMap?.[s?.login] || totemConfig.loginUnitMap?.[s?.email];
+        const unitId = s?.totemUnitId || mapped || 'default';
+        return String(unitId).trim().toLowerCase().replace(/\s+/g, '-');
+    };
+
+    const applyCatalogFromRaw = (rawCatalog) => {
+        rawCatalogData = rawCatalog;
+        catalogData = filterCatalog(rawCatalog);
+        pricing.rebuildGroups?.(catalogData);
+        displayItems = buildDisplayItems();
+        promoCatalogItems = buildPromoCatalogItems();
+        normalizeDisplayItems();
+        attachSearchIndex(displayItems);
+        totemCategories = buildTotemCategories();
+        renderCategories();
+        updateCategoriesBtnLabel();
+        renderProducts();
+        refreshProductGrid();
+        refreshDetailIfOpen();
+    };
+
+    const applyStoreHiddenIds = (ids) => {
+        storeHiddenProductIds = new Set((ids || []).map((id) => String(id).trim()).filter(Boolean));
+        if (rawCatalogData) applyCatalogFromRaw(rawCatalogData);
+        window.LigeirinhoTotemPromos?.refresh?.();
+    };
     const resolveUnitSettings = () => {
         const s = session();
         const mapped = totemConfig.loginUnitMap?.[s?.login] || totemConfig.loginUnitMap?.[s?.email];
@@ -685,7 +718,10 @@ ${unitHtml}
 
     const filterCatalog = (data) => {
         const hiddenCats = new Set((unitSettings?.hiddenCategories || []).map((c) => String(c).toLowerCase()));
-        const hiddenIds = new Set(unitSettings?.hiddenProductIds || []);
+        const hiddenIds = new Set([
+            ...(unitSettings?.hiddenProductIds || []),
+            ...storeHiddenProductIds,
+        ]);
         const categories = (data.categories || [])
             .filter((cat) => !hiddenCats.has(String(cat.id).toLowerCase()))
             .map((cat) => ({
@@ -1588,6 +1624,10 @@ ${unitHtml}
             );
         }
 
+        if (adminEditBtn) {
+            window.LigeirinhoTotemStoreAdmin?.updateAdminChrome?.();
+        }
+
         if (refreshBtn) {
             refreshBtn.hidden = !pendingSystemUpdate;
             refreshBtn.disabled = refreshBusy || window.LigeirinhoTotemPwaUpdate?.status?.() === 'checking';
@@ -1612,18 +1652,7 @@ ${unitHtml}
         bumpIdle();
 
         const applyCatalogRefresh = (rawCatalog) => {
-            catalogData = filterCatalog(rawCatalog);
-            pricing.rebuildGroups?.(catalogData);
-            displayItems = buildDisplayItems();
-            promoCatalogItems = buildPromoCatalogItems();
-            normalizeDisplayItems();
-            attachSearchIndex(displayItems);
-            totemCategories = buildTotemCategories();
-            renderCategories();
-            updateCategoriesBtnLabel();
-            renderProducts();
-            refreshProductGrid();
-            refreshDetailIfOpen();
+            applyCatalogFromRaw(rawCatalog);
         };
 
         try {
@@ -2698,6 +2727,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             }
             const card = e.target.closest('.totem-product');
             if (card?.dataset?.itemKey) {
+                if (window.LigeirinhoTotemStoreAdmin?.isEditMode?.()) {
+                    const item = findDisplayItem(card.dataset.cartKey, card.dataset.itemKey);
+                    if (item) {
+                        window.LigeirinhoTotemStoreAdmin.openItemModal(item);
+                        bumpIdle();
+                        return;
+                    }
+                }
                 openProductDetail(card.dataset.itemKey);
             }
         });
@@ -2831,14 +2868,25 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         ]);
         totemConfig = await configRes.json();
         unitSettings = resolveUnitSettings();
-        catalogData = filterCatalog(rawCatalog);
-        pricing.rebuildGroups?.(catalogData);
-        displayItems = buildDisplayItems();
-        promoCatalogItems = buildPromoCatalogItems();
-        normalizeDisplayItems();
-        attachSearchIndex(displayItems);
-        totemCategories = buildTotemCategories();
+        applyCatalogFromRaw(rawCatalog);
         activeCategory = '';
+
+        await window.LigeirinhoTotemStoreAdmin?.init?.({
+            auth,
+            session,
+            catalog,
+            formatPrice,
+            adminBtn: adminEditBtn,
+            resolveStoreKey,
+            onHiddenChange: applyStoreHiddenIds,
+            onBumpIdle: bumpIdle,
+            showAdminChrome: () => {
+                const inCatalog = views.catalog?.classList.contains('totem-view--active');
+                const inPromos = views.promos?.classList.contains('totem-view--active');
+                return Boolean(customerIdentified && (inCatalog || inPromos));
+            },
+            onModeChange: () => bumpIdle(),
+        });
 
         bindEvents();
         window.LigeirinhoTotemPwaUpdate?.onStatusChange?.(() => updateShoppingChrome());
@@ -2854,6 +2902,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             retryBtn: document.getElementById('totem-promos-retry'),
             getDisplayItems: () => displayItems,
             getPromoCatalogItems: () => promoCatalogItems,
+            isProductHidden: (productId) =>
+                storeHiddenProductIds.has(String(productId || '').trim()),
             formatPrice,
             getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
             addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),

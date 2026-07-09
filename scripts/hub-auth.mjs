@@ -38,6 +38,17 @@ export function isTotemRole(role) {
     return TOTEM_ROLES.has(String(role || '').toUpperCase());
 }
 
+export function isTotemAdminUsuario(usuario) {
+    if (!usuario?.ativo) return false;
+    if (usuario.admin_totem === true) return true;
+    const cargo = String(usuario.cargo || '')
+        .trim()
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    return cargo === 'DESENVOLVEDOR';
+}
+
 function hubHeaders(key, token) {
     return {
         apikey: key,
@@ -79,11 +90,11 @@ async function hubSignIn(config, login, password) {
 
 async function fetchUsuarioByAuthId(config, userId, accessToken) {
     const select =
-        'id,email,nome,cargo,ativo,login,telefone,must_change_password';
+        'id,email,nome,cargo,ativo,login,telefone,must_change_password,admin_totem';
     const url = `${config.url}/rest/v1/usuarios?select=${encodeURIComponent(select)}&id=eq.${encodeURIComponent(userId)}&limit=1`;
     let res = await fetch(url, { headers: hubHeaders(config.anonKey, accessToken) });
     let rows = await res.json();
-    if (!res.ok && /must_change_password/i.test(rows?.message || '')) {
+    if (!res.ok && /must_change_password|admin_totem/i.test(rows?.message || '')) {
         const fallbackUrl = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone&id=eq.${encodeURIComponent(userId)}&limit=1`;
         res = await fetch(fallbackUrl, { headers: hubHeaders(config.anonKey, accessToken) });
         rows = await res.json();
@@ -136,6 +147,7 @@ function profileFromUsuario(usuario, extras = {}) {
         cargo: usuario.cargo || '',
         hubUserId: usuario.id,
         mustChangePassword: Boolean(usuario.must_change_password || extras.mustChangePassword),
+        totemAdmin: isTotemAdminUsuario(usuario),
         ...extras,
     };
 }

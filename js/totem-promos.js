@@ -253,6 +253,7 @@ ${promoEntries.map((entry, index) => buildPromoCardHtml(entry, index)).join('')}
         promoEntries = promoEntries.filter((entry) => {
             const cartKey = buildCartCtx(entry).cartKey;
             if (!cartKey || seenCartKeys.has(cartKey)) return false;
+            if (deps.isProductHidden?.(cartKey)) return false;
             seenCartKeys.add(cartKey);
             return true;
         });

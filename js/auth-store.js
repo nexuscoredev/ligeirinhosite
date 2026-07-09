@@ -59,6 +59,7 @@
             datasEntrega: user.datasEntrega || [],
             diasEntregaLabel: user.diasEntregaLabel || '',
             razaoSocial: user.razaoSocial || '',
+            totemAdmin: Boolean(user.totemAdmin),
             loggedInAt: Date.now(),
         };
         localStorage.setItem(AUTH_KEY, JSON.stringify(session));
@@ -355,6 +356,7 @@
             datasEntrega: profile.datasEntrega || [],
             diasEntregaLabel: profile.diasEntregaLabel || '',
             razaoSocial: profile.razaoSocial || '',
+            totemAdmin: Boolean(profile.totemAdmin),
         });
     };
 

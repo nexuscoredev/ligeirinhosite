@@ -37,6 +37,9 @@
 <button type="button" class="totem-btn totem-btn--ghost totem-btn--icon totem-btn--sync" id="totem-sync-btn" aria-label="Sincronizar catálogo com o Hub" title="Sincronizar produtos e preços" hidden>
 <span class="material-symbols-outlined totem-sync-btn__icon" aria-hidden="true">sync</span>
 </button>
+<button type="button" class="totem-btn totem-btn--ghost totem-btn--icon totem-btn--admin-edit" id="totem-admin-edit-btn" aria-label="Editar itens da loja" title="Admin do Totem — ocultar itens esgotados" hidden>
+<span class="material-symbols-outlined totem-admin-edit-btn__icon" aria-hidden="true">edit</span>
+</button>
 <button type="button" class="totem-btn totem-btn--promos totem-btn--icon" id="totem-promos-btn" aria-label="Ver promoções" hidden>
 <span class="totem-btn--promos__ring" aria-hidden="true"></span>
 <span class="totem-btn--promos__aura" aria-hidden="true"></span>
@@ -421,6 +424,33 @@
 </div>
 </div>
 
+<div id="totem-store-item-modal" class="totem-store-admin-modal" aria-hidden="true" hidden>
+<div class="totem-store-admin-modal__backdrop" aria-hidden="true"></div>
+<div class="totem-store-admin-modal__sheet" role="dialog" aria-labelledby="totem-store-item-title">
+<header class="totem-store-admin-modal__head">
+<h2 id="totem-store-item-title" class="totem-store-admin-modal__title">Item da loja</h2>
+<button type="button" class="totem-store-admin-modal__close" id="totem-store-item-close" aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</header>
+<div class="totem-store-admin-modal__media" id="totem-store-item-media"></div>
+<div class="totem-store-admin-modal__body">
+<p class="totem-store-admin-modal__name" id="totem-store-item-name"></p>
+<p class="totem-store-admin-modal__price" id="totem-store-item-price"></p>
+<label class="totem-store-admin-modal__toggle">
+<input type="checkbox" id="totem-store-item-hidden">
+<span>Ocultar na loja (esgotado)</span>
+</label>
+<p class="totem-muted totem-store-admin-modal__hint">O item some deste Totem sem alterar o cadastro no Hub.</p>
+<p class="totem-store-admin-modal__error" id="totem-store-item-error" hidden></p>
+<div class="totem-store-admin-modal__actions">
+<button type="button" class="totem-btn totem-btn--ghost flex-1" id="totem-store-item-cancel">Cancelar</button>
+<button type="button" class="totem-btn totem-btn--primary flex-1" id="totem-store-item-save">Salvar</button>
+</div>
+</div>
+</div>
+</div>
+
 <script src="js/site-config.js"></script>
 <script src="js/auth-store.js"></script>
 <script src="js/auth-routing.js"></script>
@@ -438,6 +468,7 @@
 <script src="js/totem-keyboard.js"></script>
 <script src="js/promo-catalog-match.js"></script>
 <script src="js/totem-promos.js"></script>
+<script src="js/totem-store-admin.js"></script>
 <script src="js/totem-pwa-update.js"></script>
 <script src="js/totem.js?v=cx-grid-fast"></script>
 </body>
