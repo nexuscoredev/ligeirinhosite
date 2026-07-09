@@ -32,7 +32,17 @@
 
     const methodLabel = (id) => TOTEM_METHODS.find((m) => m.id === id)?.label || id;
 
-    const orderHasPromo = (order) => promoPay()?.pedidoTemItemPromocional?.(order) ?? false;
+    const orderHasPromo = (order) => {
+        const promo = promoPay();
+        if (!promo) return false;
+        if (promo.pedidoTemItemPromocional(order)) return true;
+        const cart = window.LigeirinhoCart?.loadCart?.() || {};
+        const cartItems = Object.values(cart).filter((item) => item?.qty > 0);
+        if (cartItems.length && promo.pedidoTemItemPromocional({ items: cartItems })) return true;
+        const last = window.LigeirinhoCart?.loadLastOrder?.();
+        if (last?.items?.length && promo.pedidoTemItemPromocional({ items: last.items })) return true;
+        return false;
+    };
 
     const methodsForOrder = (order) => promoPay()?.metodosPermitidosTotem?.(order, TOTEM_METHODS) ?? TOTEM_METHODS;
 

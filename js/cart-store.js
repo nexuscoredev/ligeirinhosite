@@ -74,6 +74,15 @@
         return { items, units, subtotal, total: subtotal };
     };
 
+    const promoFieldsFromItem = (item) => {
+        const patch = {};
+        if (item.promoId) patch.promoId = item.promoId;
+        if (item.isPromo) patch.isPromo = true;
+        if (item.originalPrice != null) patch.originalPrice = item.originalPrice;
+        if (item.discountPct != null) patch.discountPct = item.discountPct;
+        return patch;
+    };
+
     const saveLastOrder = (cart, checkout, orderId = null) => {
         const items = cartEntries(cart);
         if (!items.length) return;
@@ -90,6 +99,9 @@
                         qty: item.qty,
                         packType: item.packType,
                         image: item.image || '',
+                        categoryId: item.categoryId || '',
+                        categoryName: item.categoryName || '',
+                        ...promoFieldsFromItem(item),
                     })),
                     checkout: checkout || loadCheckout(),
                     savedAt: Date.now(),

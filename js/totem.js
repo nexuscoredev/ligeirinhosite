@@ -2403,19 +2403,37 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         bumpIdle();
 
         const s = session();
-        const items = cartApi.cartEntries(cart).map((item) => ({
-            id: item.id,
-            cartKey: item.cartKey || item.id,
-            name: item.name,
-            price: item.price,
-            qty: item.qty,
-            packType: item.packType,
-            categoryId: item.categoryId || '',
-            categoryName: item.categoryName || '',
-            ...(item.promoId ? { promoId: item.promoId, isPromo: true } : {}),
-            ...(item.originalPrice != null ? { originalPrice: item.originalPrice } : {}),
-            ...(item.discountPct != null ? { discountPct: item.discountPct } : {}),
-        }));
+        const items = cartApi.cartEntries(cart).map((item) => {
+            const originalPrice =
+                item.originalPrice != null ? Number(item.originalPrice) : null;
+            const price = Number(item.price);
+            const discountPct =
+                item.discountPct != null
+                    ? Number(item.discountPct)
+                    : originalPrice != null && originalPrice > price + 0.009
+                      ? Math.max(0, Math.round((1 - price / originalPrice) * 100))
+                      : null;
+            const isPromo = Boolean(
+                item.promoId ||
+                    item.isPromo ||
+                    (discountPct != null && discountPct > 0) ||
+                    (originalPrice != null && originalPrice > price + 0.009),
+            );
+            return {
+                id: item.id,
+                cartKey: item.cartKey || item.id,
+                name: item.name,
+                price: item.price,
+                qty: item.qty,
+                packType: item.packType,
+                categoryId: item.categoryId || '',
+                categoryName: item.categoryName || '',
+                ...(item.promoId ? { promoId: item.promoId } : {}),
+                ...(isPromo ? { isPromo: true } : {}),
+                ...(originalPrice != null ? { originalPrice } : {}),
+                ...(discountPct != null ? { discountPct } : {}),
+            };
+        });
 
         try {
             const res = await fetch('/api/orders/create', {
@@ -2447,7 +2465,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Não foi possível criar o pedido');
-            cartApi.saveLastOrder(cart, cartApi.loadCheckout());
+            cartApi.saveLastOrder(cart, cartApi.loadCheckout(), data.orderId);
             window.location.href = `totem-pagamento.html?order=${encodeURIComponent(data.orderId)}`;
         } catch (err) {
             idlePaused = false;
