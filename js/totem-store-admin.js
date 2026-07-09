@@ -64,7 +64,7 @@
     const closeItemModal = () => {
         const el = modal();
         if (!el) return;
-        el.hidden = true;
+        el.classList.remove('totem-store-admin-modal--open');
         el.setAttribute('aria-hidden', 'true');
         currentItem = null;
         showError('');
@@ -88,7 +88,7 @@
         }
         if (hiddenInput()) hiddenInput().checked = isHidden(product.id);
         showError('');
-        modal().hidden = false;
+        modal().classList.add('totem-store-admin-modal--open');
         modal().setAttribute('aria-hidden', 'false');
     };
 
@@ -172,12 +172,14 @@
         saveBtn()?.addEventListener('click', saveItemHidden);
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal() && !modal().hidden) closeItemModal();
+            const el = modal();
+            if (e.key === 'Escape' && el?.classList.contains('totem-store-admin-modal--open')) closeItemModal();
         });
     };
 
     const init = async (nextDeps) => {
         deps = nextDeps || {};
+        closeItemModal();
         bindEvents();
         updateAdminChrome();
         if (isTotemAdmin()) await loadHidden();

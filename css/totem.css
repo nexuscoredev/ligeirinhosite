@@ -444,9 +444,15 @@ html.totem--admin-edit .totem-product::after {
     position: fixed;
     inset: 0;
     z-index: 120;
-    display: grid;
+    display: none;
     place-items: center;
     padding: 1rem;
+    pointer-events: none;
+}
+
+.totem-store-admin-modal--open {
+    display: grid;
+    pointer-events: auto;
 }
 
 .totem-store-admin-modal__backdrop {
