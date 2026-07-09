@@ -1,9 +1,6 @@
 (function () {
     const CACHE_MS = 60_000;
 
-    const MARCADOR_EMBALAGEM_NOME = /\s+(PCT|PCTO|CX|PC|FARDO|FD|PACK|PACOTE|PL)\b/i;
-    const SUFIXO_C_BARRA = /\s+C\/\s*\d+.*$/i;
-
     const normalizeName = (value) =>
         String(value || '')
             .normalize('NFD')
@@ -14,15 +11,6 @@
             .replace(/\s+/g, ' ')
             .trim()
             .toUpperCase();
-
-    /** Mesma regra do Hub (cadastro / tabela PROMOCAO). */
-    const nomeGrupoPromoCatalogo = (value) => {
-        let limpo = String(value || '').trim();
-        const idx = limpo.search(MARCADOR_EMBALAGEM_NOME);
-        if (idx > 0) limpo = limpo.slice(0, idx).trim();
-        limpo = limpo.replace(SUFIXO_C_BARRA, '').trim();
-        return normalizeName(limpo || value);
-    };
 
     const normalizeSku = (value) => String(value || '').trim().toLowerCase();
 
@@ -106,25 +94,9 @@
         return 'unidade';
     };
 
-    const promoGroupKey = (promo) => {
-        const family = String(promo?.hubFamilyId || '').trim();
-        if (family) return `family:${family}`;
-        const nome = nomeGrupoPromoCatalogo(promo?.name || promo?.hubProductName || '');
-        return nome || String(promo?.hubProductId || promo?.id || '').trim();
-    };
-
-    const collapsePromoDuplicateUnits = (entries = [], { preferUnit = 'CX' } = {}) => {
-        const grupos = agruparPromocoesTotem(entries);
-        return grupos
-            .map((grupo) => {
-                const unit =
-                    preferUnit && grupo.byUnit?.[preferUnit]
-                        ? preferUnit
-                        : unidadePadraoPromoGrupo(grupo);
-                return entryAtivoPromoGrupo(grupo, unit);
-            })
-            .filter(Boolean);
-    };
+    const promoGroupKey = (promo) =>
+        normalizeName(promo?.name || promo?.hubProductName || '') ||
+        String(promo?.hubProductId || promo?.id || '').trim();
 
     const synthesizePromoDisplayItem = (promo, catalogItem) => {
         if (catalogItem) return catalogItem;
@@ -179,9 +151,7 @@
                 const principal = byUnit.UN || byUnit.CX || byUnit.PL || lista[0];
                 return {
                     chave,
-                    nomeExibicao: nomeGrupoPromoCatalogo(
-                        principal?.promo?.name || principal?.promo?.hubProductName || chave,
-                    ),
+                    nomeExibicao: normalizeName(principal?.promo?.name || principal?.promo?.hubProductName || chave),
                     byUnit,
                     unidadesDisponiveis,
                     multiplo: unidadesDisponiveis.length > 1,
@@ -278,9 +248,7 @@
         tierForPromoUnit,
         synthesizePromoDisplayItem,
         enrichPromoEntry,
-        nomeGrupoPromoCatalogo,
         agruparPromocoesTotem,
-        collapsePromoDuplicateUnits,
         unidadePadraoPromoGrupo,
         entryAtivoPromoGrupo,
         rotuloUnidadePromoTotem,

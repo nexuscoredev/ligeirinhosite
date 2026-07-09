@@ -20,14 +20,6 @@
 
     const promoLoader = promoCatalog.createHubPromoLoader('/api/promocoes');
 
-    const mapPromoEntries = (promos) =>
-        promoCatalog.collapsePromoDuplicateUnits(
-            promoCatalog
-                .buildPromoEntries(promos, displayItems, { matchedOnly: true })
-                .map((entry) => promoCatalog.enrichPromoEntry(entry, displayItems)),
-            { preferUnit: 'CX' },
-        );
-
     const esc = (v) =>
         String(v ?? '')
             .replace(/&/g, '&amp;')
@@ -308,7 +300,7 @@ ${(catalogData?.categories || [])
         try {
             const promos = await promoLoader.load(true);
             loadError = promoLoader.hadError();
-            promoEntries = mapPromoEntries(promos);
+            promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });
         } catch {
             loadError = true;
         }
@@ -334,7 +326,7 @@ ${(catalogData?.categories || [])
             promoLoader.clear();
             const promos = await promoLoader.load(true);
             loadError = loadError || promoLoader.hadError();
-            promoEntries = mapPromoEntries(promos);
+            promoEntries = promoCatalog.buildPromoEntries(promos, displayItems, { matchedOnly: true });
         } catch {
             loadError = true;
         }
