@@ -1773,6 +1773,15 @@ ${unitHtml}
 
     const isInShopping = () => isInCatalog() || isInPromos();
 
+    const resolvePromosBackTarget = () => (customerIdentified ? 'catalog' : promosReturnView || 'welcome');
+
+    const leavePromosView = () => {
+        window.LigeirinhoTotemPromos?.stopAuto?.();
+        setView(resolvePromosBackTarget());
+        renderCart();
+        renderProducts();
+    };
+
     const updateFloatCart = (cart) => {
         const cartData = cart || cartApi.loadCart();
         const count = cartApi.cartItemCount(cartData);
@@ -2648,11 +2657,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 bumpIdle();
                 return;
             }
-            if (views.catalog?.classList.contains('totem-view--active')) {
-                promosReturnView = 'catalog';
-            } else {
-                promosReturnView = 'welcome';
+            if (views.promos?.classList.contains('totem-view--active')) {
+                leavePromosView();
+                bumpIdle();
+                return;
             }
+            promosReturnView = 'catalog';
             setView('promos');
             void window.LigeirinhoTotemPromos?.render?.();
             bumpIdle();
@@ -2672,8 +2682,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         });
 
         promosBackBtn?.addEventListener('click', () => {
-            window.LigeirinhoTotemPromos?.stopAuto?.();
-            setView(promosReturnView);
+            leavePromosView();
             bumpIdle();
         });
 
