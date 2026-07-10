@@ -29,14 +29,44 @@
     const activeEntryForGroup = (grupo) =>
         promoCatalog().entryAtivoPromoGrupo(grupo, activeUnitForGroup(grupo));
 
-    const resolveTier = (entry) => {
-        const promoUnit = promoCatalog().normalizePromoUnit(entry?.promo?.unidade);
-        const preferred = promoCatalog().tierForPromoUnit(promoUnit);
-        const group = entry?.item?.group || null;
-        if (group) {
-            return pricing()?.resolveActiveTier?.(group, preferred) || preferred;
-        }
-        return entry?.item?.defaultTier || preferred;
+    const resolveTier = (entry) =>
+        promoCatalog().tierForPromoUnit(promoCatalog().normalizePromoUnit(entry?.promo?.unidade));
+
+    const resolvePromoVariant = (entry) => {
+        const { promo, item } = entry || {};
+        const group = item?.group || null;
+        const product = item?.product;
+        const tier = resolveTier(entry);
+        const fromGroup = group && tier ? pricing()?.getVariant?.(group, tier) : null;
+        if (fromGroup?.tier === tier) return fromGroup;
+
+        const promoUnit = promoCatalog().normalizePromoUnit(promo?.unidade);
+        const packSize =
+            tier === 'unidade'
+                ? 1
+                : Math.max(
+                      1,
+                      Number(promo?.fatorMultiplicacao) ||
+                          Number(fromGroup?.packSize) ||
+                          Number(product?.fatorMultiplicacao) ||
+                          1,
+                  );
+
+        return {
+            id: String(promo?.catalogProductId || product?.id || promo?.hubProductId || '').trim(),
+            hubId: String(promo?.hubProductId || product?.hubId || '').trim() || null,
+            sku: String(promo?.sku || product?.sku || '').trim() || null,
+            name: String(promo?.name || promo?.hubProductName || product?.name || '').trim(),
+            price:
+                promo?.originalPrice != null && Number.isFinite(Number(promo.originalPrice))
+                    ? Number(promo.originalPrice)
+                    : Number(fromGroup?.price ?? product?.price ?? promo?.promoPrice ?? 0),
+            packSize,
+            tier,
+            tierLabel: pricing()?.TIER_LABELS?.[tier] || tier,
+            image: promo?.imageUrl || product?.image || group?.image || '',
+            unidade: promoUnit,
+        };
     };
 
     const buildCartCtx = (entry) => {
@@ -44,8 +74,8 @@
         const group = item?.group || null;
         const product = item?.product;
         const tier = resolveTier(entry);
-        const variant = group && tier ? pricing()?.getVariant?.(group, tier) : null;
-        const cartKey = variant ? catalog()?.cartKeyFor?.(variant) : product?.id || '';
+        const variant = resolvePromoVariant(entry);
+        const cartKey = variant?.id ? catalog()?.cartKeyFor?.(variant) : product?.id || '';
         const originalPrice =
             promo?.originalPrice != null && Number.isFinite(Number(promo.originalPrice))
                 ? Number(promo.originalPrice)
@@ -101,24 +131,27 @@
         const packPrice = ctx.promoPrice;
         const packOriginal = ctx.originalPrice;
         const showOld = ctx.discountPct > 0 && packOriginal > packPrice;
-        const packSize = Math.max(
-            1,
-            Number(ctx.variant?.packSize) ||
-                Number(ctx.promo?.fatorMultiplicacao) ||
-                Number(ctx.product?.fatorMultiplicacao) ||
-                1,
-        );
+        const isUnitPromo = ctx.tier === 'unidade' || ctx.promoUnit === 'UN';
+        const packSize = isUnitPromo
+            ? 1
+            : Math.max(
+                  1,
+                  Number(ctx.variant?.packSize) ||
+                      Number(ctx.promo?.fatorMultiplicacao) ||
+                      Number(ctx.product?.fatorMultiplicacao) ||
+                      1,
+              );
         let unitPrice = null;
-        if (ctx.variant && pricing()?.getUnitPrice) {
+        if (!isUnitPromo && ctx.variant && pricing()?.getUnitPrice) {
             unitPrice = pricing().getUnitPrice({
                 ...ctx.variant,
                 price: packPrice,
                 tier: ctx.tier,
             });
-        } else if (packSize > 1) {
+        } else if (!isUnitPromo && packSize > 1) {
             unitPrice = Math.round((packPrice / packSize) * 100) / 100;
         }
-        const showUnitBreakdown = packSize > 1 && unitPrice != null;
+        const showUnitBreakdown = !isUnitPromo && packSize > 1 && unitPrice != null;
         const unitHtml = `<p class="totem-price-card__unit">${
             showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
         }</p>`;
@@ -460,6 +493,8 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
                     promoPrice: ctx.promoPrice,
                     promoId: ctx.promo?.id,
                     tier: ctx.tier,
+                    productId: ctx.variant?.id,
+                    promoOriginalPrice: ctx.originalPrice,
                 });
                 syncCart();
                 return;

@@ -2503,21 +2503,24 @@ ${bodyHtml}
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
-        const packType = variant?.tier || tier || 'caixa';
+        const packType = opts.tier || variant?.tier || tier || 'caixa';
         const name = group
-            ? pricing.cartItemName({ ...variant, tier: packType }, group)
+            ? pricing.cartItemName({ ...(variant || {}), tier: packType }, group)
             : product.name;
         const price =
             opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))
                 ? Number(opts.promoPrice)
                 : (variant || product).price;
-        const basePrice = Number((variant || product).price);
+        const basePrice =
+            opts.promoOriginalPrice != null && Number.isFinite(Number(opts.promoOriginalPrice))
+                ? Number(opts.promoOriginalPrice)
+                : Number((variant || product).price);
         const cart = cartApi.loadCart();
         if (!opts.promoPrice && promoCatalogCartKeys.has(key)) return;
         if (!opts.promoPrice && isPromoCatalogItem(item)) return;
         if (!cart[key]) {
             cart[key] = {
-                id: (variant || product).id,
+                id: opts.productId || (variant || product).id,
                 cartKey: key,
                 name,
                 price,
@@ -2576,15 +2579,16 @@ ${bodyHtml}
         const tierPromo = block.promoOpts || null;
         const usePromo = Boolean(tierPromo?.promoId);
         const variant = group
-            ? pricing.getVariant(group, tier)
+            ? pricing.getVariant(group, tier) ||
+              (block?.variant ? { ...block.variant, tier: block.variant.tier || tier } : null)
             : block.variant
               ? { ...block.variant, tier: block.variant.tier || tier }
               : null;
         const product = item.product;
         const key = variant ? catalog.cartKeyFor(variant) : product.id;
-        const packType = variant?.tier || tier || 'caixa';
+        const packType = tier || variant?.tier || 'caixa';
         const name = group
-            ? pricing.cartItemName({ ...variant, tier: packType }, group)
+            ? pricing.cartItemName({ ...(variant || {}), tier: packType }, group)
             : product.name;
         const price =
             usePromo && tierPromo?.promoPrice != null

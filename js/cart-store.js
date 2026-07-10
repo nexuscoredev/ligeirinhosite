@@ -55,7 +55,9 @@
 
     const packTypeLabel = (packType) => {
         const t = String(packType || 'caixa').toLowerCase();
-        return t === 'pallet' ? 'Pallet' : 'Caixa';
+        if (t === 'unidade') return 'Unidade';
+        if (t === 'pallet') return 'Pallet';
+        return 'Caixa';
     };
 
     const lineSubtotal = (item) => (item.price ?? 0) * (item.qty || 0);
