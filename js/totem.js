@@ -385,6 +385,7 @@
                 promo: isPromoTier,
                 perUnit,
                 variant: v,
+                actionable: true,
             });
         };
 
@@ -412,6 +413,7 @@
                     promo: false,
                     perUnit: null,
                     variant: null,
+                    actionable: false,
                 };
                 const idx = blocks.findIndex((b) => b.tier === 'unidade');
                 if (idx >= 0) blocks[idx] = unBlock;
@@ -443,9 +445,10 @@
                 const perUnit = block.perUnit
                     ? `<span class="totem-detail__price-per">${esc(block.perUnit)}</span>`
                     : '';
-                const selectable = detailPromoOpts
-                    ? ''
-                    : ` data-price-tier="${esc(block.tier)}" role="button" tabindex="0" aria-pressed="${block.tier === activeTier ? 'true' : 'false'}"`;
+                const selectable =
+                    block.actionable !== false
+                        ? ` data-price-tier="${esc(block.tier)}" role="button" tabindex="0" aria-pressed="${block.tier === activeTier ? 'true' : 'false'}" aria-label="Adicionar ${esc(block.label)} ao pedido"`
+                        : '';
                 return `<div class="totem-detail__price-block totem-detail__price-block--${mod}${active}${promo}"${selectable}>
 <span class="totem-detail__price-label">${esc(block.label)}</span>
 <div class="totem-detail__price-row">
@@ -2452,6 +2455,41 @@ ${bodyHtml}
         bumpIdle();
     };
 
+    const addDetailBlockToCart = (tier) => {
+        if (!customerIdentified || !detailItemKey || !tier) return;
+        totemKeyboard?.hide?.();
+        const item = findDisplayItem(null, detailItemKey);
+        if (!item) return;
+        const group = item.group;
+        if (group?.key) tierByGroup.set(group.key, tier);
+
+        const ctx = getDetailContext();
+        if (!ctx) return;
+        const block = buildDetailPriceBlocks(ctx).find((b) => b.tier === tier);
+        if (!block || block.actionable === false) return;
+
+        const qtyToAdd = Math.max(1, detailDraftQty);
+        const usePromo = Boolean(block.promo && detailPromoOpts?.promoId);
+
+        if (usePromo) {
+            for (let i = 0; i < qtyToAdd; i += 1) {
+                addItem(ctx.cartKey, detailItemKey, {
+                    promoPrice: detailPromoOpts.promoPrice,
+                    promoId: detailPromoOpts.promoId,
+                    tier,
+                });
+            }
+        } else {
+            for (let i = 0; i < qtyToAdd; i += 1) {
+                addItem(ctx.cartKey, detailItemKey, { tier });
+            }
+        }
+
+        detailDraftQty = 1;
+        renderProductDetail();
+        bumpIdle();
+    };
+
     const addDetailToCart = (cartKey, itemKey) => {
         if (!customerIdentified) return;
         totemKeyboard?.hide?.();
@@ -2985,15 +3023,9 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 closeProductDetail();
                 return;
             }
-            const tierBtn = e.target.closest('[data-price-tier]');
-            if (tierBtn && detailItemKey && !detailPromoOpts) {
-                const ctx = getDetailContext();
-                if (!ctx?.group?.key) return;
-                tierByGroup.set(ctx.group.key, tierBtn.dataset.priceTier);
-                detailDraftQty = 1;
-                renderProductDetail();
-                renderProducts();
-                bumpIdle();
+            const tierBtn = e.target.closest('.totem-detail__price-block[data-price-tier]');
+            if (tierBtn && detailItemKey) {
+                addDetailBlockToCart(tierBtn.dataset.priceTier);
                 return;
             }
             const plus = e.target.closest('.totem-detail-plus');

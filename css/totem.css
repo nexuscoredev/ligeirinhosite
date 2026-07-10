@@ -6065,6 +6065,14 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     cursor: pointer;
 }
 
+.totem-detail__price-block[data-price-tier]:active {
+    transform: scale(0.98);
+}
+
+.totem-detail__price-block--unit:not([data-price-tier]) {
+    cursor: default;
+}
+
 .totem-detail__price-block[data-price-tier]:hover {
     transform: translateY(-1px);
 }
