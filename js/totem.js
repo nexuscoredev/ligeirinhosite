@@ -130,6 +130,9 @@
     let promoCatalogItems = [];
     let promoDisplayItems = [];
     let promoCatalogCartKeys = new Set();
+    let promoCatalogProductIds = new Set();
+    let promoCatalogGroupKeys = new Set();
+    let promoCatalogHubIds = new Set();
 
     const loadTotemCatalog = (options = {}) =>
         window.LigeirinhoCatalogLoader.load({ ...options, apiUrl: CATALOG_API_URL });
@@ -805,9 +808,13 @@ ${unitHtml}
         promoDisplayItems = Array.isArray(items) ? items.filter(Boolean) : [];
     };
 
-    const registerPromoCartKeys = (keys) => {
-        promoCatalogCartKeys =
-            keys instanceof Set ? keys : new Set(Array.isArray(keys) ? keys.filter(Boolean) : []);
+    const registerPromoCatalogExclusions = (exclusions = {}) => {
+        const toSet = (value) =>
+            value instanceof Set ? value : new Set(Array.isArray(value) ? value.filter(Boolean) : []);
+        promoCatalogCartKeys = toSet(exclusions.cartKeys);
+        promoCatalogProductIds = toSet(exclusions.productIds);
+        promoCatalogGroupKeys = toSet(exclusions.groupKeys);
+        promoCatalogHubIds = toSet(exclusions.hubIds);
     };
 
     const cartKeyForDisplayItem = (item) => {
@@ -818,7 +825,21 @@ ${unitHtml}
         return variant ? catalog.cartKeyFor(variant) : product.id;
     };
 
-    const isPromoCatalogItem = (item) => promoCatalogCartKeys.has(cartKeyForDisplayItem(item));
+    const isPromoCatalogItem = (item) => {
+        if (promoCatalogCartKeys.has(cartKeyForDisplayItem(item))) return true;
+        const product = item.product;
+        const group = item.group;
+        if (product?.id && promoCatalogProductIds.has(product.id)) return true;
+        if (group?.key && promoCatalogGroupKeys.has(group.key)) return true;
+        if (product?.hubId && promoCatalogHubIds.has(String(product.hubId).trim())) return true;
+        if (group?.variants) {
+            for (const variant of Object.values(group.variants)) {
+                if (variant?.id && promoCatalogProductIds.has(variant.id)) return true;
+                if (variant?.hubId && promoCatalogHubIds.has(String(variant.hubId).trim())) return true;
+            }
+        }
+        return false;
+    };
 
     const activeCategoryMeta = () =>
         totemCategories.find((cat) => cat.id === activeCategory) || null;
@@ -2276,6 +2297,7 @@ ${bodyHtml}
         const basePrice = Number((variant || product).price);
         const cart = cartApi.loadCart();
         if (!opts.promoPrice && promoCatalogCartKeys.has(key)) return;
+        if (!opts.promoPrice && isPromoCatalogItem(item)) return;
         if (!cart[key]) {
             cart[key] = {
                 id: (variant || product).id,
@@ -3011,7 +3033,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             formatPrice,
             getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
             registerPromoDisplayItems,
-            registerPromoCartKeys,
+            registerPromoCatalogExclusions,
             onPromoCatalogChange: () => {
                 renderCategories();
                 renderProducts();

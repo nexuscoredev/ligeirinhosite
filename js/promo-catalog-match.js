@@ -39,6 +39,14 @@
         return hits[0];
     };
 
+    /** Prefere item com group (preco/embalagem corretos no Totem) sobre pool auxiliar sem group. */
+    const preferGroupedDisplayItem = (hits = []) => {
+        if (!hits.length) return null;
+        const grouped = hits.filter((item) => item?.group);
+        if (grouped.length) return preferVarejoItem(grouped) || grouped[0];
+        return preferVarejoItem(hits) || hits[0];
+    };
+
     const resolveDisplayItem = (promo, catalogItems = []) => {
         const hubProductId = String(promo.hubProductId || promo.produtoId || '').trim();
         const sku = normalizeSku(promo.sku);
@@ -46,19 +54,25 @@
         const promoName = normalizeName(promo.name || promo.hubProductName);
 
         if (hubProductId) {
-            const hit = catalogItems.find((item) => String(item.product?.hubId || '').trim() === hubProductId);
+            const hits = catalogItems.filter(
+                (item) => String(item.product?.hubId || '').trim() === hubProductId,
+            );
+            const hit = preferGroupedDisplayItem(hits);
             if (hit) return hit;
         }
 
         if (!isIndefinidoSku(sku)) {
             const skuHits = catalogItems.filter((item) => productSku(item.product) === sku);
-            const hit = preferVarejoItem(skuHits);
+            const hit = preferGroupedDisplayItem(skuHits);
             if (hit) return hit;
         }
 
         if (catalogId) {
-            const hit = catalogItems.find((item) => String(item.product?.id || '').toLowerCase() === catalogId);
-            if (hit) return hit;
+            const idHits = catalogItems.filter(
+                (item) => String(item.product?.id || '').toLowerCase() === catalogId,
+            );
+            const idHit = preferGroupedDisplayItem(idHits);
+            if (idHit) return idHit;
 
             for (const item of catalogItems) {
                 const group = item.group || null;
@@ -76,7 +90,7 @@
 
         if (promoName) {
             const exactHits = catalogItems.filter((item) => normalizeName(item.product?.name) === promoName);
-            const hit = preferVarejoItem(exactHits);
+            const hit = preferGroupedDisplayItem(exactHits);
             if (hit) return hit;
         }
 

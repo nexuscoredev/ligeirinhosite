@@ -298,21 +298,46 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
     const getPromoCatalogItems = () =>
         deps?.getPromoCatalogItems?.() || deps?.getDisplayItems?.() || [];
 
-    const collectPromoCartKeys = () => {
-        const keys = new Set();
+    const collectPromoCatalogExclusions = () => {
+        const cartKeys = new Set();
+        const productIds = new Set();
+        const groupKeys = new Set();
+        const hubIds = new Set();
+
+        const noteCtx = (ctx) => {
+            if (!ctx) return;
+            if (ctx.cartKey) cartKeys.add(ctx.cartKey);
+            if (ctx.product?.id) productIds.add(ctx.product.id);
+            if (ctx.group?.key) groupKeys.add(ctx.group.key);
+            if (ctx.product?.hubId) hubIds.add(String(ctx.product.hubId).trim());
+            if (ctx.group?.variants) {
+                Object.values(ctx.group.variants).forEach((variant) => {
+                    if (variant?.id) productIds.add(variant.id);
+                    if (variant?.hubId) hubIds.add(String(variant.hubId).trim());
+                });
+            }
+            if (ctx.group) {
+                ['caixa', 'unidade', 'pallet'].forEach((tier) => {
+                    const variant = pricing()?.getVariant?.(ctx.group, tier);
+                    const key = variant ? catalog()?.cartKeyFor?.(variant) : '';
+                    if (key) cartKeys.add(key);
+                });
+            }
+        };
+
         promoGroups.forEach((grupo) => {
             (grupo.unidadesDisponiveis || []).forEach((unit) => {
                 const entry = promoCatalog().entryAtivoPromoGrupo(grupo, unit);
                 if (!entry) return;
-                const ctx = buildCartCtx(entry);
-                if (ctx.cartKey) keys.add(ctx.cartKey);
+                noteCtx(buildCartCtx(entry));
             });
         });
-        return keys;
+
+        return { cartKeys, productIds, groupKeys, hubIds };
     };
 
     const syncPromoCatalogKeys = () => {
-        deps.registerPromoCartKeys?.(collectPromoCartKeys());
+        deps.registerPromoCatalogExclusions?.(collectPromoCatalogExclusions());
         deps.onPromoCatalogChange?.();
     };
 
@@ -325,8 +350,8 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
             return;
         }
         const catalogItems = [
-            ...getPromoCatalogItems(),
             ...(deps?.getDisplayItems?.() || []),
+            ...getPromoCatalogItems(),
         ];
         const promocoes = await loader.load(force);
         fetchError = loader.hadError?.() && !promocoes.length;
