@@ -298,11 +298,30 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
     const getPromoCatalogItems = () =>
         deps?.getPromoCatalogItems?.() || deps?.getDisplayItems?.() || [];
 
+    const collectPromoCartKeys = () => {
+        const keys = new Set();
+        promoGroups.forEach((grupo) => {
+            (grupo.unidadesDisponiveis || []).forEach((unit) => {
+                const entry = promoCatalog().entryAtivoPromoGrupo(grupo, unit);
+                if (!entry) return;
+                const ctx = buildCartCtx(entry);
+                if (ctx.cartKey) keys.add(ctx.cartKey);
+            });
+        });
+        return keys;
+    };
+
+    const syncPromoCatalogKeys = () => {
+        deps.registerPromoCartKeys?.(collectPromoCartKeys());
+        deps.onPromoCatalogChange?.();
+    };
+
     const loadPromos = async (force = false) => {
         const loader = getLoader();
         if (!loader) {
             fetchError = true;
             promoGroups = [];
+            syncPromoCatalogKeys();
             return;
         }
         const catalogItems = [
@@ -332,6 +351,7 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
             );
         });
         selectedUnits = nextSelected;
+        syncPromoCatalogKeys();
     };
 
     const render = async (options = {}) => {

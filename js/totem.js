@@ -129,6 +129,7 @@
     const CATALOG_API_URL = '/api/totem/catalog';
     let promoCatalogItems = [];
     let promoDisplayItems = [];
+    let promoCatalogCartKeys = new Set();
 
     const loadTotemCatalog = (options = {}) =>
         window.LigeirinhoCatalogLoader.load({ ...options, apiUrl: CATALOG_API_URL });
@@ -804,6 +805,21 @@ ${unitHtml}
         promoDisplayItems = Array.isArray(items) ? items.filter(Boolean) : [];
     };
 
+    const registerPromoCartKeys = (keys) => {
+        promoCatalogCartKeys =
+            keys instanceof Set ? keys : new Set(Array.isArray(keys) ? keys.filter(Boolean) : []);
+    };
+
+    const cartKeyForDisplayItem = (item) => {
+        const group = item.group || null;
+        const product = item.product;
+        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
+        const variant = group ? pricing.getVariant(group, tier) : null;
+        return variant ? catalog.cartKeyFor(variant) : product.id;
+    };
+
+    const isPromoCatalogItem = (item) => promoCatalogCartKeys.has(cartKeyForDisplayItem(item));
+
     const activeCategoryMeta = () =>
         totemCategories.find((cat) => cat.id === activeCategory) || null;
 
@@ -865,6 +881,9 @@ ${unitHtml}
 
     const getVisibleItems = () => {
         let items = displayItems;
+        if (promoCatalogCartKeys.size) {
+            items = items.filter((item) => !isPromoCatalogItem(item));
+        }
         if (searchQuery) {
             items = items.filter((item) => itemMatchesSearch(item));
         } else if (activeCategory) {
@@ -1606,7 +1625,9 @@ ${unitHtml}
 
     const renderCategories = () => {
         if (!categoriesEl) return;
-        const totalCount = displayItems.length;
+        const totalCount = promoCatalogCartKeys.size
+            ? displayItems.filter((item) => !isPromoCatalogItem(item)).length
+            : displayItems.length;
         const pills =
             categoryPillHtml('', 'Todos', totalCount, !activeCategory) +
             totemCategories
@@ -2254,6 +2275,7 @@ ${bodyHtml}
                 : (variant || product).price;
         const basePrice = Number((variant || product).price);
         const cart = cartApi.loadCart();
+        if (!opts.promoPrice && promoCatalogCartKeys.has(key)) return;
         if (!cart[key]) {
             cart[key] = {
                 id: (variant || product).id,
@@ -2989,6 +3011,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             formatPrice,
             getCartQty: (cartKey) => cartApi.loadCart()[cartKey]?.qty || 0,
             registerPromoDisplayItems,
+            registerPromoCartKeys,
+            onPromoCatalogChange: () => {
+                renderCategories();
+                renderProducts();
+            },
             openProductDetail,
             addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
             changeQty,
