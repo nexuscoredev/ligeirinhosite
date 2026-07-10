@@ -25,6 +25,7 @@
     const customerContinueBtn = document.getElementById('totem-customer-continue');
     const customerSteps = {
         register: document.getElementById('totem-customer-step-register'),
+        login: document.getElementById('totem-customer-step-login'),
         lookup: document.getElementById('totem-customer-step-lookup'),
         confirm: document.getElementById('totem-customer-step-confirm'),
         manual: document.getElementById('totem-customer-step-manual'),
@@ -2880,8 +2881,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             totemKeyboard?.hide?.();
             if (customerStep === 'register') {
                 setView('welcome');
-            } else if (customerStep === 'lookup') {
+            } else if (customerStep === 'login') {
                 showCustomerStep('register');
+            } else if (customerStep === 'lookup') {
+                showCustomerStep('login');
             } else if (customerStep === 'confirm') {
                 showCustomerStep('lookup');
             } else if (customerStep === 'invoice') {
@@ -2900,6 +2903,18 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             bumpIdle();
         });
 
+        document.getElementById('totem-customer-gate-yes')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            showCustomerStep('login');
+            bumpIdle();
+        });
+
+        document.getElementById('totem-customer-gate-no')?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            goManualCustomer();
+            bumpIdle();
+        });
+
         document.getElementById('totem-customer-registered-doc')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
             startCustomerLookup('doc');
@@ -2909,12 +2924,6 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         document.getElementById('totem-customer-registered-email')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
             startCustomerLookup('email');
-            bumpIdle();
-        });
-
-        document.getElementById('totem-customer-registered-no')?.addEventListener('click', () => {
-            totemKeyboard?.hide?.();
-            goManualCustomer();
             bumpIdle();
         });
 

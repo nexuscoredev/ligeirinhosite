@@ -84,9 +84,36 @@
 <div class="totem-customer__hero">
 <p class="totem-customer__eyebrow">Identificação</p>
 <h2 class="totem-customer__title">Já é cliente Ligeirinho?</h2>
-<p class="totem-customer__lead">Identificação opcional — localize seu cadastro ou siga direto para o cardápio.</p>
+<p class="totem-customer__lead">Identificação opcional — escolha uma opção para continuar.</p>
 </div>
-<div class="totem-customer__choices" role="group" aria-label="Tipo de cliente">
+<div class="totem-customer__choices" role="group" aria-label="Cliente cadastrado">
+<button type="button" class="totem-customer__choice totem-customer__choice--primary" id="totem-customer-gate-yes">
+<span class="totem-customer__choice-icon" aria-hidden="true"><span class="material-symbols-outlined">login</span></span>
+<span class="totem-customer__choice-copy">
+<strong>Sim</strong>
+<span>Fazer login</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+<button type="button" class="totem-customer__choice" id="totem-customer-gate-no">
+<span class="totem-customer__choice-icon totem-customer__choice-icon--soft" aria-hidden="true"><span class="material-symbols-outlined">person_add</span></span>
+<span class="totem-customer__choice-copy">
+<strong>Não</strong>
+<span>Cadastrar</span>
+</span>
+<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
+</button>
+</div>
+<button type="button" class="totem-customer__skip" data-customer-skip>Continuar sem identificação</button>
+</div>
+
+<div class="totem-customer__step" id="totem-customer-step-login" data-customer-step="login" hidden>
+<div class="totem-customer__hero">
+<p class="totem-customer__eyebrow">Fazer login</p>
+<h2 class="totem-customer__title">Selecione a forma de login</h2>
+<p class="totem-customer__lead">Localize seu cadastro com telefone, documento ou e-mail.</p>
+</div>
+<div class="totem-customer__choices" role="group" aria-label="Forma de login">
 <button type="button" class="totem-customer__choice totem-customer__choice--primary" id="totem-customer-registered-doc">
 <span class="totem-customer__choice-icon" aria-hidden="true"><span class="material-symbols-outlined">verified_user</span></span>
 <span class="totem-customer__choice-copy">
@@ -100,14 +127,6 @@
 <span class="totem-customer__choice-copy">
 <strong>E-mail</strong>
 <span>Gmail, Outlook ou outro</span>
-</span>
-<span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
-</button>
-<button type="button" class="totem-customer__choice" id="totem-customer-registered-no">
-<span class="totem-customer__choice-icon totem-customer__choice-icon--soft" aria-hidden="true"><span class="material-symbols-outlined">person_add</span></span>
-<span class="totem-customer__choice-copy">
-<strong>Ainda não sou cliente</strong>
-<span>Informar nome e contato</span>
 </span>
 <span class="material-symbols-outlined totem-customer__choice-arrow" aria-hidden="true">arrow_forward</span>
 </button>
