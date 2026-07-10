@@ -345,6 +345,7 @@ ${(catalogData?.categories || [])
     const refreshPromos = refreshAll;
 
     const init = async () => {
+        await window.LigeirinhoPromoEntryNotice?.show?.({ variant: 'site' });
         loading = true;
         render();
         try {

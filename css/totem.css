@@ -6913,3 +6913,32 @@ body.totem-keyboard-payment .totem-pay-summary__scroll {
 .totem-kiosk-lock__btn:active {
     transform: scale(0.98);
 }
+
+/* ——— Aviso de pagamento em promoções ——— */
+.lig-promo-entry-notice--totem {
+    z-index: 95;
+}
+
+.lig-promo-entry-notice--totem .lig-promo-entry-notice__sheet {
+    width: min(480px, calc(100% - 2rem));
+    padding: 2rem 1.75rem 1.75rem;
+    border-radius: var(--lig-radius-xl);
+    border-color: rgba(240, 201, 41, 0.35);
+    box-shadow: var(--lig-shadow);
+}
+
+.lig-promo-entry-notice--totem .lig-promo-entry-notice__title {
+    font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: clamp(1.5rem, 2.4vw, 1.85rem);
+}
+
+.lig-promo-entry-notice--totem .lig-promo-entry-notice__lead {
+    font-size: clamp(1rem, 1.8vw, 1.125rem);
+}
+
+.lig-promo-entry-notice--totem .lig-promo-entry-notice__proceed {
+    min-height: 3.25rem;
+    font-size: 1.0625rem;
+    border-radius: var(--lig-radius-pill, 999px);
+}
+

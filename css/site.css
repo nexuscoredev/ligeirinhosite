@@ -8793,9 +8793,117 @@ html.lig-login-modal-open {
     cursor: pointer;
 }
 
-body.lig-install-open {
+html.lig-promo-notice-open body {
     overflow: hidden;
 }
+
+.lig-promo-entry-notice {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+        max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+    pointer-events: none;
+}
+
+.lig-promo-entry-notice--open {
+    pointer-events: auto;
+}
+
+.lig-promo-entry-notice__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.24s ease;
+}
+
+.lig-promo-entry-notice--open .lig-promo-entry-notice__backdrop {
+    opacity: 1;
+}
+
+.lig-promo-entry-notice__sheet {
+    position: relative;
+    z-index: 1;
+    width: min(420px, 100%);
+    padding: 1.75rem 1.5rem 1.5rem;
+    border-radius: 1.25rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    box-shadow: var(--lig-shadow-lg, 0 24px 48px rgba(0, 0, 0, 0.28));
+    text-align: center;
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+    transition:
+        opacity 0.28s ease,
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lig-promo-entry-notice--open .lig-promo-entry-notice__sheet {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.lig-promo-entry-notice__icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    margin: 0 auto 1rem;
+    border-radius: 999px;
+    background: rgba(240, 201, 41, 0.18);
+    color: var(--lig-yellow-text, #c99700);
+}
+
+.lig-promo-entry-notice__icon {
+    font-size: 2rem;
+}
+
+.lig-promo-entry-notice__title {
+    margin: 0 0 0.75rem;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--lig-text);
+}
+
+.lig-promo-entry-notice__lead {
+    margin: 0 0 1.35rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--lig-text-muted);
+}
+
+.lig-promo-entry-notice__proceed {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    width: 100%;
+    padding: 0.85rem 1.25rem;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--lig-yellow, #f0c929) 0%, #e5a800 100%);
+    color: #14120f;
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow: 0 8px 20px rgba(240, 201, 41, 0.28);
+}
+
+.lig-promo-entry-notice__proceed:active {
+    transform: scale(0.98);
+}
+
 
 .lig-install-modal {
     position: fixed;

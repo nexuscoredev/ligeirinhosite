@@ -3072,9 +3072,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 return;
             }
             promosReturnView = 'catalog';
-            setView('promos');
-            void window.LigeirinhoTotemPromos?.render?.();
-            bumpIdle();
+            void (async () => {
+                await window.LigeirinhoPromoEntryNotice?.show?.({ variant: 'totem' });
+                setView('promos');
+                void window.LigeirinhoTotemPromos?.render?.();
+                bumpIdle();
+            })();
         });
 
         syncBtn?.addEventListener('click', () => {
