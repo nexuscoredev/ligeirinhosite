@@ -396,6 +396,17 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         renderGrid();
     };
 
+    const resolvePromoDetailItemKey = (grupo) => {
+        if (!grupo) return '';
+        for (const unit of grupo.unidadesDisponiveis || []) {
+            const key = grupo.byUnit?.[unit]?.item?.group?.key;
+            if (key) return key;
+        }
+        const entry = activeEntryForGroup(grupo);
+        const ctx = buildCartCtx(entry);
+        return ctx.group?.key || ctx.product?.id || '';
+    };
+
     const buildDetailPromoOpts = (grupo, activeCtx) => {
         const tiers = {};
         (grupo?.unidadesDisponiveis || []).forEach((unit) => {
@@ -415,6 +426,7 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
             tier: activeCtx.tier,
             originalPrice: activeCtx.originalPrice,
             tiers,
+            multiplo: Boolean(grupo?.multiplo),
         };
     };
 
@@ -464,7 +476,7 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
                 const entry = grupo ? activeEntryForGroup(grupo) : null;
                 if (!entry?.item) return;
                 const ctx = buildCartCtx(entry);
-                const itemKey = ctx.group?.key || ctx.product?.id;
+                const itemKey = resolvePromoDetailItemKey(grupo);
                 if (!itemKey) return;
                 deps.openProductDetail?.(itemKey, buildDetailPromoOpts(grupo, ctx));
                 deps.onBumpIdle?.();

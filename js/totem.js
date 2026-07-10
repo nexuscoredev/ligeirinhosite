@@ -384,7 +384,8 @@
             const tierPromo = detailTierPromoOpts(tierKey);
             if (!v && !tierPromo) return;
             const refVariant =
-                v ||
+                (group ? pricing.getVariant(group, tierKey) : null) ||
+                (v ? { ...v, tier: v.tier || tierKey } : null) ||
                 (tierPromo
                     ? {
                           id: product?.id,
@@ -431,13 +432,29 @@
             }
         }
 
-        if (promoDetail && group) {
-            ['unidade', 'caixa', 'pallet'].forEach((tierKey) => {
-                if (blocks.some((b) => b.tier === tierKey)) return;
-                const tierPromo = detailTierPromoOpts(tierKey);
-                if (!tierPromo?.promoId) return;
-                pushVariant(tierKey, pricing.getVariant(group, tierKey));
-            });
+        if (promoDetail) {
+            const promoTierKeys = detailPromoOpts?.tiers ? Object.keys(detailPromoOpts.tiers) : [];
+            if (promoTierKeys.length) {
+                promoTierKeys.forEach((tierKey) => {
+                    if (blocks.some((b) => b.tier === tierKey)) return;
+                    pushVariant(tierKey, group ? pricing.getVariant(group, tierKey) : null);
+                });
+            } else if (group) {
+                ['unidade', 'caixa', 'pallet'].forEach((tierKey) => {
+                    if (blocks.some((b) => b.tier === tierKey)) return;
+                    const tierPromo = detailTierPromoOpts(tierKey);
+                    if (!tierPromo?.promoId) return;
+                    pushVariant(tierKey, pricing.getVariant(group, tierKey));
+                });
+            }
+
+            if (detailPromoOpts?.multiplo && group?.variants) {
+                ['unidade', 'caixa', 'pallet'].forEach((tierKey) => {
+                    if (!group.variants[tierKey]) return;
+                    if (blocks.some((b) => b.tier === tierKey)) return;
+                    pushVariant(tierKey, group.variants[tierKey]);
+                });
+            }
         }
 
         const order = { unidade: 0, caixa: 1, pallet: 2 };
@@ -2384,6 +2401,31 @@ ${bodyHtml}
         }
     };
 
+    const bumpProductCardInGrid = (itemKey, tier, cartKey) => {
+        const item = itemKey ? findDisplayItem(null, itemKey) : null;
+        const group = item?.group;
+        if (group?.key && tier) tierByGroup.set(group.key, tier);
+
+        let card = itemKey
+            ? productsGrid?.querySelector(`.totem-product[data-item-key="${itemKey}"]`)
+            : null;
+        if (!card && cartKey) {
+            card =
+                productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`) ||
+                productsGrid?.querySelector(`.totem-plus[data-cart-key="${cartKey}"]`)?.closest('.totem-product');
+        }
+        if (!card) return false;
+
+        if (tier) card.dataset.priceTier = tier;
+        refreshTotemProductCard(card);
+        pulseClass(card, 'totem-product--pulse');
+        const badge = card.querySelector('.totem-product__cart-badge');
+        if (badge) pulseClass(badge, 'totem-product__badge--pop');
+        const qtyEl = card.querySelector('.totem-qty-value');
+        if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');
+        return true;
+    };
+
     const pulseProduct = (cartKey) => {
         const card =
             productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`) ||
@@ -2533,7 +2575,11 @@ ${bodyHtml}
         const qtyToAdd = Math.max(1, detailDraftQty);
         const tierPromo = block.promoOpts || null;
         const usePromo = Boolean(tierPromo?.promoId);
-        const variant = block.variant || (group ? pricing.getVariant(group, tier) : null);
+        const variant = group
+            ? pricing.getVariant(group, tier)
+            : block.variant
+              ? { ...block.variant, tier: block.variant.tier || tier }
+              : null;
         const product = item.product;
         const key = variant ? catalog.cartKeyFor(variant) : product.id;
         const packType = variant?.tier || tier || 'caixa';
@@ -2582,9 +2628,9 @@ ${bodyHtml}
         cart[key].qty += qtyToAdd;
         cartApi.saveCart(cart);
         renderCart();
-        renderProducts();
         refreshPromosIfOpen();
-        pulseProduct(key);
+        const bumped = bumpProductCardInGrid(detailItemKey, tier, key);
+        if (!bumped) renderProducts();
         playDetailBlockAddedFeedback(blockEl, qtyToAdd);
         showCartAddedToast(name, cartLineImage(cart[key]), qtyToAdd);
 
