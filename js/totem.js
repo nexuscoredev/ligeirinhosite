@@ -1720,8 +1720,7 @@ ${unitHtml}
         }
         resetCart();
         clearSearch();
-        // Abre na 1ª categoria com itens — evita pintar 200+ caixas no "Todos" de uma vez.
-        activeCategory = totemCategories[0]?.id || '';
+        activeCategory = '';
         renderCategories();
         renderProducts();
         updateCatalogGreeting();
