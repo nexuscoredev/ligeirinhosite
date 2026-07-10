@@ -377,7 +377,6 @@
     const buildDetailPriceBlocks = (ctx) => {
         const { group, tier, variant, product } = ctx;
         const promoDetail = isDetailPromoContext();
-        const promoTier = detailPromoOpts?.tier || tier;
         const blocks = [];
 
         const pushVariant = (tierKey, v) => {
@@ -420,13 +419,15 @@
         };
 
         if (group?.variants) {
-            if (group.variants.unidade) pushVariant('unidade', group.variants.unidade);
+            if (promoDetail && group.variants.unidade) pushVariant('unidade', group.variants.unidade);
             if (group.variants.caixa) pushVariant('caixa', group.variants.caixa);
             else if (group.variants.pallet) pushVariant('pallet', group.variants.pallet);
         } else if (variant || product) {
             const activeTier = tier || 'unidade';
-            const refVariant = variant || { id: product.id, price: product.price, tier: activeTier };
-            pushVariant(activeTier, refVariant);
+            if (promoDetail || activeTier !== 'unidade') {
+                const refVariant = variant || { id: product.id, price: product.price, tier: activeTier };
+                pushVariant(activeTier, refVariant);
+            }
         }
 
         if (promoDetail && group) {
@@ -438,32 +439,10 @@
             });
         }
 
-        if (!promoDetail && !group?.variants?.unidade && group?.variants?.caixa) {
-            const cx = group.variants.caixa;
-            const cxBlock = blocks.find((b) => b.tier === 'caixa');
-            const refPrice = cxBlock?.price ?? Number(cx.price);
-            const unitPx = pricing.getUnitPrice({ ...cx, price: refPrice, tier: 'caixa' });
-            if (unitPx != null) {
-                const unBlock = {
-                    tier: 'unidade',
-                    label: 'Unidade solta',
-                    price: unitPx,
-                    originalPrice: null,
-                    promo: false,
-                    promoOpts: null,
-                    perUnit: null,
-                    variant: null,
-                    actionable: false,
-                };
-                const idx = blocks.findIndex((b) => b.tier === 'unidade');
-                if (idx >= 0) blocks[idx] = unBlock;
-                else blocks.unshift(unBlock);
-            }
-        }
-
         const order = { unidade: 0, caixa: 1, pallet: 2 };
-        blocks.sort((a, b) => (order[a.tier] ?? 9) - (order[b.tier] ?? 9));
-        return blocks;
+        const visible = promoDetail ? blocks : blocks.filter((b) => b.tier !== 'unidade');
+        visible.sort((a, b) => (order[a.tier] ?? 9) - (order[b.tier] ?? 9));
+        return visible;
     };
 
     const buildDetailPriceBlocksHtml = (blocks, activeTier) =>
