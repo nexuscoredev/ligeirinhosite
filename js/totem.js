@@ -345,6 +345,119 @@
         return { item, group, tier, variant, product, cartKey, qty, img, displayName, price, promoOriginal };
     };
 
+    const detailTierLabel = (tierKey, variant) => {
+        if (tierKey === 'unidade') return 'Unidade solta';
+        if (tierKey === 'caixa') {
+            return variant?.packSize ? `Caixa c/ ${variant.packSize} un` : 'Unidade na caixa';
+        }
+        if (tierKey === 'pallet') {
+            return variant?.boxCount ? `Pallet · ${variant.boxCount} cx` : 'Pallet';
+        }
+        return 'Produto';
+    };
+
+    const buildDetailPriceBlocks = (ctx) => {
+        const { group, tier, variant, product, price, promoOriginal } = ctx;
+        const isPromo = detailPromoOpts?.promoPrice != null;
+        const promoTier = detailPromoOpts?.tier || tier;
+        const blocks = [];
+
+        const pushVariant = (tierKey, v) => {
+            if (!v) return;
+            const isPromoTier = isPromo && promoTier === tierKey;
+            const blockPrice = isPromoTier ? price : Number(v.price);
+            const perUnit =
+                tierKey === 'caixa' || tierKey === 'pallet'
+                    ? (() => {
+                          const unitPx = pricing.getUnitPrice({
+                              ...v,
+                              price: blockPrice,
+                              tier: tierKey,
+                          });
+                          return unitPx != null ? `${formatPrice(unitPx)} / un` : null;
+                      })()
+                    : null;
+            blocks.push({
+                tier: tierKey,
+                label: detailTierLabel(tierKey, v),
+                price: blockPrice,
+                originalPrice: isPromoTier ? promoOriginal : null,
+                promo: isPromoTier,
+                perUnit,
+                variant: v,
+            });
+        };
+
+        if (group?.variants) {
+            if (group.variants.unidade) pushVariant('unidade', group.variants.unidade);
+            if (group.variants.caixa) pushVariant('caixa', group.variants.caixa);
+            else if (group.variants.pallet) pushVariant('pallet', group.variants.pallet);
+        } else if (variant || product) {
+            const activeTier = tier || 'unidade';
+            const refVariant = variant || { id: product.id, price: product.price, tier: activeTier };
+            pushVariant(activeTier, refVariant);
+        }
+
+        if (!group?.variants?.unidade && group?.variants?.caixa) {
+            const cx = group.variants.caixa;
+            const cxBlock = blocks.find((b) => b.tier === 'caixa');
+            const refPrice = cxBlock?.price ?? Number(cx.price);
+            const unitPx = pricing.getUnitPrice({ ...cx, price: refPrice, tier: 'caixa' });
+            if (unitPx != null) {
+                const unBlock = {
+                    tier: 'unidade',
+                    label: 'Unidade solta',
+                    price: unitPx,
+                    originalPrice: null,
+                    promo: false,
+                    perUnit: null,
+                    variant: null,
+                };
+                const idx = blocks.findIndex((b) => b.tier === 'unidade');
+                if (idx >= 0) blocks[idx] = unBlock;
+                else blocks.unshift(unBlock);
+            }
+        }
+
+        const order = { unidade: 0, caixa: 1, pallet: 2 };
+        blocks.sort((a, b) => (order[a.tier] ?? 9) - (order[b.tier] ?? 9));
+        return blocks;
+    };
+
+    const buildDetailPriceBlocksHtml = (blocks, activeTier) =>
+        blocks
+            .map((block) => {
+                const isPack = block.tier === 'caixa' || block.tier === 'pallet';
+                const mod = isPack ? 'pack' : 'unit';
+                const active = block.tier === activeTier ? ' totem-detail__price-block--active' : '';
+                const promo = block.promo ? ' totem-detail__price-block--promo' : '';
+                const oldHtml =
+                    block.originalPrice != null &&
+                    Number.isFinite(block.originalPrice) &&
+                    block.originalPrice > block.price
+                        ? `<span class="totem-detail__price-old">${formatPrice(block.originalPrice)}</span>`
+                        : '';
+                const promoBadge = block.promo
+                    ? '<span class="totem-detail__promo-badge">PROMO</span>'
+                    : '';
+                const perUnit = block.perUnit
+                    ? `<span class="totem-detail__price-per">${esc(block.perUnit)}</span>`
+                    : '';
+                const selectable = detailPromoOpts
+                    ? ''
+                    : ` data-price-tier="${esc(block.tier)}" role="button" tabindex="0" aria-pressed="${block.tier === activeTier ? 'true' : 'false'}"`;
+                return `<div class="totem-detail__price-block totem-detail__price-block--${mod}${active}${promo}"${selectable}>
+<span class="totem-detail__price-label">${esc(block.label)}</span>
+<div class="totem-detail__price-row">
+${oldHtml}
+<strong class="totem-detail__price-value">${formatPrice(block.price)}</strong>
+${promoBadge}
+</div>
+${perUnit}
+</div>`;
+            })
+            .join('');
+
     const closeProductDetail = () => {
         if (!detailPanel) return;
         detailPanel.classList.add('totem-detail--closing');
@@ -367,14 +480,15 @@
             return;
         }
 
-        const { group, tier, variant, product, cartKey, img, displayName, price, promoOriginal } = ctx;
-        const subtitle = productDetailSubtitle(group, variant, tier);
+        const { group, tier, variant, product, cartKey, img, displayName } = ctx;
         const returnable = isReturnable(group?.baseName || displayName);
         const vol = extractVolume(group?.baseName || displayName);
         const packBadge = tierPackBadge(tier, variant);
-        const tiersHtml = detailPromoOpts ? '' : group ? priceTiersHtml(group, tier) : '';
-        const showPromoOld =
-            promoOriginal != null && Number.isFinite(promoOriginal) && promoOriginal > price;
+        const detailTitle = String(group?.baseName || product.name || displayName)
+            .trim()
+            .toUpperCase();
+        const priceBlocks = buildDetailPriceBlocks(ctx);
+        const priceBlocksHtml = buildDetailPriceBlocksHtml(priceBlocks, tier);
 
         detailSheet.innerHTML = `<header class="totem-detail__header">
 <button type="button" class="totem-detail__back" id="totem-detail-back" aria-label="Voltar">
@@ -383,21 +497,18 @@
 <h1 class="totem-detail__heading" id="totem-detail-heading">Detalhes do Produto</h1>
 </header>
 <div class="totem-detail__body">
-<h2 class="totem-detail__name">${esc(displayName)}</h2>
-<p class="totem-detail__subtitle">${esc(subtitle)}${returnable ? '<span class="material-symbols-outlined" aria-label="Retornável">recycling</span>' : ''}</p>
-<div class="totem-detail__pricing">
-${showPromoOld ? `<span class="totem-detail__price-old">${formatPrice(promoOriginal)}</span>` : ''}
-<strong class="totem-detail__price-main">${formatPrice(price)}</strong>
-${unitPriceSuffix(variant, tier) ? `<span class="totem-detail__price-unit">${esc(unitPriceSuffix(variant, tier))}</span>` : ''}
-${detailPromoOpts ? '<span class="totem-detail__promo-badge">PROMO</span>' : ''}
-</div>
+<h2 class="totem-detail__name">${esc(detailTitle)}</h2>
+<div class="totem-detail__showcase">
 <div class="totem-detail__media">
 ${returnable ? '<span class="totem-detail__badge totem-detail__badge--return">Retornável</span>' : ''}
 ${vol ? `<span class="totem-detail__badge totem-detail__badge--vol">${esc(vol)}</span>` : ''}
-${packBadge && !tiersHtml ? `<span class="totem-detail__badge totem-detail__badge--pack">${esc(packBadge)}</span>` : ''}
+${packBadge ? `<span class="totem-detail__badge totem-detail__badge--pack">${esc(packBadge)}</span>` : ''}
 ${img ? `<img src="${esc(img)}" alt="">` : '<span class="material-symbols-outlined totem-detail__placeholder" aria-hidden="true">liquor</span>'}
 </div>
-${tiersHtml ? `<div class="totem-detail__tiers">${tiersHtml}</div>` : ''}
+<div class="totem-detail__price-stack" role="group" aria-label="Opções de preço">
+${priceBlocksHtml}
+</div>
+</div>
 <div class="totem-detail__actions">
 <div class="totem-detail__qty">
 <button type="button" class="totem-qty-btn totem-detail-minus" id="totem-detail-minus" aria-label="Diminuir quantidade" ${detailDraftQty <= 1 ? 'disabled' : ''}>−</button>
@@ -2874,8 +2985,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
                 closeProductDetail();
                 return;
             }
-            const tierBtn = e.target.closest('.ze-price-tier');
-            if (tierBtn && detailItemKey) {
+            const tierBtn = e.target.closest('[data-price-tier]');
+            if (tierBtn && detailItemKey && !detailPromoOpts) {
                 const ctx = getDetailContext();
                 if (!ctx?.group?.key) return;
                 tierByGroup.set(ctx.group.key, tierBtn.dataset.priceTier);
