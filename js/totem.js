@@ -356,21 +356,50 @@
         return 'Produto';
     };
 
+    const isDetailPromoContext = () =>
+        detailPromoOpts?.promoId != null ||
+        (detailPromoOpts?.promoPrice != null && Number.isFinite(Number(detailPromoOpts.promoPrice)));
+
+    const detailTierPromoOpts = (tierKey) => {
+        if (!isDetailPromoContext()) return null;
+        const tiers = detailPromoOpts?.tiers;
+        if (tiers?.[tierKey]?.promoId) return tiers[tierKey];
+        if (detailPromoOpts?.tier === tierKey && detailPromoOpts?.promoId) {
+            return {
+                promoPrice: detailPromoOpts.promoPrice,
+                promoId: detailPromoOpts.promoId,
+                originalPrice: detailPromoOpts.originalPrice,
+            };
+        }
+        return null;
+    };
+
     const buildDetailPriceBlocks = (ctx) => {
-        const { group, tier, variant, product, price, promoOriginal } = ctx;
-        const isPromo = detailPromoOpts?.promoPrice != null;
+        const { group, tier, variant, product } = ctx;
+        const promoDetail = isDetailPromoContext();
         const promoTier = detailPromoOpts?.tier || tier;
         const blocks = [];
 
         const pushVariant = (tierKey, v) => {
-            if (!v) return;
-            const isPromoTier = isPromo && promoTier === tierKey;
-            const blockPrice = isPromoTier ? price : Number(v.price);
+            const tierPromo = detailTierPromoOpts(tierKey);
+            if (!v && !tierPromo) return;
+            const refVariant =
+                v ||
+                (tierPromo
+                    ? {
+                          id: product?.id,
+                          price: tierPromo.originalPrice ?? product?.price ?? 0,
+                          tier: tierKey,
+                      }
+                    : null);
+            if (!refVariant) return;
+            const isPromoTier = Boolean(tierPromo);
+            const blockPrice = isPromoTier ? Number(tierPromo.promoPrice) : Number(refVariant.price);
             const perUnit =
                 tierKey === 'caixa' || tierKey === 'pallet'
                     ? (() => {
                           const unitPx = pricing.getUnitPrice({
-                              ...v,
+                              ...refVariant,
                               price: blockPrice,
                               tier: tierKey,
                           });
@@ -379,13 +408,14 @@
                     : null;
             blocks.push({
                 tier: tierKey,
-                label: detailTierLabel(tierKey, v),
+                label: detailTierLabel(tierKey, refVariant),
                 price: blockPrice,
-                originalPrice: isPromoTier ? promoOriginal : null,
+                originalPrice: isPromoTier ? Number(tierPromo.originalPrice ?? refVariant.price) : null,
                 promo: isPromoTier,
+                promoOpts: tierPromo,
                 perUnit,
-                variant: v,
-                actionable: true,
+                variant: refVariant,
+                actionable: promoDetail ? Boolean(tierPromo?.promoId) : tierKey !== 'unidade',
             });
         };
 
@@ -399,7 +429,16 @@
             pushVariant(activeTier, refVariant);
         }
 
-        if (!group?.variants?.unidade && group?.variants?.caixa) {
+        if (promoDetail && group) {
+            ['unidade', 'caixa', 'pallet'].forEach((tierKey) => {
+                if (blocks.some((b) => b.tier === tierKey)) return;
+                const tierPromo = detailTierPromoOpts(tierKey);
+                if (!tierPromo?.promoId) return;
+                pushVariant(tierKey, pricing.getVariant(group, tierKey));
+            });
+        }
+
+        if (!promoDetail && !group?.variants?.unidade && group?.variants?.caixa) {
             const cx = group.variants.caixa;
             const cxBlock = blocks.find((b) => b.tier === 'caixa');
             const refPrice = cxBlock?.price ?? Number(cx.price);
@@ -411,6 +450,7 @@
                     price: unitPx,
                     originalPrice: null,
                     promo: false,
+                    promoOpts: null,
                     perUnit: null,
                     variant: null,
                     actionable: false,
@@ -433,6 +473,7 @@
                 const mod = isPack ? 'pack' : 'unit';
                 const active = block.tier === activeTier ? ' totem-detail__price-block--active' : '';
                 const promo = block.promo ? ' totem-detail__price-block--promo' : '';
+                const info = block.actionable === false ? ' totem-detail__price-block--info' : '';
                 const oldHtml =
                     block.originalPrice != null &&
                     Number.isFinite(block.originalPrice) &&
@@ -448,8 +489,8 @@
                 const selectable =
                     block.actionable !== false
                         ? ` data-price-tier="${esc(block.tier)}" role="button" tabindex="0" aria-pressed="${block.tier === activeTier ? 'true' : 'false'}" aria-label="Adicionar ${esc(block.label)} ao pedido"`
-                        : '';
-                return `<div class="totem-detail__price-block totem-detail__price-block--${mod}${active}${promo}"${selectable}>
+                        : ` aria-label="${esc(block.label)} — apenas informativo"`;
+                return `<div class="totem-detail__price-block totem-detail__price-block--${mod}${active}${promo}${info}"${selectable}>
 <span class="totem-detail__price-label">${esc(block.label)}</span>
 <div class="totem-detail__price-row">
 ${oldHtml}
@@ -553,12 +594,51 @@ adicionar ao pedido
         }, 220);
     };
 
-    const showCartAddedToast = (productName, imageUrl) => {
+    const playDetailBlockAddedFeedback = (blockEl, qty = 1) => {
+        if (!blockEl) return;
+        blockEl.classList.remove('totem-detail__price-block--press');
+        blockEl.classList.add('totem-detail__price-block--added');
+
+        blockEl.querySelectorAll('.totem-detail__price-block__ripple, .totem-detail__price-block__success').forEach((n) =>
+            n.remove()
+        );
+
+        const ripple = document.createElement('span');
+        ripple.className = 'totem-detail__price-block__ripple';
+        ripple.setAttribute('aria-hidden', 'true');
+        blockEl.appendChild(ripple);
+        ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+
+        const overlay = document.createElement('div');
+        overlay.className = 'totem-detail__price-block__success';
+        overlay.setAttribute('role', 'status');
+        overlay.setAttribute('aria-live', 'polite');
+        const qtyLine =
+            qty > 1
+                ? `<span class="totem-detail__price-block__success-qty">${qty} un. no carrinho</span>`
+                : '';
+        overlay.innerHTML = `<span class="material-symbols-outlined totem-detail__price-block__check" aria-hidden="true">check_circle</span>
+<span class="totem-detail__price-block__success-text">Adicionado!</span>
+${qtyLine}`;
+        blockEl.appendChild(overlay);
+
+        window.setTimeout(() => {
+            blockEl.classList.remove('totem-detail__price-block--added');
+            overlay.remove();
+        }, 920);
+    };
+
+    const showCartAddedToast = (productName, imageUrl, qty = 1) => {
         const toast = document.getElementById('totem-cart-toast');
         const nameEl = document.getElementById('totem-cart-toast-name');
         const thumbEl = document.getElementById('totem-cart-toast-thumb');
+        const titleEl = toast?.querySelector('.totem-cart-toast__title');
         if (!toast) return;
 
+        if (titleEl) {
+            titleEl.textContent =
+                qty > 1 ? `${qty} itens adicionados ao carrinho` : 'Adicionado ao carrinho';
+        }
         if (nameEl) nameEl.textContent = shortProductName(productName);
         if (thumbEl) {
             if (imageUrl) {
@@ -569,6 +649,8 @@ adicionar ao pedido
                 thumbEl.hidden = true;
             }
         }
+        const iconEl = toast.querySelector('.totem-cart-toast__icon');
+        if (iconEl) pulseClass(iconEl, 'totem-cart-toast__icon--pop');
         toast.hidden = false;
         window.requestAnimationFrame(() => {
             toast.classList.add('totem-cart-toast--visible');
@@ -2455,8 +2537,9 @@ ${bodyHtml}
         bumpIdle();
     };
 
-    const addDetailBlockToCart = (tier) => {
+    const addDetailBlockToCart = (tier, blockEl) => {
         if (!customerIdentified || !detailItemKey || !tier) return;
+        if (blockEl?.classList.contains('totem-detail__price-block--added')) return;
         totemKeyboard?.hide?.();
         const item = findDisplayItem(null, detailItemKey);
         if (!item) return;
@@ -2469,24 +2552,65 @@ ${bodyHtml}
         if (!block || block.actionable === false) return;
 
         const qtyToAdd = Math.max(1, detailDraftQty);
-        const usePromo = Boolean(block.promo && detailPromoOpts?.promoId);
+        const tierPromo = block.promoOpts || null;
+        const usePromo = Boolean(tierPromo?.promoId);
+        const variant = block.variant || (group ? pricing.getVariant(group, tier) : null);
+        const product = item.product;
+        const key = variant ? catalog.cartKeyFor(variant) : product.id;
+        const packType = variant?.tier || tier || 'caixa';
+        const name = group
+            ? pricing.cartItemName({ ...variant, tier: packType }, group)
+            : product.name;
+        const price =
+            usePromo && tierPromo?.promoPrice != null
+                ? Number(tierPromo.promoPrice)
+                : Number((variant || product).price);
+        const basePrice = Number((variant || product).price);
+        const cart = cartApi.loadCart();
+        if (!usePromo && promoCatalogCartKeys.has(key)) return;
+        if (!usePromo && isPromoCatalogItem(item)) return;
 
-        if (usePromo) {
-            for (let i = 0; i < qtyToAdd; i += 1) {
-                addItem(ctx.cartKey, detailItemKey, {
-                    promoPrice: detailPromoOpts.promoPrice,
-                    promoId: detailPromoOpts.promoId,
-                    tier,
-                });
-            }
-        } else {
-            for (let i = 0; i < qtyToAdd; i += 1) {
-                addItem(ctx.cartKey, detailItemKey, { tier });
-            }
+        if (!cart[key]) {
+            cart[key] = {
+                id: (variant || product).id,
+                cartKey: key,
+                name,
+                price,
+                qty: 0,
+                packType,
+                ...cartCategoryFields(item),
+                ...(usePromo
+                    ? {
+                          promoId: tierPromo.promoId,
+                          isPromo: true,
+                          originalPrice: basePrice,
+                          discountPct:
+                              basePrice > price
+                                  ? Math.max(0, Math.round((1 - price / basePrice) * 100))
+                                  : 0,
+                      }
+                    : {}),
+            };
+        } else if (usePromo) {
+            cart[key].price = price;
+            cart[key].promoId = tierPromo.promoId;
+            cart[key].isPromo = true;
+            cart[key].originalPrice = basePrice;
+            cart[key].discountPct =
+                basePrice > price ? Math.max(0, Math.round((1 - price / basePrice) * 100)) : 0;
         }
 
+        cart[key].qty += qtyToAdd;
+        cartApi.saveCart(cart);
+        renderCart();
+        renderProducts();
+        refreshPromosIfOpen();
+        pulseProduct(key);
+        playDetailBlockAddedFeedback(blockEl, qtyToAdd);
+        showCartAddedToast(name, cartLineImage(cart[key]), qtyToAdd);
+
         detailDraftQty = 1;
-        renderProductDetail();
+        window.setTimeout(() => renderProductDetail(), 900);
         bumpIdle();
     };
 
@@ -3014,6 +3138,22 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             }
         });
 
+        detailPanel?.addEventListener('pointerdown', (e) => {
+            const tierPress = e.target.closest('.totem-detail__price-block[data-price-tier]');
+            if (!tierPress || tierPress.classList.contains('totem-detail__price-block--added')) return;
+            tierPress.classList.add('totem-detail__price-block--press');
+        });
+
+        detailPanel?.addEventListener('pointerup', (e) => {
+            const tierPress = e.target.closest('.totem-detail__price-block[data-price-tier]');
+            if (tierPress) tierPress.classList.remove('totem-detail__price-block--press');
+        });
+
+        detailPanel?.addEventListener('pointercancel', (e) => {
+            const tierPress = e.target.closest('.totem-detail__price-block[data-price-tier]');
+            if (tierPress) tierPress.classList.remove('totem-detail__price-block--press');
+        });
+
         detailPanel?.addEventListener('click', (e) => {
             if (e.target === detailPanel) {
                 closeProductDetail();
@@ -3025,7 +3165,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             }
             const tierBtn = e.target.closest('.totem-detail__price-block[data-price-tier]');
             if (tierBtn && detailItemKey) {
-                addDetailBlockToCart(tierBtn.dataset.priceTier);
+                addDetailBlockToCart(tierBtn.dataset.priceTier, tierBtn);
                 return;
             }
             const plus = e.target.closest('.totem-detail-plus');

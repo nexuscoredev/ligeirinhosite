@@ -4112,6 +4112,25 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     color: var(--lig-yellow-text);
 }
 
+.totem-cart-toast__icon--pop {
+    animation: totem-cart-toast-icon-pop 0.5s var(--totem-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+}
+
+@keyframes totem-cart-toast-icon-pop {
+    0% {
+        transform: scale(0.5);
+        color: #22c55e;
+    }
+    60% {
+        transform: scale(1.2);
+        color: #16a34a;
+    }
+    100% {
+        transform: scale(1);
+        color: var(--lig-yellow-text);
+    }
+}
+
 .totem-cart-toast__text {
     min-width: 0;
     flex: 1;
@@ -6049,6 +6068,8 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 }
 
 .totem-detail__price-block {
+    position: relative;
+    overflow: hidden;
     border-radius: 1rem;
     padding: 0.7rem 0.8rem;
     display: flex;
@@ -6069,8 +6090,31 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     transform: scale(0.98);
 }
 
-.totem-detail__price-block--unit:not([data-price-tier]) {
+.totem-detail__price-block--unit:not([data-price-tier]),
+.totem-detail__price-block--info {
     cursor: default;
+}
+
+.totem-detail__price-block--info.totem-detail__price-block--unit {
+    opacity: 0.92;
+}
+
+.totem-detail__price-block--info.totem-detail__price-block--unit::after {
+    content: 'Informativo';
+    align-self: flex-start;
+    margin-top: 0.1rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    font-size: 0.52rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #8a8175;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.totem-detail__price-block--info:hover {
+    transform: none;
 }
 
 .totem-detail__price-block[data-price-tier]:hover {
@@ -6088,20 +6132,28 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 }
 
 .totem-detail__price-block--pack {
-    background: linear-gradient(145deg, #7a5640 0%, #4a3428 55%, #3d2a20 100%);
-    color: #fff;
+    background: linear-gradient(165deg, #fff4a8 0%, #fde047 28%, #f0c929 58%, #d4a81a 100%);
+    color: #14120f;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.45),
+        0 2px 10px rgba(240, 201, 41, 0.22);
 }
 
 .totem-detail__price-block--pack .totem-detail__price-label {
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--lig-yellow-text);
 }
 
 .totem-detail__price-block--pack .totem-detail__price-old {
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(138, 101, 0, 0.55);
 }
 
 .totem-detail__price-block--pack .totem-detail__price-per {
-    color: rgba(255, 255, 255, 0.78);
+    color: #6b5a1a;
+}
+
+.totem-detail__price-block--pack .totem-detail__price-value {
+    color: #14120f;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .totem-detail__price-label {
@@ -6127,16 +6179,150 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     letter-spacing: -0.03em;
 }
 
-.totem-detail__price-block--pack .totem-detail__price-value {
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
 .totem-detail__price-per {
     font-size: 0.72rem;
     font-weight: 600;
     color: #6b7280;
     letter-spacing: 0.01em;
+}
+
+.totem-detail__price-block--press:not(.totem-detail__price-block--added) {
+    transform: scale(0.96);
+}
+
+.totem-detail__price-block--added {
+    animation: totem-detail-price-success 0.85s var(--totem-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.totem-detail__price-block--added.totem-detail__price-block--unit {
+    border-color: #2d8a4e;
+    box-shadow:
+        0 0 0 3px rgba(45, 138, 78, 0.35),
+        0 10px 28px rgba(45, 138, 78, 0.28);
+}
+
+.totem-detail__price-block--added.totem-detail__price-block--pack {
+    border-color: #6ee7a0;
+    box-shadow:
+        0 0 0 3px rgba(110, 231, 160, 0.45),
+        0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.totem-detail__price-block__ripple {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    pointer-events: none;
+    animation: totem-detail-price-ripple 0.65s ease-out forwards;
+}
+
+.totem-detail__price-block--pack .totem-detail__price-block__ripple {
+    background: rgba(20, 18, 15, 0.12);
+}
+
+.totem-detail__price-block--pack .totem-detail__promo-badge {
+    color: #fde047;
+    background: linear-gradient(165deg, #2a2418 0%, #14120f 100%);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.totem-detail__price-block__success {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.12rem;
+    padding: 0.5rem;
+    background: rgba(34, 120, 65, 0.94);
+    color: #fff;
+    border-radius: inherit;
+    z-index: 2;
+    text-align: center;
+    animation: totem-detail-price-overlay-in 0.32s var(--totem-ease-out, ease-out) both;
+}
+
+.totem-detail__price-block--pack .totem-detail__price-block__success {
+    background: rgba(28, 100, 55, 0.96);
+}
+
+.totem-detail__price-block__check {
+    font-size: clamp(2rem, 5vw, 2.45rem);
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+    animation: totem-detail-price-check-pop 0.55s var(--totem-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) 0.06s both;
+}
+
+.totem-detail__price-block__success-text {
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.15;
+}
+
+.totem-detail__price-block__success-qty {
+    font-size: 0.68rem;
+    font-weight: 700;
+    opacity: 0.92;
+    letter-spacing: 0.02em;
+}
+
+@keyframes totem-detail-price-success {
+    0% {
+        transform: scale(1);
+    }
+    18% {
+        transform: scale(0.93);
+    }
+    42% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes totem-detail-price-overlay-in {
+    from {
+        opacity: 0;
+        transform: scale(0.82);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes totem-detail-price-check-pop {
+    0% {
+        opacity: 0;
+        transform: scale(0.25) rotate(-18deg);
+    }
+    55% {
+        transform: scale(1.18) rotate(4deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotate(0);
+    }
+}
+
+@keyframes totem-detail-price-ripple {
+    to {
+        width: 280%;
+        height: 280%;
+        opacity: 0;
+    }
 }
 
 .totem-detail__subtitle {
@@ -6404,9 +6590,14 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     .totem-cart-sheet,
     .totem-cart-line,
     .totem-cart-toast,
+    .totem-cart-toast__icon--pop,
     .totem-detail--open,
     .totem-detail--closing,
     .totem-detail--closing .totem-detail__sheet,
+    .totem-detail__price-block--added,
+    .totem-detail__price-block__ripple,
+    .totem-detail__price-block__success,
+    .totem-detail__price-block__check,
     .totem-categories-modal--open .totem-categories-modal__sheet,
     .totem-categories-modal__backdrop,
     .totem-admin-modal--open .totem-admin-card,

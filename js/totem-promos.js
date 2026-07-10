@@ -396,6 +396,28 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         renderGrid();
     };
 
+    const buildDetailPromoOpts = (grupo, activeCtx) => {
+        const tiers = {};
+        (grupo?.unidadesDisponiveis || []).forEach((unit) => {
+            const entry = promoCatalog().entryAtivoPromoGrupo(grupo, unit);
+            if (!entry) return;
+            const tierCtx = buildCartCtx(entry);
+            if (!tierCtx.tier || !tierCtx.promo?.id) return;
+            tiers[tierCtx.tier] = {
+                promoPrice: tierCtx.promoPrice,
+                promoId: tierCtx.promo.id,
+                originalPrice: tierCtx.originalPrice,
+            };
+        });
+        return {
+            promoPrice: activeCtx.promoPrice,
+            promoId: activeCtx.promo?.id,
+            tier: activeCtx.tier,
+            originalPrice: activeCtx.originalPrice,
+            tiers,
+        };
+    };
+
     const bindGrid = () => {
         if (!deps?.gridEl || bound) return;
         bound = true;
@@ -444,12 +466,7 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
                 const ctx = buildCartCtx(entry);
                 const itemKey = ctx.group?.key || ctx.product?.id;
                 if (!itemKey) return;
-                deps.openProductDetail?.(itemKey, {
-                    promoPrice: ctx.promoPrice,
-                    promoId: ctx.promo?.id,
-                    tier: ctx.tier,
-                    originalPrice: ctx.originalPrice,
-                });
+                deps.openProductDetail?.(itemKey, buildDetailPromoOpts(grupo, ctx));
                 deps.onBumpIdle?.();
             }
         });
