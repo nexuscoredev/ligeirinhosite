@@ -75,11 +75,14 @@ export function paymentMethodLabel(method) {
 }
 
 function normalizePaymentSplits(raw, total) {
-    if (!Array.isArray(raw) || raw.length < 2) return null;
+    if (!Array.isArray(raw) || !raw.length) return null;
     const mapped = raw.map((entry) => ({
         method: normalizeTotemPaymentMethod(entry?.method || entry?.id),
         amount: entry?.amount,
     }));
+    const isCashOnly =
+        mapped.length === 1 && String(mapped[0]?.method || '').toLowerCase() === 'dinheiro';
+    if (mapped.length < 2 && !isCashOnly) return null;
     const check = validatePaymentSplits(mapped, total);
     if (!check.ok) {
         const err = new Error(check.error || 'Pagamento dividido inválido.');

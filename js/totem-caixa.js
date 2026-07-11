@@ -36,7 +36,7 @@
 
     const paymentLinesFromOrder = (order) => {
         const splits = splitsApi?.resolveOrderSplits?.(order) || [];
-        if (splits.length >= 2) return splits;
+        if (splits.length >= 1) return splits;
 
         const raw = String(order?.paymentMethod || '').toLowerCase();
         const methods = raw
@@ -48,7 +48,6 @@
         if (methods.length >= 2) {
             return methods.map((method) => ({ method, amount: null }));
         }
-        if (splits.length === 1) return splits;
         if (raw) return [{ method: raw, amount: total }];
         return [];
     };
@@ -68,12 +67,14 @@ ${amountHtml}
     const renderPaymentBlock = (order) => {
         const lines = paymentLinesFromOrder(order);
         const isSplit = lines.length >= 2;
+        const isCashTender =
+            lines.length === 1 && String(lines[0]?.method || '').toLowerCase() === 'dinheiro';
         const title = isSplit ? 'Formas de pagamento' : 'Forma de pagamento';
         const listHtml = lines.length
             ? `<ul class="totem-caixa-pay-list" aria-label="${esc(title)}">${lines.map(renderPaymentLine).join('')}</ul>`
             : `<p class="totem-caixa-card__empty-pay">Forma não informada</p>`;
         const troco =
-            isSplit && splitsApi?.computeCashChange
+            (isSplit || isCashTender) && splitsApi?.computeCashChange
                 ? splitsApi.computeCashChange(lines, order.total)
                 : 0;
         const trocoHtml =

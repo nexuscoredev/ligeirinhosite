@@ -102,6 +102,7 @@ export function resolveOrderSplits(order) {
     if (fromHuman.length >= 2) return fromHuman;
 
     if (fromColumn.length === 1) return fromColumn;
+    if (fromJson.length === 1) return fromJson;
     return [];
 }
 
@@ -139,6 +140,22 @@ export function computeCashChange(splits, total) {
 
 export function validatePaymentSplits(raw, total) {
     const analysis = analyzePaymentSplits(raw, total);
+    if (analysis.splits.length === 1 && analysis.splits[0].method === 'dinheiro') {
+        if (analysis.cashTendered + 0.009 < analysis.expected) {
+            const falta = roundMoney(analysis.expected - analysis.cashTendered);
+            return {
+                ok: false,
+                error: `Dinheiro insuficiente. Falta ${falta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}.`,
+                status: 400,
+            };
+        }
+        return {
+            ok: true,
+            splits: analysis.splits,
+            sum: analysis.tenderedSum,
+            troco: analysis.troco,
+        };
+    }
     if (analysis.splits.length < 2) {
         return { ok: false, error: 'Informe ao menos duas formas de pagamento.', status: 400 };
     }

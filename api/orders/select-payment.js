@@ -30,7 +30,7 @@ export default async function handler(req, res) {
         }
 
         const rawMethod = method || paymentMethod;
-        if (!rawMethod && !(Array.isArray(paymentSplits) && paymentSplits.length >= 2)) {
+        if (!rawMethod && !(Array.isArray(paymentSplits) && paymentSplits.length >= 1)) {
             return res.status(400).json({ error: 'Informe a forma de pagamento' });
         }
 

@@ -4958,6 +4958,18 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     color: var(--lig-text-muted);
 }
 
+.totem-pay-amounts--cash {
+    border-color: rgba(240, 201, 41, 0.45);
+    background: linear-gradient(165deg, #fffef8 0%, #fff8dc 55%, var(--lig-surface-alt, #f8fafc) 100%);
+}
+
+.totem-pay-amounts--cash .totem-pay-amounts__title {
+    color: var(--lig-yellow-text, #ca8a04);
+    letter-spacing: 0.02em;
+    text-transform: none;
+    font-size: 1rem;
+}
+
 .totem-pay-amounts__row {
     display: grid;
     grid-template-columns: 1fr minmax(7rem, 9rem);

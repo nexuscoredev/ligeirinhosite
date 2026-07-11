@@ -229,10 +229,10 @@
         const splitsApi = window.LigeirinhoPaymentSplits;
         if (splitsApi?.resolveOrderSplits) {
             const resolved = normalizeSplitEntries(splitsApi.resolveOrderSplits(order));
-            if (resolved.length >= 2) return resolved;
+            if (resolved.length >= 1) return resolved;
         }
         const fromColumn = normalizeSplitEntries(order?.paymentSplits || order?.payment_splits);
-        if (fromColumn.length >= 2) return fromColumn;
+        if (fromColumn.length >= 1) return fromColumn;
 
         const text = String(order?.notes || '');
         const start = text.indexOf(SPLIT_MARKER);
@@ -241,7 +241,7 @@
             if (end !== -1) {
                 try {
                     const parsed = normalizeSplitEntries(JSON.parse(text.slice(start + SPLIT_MARKER.length, end)));
-                    if (parsed.length >= 2) return parsed;
+                    if (parsed.length >= 1) return parsed;
                 } catch {
                     /* ignore */
                 }
@@ -267,7 +267,9 @@
 
     const buildPaymentReceiptBlock = (order, forPrint = false) => {
         const splits = resolvePaymentSplits(order);
-        if (splits.length >= 2) {
+        const isCashTender =
+            splits.length === 1 && String(splits[0]?.method || '').toLowerCase() === 'dinheiro';
+        if (splits.length >= 2 || isCashTender) {
             const rows = splits.map((item) => {
                 const label = methodLabel(item.method);
                 const amount = formatPrice(item.amount);
@@ -301,7 +303,9 @@
 
     const appendEscPosPaymentLines = (lines, order, width, padLine) => {
         const splits = resolvePaymentSplits(order);
-        if (splits.length >= 2) {
+        const isCashTender =
+            splits.length === 1 && String(splits[0]?.method || '').toLowerCase() === 'dinheiro';
+        if (splits.length >= 2 || isCashTender) {
             splits.forEach((item) => {
                 lines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
             });

@@ -216,13 +216,13 @@
     };
 
     const resolveOrderSplits = (order) => {
-        if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length >= 2) {
+        if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length >= 1) {
             const fromColumn = normalizeSplits(order.paymentSplits);
-            if (fromColumn.length >= 2) return fromColumn;
+            if (fromColumn.length >= 1) return fromColumn;
         }
-        if (Array.isArray(order?.payment_splits) && order.payment_splits.length >= 2) {
+        if (Array.isArray(order?.payment_splits) && order.payment_splits.length >= 1) {
             const fromColumn = normalizeSplits(order.payment_splits);
-            if (fromColumn.length >= 2) return fromColumn;
+            if (fromColumn.length >= 1) return fromColumn;
         }
         const fromJson = parseSplitsFromNotes(order?.notes);
         if (fromJson.length >= 2) return fromJson;

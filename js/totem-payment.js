@@ -137,13 +137,17 @@
 </div>`;
     };
 
+    const isCashMethod = (id) => splitsApi?.isCashMethod?.(id) || id === 'dinheiro';
+
     const initSelection = (order) => {
         currentOrder = order;
         formError = '';
         selectedIds = [];
         amountInputs = {};
         const splits = splitsApi?.resolveOrderSplits?.(order) || [];
-        if (splits.length >= 2) {
+        const cashOnlySplit =
+            splits.length === 1 && isCashMethod(splits[0]?.method) && Number(splits[0]?.amount) > 0;
+        if (splits.length >= 2 || cashOnlySplit) {
             selectedIds = splits.map((s) => s.method);
             splits.forEach((s) => {
                 amountInputs[s.method] = splitsApi.formatMoneyInput(s.amount);
@@ -153,12 +157,12 @@
         const method = String(order.paymentMethod || '').toLowerCase();
         if (method && !method.includes('+')) {
             selectedIds = [method.split('+')[0]];
-            amountInputs[selectedIds[0]] = splitsApi.formatMoneyInput(order.total);
+            amountInputs[selectedIds[0]] = isCashMethod(selectedIds[0])
+                ? ''
+                : splitsApi.formatMoneyInput(order.total);
         }
         stripCardFromSelection(order);
     };
-
-    const isCashMethod = (id) => splitsApi?.isCashMethod?.(id) || id === 'dinheiro';
 
     const currentSplitEntries = () =>
         selectedIds.map((method) => ({
@@ -191,19 +195,37 @@
     };
 
     const SPLIT_AMOUNTS_MSG = 'Preencha o valor das formas de pagamento para finalizar.';
+    const CASH_AMOUNT_MSG = 'Informe quanto vai pagar em dinheiro.';
+
+    const hasCashSelected = () => selectedIds.some((id) => isCashMethod(id));
+    const needsAmountFields = () => selectedIds.length >= 2 || hasCashSelected();
+    const isCashOnly = () => selectedIds.length === 1 && isCashMethod(selectedIds[0]);
 
     const isSplitAmountsValid = (total) => {
-        if (selectedIds.length < 2) return true;
+        if (!needsAmountFields()) return true;
         const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
         if (!everyFilled) return false;
+        if (isCashOnly()) {
+            const tendered = splitsApi.parseMoneyInput(amountInputs.dinheiro);
+            return tendered + 0.009 >= total;
+        }
         return Boolean(splitsApi.validateSplits(currentSplitEntries(), total, methodLabel).ok);
     };
 
     const splitAmountsHintHtml = (total) => {
-        if (selectedIds.length < 2 || isSplitAmountsValid(total)) return '';
+        if (!needsAmountFields() || isSplitAmountsValid(total)) return '';
         const everyFilled = selectedIds.every((id) => splitsApi.parseMoneyInput(amountInputs[id]) > 0);
         if (!everyFilled) {
-            return `<p class="totem-pay-amounts__warn">${esc(SPLIT_AMOUNTS_MSG)}</p>`;
+            return `<p class="totem-pay-amounts__warn">${esc(
+                isCashOnly() ? CASH_AMOUNT_MSG : SPLIT_AMOUNTS_MSG,
+            )}</p>`;
+        }
+        if (isCashOnly()) {
+            const tendered = splitsApi.parseMoneyInput(amountInputs.dinheiro);
+            const falta = splitsApi.roundMoney(Math.max(0, total - tendered));
+            if (falta > 0.009) {
+                return `<p class="totem-pay-amounts__warn">Dinheiro insuficiente. Falta ${formatPrice(falta)}.</p>`;
+            }
         }
         return '';
     };
@@ -237,17 +259,21 @@
             diffHtml = ` · Excedente: <strong>${formatPrice(analysis.tenderedSum - analysis.expected)}</strong>`;
         }
 
+        const prefix = isCashOnly()
+            ? `Em dinheiro: <strong>${formatPrice(analysis.cashTendered)}</strong> · Total: <strong>${formatPrice(total)}</strong>`
+            : `Informado: <strong>${formatPrice(analysis.tenderedSum)}</strong> · Total: <strong>${formatPrice(total)}</strong>`;
+
         return {
             ok,
             sumClass,
-            html: `Informado: <strong>${formatPrice(analysis.tenderedSum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${diffHtml}`,
+            html: `${prefix}${diffHtml}`,
         };
     };
 
     const syncConfirmButton = (total) => {
         const btn = root.querySelector('#totem-pay-confirm');
         if (!btn) return;
-        btn.disabled = !selectedIds.length || (selectedIds.length >= 2 && !isSplitAmountsValid(total));
+        btn.disabled = !selectedIds.length || (needsAmountFields() && !isSplitAmountsValid(total));
     };
 
     const applyFieldAmount = (input, total) => {
@@ -272,7 +298,7 @@
         }
         selectedIds.push(id);
         if (selectedIds.length === 1) {
-            // Pagamento único: valor = total no confirm; campos de split ainda não aparecem.
+            // Pix/Cartão único: valor = total no confirm. Dinheiro: pede o valor entregue.
             amountInputs[id] = '';
             return;
         }
@@ -287,28 +313,33 @@
     };
 
     const amountsHtml = (total) => {
-        if (selectedIds.length < 2) return '';
+        if (!needsAmountFields()) return '';
         const { sumClass, html } = formatAmountsSumMeta(total);
-        const hasCash = selectedIds.some((id) => isCashMethod(id));
-        const hint = hasCash
-            ? `Pix e Cartão: até o total (${formatPrice(total)}). Dinheiro pode ser maior — o troco aparece abaixo.`
-            : `Máximo por forma: até o total do pedido (${formatPrice(total)}).`;
-        return `<div class="totem-pay-amounts">
-<p class="totem-pay-amounts__title">Quanto em cada forma?</p>
-<p class="totem-pay-amounts__hint">${esc(hint)}</p>
-${selectedIds
-    .map((id) => {
-        const max = maxAmountForField(id, total);
-        const ariaMax = max == null ? 'sem limite (troco)' : `máximo ${formatPrice(max)}`;
-        return `<label class="totem-pay-amounts__row">
-<span class="totem-pay-amounts__label">${esc(methodLabel(id))}</span>
+        const cashOnly = isCashOnly();
+        const title = cashOnly ? 'Quanto vai pagar em dinheiro?' : 'Quanto em cada forma?';
+        const hint = cashOnly
+            ? `Informe o valor que vai entregar. O total do pedido é ${formatPrice(total)} — se for maior, o troco aparece abaixo.`
+            : hasCashSelected()
+              ? `Pix e Cartão: até o total (${formatPrice(total)}). Dinheiro pode ser maior — o troco aparece abaixo.`
+              : `Máximo por forma: até o total do pedido (${formatPrice(total)}).`;
+        const rows = (cashOnly ? ['dinheiro'] : selectedIds)
+            .map((id) => {
+                const max = maxAmountForField(id, total);
+                const ariaMax = max == null ? 'sem limite (troco)' : `máximo ${formatPrice(max)}`;
+                const label = cashOnly ? 'Valor em dinheiro' : methodLabel(id);
+                return `<label class="totem-pay-amounts__row">
+<span class="totem-pay-amounts__label">${esc(label)}</span>
 <span class="totem-pay-amounts__field">
 <span class="totem-pay-amounts__prefix">R$</span>
-<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off" aria-label="${esc(methodLabel(id))}, ${ariaMax}">
+<input type="text" inputmode="decimal" class="totem-pay-amounts__input" data-payment-amount="${esc(id)}" value="${esc(amountInputs[id] || '')}" placeholder="0,00" autocomplete="off" aria-label="${esc(label)}, ${ariaMax}">
 </span>
 </label>`;
-    })
-    .join('')}
+            })
+            .join('');
+        return `<div class="totem-pay-amounts${cashOnly ? ' totem-pay-amounts--cash' : ''}">
+<p class="totem-pay-amounts__title">${esc(title)}</p>
+<p class="totem-pay-amounts__hint">${esc(hint)}</p>
+${rows}
 <p class="totem-pay-amounts__sum${sumClass}">${html}</p>
 ${splitAmountsHintHtml(total)}
 </div>`;
@@ -389,7 +420,7 @@ ${icon}
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-pay-card--picker">
 <div class="totem-pay-card__head">
 <h1 class="lig-payment-title">Formas de pagamento</h1>
-<p class="lig-payment-lead">Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.</p>
+<p class="lig-payment-lead">Selecione uma ou mais formas. Em dinheiro, informe quanto vai entregar.</p>
 </div>
 ${renderSummary(order)}
 <div class="totem-pay-card__footer">
@@ -401,7 +432,7 @@ ${methods.map(methodButtonHtml).join('')}
 ${amountsHtml(total)}
 ${formError ? `<p class="totem-pay-error">${esc(formError)}</p>` : ''}
 <div class="totem-pay-actions totem-pay-actions--confirm">
-<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-pay-confirm" ${selectedIds.length && (selectedIds.length === 1 || isSplitAmountsValid(total)) ? '' : 'disabled'}>
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-pay-confirm" ${selectedIds.length && (!needsAmountFields() || isSplitAmountsValid(total)) ? '' : 'disabled'}>
 Confirmar pagamento
 </button>
 <a href="totem.html" class="totem-btn totem-btn--ghost totem-pay-back" data-totem-back-cart>Cancelar</a>
@@ -431,6 +462,23 @@ Confirmar pagamento
             if (orderHasPromo(order) && promoPay()?.metodoUsaCartao?.(selectedIds[0])) {
                 formError = promoPay().mensagemCartaoBloqueadoPromo();
                 return null;
+            }
+            if (isCashMethod(selectedIds[0])) {
+                const tendered = clampFieldAmount('dinheiro', amountInputs.dinheiro, total);
+                if (tendered <= 0) {
+                    formError = CASH_AMOUNT_MSG;
+                    return null;
+                }
+                if (tendered + 0.009 < total) {
+                    const falta = splitsApi.roundMoney(total - tendered);
+                    formError = `Dinheiro insuficiente. Falta ${formatPrice(falta)}.`;
+                    return null;
+                }
+                return {
+                    orderId: order.id,
+                    method: 'dinheiro',
+                    paymentSplits: [{ method: 'dinheiro', amount: tendered }],
+                };
             }
             return { orderId: order.id, method: selectedIds[0] };
         }
