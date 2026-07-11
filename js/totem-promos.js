@@ -9,6 +9,8 @@
     let selectedUnits = new Map();
     let fetchError = false;
     let promoLoader = null;
+    let searchQuery = '';
+    let searchTimer = null;
 
     const esc = (value) =>
         String(value ?? '')
@@ -126,6 +128,77 @@
     };
 
     const formatPrice = (value) => deps?.formatPrice?.(value) ?? catalog()?.formatPrice?.(value) ?? String(value ?? '');
+
+    const normalizeSearch = (value) =>
+        String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+
+    const grupoSearchHaystack = (grupo) => {
+        const entry = activeEntryForGroup(grupo);
+        const promo = entry?.promo;
+        const item = entry?.item;
+        return normalizeSearch(
+            [
+                grupo?.nomeExibicao,
+                promo?.name,
+                promo?.hubProductName,
+                item?.group?.baseName,
+                item?.product?.name,
+                promo?.sku,
+                item?.product?.sku,
+            ]
+                .filter(Boolean)
+                .join(' '),
+        );
+    };
+
+    const getVisiblePromoGroups = () => {
+        const q = normalizeSearch(searchQuery);
+        if (!q) return promoGroups;
+        return promoGroups.filter((grupo) => grupoSearchHaystack(grupo).includes(q));
+    };
+
+    const updateSearchClearBtn = () => {
+        const clearBtn = deps?.searchClearBtn;
+        if (clearBtn) clearBtn.hidden = !searchQuery;
+    };
+
+    const updateEmptyCopy = ({ searching = false } = {}) => {
+        const titleEl = deps?.emptyTitleEl || document.getElementById('totem-promos-empty-title');
+        const leadEl = deps?.emptyLeadEl || document.getElementById('totem-promos-empty-lead');
+        if (titleEl) {
+            titleEl.textContent = searching
+                ? 'Nenhuma promoção encontrada'
+                : 'Nenhuma promoção no momento';
+        }
+        if (leadEl) {
+            leadEl.textContent = searching
+                ? 'Tente outro termo ou limpe a busca.'
+                : 'Cadastre itens na tabela PROMOCAO no Ligeirinho Operacional para exibir aqui.';
+        }
+    };
+
+    const setSearchQuery = (value) => {
+        searchQuery = String(value || '').trim();
+        updateSearchClearBtn();
+        if (!promoGroups.length && !fetchError) {
+            updateEmptyCopy({ searching: false });
+            return;
+        }
+        renderGrid();
+        deps.onBumpIdle?.();
+    };
+
+    const clearSearch = () => {
+        searchQuery = '';
+        if (deps?.searchInput) deps.searchInput.value = '';
+        updateSearchClearBtn();
+        if (promoGroups.length) renderGrid();
+        else updateEmptyCopy({ searching: false });
+    };
 
     const buildPromoPriceHtml = (ctx) => {
         const packPrice = ctx.promoPrice;
@@ -302,7 +375,7 @@ ${bodyHtml}
 
     const syncCart = () => {
         if (!deps?.gridEl || !promoGroups.length) return;
-        promoGroups.forEach((grupo) => {
+        getVisiblePromoGroups().forEach((grupo) => {
             const entry = activeEntryForGroup(grupo);
             if (!entry) return;
             const ctx = buildCartCtx(entry);
@@ -315,6 +388,16 @@ ${bodyHtml}
     const renderGrid = () => {
         if (!deps?.gridEl) return;
         if (!promoGroups.length) {
+            updateEmptyCopy({ searching: false });
+            setPanelVisibility({ showEmpty: true });
+            deps.gridEl.innerHTML = '';
+            deps.gridEl.classList.remove('totem-promos__grid--carousel');
+            return;
+        }
+
+        const visible = getVisiblePromoGroups();
+        if (!visible.length) {
+            updateEmptyCopy({ searching: Boolean(searchQuery) });
             setPanelVisibility({ showEmpty: true });
             deps.gridEl.innerHTML = '';
             deps.gridEl.classList.remove('totem-promos__grid--carousel');
@@ -324,7 +407,7 @@ ${bodyHtml}
         setPanelVisibility({ showGrid: true });
         deps.gridEl.classList.remove('totem-promos__grid--carousel');
         deps.gridEl.innerHTML = `<div class="totem-grid totem-grid--grid-m totem-grid--promos" role="list">
-${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
+${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
 </div>`;
     };
 
@@ -422,6 +505,7 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
             return;
         }
         if (!promoGroups.length) {
+            updateEmptyCopy({ searching: false });
             setPanelVisibility({ showEmpty: true });
             deps.gridEl.innerHTML = '';
             return;
@@ -463,9 +547,55 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         };
     };
 
+    const bindSearch = () => {
+        const input = deps?.searchInput;
+        const form = deps?.searchForm;
+        const clearBtn = deps?.searchClearBtn;
+        if (!input) return;
+
+        form?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            setSearchQuery(input.value);
+        });
+
+        clearBtn?.addEventListener('click', () => {
+            clearSearch();
+            deps.onBumpIdle?.();
+            input.focus();
+            window.LigeirinhoTotemKeyboard?.init?.({
+                input,
+                onInput: (value) => {
+                    deps.onBumpIdle?.();
+                    if (searchTimer) clearTimeout(searchTimer);
+                    searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+                },
+                onSubmit: (value) => setSearchQuery(value),
+                onClose: () => deps.onBumpIdle?.(),
+            });
+        });
+
+        const attachKeyboard = () => {
+            window.LigeirinhoTotemKeyboard?.init?.({
+                input,
+                onInput: (value) => {
+                    deps.onBumpIdle?.();
+                    if (searchTimer) clearTimeout(searchTimer);
+                    searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+                },
+                onSubmit: (value) => setSearchQuery(value),
+                onClose: () => deps.onBumpIdle?.(),
+            });
+        };
+
+        input.addEventListener('focus', attachKeyboard);
+        input.addEventListener('click', attachKeyboard);
+        updateSearchClearBtn();
+    };
+
     const bindGrid = () => {
         if (!deps?.gridEl || bound) return;
         bound = true;
+        bindSearch();
         deps.retryBtn?.addEventListener('click', () => refresh());
         deps.gridEl.addEventListener('click', (e) => {
             const unitBtn = e.target.closest('[data-promo-unit]');
@@ -475,8 +605,9 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
                 const grupo = promoGroups.find((item) => item.chave === groupKey);
                 if (!grupo || !unit || !grupo.byUnit[unit]) return;
                 selectedUnits.set(groupKey, unit);
-                const index = promoGroups.indexOf(grupo);
-                replacePromoCard(grupo, index);
+                const visible = getVisiblePromoGroups();
+                const index = visible.indexOf(grupo);
+                replacePromoCard(grupo, index >= 0 ? index : promoGroups.indexOf(grupo));
                 deps.onBumpIdle?.();
                 return;
             }
@@ -547,6 +678,7 @@ ${promoGroups.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         refresh,
         invalidate,
         syncCart,
+        clearSearch,
         closeLightbox: () => {},
         stopAuto: () => {},
         startAuto: () => {},

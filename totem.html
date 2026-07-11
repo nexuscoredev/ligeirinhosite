@@ -328,6 +328,15 @@
 <p class="totem-promos__lead">Produtos em promoção — adicione direto ao carrinho.</p>
 </div>
 </header>
+<div class="totem-promos__toolbar">
+<form class="totem-search totem-promos__search" id="totem-promos-search-form" role="search">
+<span class="material-symbols-outlined totem-search__icon" aria-hidden="true">search</span>
+<input type="search" id="totem-promos-search-input" class="totem-search__input" placeholder="Buscar promoções…" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="search" aria-label="Buscar promoções" readonly inputmode="none">
+<button type="button" class="totem-search__clear" id="totem-promos-search-clear" hidden aria-label="Limpar busca">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</form>
+</div>
 <div class="totem-promos__body">
 <div class="totem-promos__loading" id="totem-promos-loading" hidden aria-live="polite">
 <div class="totem-promos__stage-skeleton" aria-hidden="true"></div>
@@ -342,8 +351,8 @@
 <div class="totem-promos__grid" id="totem-promos-grid" role="region" aria-label="Grade de promoções"></div>
 <div class="totem-promos__empty" id="totem-promos-empty" hidden>
 <span class="material-symbols-outlined totem-promos__empty-icon" aria-hidden="true">sell</span>
-<p class="totem-promos__empty-title">Nenhuma promoção no momento</p>
-<p class="totem-promos__empty-lead">Cadastre itens na tabela PROMOCAO no Ligeirinho Operacional para exibir aqui.</p>
+<p class="totem-promos__empty-title" id="totem-promos-empty-title">Nenhuma promoção no momento</p>
+<p class="totem-promos__empty-lead" id="totem-promos-empty-lead">Cadastre itens na tabela PROMOCAO no Ligeirinho Operacional para exibir aqui.</p>
 </div>
 </div>
 </section>

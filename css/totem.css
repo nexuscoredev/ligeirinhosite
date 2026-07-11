@@ -779,6 +779,16 @@ html.totem--admin-edit .totem-product::after {
     flex: 1 1 auto;
 }
 
+.totem-promos__toolbar {
+    flex-shrink: 0;
+    margin: 0 0.1rem 0.65rem;
+}
+
+.totem-promos__search {
+    margin: 0;
+    width: 100%;
+}
+
 .totem-promos__back {
     position: static;
     flex-shrink: 0;

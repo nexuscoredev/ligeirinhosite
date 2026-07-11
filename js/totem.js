@@ -2050,6 +2050,7 @@ ${unitHtml}
 
     const leavePromosView = () => {
         window.LigeirinhoTotemPromos?.stopAuto?.();
+        window.LigeirinhoTotemPromos?.clearSearch?.();
         setView(resolvePromosBackTarget());
         renderCart();
         renderProducts();
@@ -3346,9 +3347,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         await window.LigeirinhoTotemPromos?.init?.({
             gridEl: document.getElementById('totem-promos-grid'),
             emptyEl: document.getElementById('totem-promos-empty'),
+            emptyTitleEl: document.getElementById('totem-promos-empty-title'),
+            emptyLeadEl: document.getElementById('totem-promos-empty-lead'),
             loadingEl: document.getElementById('totem-promos-loading'),
             errorEl: document.getElementById('totem-promos-error'),
             retryBtn: document.getElementById('totem-promos-retry'),
+            searchForm: document.getElementById('totem-promos-search-form'),
+            searchInput: document.getElementById('totem-promos-search-input'),
+            searchClearBtn: document.getElementById('totem-promos-search-clear'),
             getDisplayItems: () => displayItems,
             getPromoCatalogItems: () => promoCatalogItems,
             isProductHidden: (productId) =>
