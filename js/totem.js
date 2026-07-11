@@ -1650,7 +1650,7 @@ ${unitHtml}
         customerError.hidden = !message;
     };
 
-    const initSearchKeyboard = () => {
+    const attachCatalogSearchKeyboard = () => {
         if (!searchInput) return;
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: searchInput,
@@ -1662,6 +1662,18 @@ ${unitHtml}
             onSubmit: (value) => setSearchQuery(value),
             onClose: bumpIdle,
         });
+    };
+
+    const initSearchKeyboard = () => {
+        if (!searchInput) return;
+        // Re-liga o teclado a cada foco: o TotemKeyboard é singleton e a aba
+        // Promoções (ou outros campos) pode ter roubado o input ativo.
+        if (!searchInput.dataset.totemCatalogVkBound) {
+            searchInput.dataset.totemCatalogVkBound = '1';
+            searchInput.addEventListener('focus', attachCatalogSearchKeyboard);
+            searchInput.addEventListener('click', attachCatalogSearchKeyboard);
+        }
+        attachCatalogSearchKeyboard();
     };
 
     const bindCustomerKeyboard = (field, mode = null) => {
@@ -2051,9 +2063,11 @@ ${unitHtml}
     const leavePromosView = () => {
         window.LigeirinhoTotemPromos?.stopAuto?.();
         window.LigeirinhoTotemPromos?.clearSearch?.();
-        setView(resolvePromosBackTarget());
+        const target = resolvePromosBackTarget();
+        setView(target);
         renderCart();
         renderProducts();
+        if (target === 'catalog') initSearchKeyboard();
     };
 
     const updateFloatCart = (cart) => {
@@ -3271,6 +3285,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
         searchClearBtn?.addEventListener('click', () => {
             clearSearch();
             renderProducts();
+            initSearchKeyboard();
             searchInput?.focus();
             totemKeyboard?.show?.();
             bumpIdle();
