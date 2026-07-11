@@ -90,6 +90,20 @@ function parseSplitsFromNotesHuman(notes) {
     return out.length >= 2 ? out : [];
 }
 
+/** Preferir o split com maior valor em dinheiro (valor entregue / troco). */
+function preferCashTendered(a, b) {
+    const cashOf = (splits) => {
+        if (!splits?.length) return 0;
+        const cash = splits.find((s) => s.method === 'dinheiro');
+        return cash ? cash.amount : 0;
+    };
+    if (!a?.length) return b || [];
+    if (!b?.length) return a;
+    if (a.length >= 2 && b.length < 2) return a;
+    if (b.length >= 2 && a.length < 2) return b;
+    return cashOf(b) > cashOf(a) + 0.009 ? b : a;
+}
+
 export function resolveOrderSplits(order) {
     if (!order) return [];
     const fromColumn = normalizeSplits(order.payment_splits || order.paymentSplits);
@@ -101,9 +115,9 @@ export function resolveOrderSplits(order) {
     const fromHuman = parseSplitsFromNotesHuman(order.notes);
     if (fromHuman.length >= 2) return fromHuman;
 
-    if (fromColumn.length === 1) return fromColumn;
-    if (fromJson.length === 1) return fromJson;
-    return [];
+    // Só dinheiro: notes podem ter o valor entregue (com troco) enquanto a coluna
+    // ficou só com o total do pedido — preferir o maior valor em dinheiro.
+    return preferCashTendered(fromColumn, fromJson);
 }
 
 export function isSplitPayment(order) {

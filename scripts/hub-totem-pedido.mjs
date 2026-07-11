@@ -127,6 +127,19 @@ function coalesceSplitArray(raw) {
     return [];
 }
 
+function preferCashTenderedSplits(a, b) {
+    const cashOf = (splits) => {
+        if (!splits?.length) return 0;
+        const cash = splits.find((s) => s.method === 'dinheiro');
+        return cash ? Number(cash.amount) || 0 : 0;
+    };
+    if (!a?.length) return b || [];
+    if (!b?.length) return a;
+    if (a.length >= 2 && b.length < 2) return a;
+    if (b.length >= 2 && a.length < 2) return b;
+    return cashOf(b) > cashOf(a) + 0.009 ? b : a;
+}
+
 function resolveOrderSplits(order) {
     const fromColumn = coalesceSplitArray(order.payment_splits || order.paymentSplits)
         .map((entry) => ({
@@ -142,9 +155,8 @@ function resolveOrderSplits(order) {
     const fromNotes = parseSplitsFromNotes(order.notes);
     if (fromNotes.length >= 2) return fromNotes;
 
-    if (fromColumn.length === 1) return fromColumn;
-    if (fromNotes.length === 1) return fromNotes;
-    return [];
+    // Só dinheiro: preferir notes se tiverem valor entregue (troco) maior que a coluna.
+    return preferCashTenderedSplits(fromColumn, fromNotes);
 }
 
 function buildPagamentoSplit(order) {
@@ -165,6 +177,7 @@ function buildObservacoesTotem(order) {
     const code = formatTotemCode(order.id);
     const parts = [`${totemLabel} · código ${code}`];
     const splits = resolveOrderSplits(order);
+    const total = Number(order.total) || 0;
     if (splits.length >= 2) {
         parts.push(
             `Pagamento dividido: ${splits
@@ -173,6 +186,15 @@ function buildObservacoesTotem(order) {
                         `${paymentMethodLabel(item.method)} R$ ${item.amount.toFixed(2).replace('.', ',')}`,
                 )
                 .join(' + ')}`,
+        );
+    } else if (splits.length === 1 && splits[0].method === 'dinheiro') {
+        const tendered = splits[0].amount;
+        const troco = roundMoney(Math.max(0, tendered - total));
+        const dinheiroTxt = `Dinheiro R$ ${tendered.toFixed(2).replace('.', ',')}`;
+        parts.push(
+            troco > 0.009
+                ? `Pagamento: ${dinheiroTxt} (troco R$ ${troco.toFixed(2).replace('.', ',')})`
+                : `Pagamento: ${dinheiroTxt}`,
         );
     } else if (order.payment_method) {
         parts.push(`Pagamento: ${paymentMethodLabel(order.payment_method)}`);
@@ -341,6 +363,13 @@ function resolveCustomerCpf(order) {
 export function publicTotemLookupView(order, hubPedido = null) {
     const splits = resolveOrderSplits(order);
     const pagamentoSplit = buildPagamentoSplit(order);
+    const total = Number(order.total) || 0;
+    const cash = splits.find((item) => item.method === 'dinheiro');
+    const nonCashSum = roundMoney(
+        splits.filter((item) => item.method !== 'dinheiro').reduce((acc, item) => acc + item.amount, 0),
+    );
+    const neededFromCash = cash ? roundMoney(Math.max(0, total - nonCashSum)) : 0;
+    const cashChange = cash ? roundMoney(Math.max(0, cash.amount - neededFromCash)) : 0;
     const customerCpf = resolveCustomerCpf(order);
     const paymentMethodRaw = String(order.payment_method || '').toLowerCase().trim();
     const paymentMethod =
@@ -353,7 +382,7 @@ export function publicTotemLookupView(order, hubPedido = null) {
         orderId: order.id,
         code: formatTotemCode(order.id),
         codeRaw: normalizeTotemCode(order.id).toUpperCase(),
-        total: Number(order.total) || 0,
+        total,
         items: Array.isArray(order.items) ? order.items : [],
         paymentMethod,
         paymentSplits: splits.map((item) => ({
@@ -362,6 +391,7 @@ export function publicTotemLookupView(order, hubPedido = null) {
             amount: item.amount,
         })),
         pagamentoSplit,
+        cashChange,
         isSplitPayment: splits.length >= 2 || paymentMethod.includes('+'),
         notes: order.notes || null,
         totemLabel: order.totem_label || 'Ligeirinho Totem',

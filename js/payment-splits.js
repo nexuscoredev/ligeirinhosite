@@ -215,21 +215,35 @@
         return out.length >= 2 ? out : [];
     };
 
+    const preferCashTendered = (a, b) => {
+        const cashOf = (splits) => {
+            if (!splits?.length) return 0;
+            const cash = splits.find((s) => s.method === 'dinheiro');
+            return cash ? cash.amount : 0;
+        };
+        if (!a?.length) return b || [];
+        if (!b?.length) return a;
+        if (a.length >= 2 && b.length < 2) return a;
+        if (b.length >= 2 && a.length < 2) return b;
+        return cashOf(b) > cashOf(a) + 0.009 ? b : a;
+    };
+
     const resolveOrderSplits = (order) => {
+        let fromColumn = [];
         if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length >= 1) {
-            const fromColumn = normalizeSplits(order.paymentSplits);
-            if (fromColumn.length >= 1) return fromColumn;
+            fromColumn = normalizeSplits(order.paymentSplits);
+        } else if (Array.isArray(order?.payment_splits) && order.payment_splits.length >= 1) {
+            fromColumn = normalizeSplits(order.payment_splits);
         }
-        if (Array.isArray(order?.payment_splits) && order.payment_splits.length >= 1) {
-            const fromColumn = normalizeSplits(order.payment_splits);
-            if (fromColumn.length >= 1) return fromColumn;
-        }
+        if (fromColumn.length >= 2) return fromColumn;
+
         const fromJson = parseSplitsFromNotes(order?.notes);
         if (fromJson.length >= 2) return fromJson;
         const fromHuman = parseSplitsFromNotesHuman(order?.notes);
         if (fromHuman.length >= 2) return fromHuman;
-        if (fromJson.length === 1) return fromJson;
-        return [];
+
+        // Só dinheiro: preferir notes se tiverem valor entregue (troco) maior.
+        return preferCashTendered(fromColumn, fromJson);
     };
 
     window.LigeirinhoPaymentSplits = {
