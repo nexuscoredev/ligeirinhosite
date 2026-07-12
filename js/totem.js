@@ -876,8 +876,6 @@ ${unitHtml}
     };
 
     const buildTotemCategories = () => {
-        const order = (catalogData?.categories || []).map((c) => canonCategoryId(c.id));
-        const orderIndex = new Map(order.map((id, i) => [id, i]));
         const counts = new Map();
 
         displayItems.forEach((item) => {
@@ -905,11 +903,11 @@ ${unitHtml}
             merged.push({ id: cid, name: canonCategoryName(cid, cid), count });
         });
 
-        merged.sort(
-            (a, b) =>
-                (orderIndex.get(a.id) ?? 999) - (orderIndex.get(b.id) ?? 999) ||
-                a.name.localeCompare(b.name, 'pt-BR')
-        );
+        merged.sort((a, b) => {
+            const labelA = catalog.formatCategoryLabel(a.name);
+            const labelB = catalog.formatCategoryLabel(b.name);
+            return labelA.localeCompare(labelB, 'pt-BR', { sensitivity: 'base' });
+        });
         return merged;
     };
 
