@@ -3238,6 +3238,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
             }
             if (addBtn) {
                 addDetailToCart(addBtn.dataset.cartKey, addBtn.dataset.itemKey);
+                closeProductDetail();
             }
         });
 
