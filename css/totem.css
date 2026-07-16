@@ -3610,9 +3610,11 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 
 .totem-product .ze-price-tier--active {
     background: #14120f;
-    border-color: #14120f;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(20, 18, 15, 0.22);
+    border-color: #f0c929;
+    color: #fde047;
+    box-shadow:
+        0 0 0 1px rgba(240, 201, 41, 0.28),
+        0 3px 10px rgba(20, 18, 15, 0.28);
 }
 
 .totem-product .ze-price-tier--promo:not(.ze-price-tier--active) {
