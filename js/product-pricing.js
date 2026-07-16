@@ -299,44 +299,62 @@
         return items;
     };
 
+    const getTotemAvailableTiers = (group) =>
+        ['unidade', 'caixa'].filter((tier) => group?.variants?.[tier]?.price != null);
+
     const getTotemDefaultTier = (group) => {
-        if (group?.variants?.caixa?.price != null) return 'caixa';
-        if (group?.variants?.unidade?.price != null) return 'unidade';
+        const tiers = getTotemAvailableTiers(group);
+        if (tiers.includes('caixa')) return 'caixa';
+        if (tiers.includes('unidade')) return 'unidade';
         if (group?.variants?.pallet?.price != null) return 'pallet';
         return null;
     };
 
-    /** Totem: um card por produto CX ou UN (pallet fica de fora). */
-    const getTotemDisplayProducts = (catalogData) => {
+    /** Totem: um card por produto (UN + CX unidos), pallet fica de fora. */
+    const getTotemDisplayProducts = (catalogData, groupsMap = null) => {
+        const groups = groupsMap || buildGroups(catalogData);
         const items = [];
+        const seen = new Set();
 
         catalogData.categories.forEach((cat) => {
-            cat.products.forEach((product) => {
+            const groupKeys = new Set();
+            (cat.products || []).forEach((product) => {
                 if (product.vendaParceiros === false) return;
                 const price = Number(product.price);
                 if (!Number.isFinite(price) || price <= 0) return;
-
                 const pack = parsePack(product);
                 if (!isCaixaPack(pack) && !isUnidadePack(pack)) return;
+                groupKeys.add(`${cat.id}::${normalizeKey(product.name, cat.id)}`);
+            });
 
-                const tier = isUnidadePack(pack) ? 'unidade' : 'caixa';
-                const group = packVariantFromProduct(product, pack, cat);
+            groupKeys.forEach((key) => {
+                if (seen.has(key)) return;
+                const group = groups.get(key);
+                if (!group) return;
+                const defaultTier = getTotemDefaultTier(group);
+                if (!defaultTier || (defaultTier !== 'unidade' && defaultTier !== 'caixa')) return;
+                if (!getTotemAvailableTiers(group).length) return;
+
+                const primary =
+                    group.variants[defaultTier] || group.variants.caixa || group.variants.unidade;
+                if (!primary) return;
+                seen.add(key);
                 items.push({
                     group,
                     product: {
-                        id: product.id,
-                        hubId: product.hubId,
-                        sku: product.sku,
+                        id: primary.id,
+                        hubId: primary.hubId,
+                        sku: primary.sku,
                         name: group.baseName,
-                        price: product.price,
-                        image: product.image,
-                        adultOnly: product.adultOnly,
-                        description: product.description,
-                        unidade: product.unidade || (tier === 'unidade' ? 'UN' : 'CX'),
+                        price: primary.price,
+                        image: group.image || primary.image,
+                        adultOnly: group.adultOnly ?? primary.adultOnly,
+                        description: group.description || primary.description,
+                        unidade: primary.unidade || (defaultTier === 'unidade' ? 'UN' : 'CX'),
                     },
-                    categoryName: cat.name,
-                    categoryId: cat.id,
-                    defaultTier: tier,
+                    categoryName: group.categoryName || cat.name,
+                    categoryId: group.categoryId || cat.id,
+                    defaultTier,
                 });
             });
         });
@@ -422,6 +440,7 @@
         getVariant,
         getDisplayProducts,
         getTotemDisplayProducts,
+        getTotemAvailableTiers,
         getTotemDefaultTier,
         packLineLabel,
         getUnitPrice,

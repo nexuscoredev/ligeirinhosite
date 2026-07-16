@@ -669,27 +669,47 @@ ${qtyLine}`;
 
     const activeTierFor = (group) => {
         if (!group?.key) return 'caixa';
-        const preferred =
-            tierByGroup.get(group.key) ||
+        const preferred = tierByGroup.get(group.key);
+        if (preferred && group.variants?.[preferred]?.price != null) return preferred;
+
+        // Preferência: embalagem que está em promoção.
+        for (const tier of ['caixa', 'unidade']) {
+            const variant = group.variants?.[tier];
+            if (!variant || variant.price == null) continue;
+            const key = catalog.cartKeyFor({ ...variant, tier });
+            if (promoOffersByCartKey.has(key)) return tier;
+        }
+
+        const fallback =
             pricing.getTotemDefaultTier(group) ||
             pricing.getDefaultTier(group) ||
             'caixa';
-        if (group.variants?.[preferred]?.price != null) return preferred;
+        if (group.variants?.[fallback]?.price != null) return fallback;
         if (group.variants?.caixa?.price != null) return 'caixa';
         if (group.variants?.unidade?.price != null) return 'unidade';
         if (group.variants?.pallet?.price != null) return 'pallet';
-        return preferred;
+        return fallback;
     };
 
     const priceTiersHtml = (group, activeTier) => {
         if (!group) return '';
-        const tiers = pricing.getAvailableTiers(group);
+        const tiers =
+            pricing.getTotemAvailableTiers?.(group) ||
+            pricing.getAvailableTiers(group) ||
+            [];
         if (tiers.length <= 1) return '';
         const buttons = tiers
             .map((tier) => {
                 const active = tier === activeTier;
+                const variant = pricing.getVariant(group, tier);
+                const cartKey = variant ? catalog.cartKeyFor(variant) : '';
+                const offer = resolvePromoOffer(cartKey, group.key, tier);
                 const label = pricing.TIER_SHORT?.[tier] || tier;
-                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)}</button>`;
+                const promoClass = offer?.promoId ? ' ze-price-tier--promo' : '';
+                const promoMark = offer?.promoId
+                    ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
+                    : '';
+                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)}${promoMark}</button>`;
             })
             .join('');
         return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Embalagem">${buttons}</div></div>`;
@@ -824,6 +844,14 @@ ${unitHtml}
             payTag.remove();
         }
 
+        const packTag = card.querySelector('.totem-product__pack-tag');
+        if (packTag && variant) {
+            const label = tier === 'pallet' ? 'Pallet' : tier === 'caixa' ? 'Caixa' : 'Unidade';
+            const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
+            if (labelEl) labelEl.textContent = label;
+            packTag.setAttribute('aria-label', `Embalagem ${label}`);
+        }
+
         const minus = card.querySelector('.totem-minus');
         const plus = card.querySelector('.totem-plus');
         const qtyEl = card.querySelector('.totem-qty-value');
@@ -833,13 +861,33 @@ ${unitHtml}
         }
         if (plus) {
             plus.dataset.cartKey = cartKey;
+            plus.dataset.priceTier = tier;
         }
         if (qtyEl) qtyEl.textContent = String(qty);
 
         card.querySelectorAll('.ze-price-tier').forEach((btn) => {
-            const isActive = btn.dataset.priceTier === tier;
+            const btnTier = btn.dataset.priceTier;
+            const isActive = btnTier === tier;
+            const btnVariant = pricing.getVariant(group, btnTier);
+            const btnKey = btnVariant ? catalog.cartKeyFor(btnVariant) : '';
+            const btnOffer = resolvePromoOffer(btnKey, group.key, btnTier);
             btn.classList.toggle('ze-price-tier--active', isActive);
+            btn.classList.toggle('ze-price-tier--promo', Boolean(btnOffer?.promoId));
             btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            let promoMark = btn.querySelector('.ze-price-tier__promo');
+            if (btnOffer?.promoId) {
+                const text =
+                    btnOffer.discountPct > 0 ? `-${btnOffer.discountPct}%` : 'PROMO';
+                if (promoMark) promoMark.textContent = text;
+                else {
+                    promoMark = document.createElement('span');
+                    promoMark.className = 'ze-price-tier__promo';
+                    promoMark.textContent = text;
+                    btn.appendChild(promoMark);
+                }
+            } else if (promoMark) {
+                promoMark.remove();
+            }
         });
     };
 
@@ -1004,7 +1052,7 @@ ${unitHtml}
 
     const buildDisplayItems = () => {
         if (!catalogData) return [];
-        return pricing.getTotemDisplayProducts(catalogData);
+        return pricing.getTotemDisplayProducts(catalogData, window.__ligProductGroups);
     };
 
     const buildPromoCatalogItems = () => {
@@ -1095,22 +1143,24 @@ ${unitHtml}
     };
 
     const resolvePromoOffer = (cartKey, itemKey, tier) => {
-        if (cartKey && promoOffersByCartKey.has(cartKey)) return promoOffersByCartKey.get(cartKey);
+        if (cartKey && promoOffersByCartKey.has(cartKey)) {
+            const byCart = promoOffersByCartKey.get(cartKey);
+            if (!tier || !byCart?.tier || byCart.tier === tier) return byCart;
+        }
         const byItem = itemKey ? promoOffersByItemKey.get(itemKey) : null;
         if (!byItem) return null;
-        if (tier && byItem.tiers?.[tier]) {
+        if (tier) {
+            const tierOffer = byItem.tiers?.[tier];
+            if (!tierOffer) return null;
             return {
-                promoId: byItem.tiers[tier].promoId,
-                promoPrice: byItem.tiers[tier].promoPrice,
-                originalPrice: byItem.tiers[tier].originalPrice,
+                promoId: tierOffer.promoId,
+                promoPrice: tierOffer.promoPrice,
+                originalPrice: tierOffer.originalPrice,
                 discountPct:
-                    byItem.tiers[tier].originalPrice > byItem.tiers[tier].promoPrice
+                    tierOffer.originalPrice > tierOffer.promoPrice
                         ? Math.max(
                               0,
-                              Math.round(
-                                  (1 - byItem.tiers[tier].promoPrice / byItem.tiers[tier].originalPrice) *
-                                      100,
-                              ),
+                              Math.round((1 - tierOffer.promoPrice / tierOffer.originalPrice) * 100),
                           )
                         : 0,
                 tier,
