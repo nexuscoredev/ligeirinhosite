@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v327';
+const CACHE_NAME = 'ligeirinho-app-v328';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -66,6 +66,7 @@ const APP_SHELL = [
     '/manifest.webmanifest',
     '/css/site.css',
     '/css/theme-forms.css',
+    '/img/tag-pix-dinheiro.png',
     '/js/theme.js',
     '/js/theme-ui.js',
     '/js/app.js',
