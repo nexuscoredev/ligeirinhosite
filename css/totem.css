@@ -984,6 +984,31 @@ html.totem--admin-edit .totem-product::after {
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
 }
 
+.totem-product__pay-tag {
+    position: absolute;
+    top: 0.42rem;
+    left: 0.42rem;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.24rem 0.45rem;
+    border-radius: 999px;
+    background: linear-gradient(165deg, #0f766e 0%, #0d9488 55%, #14b8a6 100%);
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.72);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+}
+
+.totem-product__pay-tag-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .totem-product--promo .totem-product__promo-valid {
     margin: 0.15rem 0 0;
     font-size: 0.625rem;
@@ -1507,6 +1532,18 @@ html.totem--admin-edit .totem-product::after {
     text-transform: uppercase;
     color: #1a1200;
     background: linear-gradient(135deg, #f0c929, #e6a800);
+}
+
+.totem-cart-line__pay-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
 }
 
 .totem-cart-line__meta .totem-cart-line__promo + .totem-cart-line__pack::before {
@@ -6400,6 +6437,20 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     color: #14120f;
     background: linear-gradient(165deg, #fde047 0%, #f0c929 55%, #d4a81a 100%);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.totem-detail__pay-tag {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.35rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    background: linear-gradient(165deg, #0f766e 0%, #0d9488 55%, #14b8a6 100%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
 .totem-detail__media {

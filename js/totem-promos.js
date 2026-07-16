@@ -258,6 +258,9 @@ ${grupo.unidadesDisponiveis
         return `<span class="totem-product__pack-tag" aria-label="Embalagem ${esc(packLabel)}"><span class="totem-product__pack-tag-label">${esc(packLabel)}</span></span>`;
     };
 
+    const promoPayTagHtml = () =>
+        `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><span class="totem-product__pay-tag-label">Pix/Dinheiro</span></span>`;
+
     const buildPromoOnlyCardHtml = (grupo, entry, index) => {
         const { promo } = entry;
         const ctx = buildCartCtx(entry);
@@ -268,6 +271,7 @@ ${grupo.unidadesDisponiveis
 
         return `<article class="totem-product totem-product--promo totem-product--promo-unlinked" ${attrs}>
 <div class="totem-product__media">
+${promoPayTagHtml()}
 ${mediaPackTagHtml(ctx.promoUnit)}
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>
@@ -304,6 +308,7 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
         const attrs = `role="listitem" data-promo-group-key="${esc(grupo.chave)}" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-promo-id="${esc(promo.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
 
         const mediaHtml = `<div class="totem-product__media">
+${promoPayTagHtml()}
 ${packTag}
 ${qty ? `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}

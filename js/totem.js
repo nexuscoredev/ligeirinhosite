@@ -478,7 +478,7 @@
                         ? `<span class="totem-detail__price-old">${formatPrice(block.originalPrice)}</span>`
                         : '';
                 const promoBadge = block.promo
-                    ? '<span class="totem-detail__promo-badge">PROMO</span>'
+                    ? '<span class="totem-detail__promo-badge">PROMO</span><span class="totem-detail__pay-tag">Pix/Dinheiro</span>'
                     : '';
                 const perUnit = block.perUnit
                     ? `<span class="totem-detail__price-per">${esc(block.perUnit)}</span>`
@@ -2768,7 +2768,7 @@ ${cartLineThumbHtml(item)}
 <div class="totem-cart-line__body">
 <div class="totem-cart-line__name">${esc(item.name)}</div>
 <div class="totem-cart-line__meta">
-${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span>' : ''}
+${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="totem-cart-line__pay-tag">Pix/Dinheiro</span>' : ''}
 <span class="totem-cart-line__pack">${esc(pack)}</span>
 <span class="totem-cart-line__sep" aria-hidden="true">·</span>
 <span>${formatPrice(item.price)}</span>
