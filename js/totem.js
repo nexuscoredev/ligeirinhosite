@@ -134,6 +134,8 @@
     let promoCatalogProductIds = new Set();
     let promoCatalogGroupKeys = new Set();
     let promoCatalogHubIds = new Set();
+    let promoOffersByCartKey = new Map();
+    let promoOffersByItemKey = new Map();
 
     const loadTotemCatalog = (options = {}) =>
         window.LigeirinhoCatalogLoader.load({ ...options, apiUrl: CATALOG_API_URL });
@@ -696,24 +698,52 @@ ${qtyLine}`;
     const priceBlockHtml = (variant, opts = {}) => {
         if (!variant) return '';
         const meta = pricing.pricePackMeta(variant);
-        const packPrice = meta.packagePrice ?? variant.price;
+        const catalogPrice = meta.packagePrice ?? variant.price;
+        const packPrice =
+            opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))
+                ? Number(opts.promoPrice)
+                : catalogPrice;
+        const originalPrice =
+            opts.originalPrice != null && Number.isFinite(Number(opts.originalPrice))
+                ? Number(opts.originalPrice)
+                : catalogPrice;
+        const showOld = originalPrice > packPrice;
+        const discountPct =
+            opts.discountPct != null && Number.isFinite(Number(opts.discountPct))
+                ? Number(opts.discountPct)
+                : showOld
+                  ? Math.max(0, Math.round((1 - packPrice / originalPrice) * 100))
+                  : 0;
         const units = Math.max(1, Number(variant.packSize) || 1);
-        const showUnitBreakdown = units > 1 && meta.unitPrice != null;
+        const unitPrice =
+            units > 1 ? Math.round((packPrice / units) * 100) / 100 : null;
+        const showUnitBreakdown = units > 1 && unitPrice != null;
         const packLabel =
             meta.tierLabel ||
             (variant.tier === 'pallet' ? 'Pallet' : variant.tier === 'caixa' ? 'Caixa' : 'Unidade');
         const packHtml = opts.hidePackLabel
             ? ''
             : `<span class="totem-price-card__pack totem-price-card__pack--inline">${esc(packLabel)}</span>`;
+        const oldHtml = showOld
+            ? `<span class="totem-product__price-old">${formatPrice(originalPrice)}</span>`
+            : '';
+        const badgeHtml =
+            discountPct > 0
+                ? `<span class="totem-product__promo-badge">-${discountPct}%</span>`
+                : opts.promoId
+                  ? '<span class="totem-product__promo-badge">PROMO</span>'
+                  : '';
 
         const detailHtml = `<p class="totem-price-card__detail">${units > 1 && meta.detail ? esc(meta.detail) : ''}</p>`;
         const unitHtml = `<p class="totem-price-card__unit">${
-            showUnitBreakdown ? `${formatPrice(meta.unitPrice)}<span> / un</span>` : ''
+            showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
         }</p>`;
 
-        return `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+        return `<div class="totem-price-card ze-price-block totem-product__price-block${opts.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
 <div class="totem-price-card__main">
+${oldHtml}
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
+${badgeHtml}
 ${packHtml}
 </div>
 ${detailHtml}
@@ -771,11 +801,27 @@ ${unitHtml}
         }
 
         const priceEl = card.querySelector('.totem-product__price');
+        const offer = resolvePromoOffer(cartKey, card.dataset.itemKey, tier);
         if (priceEl && !card.querySelector('[data-price-display]')) {
-            priceEl.textContent = formatPrice(variant.price);
+            priceEl.textContent = formatPrice(offer?.promoPrice ?? variant.price);
         } else {
-            const tiers = pricing.getAvailableTiers(group);
-            updatePriceBlock(card, variant, { hidePackLabel: true });
+            updatePriceBlock(card, variant, {
+                hidePackLabel: true,
+                promoId: offer?.promoId,
+                promoPrice: offer?.promoPrice,
+                originalPrice: offer?.originalPrice,
+                discountPct: offer?.discountPct,
+            });
+        }
+        card.classList.toggle('totem-product--promo', Boolean(offer?.promoId));
+        const payTag = card.querySelector('.totem-product__pay-tag');
+        if (offer?.promoId && !payTag) {
+            card.querySelector('.totem-product__media')?.insertAdjacentHTML(
+                'afterbegin',
+                `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><span class="totem-product__pay-tag-label">Pix/Dinheiro</span></span>`,
+            );
+        } else if (!offer?.promoId && payTag) {
+            payTag.remove();
         }
 
         const minus = card.querySelector('.totem-minus');
@@ -1012,10 +1058,16 @@ ${unitHtml}
     const registerPromoCatalogExclusions = (exclusions = {}) => {
         const toSet = (value) =>
             value instanceof Set ? value : new Set(Array.isArray(value) ? value.filter(Boolean) : []);
+        const toMap = (value) =>
+            value instanceof Map
+                ? value
+                : new Map(value && typeof value === 'object' ? Object.entries(value) : []);
         promoCatalogCartKeys = toSet(exclusions.cartKeys);
         promoCatalogProductIds = toSet(exclusions.productIds);
         promoCatalogGroupKeys = toSet(exclusions.groupKeys);
         promoCatalogHubIds = toSet(exclusions.hubIds);
+        promoOffersByCartKey = toMap(exclusions.byCartKey);
+        promoOffersByItemKey = toMap(exclusions.byItemKey);
     };
 
     const cartKeyForDisplayItem = (item) => {
@@ -1040,6 +1092,43 @@ ${unitHtml}
             }
         }
         return false;
+    };
+
+    const resolvePromoOffer = (cartKey, itemKey, tier) => {
+        if (cartKey && promoOffersByCartKey.has(cartKey)) return promoOffersByCartKey.get(cartKey);
+        const byItem = itemKey ? promoOffersByItemKey.get(itemKey) : null;
+        if (!byItem) return null;
+        if (tier && byItem.tiers?.[tier]) {
+            return {
+                promoId: byItem.tiers[tier].promoId,
+                promoPrice: byItem.tiers[tier].promoPrice,
+                originalPrice: byItem.tiers[tier].originalPrice,
+                discountPct:
+                    byItem.tiers[tier].originalPrice > byItem.tiers[tier].promoPrice
+                        ? Math.max(
+                              0,
+                              Math.round(
+                                  (1 - byItem.tiers[tier].promoPrice / byItem.tiers[tier].originalPrice) *
+                                      100,
+                              ),
+                          )
+                        : 0,
+                tier,
+                tiers: byItem.tiers,
+                multiplo: byItem.multiplo,
+            };
+        }
+        return byItem;
+    };
+
+    const promoAddOpts = (offer) => {
+        if (!offer?.promoId || offer.promoPrice == null) return null;
+        return {
+            promoId: offer.promoId,
+            promoPrice: offer.promoPrice,
+            promoOriginalPrice: offer.originalPrice,
+            tier: offer.tier,
+        };
     };
 
     const activeCategoryMeta = () =>
@@ -1103,9 +1192,6 @@ ${unitHtml}
 
     const getVisibleItems = () => {
         let items = displayItems;
-        if (promoCatalogCartKeys.size) {
-            items = items.filter((item) => !isPromoCatalogItem(item));
-        }
         if (searchQuery) {
             items = items.filter((item) => itemMatchesSearch(item));
         } else if (activeCategory) {
@@ -1858,9 +1944,7 @@ ${unitHtml}
 
     const renderCategories = () => {
         if (!categoriesEl) return;
-        const totalCount = promoCatalogCartKeys.size
-            ? displayItems.filter((item) => !isPromoCatalogItem(item)).length
-            : displayItems.length;
+        const totalCount = displayItems.length;
         const pills =
             categoryPillHtml('', 'Todos', totalCount, !activeCategory) +
             totemCategories
@@ -2272,17 +2356,27 @@ ${unitHtml}
         const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
         const variant = group ? pricing.getVariant(group, tier) : null;
         const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
+        const itemKey = group?.key || product.id;
+        const offer = resolvePromoOffer(cartKey, itemKey, tier);
         const cartMap = cart || cartApi.loadCart();
         const qty = cartMap[cartKey]?.qty || 0;
         const img = catalog.productImageUrl(group ? pricing.getTierImage(group, tier) : product.image);
         const name = group?.baseName || product.name;
-        const itemKey = group?.key || product.id;
         const tiersHtml = group ? priceTiersHtml(group, tier) : '';
+        const priceOpts = {
+            hidePackLabel: true,
+            promoId: offer?.promoId,
+            promoPrice: offer?.promoPrice,
+            originalPrice: offer?.originalPrice,
+            discountPct: offer?.discountPct,
+        };
         const priceHtml = variant
-            ? priceBlockHtml(variant, { hidePackLabel: true })
-            : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+            ? priceBlockHtml(variant, priceOpts)
+            : `<div class="totem-price-card ze-price-block totem-product__price-block${offer?.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
 <div class="totem-price-card__main">
-<span class="totem-product__price totem-price-card__value">${formatPrice(product.price)}</span>
+${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="totem-product__price-old">${formatPrice(offer.originalPrice)}</span>` : ''}
+<span class="totem-product__price totem-price-card__value">${formatPrice(offer?.promoPrice ?? product.price)}</span>
+${offer?.discountPct > 0 ? `<span class="totem-product__promo-badge">-${offer.discountPct}%</span>` : offer?.promoId ? '<span class="totem-product__promo-badge">PROMO</span>' : ''}
 </div>
 <p class="totem-price-card__detail"></p>
 <p class="totem-price-card__unit"></p>
@@ -2290,11 +2384,16 @@ ${unitHtml}
         const qtyHtml = `<div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
 <span class="totem-qty-value">${qty}</span>
-<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" aria-label="Aumentar">+</button>
+<button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Aumentar">+</button>
 </div>`;
         const selectedClass = qty ? ' totem-product--selected' : '';
-        const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" style="--totem-card-i:${Math.min(index, 14)}"`;
+        const promoClass = offer?.promoId ? ' totem-product--promo' : '';
+        const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}"${offer?.promoId ? ` data-promo-id="${esc(offer.promoId)}"` : ''} style="--totem-card-i:${Math.min(index, 14)}"`;
+        const payTag = offer?.promoId
+            ? `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><span class="totem-product__pay-tag-label">Pix/Dinheiro</span></span>`
+            : '';
         const mediaHtml = `<div class="totem-product__media">
+${payTag}
 ${variant ? mediaPackTagHtml(variant, tier) : ''}
 ${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
@@ -2309,7 +2408,7 @@ ${catalogView !== 'list' ? qtyHtml : ''}
 </div>`;
 
         if (catalogView === 'list') {
-            return `<article class="totem-product totem-product--list${selectedClass}" ${attrs}>
+            return `<article class="totem-product totem-product--list${selectedClass}${promoClass}" ${attrs}>
 ${mediaHtml}
 ${bodyHtml}
 <div class="totem-product__list-price">${priceHtml}</div>
@@ -2317,7 +2416,7 @@ ${qtyHtml}
 </article>`;
         }
 
-        return `<article class="totem-product${selectedClass}" ${attrs}>
+        return `<article class="totem-product${selectedClass}${promoClass}" ${attrs}>
 ${mediaHtml}
 ${bodyHtml}
 </article>`;
@@ -2539,38 +2638,58 @@ ${bodyHtml}
                 ? Number(opts.promoOriginalPrice)
                 : Number((variant || product).price);
         const cart = cartApi.loadCart();
-        if (!opts.promoPrice && promoCatalogCartKeys.has(key)) return;
-        if (!opts.promoPrice && isPromoCatalogItem(item)) return;
+        const autoOffer =
+            !opts.promoPrice && !opts.promoId
+                ? resolvePromoOffer(key, itemKey || group?.key || product.id, packType)
+                : null;
+        const promoOpts = opts.promoId
+            ? opts
+            : autoOffer
+              ? {
+                    promoId: autoOffer.promoId,
+                    promoPrice: autoOffer.promoPrice,
+                    promoOriginalPrice: autoOffer.originalPrice,
+                    tier: autoOffer.tier || packType,
+                }
+              : opts;
+        const finalPrice =
+            promoOpts.promoPrice != null && Number.isFinite(Number(promoOpts.promoPrice))
+                ? Number(promoOpts.promoPrice)
+                : price;
+        const finalBase =
+            promoOpts.promoOriginalPrice != null && Number.isFinite(Number(promoOpts.promoOriginalPrice))
+                ? Number(promoOpts.promoOriginalPrice)
+                : basePrice;
         if (!cart[key]) {
             cart[key] = {
-                id: opts.productId || (variant || product).id,
+                id: promoOpts.productId || (variant || product).id,
                 cartKey: key,
                 name,
-                price,
+                price: finalPrice,
                 qty: 0,
                 packType,
                 ...cartCategoryFields(item),
-                ...(opts.promoId
+                ...(promoOpts.promoId
                     ? {
-                          promoId: opts.promoId,
+                          promoId: promoOpts.promoId,
                           isPromo: true,
-                          originalPrice: basePrice,
+                          originalPrice: finalBase,
                           discountPct:
-                              basePrice > price
-                                  ? Math.max(0, Math.round((1 - price / basePrice) * 100))
+                              finalBase > finalPrice
+                                  ? Math.max(0, Math.round((1 - finalPrice / finalBase) * 100))
                                   : 0,
                       }
                     : {}),
             };
-        } else if (opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))) {
-            cart[key].price = Number(opts.promoPrice);
-            if (opts.promoId) {
-                cart[key].promoId = opts.promoId;
+        } else if (promoOpts.promoPrice != null && Number.isFinite(Number(promoOpts.promoPrice))) {
+            cart[key].price = Number(promoOpts.promoPrice);
+            if (promoOpts.promoId) {
+                cart[key].promoId = promoOpts.promoId;
                 cart[key].isPromo = true;
-                cart[key].originalPrice = basePrice;
+                cart[key].originalPrice = finalBase;
                 cart[key].discountPct =
-                    basePrice > Number(opts.promoPrice)
-                        ? Math.max(0, Math.round((1 - Number(opts.promoPrice) / basePrice) * 100))
+                    finalBase > Number(promoOpts.promoPrice)
+                        ? Math.max(0, Math.round((1 - Number(promoOpts.promoPrice) / finalBase) * 100))
                         : 0;
             }
         }
@@ -2619,37 +2738,52 @@ ${bodyHtml}
                 : Number((variant || product).price);
         const basePrice = Number((variant || product).price);
         const cart = cartApi.loadCart();
-        if (!usePromo && promoCatalogCartKeys.has(key)) return;
-        if (!usePromo && isPromoCatalogItem(item)) return;
+        const autoOffer =
+            !usePromo ? resolvePromoOffer(key, detailItemKey || group?.key || product.id, packType) : null;
+        const appliedPromo = usePromo
+            ? tierPromo
+            : autoOffer
+              ? {
+                    promoId: autoOffer.promoId,
+                    promoPrice: autoOffer.promoPrice,
+                    originalPrice: autoOffer.originalPrice,
+                }
+              : null;
+        const finalPrice =
+            appliedPromo?.promoPrice != null ? Number(appliedPromo.promoPrice) : price;
+        const finalBase =
+            appliedPromo?.originalPrice != null ? Number(appliedPromo.originalPrice) : basePrice;
 
         if (!cart[key]) {
             cart[key] = {
                 id: (variant || product).id,
                 cartKey: key,
                 name,
-                price,
+                price: finalPrice,
                 qty: 0,
                 packType,
                 ...cartCategoryFields(item),
-                ...(usePromo
+                ...(appliedPromo?.promoId
                     ? {
-                          promoId: tierPromo.promoId,
+                          promoId: appliedPromo.promoId,
                           isPromo: true,
-                          originalPrice: basePrice,
+                          originalPrice: finalBase,
                           discountPct:
-                              basePrice > price
-                                  ? Math.max(0, Math.round((1 - price / basePrice) * 100))
+                              finalBase > finalPrice
+                                  ? Math.max(0, Math.round((1 - finalPrice / finalBase) * 100))
                                   : 0,
                       }
                     : {}),
             };
-        } else if (usePromo) {
-            cart[key].price = price;
-            cart[key].promoId = tierPromo.promoId;
+        } else if (appliedPromo?.promoId) {
+            cart[key].price = finalPrice;
+            cart[key].promoId = appliedPromo.promoId;
             cart[key].isPromo = true;
-            cart[key].originalPrice = basePrice;
+            cart[key].originalPrice = finalBase;
             cart[key].discountPct =
-                basePrice > price ? Math.max(0, Math.round((1 - price / basePrice) * 100)) : 0;
+                finalBase > finalPrice
+                    ? Math.max(0, Math.round((1 - finalPrice / finalBase) * 100))
+                    : 0;
         }
 
         cart[key].qty += qtyToAdd;
@@ -3180,7 +3314,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
             if (plus) {
-                addItem(plus.dataset.cartKey, plus.dataset.itemKey);
+                const offer = resolvePromoOffer(
+                    plus.dataset.cartKey,
+                    plus.dataset.itemKey,
+                    plus.dataset.priceTier,
+                );
+                addItem(plus.dataset.cartKey, plus.dataset.itemKey, promoAddOpts(offer) || {});
                 return;
             }
             if (minus) {
@@ -3197,7 +3336,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
                         return;
                     }
                 }
-                openProductDetail(card.dataset.itemKey);
+                const offer =
+                    promoOffersByItemKey.get(card.dataset.itemKey) ||
+                    resolvePromoOffer(
+                        card.dataset.cartKey,
+                        card.dataset.itemKey,
+                        card.dataset.priceTier,
+                    );
+                openProductDetail(card.dataset.itemKey, offer?.promoId ? offer : null);
             }
         });
 

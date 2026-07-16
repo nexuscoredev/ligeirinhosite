@@ -424,6 +424,8 @@ ${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         const productIds = new Set();
         const groupKeys = new Set();
         const hubIds = new Set();
+        const byCartKey = new Map();
+        const byItemKey = new Map();
 
         const noteCtx = (ctx) => {
             if (!ctx) return;
@@ -447,14 +449,45 @@ ${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         };
 
         promoGroups.forEach((grupo) => {
+            const tiers = {};
             (grupo.unidadesDisponiveis || []).forEach((unit) => {
                 const entry = promoCatalog().entryAtivoPromoGrupo(grupo, unit);
                 if (!entry) return;
-                noteCtx(buildCartCtx(entry));
+                const ctx = buildCartCtx(entry);
+                noteCtx(ctx);
+                if (!ctx.cartKey || !ctx.promo?.id) return;
+                byCartKey.set(ctx.cartKey, {
+                    promoId: ctx.promo.id,
+                    promoPrice: ctx.promoPrice,
+                    originalPrice: ctx.originalPrice,
+                    discountPct: ctx.discountPct,
+                    tier: ctx.tier,
+                });
+                if (ctx.tier) {
+                    tiers[ctx.tier] = {
+                        promoPrice: ctx.promoPrice,
+                        promoId: ctx.promo.id,
+                        originalPrice: ctx.originalPrice,
+                    };
+                }
             });
+
+            const activeEntry = activeEntryForGroup(grupo);
+            const activeCtx = activeEntry ? buildCartCtx(activeEntry) : null;
+            const itemKey = resolvePromoDetailItemKey(grupo);
+            if (itemKey && activeCtx?.promo?.id) {
+                byItemKey.set(itemKey, {
+                    promoPrice: activeCtx.promoPrice,
+                    promoId: activeCtx.promo.id,
+                    tier: activeCtx.tier,
+                    originalPrice: activeCtx.originalPrice,
+                    tiers,
+                    multiplo: Boolean(grupo.multiplo),
+                });
+            }
         });
 
-        return { cartKeys, productIds, groupKeys, hubIds };
+        return { cartKeys, productIds, groupKeys, hubIds, byCartKey, byItemKey };
     };
 
     const syncPromoCatalogKeys = () => {
