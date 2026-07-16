@@ -3369,6 +3369,23 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
         var(--lig-shadow-sm);
 }
 
+.totem-product--promo {
+    border: 2px solid #d4a81a;
+    box-shadow:
+        0 0 0 1px rgba(253, 224, 71, 0.38),
+        0 10px 28px rgba(212, 168, 26, 0.2),
+        var(--lig-shadow-sm);
+}
+
+.totem-product--promo:hover,
+.totem-product--promo.totem-product--selected {
+    border-color: #b8890b;
+    box-shadow:
+        0 0 0 2px rgba(253, 224, 71, 0.42),
+        0 12px 30px rgba(212, 168, 26, 0.26),
+        var(--lig-shadow-sm);
+}
+
 .totem-product:active {
     transform: scale(0.985);
 }
