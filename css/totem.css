@@ -3300,7 +3300,6 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 }
 
 .totem-product {
-    position: relative;
     display: flex;
     flex-direction: column;
     background: rgba(255, 255, 255, 0.92);

@@ -834,7 +834,7 @@ ${unitHtml}
         card.classList.toggle('totem-product--promo', Boolean(offer?.promoId));
         const payTag = card.querySelector('.totem-product__pay-tag');
         if (offer?.promoId && !payTag) {
-            card.insertAdjacentHTML(
+            card.querySelector('.totem-product__media')?.insertAdjacentHTML(
                 'afterbegin',
                 `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png" alt="" aria-hidden="true"></span>`,
             );
@@ -2444,6 +2444,7 @@ ${offer?.discountPct > 0 ? `<span class="totem-product__promo-badge">-${offer.di
             ? `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png" alt="" aria-hidden="true"></span>`
             : '';
         const mediaHtml = `<div class="totem-product__media">
+${payTag}
 ${variant && !tiersHtml ? mediaPackTagHtml(variant, tier) : ''}
 ${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
@@ -2459,7 +2460,6 @@ ${catalogView !== 'list' ? qtyHtml : ''}
 
         if (catalogView === 'list') {
             return `<article class="totem-product totem-product--list${selectedClass}${promoClass}" ${attrs}>
-${payTag}
 ${mediaHtml}
 ${bodyHtml}
 <div class="totem-product__list-price">${priceHtml}</div>
@@ -2468,7 +2468,6 @@ ${qtyHtml}
         }
 
         return `<article class="totem-product${selectedClass}${promoClass}" ${attrs}>
-${payTag}
 ${mediaHtml}
 ${bodyHtml}
 </article>`;
