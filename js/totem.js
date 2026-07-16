@@ -306,11 +306,16 @@
         return pricing.TIER_SHORT?.[tier]?.toUpperCase() || '';
     };
 
+    const packLabelForTier = (tier) => {
+        if (tier === 'pallet') return 'PALLET';
+        if (tier === 'caixa') return 'CAIXA';
+        return 'UNIDADE';
+    };
+
     const mediaPackTagHtml = (variant, tier) => {
         if (!variant) return '';
         const activeTier = tier || variant.tier || 'caixa';
-        const label =
-            activeTier === 'pallet' ? 'Pallet' : activeTier === 'caixa' ? 'Caixa' : 'Unidade';
+        const label = packLabelForTier(activeTier);
         const aria = `Embalagem ${label}`;
         return `<span class="totem-product__pack-tag" aria-label="${esc(aria)}"><span class="totem-product__pack-tag-label">${esc(label)}</span></span>`;
     };
@@ -704,7 +709,9 @@ ${qtyLine}`;
                 const variant = pricing.getVariant(group, tier);
                 const cartKey = variant ? catalog.cartKeyFor(variant) : '';
                 const offer = resolvePromoOffer(cartKey, group.key, tier);
-                const label = pricing.TIER_SHORT?.[tier] || tier;
+                const label =
+                    pricing.TIER_LABELS?.[tier]?.toUpperCase() ||
+                    (tier === 'caixa' ? 'CAIXA' : tier === 'unidade' ? 'UNIDADE' : String(tier).toUpperCase());
                 const promoClass = offer?.promoId ? ' ze-price-tier--promo' : '';
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
@@ -846,7 +853,7 @@ ${unitHtml}
 
         const packTag = card.querySelector('.totem-product__pack-tag');
         if (packTag && variant) {
-            const label = tier === 'pallet' ? 'Pallet' : tier === 'caixa' ? 'Caixa' : 'Unidade';
+            const label = packLabelForTier(tier);
             const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
             if (labelEl) labelEl.textContent = label;
             packTag.setAttribute('aria-label', `Embalagem ${label}`);
