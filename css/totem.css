@@ -991,7 +991,7 @@ html.totem--admin-edit .totem-product::after {
     z-index: 3;
     display: block;
     width: clamp(5.4rem, 43%, 7.25rem);
-    aspect-ratio: 2.94 / 1;
+    aspect-ratio: 3.45 / 1;
     border-radius: 999px;
     overflow: hidden;
     background: #087d32;
@@ -1004,7 +1004,7 @@ html.totem--admin-edit .totem-product::after {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.04);
+    object-position: center 68%;
 }
 
 .totem-product--promo .totem-product__promo-valid {
