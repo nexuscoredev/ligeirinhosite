@@ -707,10 +707,10 @@ ${qtyLine}`;
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
                     : '';
-                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)}${promoMark}</button>`;
+                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(label)}${offer?.discountPct > 0 ? ` em promoção -${offer.discountPct}%` : offer?.promoId ? ' em promoção' : ''}">${esc(label)}${promoMark}</button>`;
             })
             .join('');
-        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Embalagem">${buttons}</div></div>`;
+        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Escolher embalagem">${buttons}</div></div>`;
     };
 
     const priceBlockHtml = (variant, opts = {}) => {
@@ -843,7 +843,10 @@ ${unitHtml}
         }
 
         const packTag = card.querySelector('.totem-product__pack-tag');
-        if (packTag && variant) {
+        const hasTierSelector = card.querySelectorAll('.ze-price-tier').length > 1;
+        if (hasTierSelector) {
+            packTag?.remove();
+        } else if (packTag && variant) {
             const label = packLabelForTier(tier);
             const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
             if (labelEl) labelEl.textContent = label;
@@ -2442,7 +2445,7 @@ ${offer?.discountPct > 0 ? `<span class="totem-product__promo-badge">-${offer.di
             : '';
         const mediaHtml = `<div class="totem-product__media">
 ${payTag}
-${variant ? mediaPackTagHtml(variant, tier) : ''}
+${variant && !tiersHtml ? mediaPackTagHtml(variant, tier) : ''}
 ${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>`;
