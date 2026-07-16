@@ -354,9 +354,9 @@
     };
 
     const detailTierLabel = (tierKey, variant) => {
-        if (tierKey === 'unidade') return 'Unidade solta';
+        if (tierKey === 'unidade') return 'Unidade';
         if (tierKey === 'caixa') {
-            return variant?.packSize ? `Caixa c/ ${variant.packSize} un` : 'Unidade na caixa';
+            return variant?.packSize ? `Caixa c/ ${variant.packSize} un` : 'Caixa';
         }
         if (tierKey === 'pallet') {
             return variant?.boxCount ? `Pallet · ${variant.boxCount} cx` : 'Pallet';
@@ -423,17 +423,12 @@
                 promoOpts: tierPromo,
                 perUnit,
                 variant: refVariant,
-                // No catálogo, unidade solta só é vendável quando o SKU é UN (sem caixa no grupo).
-                actionable: promoDetail
-                    ? Boolean(tierPromo?.promoId)
-                    : tierKey !== 'unidade' || !group?.variants?.caixa,
+                actionable: true,
             });
         };
 
         if (group?.variants) {
-            if (group.variants.unidade && (promoDetail || !group.variants.caixa)) {
-                pushVariant('unidade', group.variants.unidade);
-            }
+            if (group.variants.unidade) pushVariant('unidade', group.variants.unidade);
             if (group.variants.caixa) pushVariant('caixa', group.variants.caixa);
             else if (group.variants.pallet) pushVariant('pallet', group.variants.pallet);
         } else if (variant || product) {
@@ -468,12 +463,8 @@
         }
 
         const order = { unidade: 0, caixa: 1, pallet: 2 };
-        // Catálogo: esconde unidade solta de produtos CX; SKUs UN (sem caixa) continuam visíveis.
-        const visible = promoDetail
-            ? blocks
-            : blocks.filter((b) => b.tier !== 'unidade' || !group?.variants?.caixa);
-        visible.sort((a, b) => (order[a.tier] ?? 9) - (order[b.tier] ?? 9));
-        return visible;
+        blocks.sort((a, b) => (order[a.tier] ?? 9) - (order[b.tier] ?? 9));
+        return blocks;
     };
 
     const buildDetailPriceBlocksHtml = (blocks, activeTier) =>
