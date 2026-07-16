@@ -93,30 +93,40 @@
     };
 
     const isCaixaPack = (pack) => pack?.type === 'caixa';
+    const isUnidadePack = (pack) => pack?.type === 'unidade';
 
-    const caixaVariantFromProduct = (product, pack, cat) => ({
-        key: `${cat.id}::${product.id}`,
-        baseName: stripPackSuffix(product.name),
-        categoryId: cat.id,
-        categoryName: cat.name,
-        image: product.image,
-        adultOnly: product.adultOnly,
-        description: product.description,
-        primaryId: product.id,
-        variants: {
-            caixa: {
-                id: product.id,
-                hubId: product.hubId || null,
-                sku: product.sku || null,
-                name: product.name,
-                price: product.price,
-                packSize: pack.packSize,
-                adultOnly: product.adultOnly,
-                image: product.image,
-                unidade: product.unidade || 'CX',
+    const packVariantFromProduct = (product, pack, cat) => {
+        const tier = pack?.type === 'unidade' ? 'unidade' : 'caixa';
+        const unidade =
+            product.unidade ||
+            (tier === 'unidade' ? 'UN' : 'CX');
+        return {
+            key: `${cat.id}::${product.id}`,
+            baseName: stripPackSuffix(product.name),
+            categoryId: cat.id,
+            categoryName: cat.name,
+            image: product.image,
+            adultOnly: product.adultOnly,
+            description: product.description,
+            primaryId: product.id,
+            variants: {
+                [tier]: {
+                    id: product.id,
+                    hubId: product.hubId || null,
+                    sku: product.sku || null,
+                    name: product.name,
+                    price: product.price,
+                    packSize: pack.packSize,
+                    adultOnly: product.adultOnly,
+                    image: product.image,
+                    unidade,
+                },
             },
-        },
-    });
+        };
+    };
+
+    const caixaVariantFromProduct = (product, pack, cat) =>
+        packVariantFromProduct(product, pack || { type: 'caixa', packSize: 1 }, cat);
 
     const normalizeKey = (name, categoryId) => {
         let base = stripPackSuffix(name).replace(PACKAGING_WORDS_RE, ' ');
@@ -290,12 +300,13 @@
     };
 
     const getTotemDefaultTier = (group) => {
-        const tiers = getAvailableTiers(group);
-        if (tiers.includes('caixa')) return 'caixa';
-        return tiers[0] || null;
+        if (group?.variants?.caixa?.price != null) return 'caixa';
+        if (group?.variants?.unidade?.price != null) return 'unidade';
+        if (group?.variants?.pallet?.price != null) return 'pallet';
+        return null;
     };
 
-    /** Totem: um card por produto CX (UN e PL ficam de fora). */
+    /** Totem: um card por produto CX ou UN (pallet fica de fora). */
     const getTotemDisplayProducts = (catalogData) => {
         const items = [];
 
@@ -306,9 +317,10 @@
                 if (!Number.isFinite(price) || price <= 0) return;
 
                 const pack = parsePack(product);
-                if (!isCaixaPack(pack)) return;
+                if (!isCaixaPack(pack) && !isUnidadePack(pack)) return;
 
-                const group = caixaVariantFromProduct(product, pack, cat);
+                const tier = isUnidadePack(pack) ? 'unidade' : 'caixa';
+                const group = packVariantFromProduct(product, pack, cat);
                 items.push({
                     group,
                     product: {
@@ -320,11 +332,11 @@
                         image: product.image,
                         adultOnly: product.adultOnly,
                         description: product.description,
-                        unidade: product.unidade || 'CX',
+                        unidade: product.unidade || (tier === 'unidade' ? 'UN' : 'CX'),
                     },
                     categoryName: cat.name,
                     categoryId: cat.id,
-                    defaultTier: 'caixa',
+                    defaultTier: tier,
                 });
             });
         });

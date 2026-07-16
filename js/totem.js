@@ -416,20 +416,23 @@
                 promoOpts: tierPromo,
                 perUnit,
                 variant: refVariant,
-                actionable: promoDetail ? Boolean(tierPromo?.promoId) : tierKey !== 'unidade',
+                // No catálogo, unidade solta só é vendável quando o SKU é UN (sem caixa no grupo).
+                actionable: promoDetail
+                    ? Boolean(tierPromo?.promoId)
+                    : tierKey !== 'unidade' || !group?.variants?.caixa,
             });
         };
 
         if (group?.variants) {
-            if (promoDetail && group.variants.unidade) pushVariant('unidade', group.variants.unidade);
+            if (group.variants.unidade && (promoDetail || !group.variants.caixa)) {
+                pushVariant('unidade', group.variants.unidade);
+            }
             if (group.variants.caixa) pushVariant('caixa', group.variants.caixa);
             else if (group.variants.pallet) pushVariant('pallet', group.variants.pallet);
         } else if (variant || product) {
             const activeTier = tier || 'unidade';
-            if (promoDetail || activeTier !== 'unidade') {
-                const refVariant = variant || { id: product.id, price: product.price, tier: activeTier };
-                pushVariant(activeTier, refVariant);
-            }
+            const refVariant = variant || { id: product.id, price: product.price, tier: activeTier };
+            pushVariant(activeTier, refVariant);
         }
 
         if (promoDetail) {
@@ -458,7 +461,10 @@
         }
 
         const order = { unidade: 0, caixa: 1, pallet: 2 };
-        const visible = promoDetail ? blocks : blocks.filter((b) => b.tier !== 'unidade');
+        // Catálogo: esconde unidade solta de produtos CX; SKUs UN (sem caixa) continuam visíveis.
+        const visible = promoDetail
+            ? blocks
+            : blocks.filter((b) => b.tier !== 'unidade' || !group?.variants?.caixa);
         visible.sort((a, b) => (order[a.tier] ?? 9) - (order[b.tier] ?? 9));
         return visible;
     };
@@ -666,7 +672,11 @@ ${qtyLine}`;
             pricing.getTotemDefaultTier(group) ||
             pricing.getDefaultTier(group) ||
             'caixa';
-        return pricing.resolveActiveTier?.(group, preferred) || preferred;
+        if (group.variants?.[preferred]?.price != null) return preferred;
+        if (group.variants?.caixa?.price != null) return 'caixa';
+        if (group.variants?.unidade?.price != null) return 'unidade';
+        if (group.variants?.pallet?.price != null) return 'pallet';
+        return preferred;
     };
 
     const priceTiersHtml = (group, activeTier) => {
@@ -925,7 +935,7 @@ ${unitHtml}
         const price = Number(product.price);
         if (!Number.isFinite(price) || price <= 0) return false;
         const pack = pricing.parsePack?.(product);
-        return pack?.type === 'caixa';
+        return pack?.type === 'caixa' || pack?.type === 'unidade';
     };
 
     const filterCatalog = (data) => {
