@@ -4,6 +4,7 @@
     const PACK_CX_RE = /\s+CX(?:\s+(\d+))?\s*$/i;
     const PACK_PL_RE = /\s+PL(?:\s+(\d+))?\s*$/i;
     const PACK_UN_RE = /\s+UN(?:\s+(\d+))?\s*$/i;
+    const PACK_PCT_C_SLASH_UN_RE = /\s+PCT\s+C\/\s*(\d+)\s+UN\s*$/i;
     const CAIXA_PREFIX_RE = /^CAIXA\s+/i;
     const PACKAGING_WORDS_RE = /\b(LATA|LONG\s*NECK|LN|GFA|GARRAFA|RET(?:ORN[AÁ]VEL)?)\b/gi;
     const OPTIONAL_BEER_WORDS_RE = /\b(HELLS)\b/gi;
@@ -30,6 +31,7 @@
 
     const stripPackSuffix = (name) =>
         String(name || '')
+            .replace(PACK_PCT_C_SLASH_UN_RE, '')
             .replace(PACK_C_SLASH_RE, '')
             .replace(PACK_CX_RE, '')
             .replace(PACK_PL_RE, '')
