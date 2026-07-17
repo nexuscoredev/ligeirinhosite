@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impressão Totem</title>
+<link rel="stylesheet" href="css/totem-receipt.css">
+<style>
+html, body { margin: 0; background: #fff; }
+body { font-family: 'Courier New', Courier, monospace; }
+</style>
+</head>
+<body>
+<script src="js/totem-barcode.js"></script>
+<script src="js/payment-splits.js"></script>
+<script src="js/totem-receipt.js?v=bridge-html-print"></script>
+<script>
+(function () {
+    window.__ligeirinhoPrintReady = false;
+    window.__ligeirinhoLastPrintOk = false;
+
+    const waitForReceipt = () =>
+        new Promise((resolve, reject) => {
+            let tries = 0;
+            const tick = () => {
+                if (window.LigeirinhoTotemReceipt?.printViaKiosk) {
+                    window.__ligeirinhoPrintReady = true;
+                    resolve(window.LigeirinhoTotemReceipt);
+                    return;
+                }
+                tries += 1;
+                if (tries > 50) {
+                    reject(new Error('Renderizador do comprovante nao carregou.'));
+                    return;
+                }
+                window.setTimeout(tick, 100);
+            };
+            tick();
+        });
+
+    window.ligeirinhoBridgePrint = async function ligeirinhoBridgePrint(order, opts) {
+        const receipt = await waitForReceipt();
+        const ok = await receipt.printViaKiosk(order, opts || {});
+        window.__ligeirinhoLastPrintOk = ok === true;
+        return window.__ligeirinhoLastPrintOk;
+    };
+
+    waitForReceipt().catch(() => {});
+})();
+</script>
+</body>
+</html>

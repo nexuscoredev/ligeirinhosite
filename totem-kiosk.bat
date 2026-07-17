@@ -18,9 +18,9 @@ if exist "%~dp0scripts\start-totem-print-bridge-hidden.vbs" (
   wscript //nologo "%~dp0scripts\start-totem-print-bridge-hidden.vbs"
 )
 
-rem IMPORTANTE: NAO usar --disable-print-preview junto com --kiosk-printing
-rem (isso abre o dialogo do Windows). So --kiosk + --kiosk-printing = silencioso.
+rem --kiosk + --kiosk-printing = impressao silenciosa
+rem --remote-debugging-port=9222 = ponte dos tablets imprime no mesmo layout HTML
 
 :loop
-start /wait "" "%CHROME%" --user-data-dir="%PROFILE%" --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --kiosk --kiosk-printing --disable-scripted-print-throttling --no-first-run --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-translate --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,OverscrollHistoryNavigation,TouchpadOverscrollHistoryNavigation,InsecureDownloadWarnings --disable-popup-blocking --disable-component-update --check-for-update-interval=31536000 "%URL%"
+start /wait "" "%CHROME%" --user-data-dir="%PROFILE%" --remote-debugging-port=9222 --kiosk --kiosk-printing --disable-scripted-print-throttling --no-first-run --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-translate --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,OverscrollHistoryNavigation,TouchpadOverscrollHistoryNavigation,InsecureDownloadWarnings --disable-popup-blocking --disable-component-update --check-for-update-interval=31536000 "%URL%"
 goto loop
