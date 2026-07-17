@@ -811,11 +811,30 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
     const escposEncode = (text) => new TextEncoder().encode(text);
 
+    const wrapCenterEscPos = (text, width) => {
+        const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return [];
+        const lines = [];
+        let current = '';
+        for (const word of words) {
+            const next = current ? `${current} ${word}` : word;
+            if (next.length <= width) {
+                current = next;
+                continue;
+            }
+            if (current) lines.push(current);
+            current = word.length > width ? word.slice(0, width) : word;
+        }
+        if (current) lines.push(current);
+        return lines;
+    };
+
     const buildEscPosReceipt = (order, opts = {}) => {
         const width = Number(opts.escposLineChars) || 42;
         const unitLabel = order.totemLabel || opts.totemLabel || 'Ligeirinho Totem';
         const code = compactCode(order.id);
-        const lines = [];
+        const headLines = [];
+        const tailLines = [];
 
         const center = (s) => {
             const t = String(s);
@@ -826,18 +845,18 @@ body{display:flex;justify-content:center;align-items:flex-start}
 
         const divider = () => '-'.repeat(width);
 
-        lines.push(center(unitLabel.toUpperCase()));
-        lines.push(center('COMPROVANTE DE PEDIDO'));
-        lines.push(center('Apresente no caixa'));
-        lines.push(divider());
-        lines.push(center('CODIGO DO PEDIDO'));
-        lines.push(center(code));
+        headLines.push(center(unitLabel.toUpperCase()));
+        headLines.push(center('COMPROVANTE DE PEDIDO'));
+        wrapCenterEscPos('Apresente no caixa para pagamento', width).forEach((line) => {
+            headLines.push(center(line));
+        });
+        headLines.push(divider());
+        headLines.push(center('CODIGO DO PEDIDO'));
 
         const scannerCode = window.LigeirinhoTotemBarcode?.scannerTotemCode?.(order.id) || '';
-        const tailStart = lines.length;
 
-        lines.push(center(formatDateTime(order.createdAt)));
-        lines.push(divider());
+        tailLines.push(center(formatDateTime(order.createdAt)));
+        tailLines.push(divider());
 
         const customerName = String(order.customerName || '').trim();
         const customerCpf = formatCpfReceipt(order.customerCpf || order.customer_cpf);
@@ -847,46 +866,65 @@ body{display:flex;justify-content:center;align-items:flex-start}
             order.customerCnpj || order.customer_cnpj,
         );
         if (customerName) {
-            lines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
+            tailLines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
         }
         if (customerPhone) {
-            lines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
+            tailLines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
         }
         if (customerCpf) {
-            lines.push(padLine('CPF', customerCpf, width));
+            tailLines.push(padLine('CPF', customerCpf, width));
         }
         if (customerName || customerPhone || customerCpf) {
-            lines.push(divider());
+            tailLines.push(divider());
         }
 
         (order.items || []).forEach((item) => {
             const qty = Number(item.qty) || 1;
             const lineTotal = formatPrice(Number(item.price) * qty);
             const name = String(item.name || '').trim();
-            lines.push(`${qty}x ${name}`.slice(0, width));
-            lines.push(padLine('', lineTotal, width));
+            tailLines.push(`${qty}x ${name}`.slice(0, width));
+            tailLines.push(padLine('', lineTotal, width));
         });
 
-        lines.push(divider());
-        appendEscPosPaymentLines(lines, order, width, padLine);
-        lines.push(padLine('TOTAL', formatPrice(order.total), width));
-        lines.push(divider());
-        lines.push(center('Ligeirinho Parceiros'));
-        lines.push('');
+        tailLines.push(divider());
+        appendEscPosPaymentLines(tailLines, order, width, padLine);
+        tailLines.push(padLine('Total', formatPrice(order.total), width));
+        tailLines.push(divider());
+        wrapCenterEscPos('Dirija-se ao caixa e passe o codigo de barras no leitor do PDV.', width).forEach(
+            (line) => {
+                tailLines.push(center(line));
+            },
+        );
+        tailLines.push('');
+        tailLines.push(center('Ligeirinho Parceiros'));
+        tailLines.push('');
 
         const ESC = '\x1B';
         const GS = '\x1D';
         let out = ESC + '@';
         out += ESC + 'E' + '\x01';
         out += ESC + 'a' + '\x01';
-        for (let i = 0; i < lines.length; i += 1) {
-            out += lines[i] + '\n';
-            if (scannerCode && i === tailStart - 1) {
-                out += '\n';
-                out = window.LigeirinhoTotemBarcode.appendEscPosCode128(out, scannerCode);
-                out += '\n';
-            }
+        headLines.forEach((line) => {
+            out += line + '\n';
+        });
+        out += '\n';
+        out += GS + '!' + '\x11';
+        out += `${code}\n`;
+        out += GS + '!' + '\x00';
+        out += '\n';
+        if (scannerCode && window.LigeirinhoTotemBarcode?.appendEscPosCode128) {
+            out = window.LigeirinhoTotemBarcode.appendEscPosCode128(out, scannerCode, {
+                height: 110,
+                moduleWidth: 3,
+                hri: false,
+            });
+            out += '\n';
+            out += center(scannerCode) + '\n';
+            out += '\n';
         }
+        tailLines.forEach((line) => {
+            out += line + '\n';
+        });
         out += ESC + 'a' + '\x00';
         out += ESC + 'E' + '\x00';
         out += '\n\n';

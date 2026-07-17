@@ -35,6 +35,17 @@ if ($ListPrinters) {
     exit 0
 }
 
+$portBusy = $null
+try {
+    $portBusy = Get-NetTCPConnection -LocalPort $BridgePort -State Listen -ErrorAction SilentlyContinue
+} catch {
+    $portBusy = $null
+}
+if ($portBusy) {
+    Write-Host "[totem] Ponte ja ativa na porta $BridgePort — nada a fazer." -ForegroundColor Green
+    exit 0
+}
+
 if (-not $PrinterName -and -not $PrinterHost) {
     $defaultPrinter = Get-CimInstance -ClassName Win32_Printer -Filter "Default='True'" -ErrorAction SilentlyContinue |
         Select-Object -ExpandProperty Name

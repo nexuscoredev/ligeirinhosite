@@ -5,6 +5,11 @@ title Ligeirinho Totem
 set URL=https://ligeirinhoparceiros.vercel.app/totem.html
 if defined TOTEM_URL set "URL=%TOTEM_URL%"
 
+rem Impressora termica da loja (Tablets usam esta ponte)
+if not defined TOTEM_PRINTER_HOST set "TOTEM_PRINTER_HOST=192.168.15.31"
+if not defined TOTEM_PRINTER_PORT set "TOTEM_PRINTER_PORT=9100"
+if not defined TOTEM_BRIDGE_PORT set "TOTEM_BRIDGE_PORT=8787"
+
 set PROFILE=%LocalAppData%\LigeirinhoTotem\ChromeProfile
 
 set CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe
@@ -18,6 +23,20 @@ if not exist "%CHROME%" (
 )
 
 if not exist "%PROFILE%" mkdir "%PROFILE%"
+
+rem Inicia a ponte de impressao (Tablets -> PC -> Bematech) uma vez, em janela minimizada.
+set "BRIDGE_PS1=%~dp0scripts\start-totem-print-bridge.ps1"
+if exist "%BRIDGE_PS1%" (
+    netstat -ano | findstr ":%TOTEM_BRIDGE_PORT% " >nul 2>&1
+    if errorlevel 1 (
+        echo Iniciando ponte de impressao ^(%TOTEM_PRINTER_HOST%:%TOTEM_PRINTER_PORT%^)...
+        start "Ligeirinho Print Bridge" /min powershell -NoProfile -ExecutionPolicy Bypass -File "%BRIDGE_PS1%" -PrinterHost "%TOTEM_PRINTER_HOST%" -PrinterPort %TOTEM_PRINTER_PORT% -BridgePort %TOTEM_BRIDGE_PORT%
+    ) else (
+        echo Ponte de impressao ja ativa na porta %TOTEM_BRIDGE_PORT%.
+    )
+) else (
+    echo Aviso: nao encontrei scripts\start-totem-print-bridge.ps1
+)
 
 rem Primeira vez no PC? Execute totem-configurar-pc.bat (gestos de borda + inicializacao automatica).
 

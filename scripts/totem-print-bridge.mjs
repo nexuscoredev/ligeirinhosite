@@ -198,6 +198,15 @@ const server = http.createServer(async (req, res) => {
     }
 });
 
+server.on('error', (err) => {
+    if (err?.code === 'EADDRINUSE') {
+        console.error(`[totem-print-bridge] Porta ${LISTEN_PORT} ja em uso — ponte provavelmente ja esta rodando.`);
+        process.exit(0);
+    }
+    console.error('[totem-print-bridge]', err.message || err);
+    process.exit(1);
+});
+
 server.listen(LISTEN_PORT, LISTEN_HOST, () => {
     console.log(`[totem-print-bridge] http://${LISTEN_HOST}:${LISTEN_PORT}/print`);
     if (PRINTER_NAME) {

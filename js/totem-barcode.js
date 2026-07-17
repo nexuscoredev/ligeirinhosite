@@ -86,8 +86,8 @@
     const appendEscPosCode128 = (out, text, opts = {}) => {
         const data = '{B' + String(text || '');
         const GS = '\x1D';
-        const height = Number(opts.height) || 80;
-        const width = Number(opts.moduleWidth) || 2;
+        const height = Number(opts.height) || 110;
+        const width = Number(opts.moduleWidth) || 3;
         const hri = opts.hri === false ? 0 : 2;
         out += GS + 'h' + String.fromCharCode(Math.min(255, Math.max(1, height)));
         out += GS + 'w' + String.fromCharCode(Math.min(6, Math.max(1, width)));
