@@ -1,5 +1,4 @@
 @echo off
-
 title Ligeirinho Totem
 cd /d "%~dp0"
 
@@ -20,10 +19,10 @@ if not exist "%CHROME%" (
 
 if not exist "%PROFILE%" mkdir "%PROFILE%"
 
-rem Ponte dos tablets em OUTRA janela (nao bloqueia o Chrome / impressao silenciosa).
+rem Ponte dos tablets minimizada — nao cobre o quiosque.
 if exist "%~dp0totem-print-bridge.bat" (
-    echo Iniciando ponte de impressao dos tablets...
-    start "Ligeirinho Print Bridge" "%~dp0totem-print-bridge.bat"
+    echo Iniciando ponte de impressao dos tablets (minimizada)...
+    start "Ligeirinho Print Bridge" /min "%~dp0totem-print-bridge.bat"
 ) else (
     echo Aviso: totem-print-bridge.bat nao encontrado — tablets nao imprimem pela ponte.
     echo Rode git pull nesta pasta: %CD%
@@ -35,7 +34,7 @@ echo.
 echo Ligeirinho Totem — modo quiosque
 echo.
 echo Impressao do Totem padrao: Chrome --kiosk-printing (impressora padrao do Windows)
-echo Impressao dos Tablets: janela "Ligeirinho Print Bridge" (deixe aberta)
+echo Impressao dos Tablets: ponte minimizada na barra de tarefas
 echo.
 echo Configuracao do PC (gestos de borda + iniciar sempre por aqui):
 echo   totem-configurar-pc.bat

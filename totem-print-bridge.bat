@@ -51,7 +51,7 @@ echo  Impressora: %TOTEM_PRINTER_HOST%:%TOTEM_PRINTER_PORT%
 echo  HTTP:       http://0.0.0.0:%TOTEM_BRIDGE_PORT%/print
 echo  Teste:      http://127.0.0.1:%TOTEM_BRIDGE_PORT%/health
 echo.
-echo  Deixe esta janela ABERTA enquanto os tablets imprimem.
+echo  Janela minimizada — pode deixar na barra de tarefas.
 echo  Feche so se quiser desligar a ponte.
 echo ========================================
 echo.
