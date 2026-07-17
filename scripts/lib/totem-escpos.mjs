@@ -8,7 +8,11 @@ import {
 const methodLabel = paymentMethodLabelShort;
 
 const formatPrice = (value) =>
-    Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    Number(value)
+        .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+        // toLocaleString usa espaco nao-separavel (U+00A0) apos "R$";
+        // na impressora termica ele vira "á". Troca por espaco normal.
+        .replace(/\u00A0/g, ' ');
 
 const compactCode = compactTotemCode;
 
@@ -62,86 +66,28 @@ export function buildEscPosReceipt(order, opts = {}) {
     const unitLabel = order.totemLabel || opts.totemLabel || 'Ligeirinho Totem';
     const code = compactCode(order.id);
     const scannerCode = scannerTotemCode(order.id);
-    const headLines = [];
-    const tailLines = [];
-
-    const center = (s) => {
-        const t = String(s);
-        if (t.length >= width) return t.slice(0, width);
-        const pad = Math.floor((width - t.length) / 2);
-        return ' '.repeat(pad) + t;
-    };
 
     const divider = () => '-'.repeat(width);
 
-    headLines.push(center(unitLabel.toUpperCase()));
-    headLines.push(center('COMPROVANTE DE PEDIDO'));
-    wrapCenter('Apresente no caixa para pagamento', width).forEach((line) => {
-        headLines.push(center(line));
-    });
-    headLines.push(divider());
-    headLines.push(center('CODIGO DO PEDIDO'));
-
-    tailLines.push(center(formatDateTime(order.createdAt)));
-    tailLines.push(divider());
-
-    const customerName = String(order.customerName || '').trim();
-    const customerPhone = String(order.customerPhone || '').trim();
-    if (customerName) {
-        tailLines.push(padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width));
-    }
-    if (customerPhone) {
-        tailLines.push(padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width));
-    }
-    if (customerName || customerPhone) {
-        tailLines.push(divider());
-    }
-
-    (order.items || []).forEach((item) => {
-        const qty = Number(item.qty) || 1;
-        const lineTotal = formatPrice(Number(item.price) * qty);
-        const name = String(item.name || '').trim();
-        tailLines.push(`${qty}x ${name}`.slice(0, width));
-        tailLines.push(padLine('', lineTotal, width));
-    });
-
-    tailLines.push(divider());
-    const splits = resolveOrderSplits(order);
-    const isCashTender =
-        splits.length === 1 && String(splits[0]?.method || '').toLowerCase() === 'dinheiro';
-    if (splits.length >= 2 || isCashTender) {
-        splits.forEach((item) => {
-            tailLines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
-        });
-        const troco = computeCashChange(splits, order.total);
-        if (troco > 0.009) {
-            tailLines.push(padLine('Troco', formatPrice(troco), width));
-        }
-    } else {
-        // Igual ao cupom HTML: sempre mostra a forma (padrao Dinheiro se ainda nao escolhida)
-        tailLines.push(padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width));
-    }
-    tailLines.push(padLine('Total', formatPrice(order.total), width));
-    tailLines.push(divider());
-    wrapCenter('Dirija-se ao caixa e passe o codigo de barras no leitor do PDV.', width).forEach(
-        (line) => {
-            tailLines.push(center(line));
-        },
-    );
-    tailLines.push('');
-    tailLines.push(center('Ligeirinho Parceiros'));
-    tailLines.push('');
-
     const ESC = '\x1B';
     const GS = '\x1D';
+    const ALIGN_LEFT = ESC + 'a' + '\x00';
+    const ALIGN_CENTER = ESC + 'a' + '\x01';
+
     let out = ESC + '@';
-    out += ESC + 'a' + '\x01';
     out += ESC + 'E' + '\x01';
-    headLines.forEach((line) => {
+
+    // ===== Cabecalho (centralizado por hardware) =====
+    out += ALIGN_CENTER;
+    out += unitLabel.toUpperCase() + '\n';
+    out += 'COMPROVANTE DE PEDIDO' + '\n';
+    wrapCenter('Apresente no caixa para pagamento', width).forEach((line) => {
         out += line + '\n';
     });
+    out += divider() + '\n';
+    out += 'CODIGO DO PEDIDO' + '\n';
 
-    // Código do pedido em dobro (como o HTML em 16px bold)
+    // Codigo do pedido em dobro (como o HTML em 16px bold)
     out += '\n';
     out += GS + '!' + '\x11';
     out += `${code}\n`;
@@ -151,15 +97,68 @@ export function buildEscPosReceipt(order, opts = {}) {
     if (scannerCode) {
         out = appendEscPosCode128(out, scannerCode, { height: 110, moduleWidth: 3, hri: false });
         out += '\n';
-        out += center(scannerCode) + '\n';
+        out += scannerCode + '\n';
         out += '\n';
     }
 
-    tailLines.forEach((line) => {
-        out += line + '\n';
+    out += formatDateTime(order.createdAt) + '\n';
+
+    // ===== Corpo (alinhado a esquerda) =====
+    out += ALIGN_LEFT;
+    out += divider() + '\n';
+
+    const customerName = String(order.customerName || '').trim();
+    const customerPhone = String(order.customerPhone || '').trim();
+    if (customerName) {
+        out += padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width) + '\n';
+    }
+    if (customerPhone) {
+        out += padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width) + '\n';
+    }
+    if (customerName || customerPhone) {
+        out += divider() + '\n';
+    }
+
+    (order.items || []).forEach((item) => {
+        const qty = Number(item.qty) || 1;
+        const lineTotal = formatPrice(Number(item.price) * qty);
+        const name = String(item.name || '').trim();
+        out += `${qty}x ${name}`.slice(0, width) + '\n';
+        out += padLine('', lineTotal, width) + '\n';
     });
+
+    out += divider() + '\n';
+    const splits = resolveOrderSplits(order);
+    const isCashTender =
+        splits.length === 1 && String(splits[0]?.method || '').toLowerCase() === 'dinheiro';
+    if (splits.length >= 2 || isCashTender) {
+        splits.forEach((item) => {
+            out += padLine(methodLabel(item.method), formatPrice(item.amount), width) + '\n';
+        });
+        const troco = computeCashChange(splits, order.total);
+        if (troco > 0.009) {
+            out += padLine('Troco', formatPrice(troco), width) + '\n';
+        }
+    } else {
+        // Igual ao cupom HTML: sempre mostra a forma (padrao Dinheiro se ainda nao escolhida)
+        out += padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width) + '\n';
+    }
+    out += padLine('Total', formatPrice(order.total), width) + '\n';
+    out += divider() + '\n';
+
+    // ===== Rodape (centralizado por hardware) =====
+    out += ALIGN_CENTER;
+    wrapCenter('Dirija-se ao caixa e passe o codigo de barras no leitor do PDV.', width).forEach(
+        (line) => {
+            out += line + '\n';
+        },
+    );
+    out += '\n';
+    out += 'Ligeirinho Parceiros' + '\n';
+    out += '\n';
+
     out += ESC + 'E' + '\x00';
-    out += ESC + 'a' + '\x00';
+    out += ALIGN_LEFT;
     out += '\n\n';
     out += GS + 'V' + '\x00';
 
