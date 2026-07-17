@@ -3372,6 +3372,10 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     cursor: pointer;
 }
 
+.totem-grid--searching .totem-product {
+    animation: none;
+}
+
 .totem-product .totem-qty-btn,
 .totem-product .ze-price-tier {
     cursor: pointer;

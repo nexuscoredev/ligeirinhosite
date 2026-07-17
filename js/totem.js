@@ -156,6 +156,7 @@
     let cartToastTimer = null;
     let searchQuery = '';
     let searchTimer = null;
+    const SEARCH_DEBOUNCE_MS = 300;
     let totemKeyboard = null;
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
@@ -1897,7 +1898,10 @@ ${unitHtml}
             onInput: (value) => {
                 bumpIdle();
                 if (searchTimer) clearTimeout(searchTimer);
-                searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+                searchTimer = window.setTimeout(
+                    () => setSearchQuery(value),
+                    SEARCH_DEBOUNCE_MS,
+                );
             },
             onSubmit: (value) => setSearchQuery(value),
             onClose: bumpIdle,
@@ -2652,10 +2656,6 @@ ${bodyHtml}
             refreshMotion(productsCount, 'totem-products__count--refresh');
             refreshProductGrid();
             lastAnimatedCategory = activeCategory;
-        } else if (searching) {
-            refreshMotion(categoryTitle, 'totem-products__title--refresh');
-            refreshMotion(productsCount, 'totem-products__count--refresh');
-            refreshProductGrid();
         }
 
         const isEmpty = items.length === 0;
@@ -2676,6 +2676,7 @@ ${bodyHtml}
         if (productsGrid) {
             productsGrid.hidden = isEmpty;
             productsGrid.style.display = isEmpty ? 'none' : '';
+            productsGrid.classList.toggle('totem-grid--searching', searching);
         }
         syncListHead(!isEmpty && catalogView === 'list');
 
@@ -3688,7 +3689,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         searchInput?.addEventListener('input', () => {
             const value = searchInput.value.trim().toLowerCase();
             if (searchTimer) clearTimeout(searchTimer);
-            searchTimer = window.setTimeout(() => setSearchQuery(value), 180);
+            searchTimer = window.setTimeout(
+                () => setSearchQuery(value),
+                SEARCH_DEBOUNCE_MS,
+            );
         });
 
         searchClearBtn?.addEventListener('click', () => {
@@ -3765,8 +3769,6 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         bindEvents();
         window.LigeirinhoTotemPwaUpdate?.onStatusChange?.(() => updateShoppingChrome());
         window.addEventListener('lig-totem-pwa', () => updateShoppingChrome());
-        renderCategories();
-        renderProducts();
         renderCart();
         await window.LigeirinhoTotemPromos?.init?.({
             gridEl: document.getElementById('totem-promos-grid'),
