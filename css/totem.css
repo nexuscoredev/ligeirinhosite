@@ -1785,7 +1785,8 @@ html.totem--phone .totem-btn--promos__icon {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    column-gap: 0.85rem;
+    row-gap: 0.45rem;
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -2737,9 +2738,12 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 
 .totem-products__head {
     flex-shrink: 0;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+        'eyebrow switch count'
+        'title title title';
+    align-items: center;
     gap: 0.85rem;
     padding: 0.9rem 1rem 0.85rem;
     margin: 0 0.1rem 0.85rem;
@@ -2752,11 +2756,13 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 .totem-products__head-text {
-    min-width: 0;
+    display: contents;
 }
 
 .totem-products__eyebrow {
-    margin: 0 0 0.35rem;
+    grid-area: eyebrow;
+    min-width: 0;
+    margin: 0;
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.14em;
@@ -2765,7 +2771,7 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 .totem-products__eyebrow--greeting {
-    margin-bottom: 0.5rem;
+    margin: 0;
     font-size: clamp(1.35rem, 3.6dvh, 2rem);
     font-weight: 800;
     letter-spacing: -0.03em;
@@ -2779,6 +2785,7 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 .totem-products__title {
+    grid-area: title;
     margin: 0;
     font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
     font-size: clamp(1.05rem, 2dvh, 1.35rem);
@@ -2807,14 +2814,11 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 .totem-products__head-aside {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.45rem;
-    flex-shrink: 0;
+    display: contents;
 }
 
 .totem-view-switch {
+    grid-area: switch;
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -2902,6 +2906,7 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 .totem-products__count {
+    grid-area: count;
     margin: 0;
     padding: 0.35rem 0.75rem;
     border-radius: 999px;
@@ -5826,8 +5831,8 @@ html.totem--phone.totem--portrait .totem-grid--list .totem-product__media {
 }
 
 html.totem--phone.totem--portrait .totem-products__head {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
     gap: 0.35rem;
 }
 
