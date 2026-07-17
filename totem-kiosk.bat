@@ -1,6 +1,7 @@
 @echo off
 
 title Ligeirinho Totem
+cd /d "%~dp0"
 
 set URL=https://ligeirinhoparceiros.vercel.app/totem.html
 if defined TOTEM_URL set "URL=%TOTEM_URL%"
@@ -27,12 +28,18 @@ if not exist "%PROFILE%" mkdir "%PROFILE%"
 rem Inicia a ponte de impressao (Tablets -> PC -> Bematech) em processo separado.
 rem IMPORTANTE: nao usar "start powershell -File" direto — o CMD espera apps de console
 rem e o .bat trava na ponte (Chrome nunca sobe com --kiosk-printing).
-set "BRIDGE_PS1=%~dp0scripts\start-totem-print-bridge.ps1"
+set "BRIDGE_PS1=%CD%\scripts\start-totem-print-bridge.ps1"
 if exist "%BRIDGE_PS1%" (
     echo Iniciando ponte de impressao ^(%TOTEM_PRINTER_HOST%:%TOTEM_PRINTER_PORT%^)...
     powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -WindowStyle Minimized -FilePath powershell -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File','%BRIDGE_PS1%','-PrinterHost','%TOTEM_PRINTER_HOST%','-PrinterPort','%TOTEM_PRINTER_PORT%','-BridgePort','%TOTEM_BRIDGE_PORT%')"
 ) else (
-    echo Aviso: nao encontrei scripts\start-totem-print-bridge.ps1
+    echo Aviso: nao encontrei a ponte de impressao:
+    echo   %BRIDGE_PS1%
+    echo.
+    echo Neste PC, na pasta do projeto, rode:
+    echo   git pull
+    echo Depois feche e abra de novo este totem-kiosk.bat
+    echo.
 )
 
 rem Primeira vez no PC? Execute totem-configurar-pc.bat (gestos de borda + inicializacao automatica).
