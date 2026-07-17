@@ -832,6 +832,15 @@ ${unitHtml}
             });
         }
         card.classList.toggle('totem-product--promo', Boolean(offer?.promoId));
+        const promoTag = card.querySelector('.totem-product__promo-tag');
+        if (offer?.promoId && !promoTag) {
+            card.querySelector('.totem-product__media')?.insertAdjacentHTML(
+                'afterbegin',
+                '<span class="totem-product__promo-tag" aria-label="Produto em promoção"><img src="img/tag-promocao.png?v=1" alt="" aria-hidden="true"></span>',
+            );
+        } else if (!offer?.promoId && promoTag) {
+            promoTag.remove();
+        }
         const payTag = card.querySelector('.totem-product__pay-tag');
         if (offer?.promoId && !payTag) {
             card.querySelector('.totem-product__media')?.insertAdjacentHTML(
@@ -2449,7 +2458,11 @@ ${offer?.discountPct > 0 ? `<span class="totem-product__promo-badge">-${offer.di
         const payTag = offer?.promoId
             ? `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`
             : '';
+        const promoTag = offer?.promoId
+            ? '<span class="totem-product__promo-tag" aria-label="Produto em promoção"><img src="img/tag-promocao.png?v=1" alt="" aria-hidden="true"></span>'
+            : '';
         const mediaHtml = `<div class="totem-product__media">
+${promoTag}
 ${payTag}
 ${variant && !tiersHtml ? mediaPackTagHtml(variant, tier) : ''}
 ${mediaCartBadgeHtml(qty)}
