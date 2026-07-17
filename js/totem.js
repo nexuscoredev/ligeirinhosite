@@ -796,7 +796,7 @@ ${unitHtml}
         card.dataset.cartKey = cartKey;
         card.classList.toggle('totem-product--selected', qty > 0);
 
-        const imgEl = card.querySelector('.totem-product__media img');
+        const imgEl = card.querySelector('.totem-product__media > img');
         const imgSrc = catalog.productImageUrl(pricing.getTierImage(group, tier));
         if (imgEl && imgSrc) imgEl.src = imgSrc;
 
@@ -836,7 +836,7 @@ ${unitHtml}
         if (offer?.promoId && !payTag) {
             card.querySelector('.totem-product__media')?.insertAdjacentHTML(
                 'afterbegin',
-                `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png" alt="" aria-hidden="true"></span>`,
+                `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`,
             );
         } else if (!offer?.promoId && payTag) {
             payTag.remove();
@@ -2441,7 +2441,7 @@ ${offer?.discountPct > 0 ? `<span class="totem-product__promo-badge">-${offer.di
         const promoClass = offer?.promoId ? ' totem-product--promo' : '';
         const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}"${offer?.promoId ? ` data-promo-id="${esc(offer.promoId)}"` : ''} style="--totem-card-i:${Math.min(index, 14)}"`;
         const payTag = offer?.promoId
-            ? `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png" alt="" aria-hidden="true"></span>`
+            ? `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`
             : '';
         const mediaHtml = `<div class="totem-product__media">
 ${payTag}

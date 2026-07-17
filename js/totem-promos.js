@@ -259,7 +259,7 @@ ${grupo.unidadesDisponiveis
     };
 
     const promoPayTagHtml = () =>
-        `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png" alt="" aria-hidden="true"></span>`;
+        `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`;
 
     const buildPromoOnlyCardHtml = (grupo, entry, index) => {
         const { promo } = entry;
