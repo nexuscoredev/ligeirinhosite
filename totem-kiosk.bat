@@ -10,25 +10,13 @@ set PROFILE=%LocalAppData%\LigeirinhoTotem\ChromeProfile
 set CHROME=%ProgramFiles%\Google\Chrome\Application\chrome.exe
 if not exist "%CHROME%" set CHROME=%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe
 if not exist "%CHROME%" set CHROME=%LocalAppData%\Google\Chrome\Application\chrome.exe
-
-if not exist "%CHROME%" (
-    echo Instale o Google Chrome e tente de novo.
-    pause
-    exit /b 1
-)
-
+if not exist "%CHROME%" (echo Instale o Google Chrome & pause & exit /b 1)
 if not exist "%PROFILE%" mkdir "%PROFILE%"
 
-rem Ponte SEM bloquear o kiosk (Start-Process retorna na hora).
-if exist "%~dp0totem-print-bridge.bat" (
-    echo Iniciando ponte de impressao (minimizada)...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~dp0totem-print-bridge.bat' -WorkingDirectory '%~dp0' -WindowStyle Minimized"
+rem Ponte em background via VBS (nao espera / nao trava o Chrome).
+if exist "%~dp0scripts\start-totem-print-bridge-hidden.vbs" (
+  wscript //nologo "%~dp0scripts\start-totem-print-bridge-hidden.vbs"
 )
-
-echo.
-echo Ligeirinho Totem - modo quiosque
-echo Abrindo Chrome...
-echo.
 
 :loop
 start /wait "" "%CHROME%" --user-data-dir="%PROFILE%" --kiosk --kiosk-printing --disable-print-preview --no-first-run --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-translate --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,OverscrollHistoryNavigation,TouchpadOverscrollHistoryNavigation,InsecureDownloadWarnings --disable-popup-blocking --disable-component-update --check-for-update-interval=31536000 "%URL%"
