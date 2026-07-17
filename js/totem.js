@@ -828,9 +828,41 @@ ${unitHtml}
     };
 
     const refreshTotemProductCard = (card) => {
-        if (!card?.dataset?.groupKey) return;
+        if (!card) return;
         const group = window.__ligProductGroups?.get?.(card.dataset.groupKey);
-        if (!group) return;
+        if (!group) {
+            const cartKey = baseCartKey(card.dataset.cartKey);
+            if (!cartKey) return;
+            const cart = cartApi.loadCart();
+            const qty = cartQtyForProductKey(cart, cartKey);
+            card.classList.toggle('totem-product--selected', qty > 0);
+
+            const badge = card.querySelector('.totem-product__cart-badge');
+            if (qty > 0) {
+                if (badge) {
+                    badge.textContent = String(qty);
+                    badge.setAttribute('aria-label', `${qty} no carrinho`);
+                } else {
+                    card.querySelector('.totem-product__media')?.insertAdjacentHTML(
+                        'beforeend',
+                        `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>`,
+                    );
+                }
+            } else {
+                badge?.remove();
+            }
+
+            const minus = card.querySelector('.totem-minus');
+            const plus = card.querySelector('.totem-plus');
+            const qtyEl = card.querySelector('.totem-qty-value');
+            if (minus) {
+                minus.dataset.cartKey = cartKey;
+                minus.disabled = qty <= 0;
+            }
+            if (plus) plus.dataset.cartKey = cartKey;
+            if (qtyEl) qtyEl.textContent = String(qty);
+            return;
+        }
 
         const tier = card.dataset.priceTier || activeTierFor(group);
         const variant = pricing.getVariant(group, tier);
@@ -2514,11 +2546,11 @@ ${unitHtml}
     let productGridRenderToken = 0;
 
     const buildProductCardHtml = (item, index, cart = null) => {
-        const group = item.group || null;
-        const product = item.product;
+                const group = item.group || null;
+                const product = item.product;
         const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
         const variant = group ? pricing.getVariant(group, tier) : null;
-        const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
+                const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
         const itemKey = group?.key || product.id;
         const offer = resolvePromoOffer(cartKey, itemKey, tier);
         const cartMap = cart || cartApi.loadCart();
@@ -2659,7 +2691,7 @@ ${bodyHtml}
             items
                 .slice(from, to)
                 .map((item, i) => buildProductCardHtml(item, from + i, cart))
-                .join('');
+            .join('');
 
         // Primeiro paint rápido; restante em batches no idle para não travar o totem.
         const firstEnd = Math.min(items.length, PRODUCT_GRID_INITIAL);
@@ -2713,18 +2745,6 @@ ${bodyHtml}
         const qtyEl = card.querySelector('.totem-qty-value');
         if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');
         return true;
-    };
-
-    const pulseProduct = (cartKey) => {
-        const lookupKey = baseCartKey(cartKey);
-        const card =
-            productsGrid?.querySelector(`[data-cart-key="${lookupKey}"]`) ||
-            productsGrid?.querySelector(`.totem-plus[data-cart-key="${lookupKey}"]`)?.closest('.totem-product');
-        pulseClass(card, 'totem-product--pulse');
-        const badge = card?.querySelector('.totem-product__cart-badge');
-        if (badge) pulseClass(badge, 'totem-product__badge--pop');
-        const qtyEl = card?.querySelector('.totem-qty-value');
-        if (qtyEl) pulseClass(qtyEl, 'totem-qty-value--pop');
     };
 
     const findDisplayItem = (cartKey, itemKey) => {
@@ -2864,10 +2884,9 @@ ${bodyHtml}
         }
         cart[key].qty += 1;
         cartApi.saveCart(cart);
-        renderCart();
-        renderProducts();
+        renderCartIncremental(key);
+        bumpProductCardInGrid(itemKey, packType, baseCartKey(key));
         refreshPromosIfOpen();
-        pulseProduct(key);
         showCartAddedToast(name, cartLineImage(cart[key]));
         bumpIdle();
     };
@@ -2963,10 +2982,9 @@ ${bodyHtml}
 
         cart[key].qty += qtyToAdd;
         cartApi.saveCart(cart);
-        renderCart();
+        renderCartIncremental(key);
         refreshPromosIfOpen();
-        const bumped = bumpProductCardInGrid(detailItemKey, tier, baseKey);
-        if (!bumped) renderProducts();
+        bumpProductCardInGrid(detailItemKey, tier, baseKey);
         playDetailBlockAddedFeedback(blockEl, qtyToAdd);
         showCartAddedToast(name, cartLineImage(cart[key]), qtyToAdd);
 
@@ -3020,10 +3038,9 @@ ${bodyHtml}
         }
         cart[key].qty += qtyToAdd;
         cartApi.saveCart(cart);
-        renderCart();
-        renderProducts();
+        renderCartIncremental(key);
+        bumpProductCardInGrid(itemKey, tier, baseKey);
         refreshPromosIfOpen();
-        pulseProduct(baseKey);
         showCartAddedToast(name, cartLineImage(cart[key]));
         detailDraftQty = 1;
         refreshDetailIfOpen();
@@ -3048,11 +3065,10 @@ ${bodyHtml}
         cart[key].qty += delta;
         if (cart[key].qty <= 0) delete cart[key];
         cartApi.saveCart(cart);
-        renderCart();
-        renderProducts();
+        renderCartIncremental(key);
+        bumpProductCardInGrid(null, null, baseCartKey(key));
         refreshPromosIfOpen();
         if (delta > 0) {
-            pulseProduct(baseCartKey(key));
             showCartAddedToast(itemName, cartLineImage(line));
         }
         bumpIdle();
@@ -3063,37 +3079,18 @@ ${bodyHtml}
         if (!cart[cartKey]) return;
         delete cart[cartKey];
         cartApi.saveCart(cart);
-        renderCart();
-        renderProducts();
+        renderCartIncremental(cartKey);
+        bumpProductCardInGrid(null, null, baseCartKey(cartKey));
         refreshPromosIfOpen();
         refreshDetailIfOpen();
         bumpIdle();
     };
 
-    const renderCart = () => {
-        const cart = cartApi.loadCart();
-        const items = cartApi.cartEntries(cart);
-        const count = cartApi.cartItemCount(cart);
-        const total = cartApi.cartTotalValue(cart);
-        if (cartBadge) cartBadge.textContent = String(count);
-        if (cartCountEl) cartCountEl.textContent = formatCartCount(count);
-        if (count !== lastCartCount) {
-            if (count > 0) pulseClass(cartBadge, 'totem-btn__badge--pop');
-            lastCartCount = count;
-        }
-        if (cartTotalEl) cartTotalEl.textContent = formatPrice(total);
-        if (checkoutBtn) {
-            checkoutBtn.disabled = count === 0;
-            checkoutBtn.textContent = count ? 'Ir para pagamento' : 'Adicione produtos';
-        }
-        if (!cartList) return;
-        cartList.innerHTML = items.length
-            ? items
-                  .map((item, index) => {
-                      const key = item.cartKey || item.id;
-                      const pack = cartApi.packTypeLabel(item.packType);
-                      const lineTotal = cartApi.lineSubtotal(item);
-                      return `<article class="totem-cart-line" style="--totem-line-i:${index}">
+    const cartLineHtml = (item, index) => {
+        const key = item.cartKey || item.id;
+        const pack = cartApi.packTypeLabel(item.packType);
+        const lineTotal = cartApi.lineSubtotal(item);
+        return `<article class="totem-cart-line" data-cart-key="${esc(key)}" style="--totem-line-i:${index}">
 ${cartLineThumbHtml(item)}
 <div class="totem-cart-line__body">
 <div class="totem-cart-line__name">${esc(item.name)}</div>
@@ -3116,14 +3113,74 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
 </button>
 </div>
 </article>`;
-                  })
-                  .join('')
-            : `<div class="totem-cart-empty">
+    };
+
+    const cartEmptyHtml = () => `<div class="totem-cart-empty">
 <span class="material-symbols-outlined totem-cart-empty__icon" aria-hidden="true">shopping_cart</span>
 <p class="totem-cart-empty__title">Seu carrinho está vazio</p>
 <p class="totem-cart-empty__lead">Toque em <strong>+</strong> nos produtos para começar.</p>
 </div>`;
+
+    const updateCartSummary = (cart) => {
+        const count = cartApi.cartItemCount(cart);
+        const total = cartApi.cartTotalValue(cart);
+        if (cartBadge) cartBadge.textContent = String(count);
+        if (cartCountEl) cartCountEl.textContent = formatCartCount(count);
+        if (count !== lastCartCount) {
+            if (count > 0) pulseClass(cartBadge, 'totem-btn__badge--pop');
+            lastCartCount = count;
+        }
+        if (cartTotalEl) cartTotalEl.textContent = formatPrice(total);
+        if (checkoutBtn) {
+            checkoutBtn.disabled = count === 0;
+            checkoutBtn.textContent = count ? 'Ir para pagamento' : 'Adicione produtos';
+        }
         updateFloatCart(cart);
+    };
+
+    const renderCart = () => {
+        const cart = cartApi.loadCart();
+        const items = cartApi.cartEntries(cart);
+        updateCartSummary(cart);
+        if (!cartList) return;
+        cartList.innerHTML = items.length
+            ? items.map((item, index) => cartLineHtml(item, index)).join('')
+            : cartEmptyHtml();
+    };
+
+    const findRenderedCartLine = (cartKey) =>
+        Array.from(cartList?.querySelectorAll('.totem-cart-line') || []).find(
+            (line) => line.dataset.cartKey === cartKey,
+        ) || null;
+
+    const renderCartIncremental = (changedKey) => {
+        const cart = cartApi.loadCart();
+        const items = cartApi.cartEntries(cart);
+        updateCartSummary(cart);
+        if (!cartList) return;
+
+        const key = String(changedKey || '');
+        const itemIndex = items.findIndex((item) => (item.cartKey || item.id) === key);
+        const item = itemIndex >= 0 ? items[itemIndex] : null;
+        const currentLine = findRenderedCartLine(key);
+
+        if (item) {
+            const template = document.createElement('template');
+            template.innerHTML = cartLineHtml(item, itemIndex).trim();
+            const nextLine = template.content.firstElementChild;
+            if (currentLine && nextLine) {
+                currentLine.replaceWith(nextLine);
+            } else if (nextLine) {
+                if (!cartList.querySelector('.totem-cart-line')) cartList.innerHTML = '';
+                cartList.appendChild(nextLine);
+            }
+        } else {
+            currentLine?.remove();
+        }
+
+        if (!items.length) {
+            cartList.innerHTML = cartEmptyHtml();
+        }
     };
 
     const openCart = () => {
@@ -3173,12 +3230,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
                     (originalPrice != null && originalPrice > price + 0.009),
             );
             return {
-                id: item.id,
-                cartKey: item.cartKey || item.id,
-                name: item.name,
-                price: item.price,
-                qty: item.qty,
-                packType: item.packType,
+            id: item.id,
+            cartKey: item.cartKey || item.id,
+            name: item.name,
+            price: item.price,
+            qty: item.qty,
+            packType: item.packType,
                 categoryId: item.categoryId || '',
                 categoryName: item.categoryName || '',
                 ...(item.promoId ? { promoId: item.promoId } : {}),
