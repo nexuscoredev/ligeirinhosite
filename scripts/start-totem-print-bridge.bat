@@ -1,4 +1,4 @@
 @echo off
-title Ligeirinho - Ponte impressao totem
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start-totem-print-bridge.ps1" %*
-if errorlevel 1 pause
+rem Compat: redireciona para o launcher na raiz do repo
+cd /d "%~dp0.."
+call "%~dp0..\totem-print-bridge.bat" %*
