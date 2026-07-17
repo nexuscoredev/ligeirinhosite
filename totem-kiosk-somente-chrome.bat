@@ -9,5 +9,5 @@ if not exist "%CHROME%" set CHROME=%LocalAppData%\Google\Chrome\Application\chro
 if not exist "%CHROME%" (echo Instale o Google Chrome & pause & exit /b 1)
 if not exist "%PROFILE%" mkdir "%PROFILE%"
 :loop
-start /wait "" "%CHROME%" --user-data-dir="%PROFILE%" --kiosk --kiosk-printing --disable-scripted-print-throttling --no-first-run --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-translate --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,OverscrollHistoryNavigation,TouchpadOverscrollHistoryNavigation,InsecureDownloadWarnings --disable-popup-blocking --disable-component-update --check-for-update-interval=31536000 "%URL%"
+start /wait "" "%CHROME%" --user-data-dir="%PROFILE%" --remote-debugging-address=127.0.0.1 --remote-debugging-port=9222 --kiosk --kiosk-printing --disable-scripted-print-throttling --no-first-run --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-translate --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,OverscrollHistoryNavigation,TouchpadOverscrollHistoryNavigation,InsecureDownloadWarnings --disable-popup-blocking --disable-component-update --check-for-update-interval=31536000 "%URL%"
 goto loop

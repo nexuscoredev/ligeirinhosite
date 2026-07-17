@@ -28,6 +28,16 @@ if not exist "%~dp0scripts\totem-print-bridge.mjs" (
     exit /b 1
 )
 
+if not exist "%~dp0node_modules\ws\package.json" (
+    echo Instalando componente da ponte (uma vez)...
+    call npm.cmd install --omit=dev --no-audit --no-fund
+    if errorlevel 1 (
+        echo [ERRO] Nao foi possivel instalar o componente ws.
+        pause
+        exit /b 1
+    )
+)
+
 netsh advfirewall firewall delete rule name="Ligeirinho Totem Print Bridge" >nul 2>&1
 netsh advfirewall firewall add rule name="Ligeirinho Totem Print Bridge" dir=in action=allow protocol=TCP localport=%TOTEM_BRIDGE_PORT% >nul 2>&1
 

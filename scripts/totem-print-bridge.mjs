@@ -17,6 +17,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import http from 'node:http';
 import net from 'node:net';
+import WebSocket from 'ws';
 import { buildEscPosReceipt } from './lib/totem-escpos.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -28,6 +29,93 @@ const LISTEN_PORT = Number(process.env.TOTEM_BRIDGE_PORT) || 8787;
 const PRINTER_NAME = String(process.env.TOTEM_PRINTER_NAME || '').trim();
 const PRINTER_HOST = String(process.env.TOTEM_PRINTER_HOST || '').trim();
 const PRINTER_PORT = Number(process.env.TOTEM_PRINTER_PORT) || 9100;
+const CHROME_DEBUG_URL = String(
+    process.env.TOTEM_CHROME_DEBUG_URL || 'http://127.0.0.1:9222'
+).replace(/\/$/, '');
+const PREFER_CHROME_RENDERER =
+    String(process.env.TOTEM_BRIDGE_RENDERER || 'chrome').toLowerCase() === 'chrome';
+const ALLOW_ESCPOS_FALLBACK =
+    String(process.env.TOTEM_BRIDGE_ESCPOS_FALLBACK || '').trim() === '1';
+
+const chromeTargets = async () => {
+    const response = await fetch(`${CHROME_DEBUG_URL}/json/list`, {
+        signal: AbortSignal.timeout(1500),
+    });
+    if (!response.ok) throw new Error(`Chrome DevTools HTTP ${response.status}`);
+    return response.json();
+};
+
+const evaluateInChrome = (webSocketDebuggerUrl, expression) =>
+    new Promise((resolve, reject) => {
+        const socket = new WebSocket(webSocketDebuggerUrl);
+        const id = 1;
+        const timer = setTimeout(() => {
+            socket.close();
+            reject(new Error('Timeout ao imprimir pelo Chrome do Totem.'));
+        }, 12000);
+
+        socket.addEventListener('open', () => {
+            socket.send(
+                JSON.stringify({
+                    id,
+                    method: 'Runtime.evaluate',
+                    params: {
+                        expression,
+                        awaitPromise: true,
+                        returnByValue: true,
+                        userGesture: true,
+                    },
+                })
+            );
+        });
+        socket.addEventListener('message', (event) => {
+            const message = JSON.parse(String(event.data || '{}'));
+            if (message.id !== id) return;
+            clearTimeout(timer);
+            socket.close();
+            if (message.error || message.result?.exceptionDetails) {
+                reject(
+                    new Error(
+                        message.error?.message ||
+                            message.result?.exceptionDetails?.text ||
+                            'Falha ao imprimir no Chrome.'
+                    )
+                );
+                return;
+            }
+            resolve(message.result?.result?.value);
+        });
+        socket.addEventListener('error', () => {
+            clearTimeout(timer);
+            reject(new Error('Não foi possível conectar ao Chrome do Totem.'));
+        });
+    });
+
+const printViaTotemChrome = async (order, opts = {}) => {
+    const targets = await chromeTargets();
+    const target = targets.find(
+        (item) =>
+            item.type === 'page' &&
+            item.webSocketDebuggerUrl &&
+            /\/totem(?:[-.]|$)/i.test(String(item.url || ''))
+    );
+    if (!target) throw new Error('A aba do Totem não foi encontrada no Chrome.');
+
+    const orderJson = JSON.stringify(order).replace(/</g, '\\u003c');
+    const optsJson = JSON.stringify({
+        totemLabel: opts.totemLabel,
+        printMarginLeftMm: opts.printMarginLeftMm,
+        printMarginRightMm: opts.printMarginRightMm,
+        printPaperWidthMm: opts.printPaperWidthMm,
+    }).replace(/</g, '\\u003c');
+    const expression = `(async () => {
+        const receipt = window.LigeirinhoTotemReceipt;
+        if (!receipt?.printViaKiosk) throw new Error('Renderizador do comprovante não carregado.');
+        return receipt.printViaKiosk(${orderJson}, ${optsJson});
+    })()`;
+    const printed = await evaluateInChrome(target.webSocketDebuggerUrl, expression);
+    if (printed !== true) throw new Error('O Chrome não confirmou a impressão.');
+};
 
 const sendToNetworkPrinter = (data, host, port) =>
     new Promise((resolve, reject) => {
@@ -155,12 +243,30 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && req.url === '/health') {
+        let chromeReady = false;
+        if (PREFER_CHROME_RENDERER) {
+            try {
+                const targets = await chromeTargets();
+                chromeReady = targets.some(
+                    (item) =>
+                        item.type === 'page' &&
+                        item.webSocketDebuggerUrl &&
+                        /\/totem(?:[-.]|$)/i.test(String(item.url || ''))
+                );
+            } catch {
+                chromeReady = false;
+            }
+        }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(
             JSON.stringify({
                 ok: true,
                 printerName: PRINTER_NAME || null,
                 printerHost: PRINTER_HOST || null,
+                renderer: PREFER_CHROME_RENDERER ? 'chrome-html' : 'escpos',
+                chromeDebugUrl: CHROME_DEBUG_URL,
+                chromeReady,
+                escposFallback: ALLOW_ESCPOS_FALLBACK,
             })
         );
         return;
@@ -181,16 +287,28 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        const data = buildEscPosReceipt(order, {
-            totemLabel: body.totemLabel,
-            escposLineChars: body.escposLineChars,
-        });
-        await sendToPrinter(data, {
-            printerHost: body.printerHost,
-            printerPort: body.printerPort,
-        });
+        let renderer = 'chrome-html';
+        try {
+            if (!PREFER_CHROME_RENDERER) throw new Error('Renderizador Chrome desativado.');
+            await printViaTotemChrome(order, body);
+        } catch (chromeError) {
+            if (!ALLOW_ESCPOS_FALLBACK) throw chromeError;
+            renderer = 'escpos-fallback';
+            console.warn(
+                '[totem-print-bridge] Chrome indisponível; usando ESC/POS:',
+                chromeError.message || chromeError
+            );
+            const data = buildEscPosReceipt(order, {
+                totemLabel: body.totemLabel,
+                escposLineChars: body.escposLineChars,
+            });
+            await sendToPrinter(data, {
+                printerHost: body.printerHost,
+                printerPort: body.printerPort,
+            });
+        }
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true }));
+        res.end(JSON.stringify({ ok: true, renderer }));
     } catch (err) {
         console.error('[totem-print-bridge]', err.message || err);
         res.writeHead(500, { 'Content-Type': 'application/json' });

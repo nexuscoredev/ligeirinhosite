@@ -608,6 +608,9 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 order,
                 totemLabel: opts.totemLabel,
                 escposLineChars: opts.escposLineChars,
+                printMarginLeftMm: opts.printMarginLeftMm,
+                printMarginRightMm: opts.printMarginRightMm,
+                printPaperWidthMm: opts.printPaperWidthMm,
             };
             const printerHost = String(opts.printerHost || '').trim();
             if (printerHost) {
