@@ -190,6 +190,8 @@
     let customerSkippedIdentification = false;
     let syncBusy = false;
     let refreshBusy = false;
+    const AUTO_REFRESH_INTERVAL_MS = 30 * 60 * 1000;
+    let autoRefreshTimer = null;
     let totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
     let customerStep = 'register';
     let customerLookupMode = 'doc';
@@ -2131,14 +2133,16 @@ ${unitHtml}
         document.documentElement.classList.toggle('totem--system-update-pending', pendingSystemUpdate);
     };
 
-    const refreshTotemData = async () => {
+    const refreshTotemData = async ({ silent = false } = {}) => {
         if (syncBusy) return;
         syncBusy = true;
-        syncBtn?.classList.add('totem-btn--refreshing');
-        syncBtn?.setAttribute('aria-busy', 'true');
-        syncBtn?.setAttribute('aria-label', 'Sincronizando catálogo…');
-        updateShoppingChrome();
-        bumpIdle();
+        if (!silent) {
+            syncBtn?.classList.add('totem-btn--refreshing');
+            syncBtn?.setAttribute('aria-busy', 'true');
+            syncBtn?.setAttribute('aria-label', 'Sincronizando catálogo…');
+            updateShoppingChrome();
+            bumpIdle();
+        }
 
         const applyCatalogRefresh = (rawCatalog) => {
             applyCatalogFromRaw(rawCatalog);
@@ -2193,18 +2197,64 @@ ${unitHtml}
                 categoriesStats.textContent = `Sincronizado às ${syncedAt}${hubLabel} · ${totemCategories.length} categorias · ${displayItems.length} produtos`;
             }
         } catch (err) {
-            const msg = err?.message || '';
-            window.alert(
-                msg && !msg.includes('sync failed')
-                    ? msg
-                    : 'Não foi possível sincronizar. Verifique a conexão e tente novamente.',
-            );
+            if (silent) {
+                console.warn('totem auto-sync', err);
+            } else {
+                const msg = err?.message || '';
+                window.alert(
+                    msg && !msg.includes('sync failed')
+                        ? msg
+                        : 'Não foi possível sincronizar. Verifique a conexão e tente novamente.',
+                );
+            }
         } finally {
             syncBusy = false;
             syncBtn?.classList.remove('totem-btn--refreshing');
             syncBtn?.setAttribute('aria-busy', 'false');
             updateShoppingChrome();
         }
+    };
+
+    const canAutoApplySystemUpdate = () => {
+        if (idlePaused || refreshBusy) return false;
+        if (!views.welcome?.classList.contains('totem-view--active')) return false;
+        if (customerIdentified) return false;
+        return true;
+    };
+
+    const applyPendingSystemUpdateIfSafe = () => {
+        if (!canAutoApplySystemUpdate()) return false;
+        if (!window.LigeirinhoTotemPwaUpdate?.isPending?.()) return false;
+        refreshBusy = true;
+        refreshBtn?.classList.add('totem-btn--refreshing');
+        refreshBtn?.setAttribute('aria-busy', 'true');
+        void window.LigeirinhoTotemPwaUpdate.aplicar();
+        return true;
+    };
+
+    const runScheduledTotemRefresh = async () => {
+        if (document.visibilityState === 'hidden') return;
+        await refreshTotemData({ silent: true });
+        try {
+            const result = await window.LigeirinhoTotemPwaUpdate?.verificar?.({ silencioso: true });
+            const pending =
+                result === 'pendente' || Boolean(window.LigeirinhoTotemPwaUpdate?.isPending?.());
+            if (!pending) {
+                updateShoppingChrome();
+                return;
+            }
+            if (!applyPendingSystemUpdateIfSafe()) updateShoppingChrome();
+        } catch (err) {
+            console.warn('totem auto-update', err);
+            updateShoppingChrome();
+        }
+    };
+
+    const startAutoRefresh = () => {
+        if (autoRefreshTimer != null) return;
+        autoRefreshTimer = window.setInterval(() => {
+            void runScheduledTotemRefresh();
+        }, AUTO_REFRESH_INTERVAL_MS);
     };
 
     const setView = (name) => {
@@ -2345,6 +2395,7 @@ ${unitHtml}
         hideIdleWarning();
         clearIdleTimers();
         setView('welcome');
+        window.setTimeout(() => applyPendingSystemUpdateIfSafe(), 250);
     };
 
     const isIdleBlocked = () => {
@@ -3690,6 +3741,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
         updateShoppingChrome();
         resetIdleTimer();
+        startAutoRefresh();
 
         const returnParams = new URLSearchParams(window.location.search);
         if (returnParams.get('cart') === 'open') {
