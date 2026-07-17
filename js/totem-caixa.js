@@ -149,7 +149,7 @@ ${rows.join('')}
             await receipt?.printOrderReceipt?.(orderToPrint, {
                 force: true,
                 totemLabel,
-                printMode: 'kiosk',
+                printMode,
             });
             showPrintNote();
             bumpScreenIdle();

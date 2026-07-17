@@ -29,9 +29,15 @@ const PRINTER_NAME = String(process.env.TOTEM_PRINTER_NAME || '').trim();
 const PRINTER_HOST = String(process.env.TOTEM_PRINTER_HOST || '').trim();
 const PRINTER_PORT = Number(process.env.TOTEM_PRINTER_PORT) || 9100;
 
-const sendToNetworkPrinter = (data) =>
+const sendToNetworkPrinter = (data, host, port) =>
     new Promise((resolve, reject) => {
-        const socket = net.createConnection({ host: PRINTER_HOST, port: PRINTER_PORT }, () => {
+        const targetHost = String(host || PRINTER_HOST || '').trim();
+        const targetPort = Number(port) || PRINTER_PORT;
+        if (!targetHost) {
+            reject(new Error('Impressora de rede não configurada.'));
+            return;
+        }
+        const socket = net.createConnection({ host: targetHost, port: targetPort }, () => {
             socket.write(data, (err) => {
                 socket.end();
                 if (err) reject(err);
@@ -106,16 +112,17 @@ if (-not [LigeirinhoRawPrinter]::Send($printer, $bytes)) {
     );
 };
 
-const sendToPrinter = async (data) => {
+const sendToPrinter = async (data, { printerHost, printerPort } = {}) => {
+    const host = String(printerHost || PRINTER_HOST || '').trim();
+    if (host) {
+        await sendToNetworkPrinter(data, host, printerPort);
+        return;
+    }
     if (PRINTER_NAME) {
         if (process.platform !== 'win32') {
             throw new Error('TOTEM_PRINTER_NAME só funciona no Windows.');
         }
         await sendToWindowsPrinter(data);
-        return;
-    }
-    if (PRINTER_HOST) {
-        await sendToNetworkPrinter(data);
         return;
     }
     throw new Error('Defina TOTEM_PRINTER_NAME (USB) ou TOTEM_PRINTER_HOST (rede).');
@@ -178,7 +185,10 @@ const server = http.createServer(async (req, res) => {
             totemLabel: body.totemLabel,
             escposLineChars: body.escposLineChars,
         });
-        await sendToPrinter(data);
+        await sendToPrinter(data, {
+            printerHost: body.printerHost,
+            printerPort: body.printerPort,
+        });
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ ok: true }));
     } catch (err) {
@@ -195,6 +205,8 @@ server.listen(LISTEN_PORT, LISTEN_HOST, () => {
     } else if (PRINTER_HOST) {
         console.log(`[totem-print-bridge] rede ${PRINTER_HOST}:${PRINTER_PORT}`);
     } else {
-        console.warn('[totem-print-bridge] Defina TOTEM_PRINTER_NAME ou TOTEM_PRINTER_HOST.');
+        console.warn(
+            '[totem-print-bridge] Sem TOTEM_PRINTER_HOST/NAME — use printerHost no POST (Tablets) ou defina a env.'
+        );
     }
 });
