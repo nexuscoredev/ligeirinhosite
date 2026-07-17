@@ -621,7 +621,12 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
+                signal: AbortSignal.timeout(15000),
             });
+            if (!res.ok) {
+                const errText = await res.text().catch(() => '');
+                console.warn('totem-receipt bridge HTTP', res.status, errText);
+            }
             return res.ok;
         } catch (err) {
             console.warn('totem-receipt bridge', err);
@@ -1012,16 +1017,15 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return printViaKiosk(order, printOpts);
             };
 
-            const tryBridge = async (attempts = 2) => {
+            const tryBridge = async (attempts = 3) => {
                 const bridgeUrl = await resolveBridgeUrlForPrint(printOpts);
                 if (!bridgeUrl) return false;
                 printOpts.printBridgeUrl = bridgeUrl;
                 for (let i = 0; i < attempts; i += 1) {
-                    if (await bridgeReachable(bridgeUrl)) {
-                        const ok = await printViaBridge(order, printOpts);
-                        if (ok) return true;
-                    }
-                    if (i < attempts - 1) await sleep(400);
+                    // Tenta imprimir direto — o /health e so diagnostico; nao bloquear o POST.
+                    const ok = await printViaBridge(order, printOpts);
+                    if (ok) return true;
+                    if (i < attempts - 1) await sleep(500);
                 }
                 return false;
             };

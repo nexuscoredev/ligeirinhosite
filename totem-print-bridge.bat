@@ -28,20 +28,16 @@ if not exist "%~dp0scripts\totem-print-bridge.mjs" (
     exit /b 1
 )
 
-if not exist "%~dp0node_modules\ws\package.json" (
-    echo Instalando componente da ponte (uma vez)...
-    call npm.cmd install --omit=dev --no-audit --no-fund
-    if errorlevel 1 (
-        echo [ERRO] Nao foi possivel instalar o componente ws.
-        pause
-        exit /b 1
-    )
-)
+rem Mata ponte antiga na mesma porta (senao o codigo novo nem sobe).
+echo Encerrando ponte anterior na porta %TOTEM_BRIDGE_PORT% (se houver)...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$p=%TOTEM_BRIDGE_PORT%; Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }; Get-CimInstance Win32_Process -Filter \"name='node.exe'\" -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match 'totem-print-bridge' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" >nul 2>&1
+timeout /t 1 /nobreak >nul
 
 netsh advfirewall firewall delete rule name="Ligeirinho Totem Print Bridge" >nul 2>&1
 netsh advfirewall firewall add rule name="Ligeirinho Totem Print Bridge" dir=in action=allow protocol=TCP localport=%TOTEM_BRIDGE_PORT% >nul 2>&1
 
-echo Ligeirinho Print Bridge
+echo Ligeirinho Print Bridge (ESC/POS)
 echo Impressora: %TOTEM_PRINTER_HOST%:%TOTEM_PRINTER_PORT%
 echo Teste: http://127.0.0.1:%TOTEM_BRIDGE_PORT%/health
 echo Deixe esta janela rodando (pode ficar minimizada).
