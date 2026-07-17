@@ -162,6 +162,15 @@
     let detailItemKey = null;
     let detailDraftQty = 1;
     let detailPromoOpts = null;
+    /** @type {Map<string, 'pix' | 'card'>} */
+    const detailPayModeByTier = new Map();
+
+    const detailPayModeFor = (tier) => detailPayModeByTier.get(tier) || 'pix';
+
+    const setDetailPayMode = (tier, mode) => {
+        if (!tier || (mode !== 'pix' && mode !== 'card')) return;
+        detailPayModeByTier.set(tier, mode);
+    };
     let promosReturnView = 'welcome';
     let customerIdentified = false;
     let customerSkippedIdentification = false;
@@ -402,26 +411,30 @@
                     : null);
             if (!refVariant) return;
             const isPromoTier = Boolean(tierPromo);
-            const blockPrice = isPromoTier ? Number(tierPromo.promoPrice) : Number(refVariant.price);
-            const perUnit =
-                tierKey === 'caixa' || tierKey === 'pallet'
-                    ? (() => {
-                          const unitPx = pricing.getUnitPrice({
-                              ...refVariant,
-                              price: blockPrice,
-                              tier: tierKey,
-                          });
-                          return unitPx != null ? `${formatPrice(unitPx)} / un` : null;
-                      })()
-                    : null;
+            const catalogPrice = Number(refVariant.price);
+            const blockPrice = isPromoTier ? Number(tierPromo.promoPrice) : catalogPrice;
+            const originalPrice = isPromoTier
+                ? Number(tierPromo.originalPrice ?? catalogPrice)
+                : null;
+            const packUnitLabel = (priceForUnit) => {
+                if (tierKey !== 'caixa' && tierKey !== 'pallet') return null;
+                const unitPx = pricing.getUnitPrice({
+                    ...refVariant,
+                    price: priceForUnit,
+                    tier: tierKey,
+                });
+                return unitPx != null ? `${formatPrice(unitPx)} / un` : null;
+            };
             blocks.push({
                 tier: tierKey,
                 label: detailTierLabel(tierKey, refVariant),
                 price: blockPrice,
-                originalPrice: isPromoTier ? Number(tierPromo.originalPrice ?? refVariant.price) : null,
+                originalPrice,
                 promo: isPromoTier,
                 promoOpts: tierPromo,
-                perUnit,
+                perUnit: packUnitLabel(blockPrice),
+                originalPerUnit:
+                    isPromoTier && originalPrice != null ? packUnitLabel(originalPrice) : null,
                 variant: refVariant,
                 actionable: true,
             });
@@ -473,31 +486,48 @@
                 const isPack = block.tier === 'caixa' || block.tier === 'pallet';
                 const mod = isPack ? 'pack' : 'unit';
                 const active = block.tier === activeTier ? ' totem-detail__price-block--active' : '';
+                const payMode = block.promo ? detailPayModeFor(block.tier) : 'pix';
+                const showPromoPrice = Boolean(block.promo && payMode === 'pix');
+                const displayPrice = showPromoPrice
+                    ? block.price
+                    : (block.originalPrice ?? block.price);
                 const promo = block.promo ? ' totem-detail__price-block--promo' : '';
+                const cardPay =
+                    block.promo && payMode === 'card' ? ' totem-detail__price-block--card-pay' : '';
                 const info = block.actionable === false ? ' totem-detail__price-block--info' : '';
                 const oldHtml =
+                    showPromoPrice &&
                     block.originalPrice != null &&
                     Number.isFinite(block.originalPrice) &&
                     block.originalPrice > block.price
                         ? `<span class="totem-detail__price-old">${formatPrice(block.originalPrice)}</span>`
                         : '';
                 const promoBadge = block.promo
-                    ? '<span class="totem-detail__promo-badge">PROMO</span><span class="totem-detail__pay-tag">Pix/Dinheiro</span>'
+                    ? `<div class="totem-detail__promo-tags">
+${showPromoPrice ? '<span class="totem-detail__promo-badge">PROMO</span>' : ''}
+<div class="totem-detail__pay-toggle" role="group" aria-label="Forma de pagamento do preço">
+<button type="button" class="totem-detail__pay-opt${payMode === 'pix' ? ' totem-detail__pay-opt--active' : ''}" data-pay-mode="pix" data-price-tier="${esc(block.tier)}" aria-pressed="${payMode === 'pix' ? 'true' : 'false'}">Pix/Dinheiro</button>
+<button type="button" class="totem-detail__pay-opt${payMode === 'card' ? ' totem-detail__pay-opt--active' : ''}" data-pay-mode="card" data-price-tier="${esc(block.tier)}" aria-pressed="${payMode === 'card' ? 'true' : 'false'}">Cartão</button>
+</div>
+</div>`
                     : '';
-                const perUnit = block.perUnit
-                    ? `<span class="totem-detail__price-per">${esc(block.perUnit)}</span>`
+                const perUnitLabel = showPromoPrice
+                    ? block.perUnit
+                    : block.originalPerUnit || block.perUnit;
+                const perUnit = perUnitLabel
+                    ? `<span class="totem-detail__price-per">${esc(perUnitLabel)}</span>`
                     : '';
                 const selectable =
                     block.actionable !== false
                         ? ` data-price-tier="${esc(block.tier)}" role="button" tabindex="0" aria-pressed="${block.tier === activeTier ? 'true' : 'false'}" aria-label="Adicionar ${esc(block.label)} ao pedido"`
                         : ` aria-label="${esc(block.label)} — apenas informativo"`;
-                return `<div class="totem-detail__price-block totem-detail__price-block--${mod}${active}${promo}${info}"${selectable}>
+                return `<div class="totem-detail__price-block totem-detail__price-block--${mod}${active}${promo}${cardPay}${info}"${selectable}>
 <span class="totem-detail__price-label">${esc(block.label)}</span>
 <div class="totem-detail__price-row">
 ${oldHtml}
-<strong class="totem-detail__price-value">${formatPrice(block.price)}</strong>
-${promoBadge}
+<strong class="totem-detail__price-value">${formatPrice(displayPrice)}</strong>
 </div>
+${promoBadge}
 ${perUnit}
 </div>`;
             })
@@ -513,6 +543,7 @@ ${perUnit}
             detailItemKey = null;
             detailDraftQty = 1;
             detailPromoOpts = null;
+            detailPayModeByTier.clear();
             if (detailSheet) detailSheet.innerHTML = '';
         }, 280);
     };
@@ -573,6 +604,7 @@ adicionar ao pedido
         detailItemKey = itemKey;
         detailPromoOpts = promoOpts;
         detailDraftQty = 1;
+        detailPayModeByTier.clear();
         renderProductDetail();
         detailPanel.setAttribute('aria-hidden', 'false');
         detailPanel.classList.add('totem-detail--open');
@@ -2789,7 +2821,8 @@ ${bodyHtml}
 
         const qtyToAdd = Math.max(1, detailDraftQty);
         const tierPromo = block.promoOpts || null;
-        const usePromo = Boolean(tierPromo?.promoId);
+        const payMode = detailPayModeFor(tier);
+        const usePromo = Boolean(tierPromo?.promoId) && payMode !== 'card';
         const variant = group
             ? pricing.getVariant(group, tier) ||
               (block?.variant ? { ...block.variant, tier: block.variant.tier || tier } : null)
@@ -2809,7 +2842,9 @@ ${bodyHtml}
         const basePrice = Number((variant || product).price);
         const cart = cartApi.loadCart();
         const autoOffer =
-            !usePromo ? resolvePromoOffer(key, detailItemKey || group?.key || product.id, packType) : null;
+            !usePromo && payMode !== 'card'
+                ? resolvePromoOffer(key, detailItemKey || group?.key || product.id, packType)
+                : null;
         const appliedPromo = usePromo
             ? tierPromo
             : autoOffer
@@ -2854,6 +2889,12 @@ ${bodyHtml}
                 finalBase > finalPrice
                     ? Math.max(0, Math.round((1 - finalPrice / finalBase) * 100))
                     : 0;
+        } else if (payMode === 'card') {
+            cart[key].price = finalPrice;
+            delete cart[key].promoId;
+            delete cart[key].isPromo;
+            delete cart[key].originalPrice;
+            delete cart[key].discountPct;
         }
 
         cart[key].qty += qtyToAdd;
@@ -2874,7 +2915,12 @@ ${bodyHtml}
         if (!customerIdentified) return;
         totemKeyboard?.hide?.();
         const qtyToAdd = Math.max(1, detailDraftQty);
-        if (detailPromoOpts?.promoId) {
+        const item = findDisplayItem(cartKey, itemKey);
+        if (!item) return;
+        const group = item.group;
+        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
+        const payMode = detailPayModeFor(tier);
+        if (detailPromoOpts?.promoId && payMode !== 'card') {
             for (let i = 0; i < qtyToAdd; i += 1) {
                 addItem(cartKey, itemKey, {
                     promoPrice: detailPromoOpts.promoPrice,
@@ -2886,10 +2932,6 @@ ${bodyHtml}
             refreshDetailIfOpen();
             return;
         }
-        const item = findDisplayItem(cartKey, itemKey);
-        if (!item) return;
-        const group = item.group;
-        const tier = group ? activeTierFor(group) : item.defaultTier || 'caixa';
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
         const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
@@ -2909,6 +2951,12 @@ ${bodyHtml}
                 packType,
                 ...cartCategoryFields(item),
             };
+        } else if (payMode === 'card') {
+            cart[key].price = price;
+            delete cart[key].promoId;
+            delete cart[key].isPromo;
+            delete cart[key].originalPrice;
+            delete cart[key].discountPct;
         }
         cart[key].qty += qtyToAdd;
         cartApi.saveCart(cart);
@@ -3418,6 +3466,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
 
         detailPanel?.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('.totem-detail__pay-opt')) return;
             const tierPress = e.target.closest('.totem-detail__price-block[data-price-tier]');
             if (!tierPress || tierPress.classList.contains('totem-detail__price-block--added')) return;
             tierPress.classList.add('totem-detail__price-block--press');
@@ -3440,6 +3489,15 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             }
             if (e.target.closest('#totem-detail-back')) {
                 closeProductDetail();
+                return;
+            }
+            const payOpt = e.target.closest('.totem-detail__pay-opt');
+            if (payOpt) {
+                e.preventDefault();
+                e.stopPropagation();
+                setDetailPayMode(payOpt.dataset.priceTier, payOpt.dataset.payMode);
+                renderProductDetail();
+                bumpIdle();
                 return;
             }
             const tierBtn = e.target.closest('.totem-detail__price-block[data-price-tier]');

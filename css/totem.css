@@ -6287,6 +6287,10 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     transform: scale(0.98);
 }
 
+.totem-detail__price-block[data-price-tier]:has(.totem-detail__pay-opt:active) {
+    transform: none;
+}
+
 .totem-detail__price-block--unit:not([data-price-tier]),
 .totem-detail__price-block--info {
     cursor: default;
@@ -6575,6 +6579,77 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     color: #14120f;
     background: linear-gradient(165deg, #fde047 0%, #f0c929 55%, #d4a81a 100%);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.totem-detail__promo-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+}
+
+.totem-detail__pay-toggle {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.2rem;
+    padding: 0.12rem;
+    border-radius: 999px;
+    background: rgba(20, 18, 15, 0.12);
+}
+
+.totem-detail__pay-opt {
+    appearance: none;
+    border: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.55rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    color: rgba(20, 18, 15, 0.55);
+    background: transparent;
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.totem-detail__pay-opt--active {
+    color: #ffffff;
+    background: linear-gradient(165deg, #0f766e 0%, #0d9488 55%, #14b8a6 100%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.totem-detail__pay-opt[data-pay-mode='card'].totem-detail__pay-opt--active {
+    background: linear-gradient(165deg, #1e3a5f 0%, #2563eb 55%, #3b82f6 100%);
+}
+
+.totem-detail__price-block--pack .totem-detail__pay-toggle {
+    background: rgba(20, 18, 15, 0.14);
+}
+
+.totem-detail__price-block--pack .totem-detail__pay-opt {
+    color: rgba(20, 18, 15, 0.62);
+}
+
+.totem-detail__price-block--card-pay.totem-detail__price-block--pack {
+    background: linear-gradient(165deg, #faf8f4 0%, #f3eee6 55%, #ebe4da 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.totem-detail__price-block--card-pay .totem-detail__price-old {
+    display: none;
 }
 
 .totem-detail__pay-tag {
