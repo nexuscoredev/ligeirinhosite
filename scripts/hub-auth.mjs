@@ -122,13 +122,29 @@ async function fetchUsuarioByPhone(config, phone) {
     return Array.isArray(rows) ? rows[0] : null;
 }
 
-const TOTEM_LOGINS = new Set(['totem', 'totem_device', 'totem-loja', 'totemloja']);
+const TOTEM_LOGINS = new Set([
+    'totem',
+    'totem_device',
+    'totem-loja',
+    'totemloja',
+    'tablet1',
+    'tablet2',
+    'tablet3',
+]);
+
+function isTotemLoginKey(loginKey) {
+    const key = String(loginKey || '')
+        .trim()
+        .toLowerCase();
+    if (!key) return false;
+    return TOTEM_LOGINS.has(key) || key.startsWith('totem') || key.startsWith('tablet');
+}
 
 function resolveRoleFromUsuario(usuario) {
     const loginKey = String(usuario?.login || '')
         .trim()
         .toLowerCase();
-    if (TOTEM_LOGINS.has(loginKey) || loginKey.startsWith('totem')) {
+    if (isTotemLoginKey(loginKey)) {
         return loginKey.includes('device') ? 'TOTEM_DEVICE' : 'TOTEM';
     }
     return normalizeRole(usuario.cargo);

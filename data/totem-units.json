@@ -21,7 +21,29 @@
       "label": "Ligeirinho Totem",
       "hiddenCategories": ["insumos"],
       "hiddenProductIds": []
+    },
+    "tablet1": {
+      "label": "Tablet 1",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
+    },
+    "tablet2": {
+      "label": "Tablet 2",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
+    },
+    "tablet3": {
+      "label": "Tablet 3",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
     }
   },
-  "loginUnitMap": {}
+  "loginUnitMap": {
+    "Tablet1": "tablet1",
+    "tablet1": "tablet1",
+    "Tablet2": "tablet2",
+    "tablet2": "tablet2",
+    "Tablet3": "tablet3",
+    "tablet3": "tablet3"
+  }
 }

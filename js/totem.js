@@ -922,7 +922,10 @@ ${unitHtml}
         const s = session();
         const login = String(s?.login || '').trim();
         if (login) return login.toLowerCase().replace(/\s+/g, '-');
-        const mapped = totemConfig.loginUnitMap?.[s?.login] || totemConfig.loginUnitMap?.[s?.email];
+        const mapped =
+            totemConfig.loginUnitMap?.[s?.login] ||
+            totemConfig.loginUnitMap?.[String(s?.login || '').toLowerCase()] ||
+            totemConfig.loginUnitMap?.[s?.email];
         const unitId = s?.totemUnitId || mapped || 'default';
         return String(unitId).trim().toLowerCase().replace(/\s+/g, '-');
     };
@@ -950,7 +953,10 @@ ${unitHtml}
     };
     const resolveUnitSettings = () => {
         const s = session();
-        const mapped = totemConfig.loginUnitMap?.[s?.login] || totemConfig.loginUnitMap?.[s?.email];
+        const mapped =
+            totemConfig.loginUnitMap?.[s?.login] ||
+            totemConfig.loginUnitMap?.[String(s?.login || '').toLowerCase()] ||
+            totemConfig.loginUnitMap?.[s?.email];
         const unitId = s?.totemUnitId || mapped || 'default';
         return totemConfig.units?.[unitId] || totemConfig.units?.default || { label: 'Ligeirinho', hiddenCategories: [], hiddenProductIds: [] };
     };
