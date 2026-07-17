@@ -46,4 +46,5 @@ echo.
 node "%~dp0scripts\totem-print-bridge.mjs"
 echo.
 echo Ponte encerrou.
+if defined TOTEM_BRIDGE_NO_PAUSE exit /b %ERRORLEVEL%
 pause
