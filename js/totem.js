@@ -2444,7 +2444,7 @@ ${unitHtml}
     };
 
     const timeoutDefaults = () => ({
-        idleBeforeCountdownMs: Number(totemConfig.defaults?.idleBeforeCountdownMs) || 15000,
+        idleBeforeCountdownMs: Number(totemConfig.defaults?.idleBeforeCountdownMs) || 20000,
         countdownMs: Number(totemConfig.defaults?.countdownMs) || 10000,
     });
 

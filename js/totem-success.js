@@ -63,7 +63,7 @@
 
         window.LigeirinhoTotemLoading?.mountPreset?.(root, 'success');
 
-        let idleBeforeMs = 15000;
+        let idleBeforeMs = 20000;
         let countdownMs = 10000;
         try {
             const cfg = await fetch('data/totem-units.json').then((r) => r.json());

@@ -131,7 +131,7 @@ ${rows.join('')}
     let autoPrintEnabled = false;
     let autoPrintTriggered = false;
     let printMode = 'kiosk';
-    let IDLE_BEFORE_MS = 15000;
+    let IDLE_BEFORE_MS = 20000;
     let COUNTDOWN_MS = 10000;
 
     const bindActions = () => {
@@ -326,7 +326,7 @@ Nova tela em <strong id="totem-caixa-countdown">${Math.round(COUNTDOWN_MS / 1000
             if (!res.ok) throw new Error(data.error || 'Pedido não encontrado');
 
             const cfg = totemCfg?.defaults || {};
-            IDLE_BEFORE_MS = Number(cfg.idleBeforeCountdownMs) || 15000;
+            IDLE_BEFORE_MS = Number(cfg.idleBeforeCountdownMs) || 20000;
             COUNTDOWN_MS = Number(cfg.countdownMs) || 10000;
 
             if (receiptConfig) {

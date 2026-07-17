@@ -4514,7 +4514,7 @@ html.totem-has-float-cart .totem-cart-toast {
     bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* ——— Idle timeout (15s aviso + 15s até reset = 30s) ——— */
+/* ——— Idle timeout (20s inatividade + 15s aviso até reset) ——— */
 .totem-idle-hint {
     position: fixed;
     inset: 0;
