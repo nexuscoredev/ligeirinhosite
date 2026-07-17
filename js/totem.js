@@ -164,12 +164,26 @@
     let detailPromoOpts = null;
     /** @type {Map<string, 'pix' | 'card'>} */
     const detailPayModeByTier = new Map();
+    const CART_PAY_CARD_SUFFIX = '::pay-card';
 
     const detailPayModeFor = (tier) => detailPayModeByTier.get(tier) || 'pix';
 
     const setDetailPayMode = (tier, mode) => {
         if (!tier || (mode !== 'pix' && mode !== 'card')) return;
         detailPayModeByTier.set(tier, mode);
+    };
+
+    const baseCartKey = (cartKey) => String(cartKey || '').replace(/::pay-card$/, '');
+
+    const cartKeyForPayMode = (baseKey, payMode) => {
+        if (!baseKey) return baseKey;
+        return payMode === 'card' ? `${baseKey}${CART_PAY_CARD_SUFFIX}` : baseKey;
+    };
+
+    const cartQtyForProductKey = (cart, baseKey) => {
+        if (!baseKey || !cart) return 0;
+        const cardKey = `${baseKey}${CART_PAY_CARD_SUFFIX}`;
+        return (Number(cart[baseKey]?.qty) || 0) + (Number(cart[cardKey]?.qty) || 0);
     };
     let promosReturnView = 'welcome';
     let customerIdentified = false;
@@ -345,7 +359,7 @@
         const product = item.product;
         const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
         const cart = cartApi.loadCart();
-        const qty = cart[cartKey]?.qty || 0;
+        const qty = cartQtyForProductKey(cart, cartKey);
         const img = catalog.productImageUrl(group ? pricing.getTierImage(group, tier) : product.image);
         const displayName = group
             ? pricing.cartItemName({ ...variant, tier }, group)
@@ -822,7 +836,7 @@ ${unitHtml}
 
         const cartKey = catalog.cartKeyFor(variant);
         const cart = cartApi.loadCart();
-        const qty = cart[cartKey]?.qty || 0;
+        const qty = cartQtyForProductKey(cart, cartKey);
 
         card.dataset.priceTier = tier;
         card.dataset.cartKey = cartKey;
@@ -2457,7 +2471,7 @@ ${unitHtml}
         const itemKey = group?.key || product.id;
         const offer = resolvePromoOffer(cartKey, itemKey, tier);
         const cartMap = cart || cartApi.loadCart();
-        const qty = cartMap[cartKey]?.qty || 0;
+        const qty = cartQtyForProductKey(cartMap, cartKey);
         const img = catalog.productImageUrl(group ? pricing.getTierImage(group, tier) : product.image);
         const name = group?.baseName || product.name;
         const tiersHtml = group ? priceTiersHtml(group, tier) : '';
@@ -2651,9 +2665,10 @@ ${bodyHtml}
     };
 
     const pulseProduct = (cartKey) => {
+        const lookupKey = baseCartKey(cartKey);
         const card =
-            productsGrid?.querySelector(`[data-cart-key="${cartKey}"]`) ||
-            productsGrid?.querySelector(`.totem-plus[data-cart-key="${cartKey}"]`)?.closest('.totem-product');
+            productsGrid?.querySelector(`[data-cart-key="${lookupKey}"]`) ||
+            productsGrid?.querySelector(`.totem-plus[data-cart-key="${lookupKey}"]`)?.closest('.totem-product');
         pulseClass(card, 'totem-product--pulse');
         const badge = card?.querySelector('.totem-product__cart-badge');
         if (badge) pulseClass(badge, 'totem-product__badge--pop');
@@ -2663,18 +2678,19 @@ ${bodyHtml}
 
     const findDisplayItem = (cartKey, itemKey) => {
         const pools = [displayItems, promoCatalogItems, promoDisplayItems];
+        const lookupKey = baseCartKey(cartKey);
         for (const pool of pools) {
             if (itemKey) {
                 const byGroup = pool.find((i) => (i.group?.key || i.product.id) === itemKey);
                 if (byGroup) return byGroup;
             }
-            if (cartKey) {
+            if (lookupKey) {
                 const match = pool.find((i) => {
                     const group = i.group;
-                    if (!group) return i.product.id === cartKey;
+                    if (!group) return i.product.id === lookupKey;
                     return pricing.getAvailableTiers(group).some((tier) => {
                         const variant = pricing.getVariant(group, tier);
-                        return variant && catalog.cartKeyFor(variant) === cartKey;
+                        return variant && catalog.cartKeyFor(variant) === lookupKey;
                     });
                 });
                 if (match) return match;
@@ -2684,7 +2700,7 @@ ${bodyHtml}
     };
 
     const cartLineImage = (item) => {
-        const display = findDisplayItem(item.cartKey || item.id, null);
+        const display = findDisplayItem(baseCartKey(item.cartKey || item.id), null);
         if (!display) return '';
         const group = display.group;
         const product = display.product;
@@ -2830,7 +2846,8 @@ ${bodyHtml}
               ? { ...block.variant, tier: block.variant.tier || tier }
               : null;
         const product = item.product;
-        const key = variant ? catalog.cartKeyFor(variant) : product.id;
+        const baseKey = variant ? catalog.cartKeyFor(variant) : product.id;
+        const key = cartKeyForPayMode(baseKey, payMode);
         const packType = tier || variant?.tier || 'caixa';
         const name = group
             ? pricing.cartItemName({ ...(variant || {}), tier: packType }, group)
@@ -2843,7 +2860,7 @@ ${bodyHtml}
         const cart = cartApi.loadCart();
         const autoOffer =
             !usePromo && payMode !== 'card'
-                ? resolvePromoOffer(key, detailItemKey || group?.key || product.id, packType)
+                ? resolvePromoOffer(baseKey, detailItemKey || group?.key || product.id, packType)
                 : null;
         const appliedPromo = usePromo
             ? tierPromo
@@ -2868,6 +2885,7 @@ ${bodyHtml}
                 qty: 0,
                 packType,
                 ...cartCategoryFields(item),
+                ...(payMode === 'card' ? { payMode: 'card' } : {}),
                 ...(appliedPromo?.promoId
                     ? {
                           promoId: appliedPromo.promoId,
@@ -2889,19 +2907,14 @@ ${bodyHtml}
                 finalBase > finalPrice
                     ? Math.max(0, Math.round((1 - finalPrice / finalBase) * 100))
                     : 0;
-        } else if (payMode === 'card') {
-            cart[key].price = finalPrice;
-            delete cart[key].promoId;
-            delete cart[key].isPromo;
-            delete cart[key].originalPrice;
-            delete cart[key].discountPct;
+            delete cart[key].payMode;
         }
 
         cart[key].qty += qtyToAdd;
         cartApi.saveCart(cart);
         renderCart();
         refreshPromosIfOpen();
-        const bumped = bumpProductCardInGrid(detailItemKey, tier, key);
+        const bumped = bumpProductCardInGrid(detailItemKey, tier, baseKey);
         if (!bumped) renderProducts();
         playDetailBlockAddedFeedback(blockEl, qtyToAdd);
         showCartAddedToast(name, cartLineImage(cart[key]), qtyToAdd);
@@ -2934,7 +2947,8 @@ ${bodyHtml}
         }
         const variant = group ? pricing.getVariant(group, tier) : null;
         const product = item.product;
-        const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
+        const baseKey = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
+        const key = cartKeyForPayMode(baseKey, payMode);
         const packType = variant?.tier || tier || 'caixa';
         const name = group
             ? pricing.cartItemName({ ...variant, tier: packType }, group)
@@ -2950,20 +2964,15 @@ ${bodyHtml}
                 qty: 0,
                 packType,
                 ...cartCategoryFields(item),
+                ...(payMode === 'card' ? { payMode: 'card' } : {}),
             };
-        } else if (payMode === 'card') {
-            cart[key].price = price;
-            delete cart[key].promoId;
-            delete cart[key].isPromo;
-            delete cart[key].originalPrice;
-            delete cart[key].discountPct;
         }
         cart[key].qty += qtyToAdd;
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
         refreshPromosIfOpen();
-        pulseProduct(key);
+        pulseProduct(baseKey);
         showCartAddedToast(name, cartLineImage(cart[key]));
         detailDraftQty = 1;
         refreshDetailIfOpen();
@@ -2974,17 +2983,25 @@ ${bodyHtml}
         if (!customerIdentified && delta > 0) return;
         totemKeyboard?.hide?.();
         const cart = cartApi.loadCart();
-        if (!cart[cartKey]) return;
-        const line = cart[cartKey];
+        let key = cartKey;
+        if (delta < 0) {
+            const base = baseCartKey(cartKey);
+            if (!(cart[key]?.qty > 0) && cartKey === base) {
+                const cardKey = cartKeyForPayMode(base, 'card');
+                if (cart[cardKey]?.qty > 0) key = cardKey;
+            }
+        }
+        if (!cart[key]) return;
+        const line = cart[key];
         const itemName = line.name;
-        cart[cartKey].qty += delta;
-        if (cart[cartKey].qty <= 0) delete cart[cartKey];
+        cart[key].qty += delta;
+        if (cart[key].qty <= 0) delete cart[key];
         cartApi.saveCart(cart);
         renderCart();
         renderProducts();
         refreshPromosIfOpen();
         if (delta > 0) {
-            pulseProduct(cartKey);
+            pulseProduct(baseCartKey(key));
             showCartAddedToast(itemName, cartLineImage(line));
         }
         bumpIdle();
@@ -3030,7 +3047,7 @@ ${cartLineThumbHtml(item)}
 <div class="totem-cart-line__body">
 <div class="totem-cart-line__name">${esc(item.name)}</div>
 <div class="totem-cart-line__meta">
-${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="totem-cart-line__pay-tag">Pix/Dinheiro</span>' : ''}
+${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="totem-cart-line__pay-tag">Pix/Dinheiro</span>' : item.payMode === 'card' ? '<span class="totem-cart-line__pay-tag totem-cart-line__pay-tag--card">Cartão</span>' : ''}
 <span class="totem-cart-line__pack">${esc(pack)}</span>
 <span class="totem-cart-line__sep" aria-hidden="true">·</span>
 <span>${formatPrice(item.price)}</span>
@@ -3114,6 +3131,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
                 categoryId: item.categoryId || '',
                 categoryName: item.categoryName || '',
                 ...(item.promoId ? { promoId: item.promoId } : {}),
+                ...(item.payMode ? { payMode: item.payMode } : {}),
                 ...(isPromo ? { isPromo: true } : {}),
                 ...(originalPrice != null ? { originalPrice } : {}),
                 ...(discountPct != null ? { discountPct } : {}),
