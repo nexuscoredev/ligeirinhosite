@@ -233,7 +233,6 @@
 <div class="totem-price-card__main">
 ${showOld ? `<span class="totem-product__price-old">${formatPrice(packOriginal)}</span>` : ''}
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
-${ctx.discountPct > 0 ? `<span class="totem-product__promo-badge">-${ctx.discountPct}%</span>` : ''}
 </div>
 ${unitHtml}
 </div>`;

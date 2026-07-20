@@ -775,12 +775,6 @@ ${qtyLine}`;
                 ? Number(opts.originalPrice)
                 : catalogPrice;
         const showOld = originalPrice > packPrice;
-        const discountPct =
-            opts.discountPct != null && Number.isFinite(Number(opts.discountPct))
-                ? Number(opts.discountPct)
-                : showOld
-                  ? Math.max(0, Math.round((1 - packPrice / originalPrice) * 100))
-                  : 0;
         const units = Math.max(1, Number(variant.packSize) || 1);
         const unitPrice =
             units > 1 ? Math.round((packPrice / units) * 100) / 100 : null;
@@ -794,12 +788,6 @@ ${qtyLine}`;
         const oldHtml = showOld
             ? `<span class="totem-product__price-old">${formatPrice(originalPrice)}</span>`
             : '';
-        const badgeHtml =
-            discountPct > 0
-                ? `<span class="totem-product__promo-badge">-${discountPct}%</span>`
-                : opts.promoId
-                  ? '<span class="totem-product__promo-badge">PROMO</span>'
-                  : '';
 
         const detailHtml = `<p class="totem-price-card__detail">${units > 1 && meta.detail ? esc(meta.detail) : ''}</p>`;
         const unitHtml = `<p class="totem-price-card__unit">${
@@ -810,7 +798,6 @@ ${qtyLine}`;
 <div class="totem-price-card__main">
 ${oldHtml}
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
-${badgeHtml}
 ${packHtml}
 </div>
 ${detailHtml}
@@ -2575,7 +2562,6 @@ ${unitHtml}
 <div class="totem-price-card__main">
 ${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="totem-product__price-old">${formatPrice(offer.originalPrice)}</span>` : ''}
 <span class="totem-product__price totem-price-card__value">${formatPrice(offer?.promoPrice ?? product.price)}</span>
-${offer?.discountPct > 0 ? `<span class="totem-product__promo-badge">-${offer.discountPct}%</span>` : offer?.promoId ? '<span class="totem-product__promo-badge">PROMO</span>' : ''}
 </div>
 <p class="totem-price-card__detail"></p>
 <p class="totem-price-card__unit"></p>
