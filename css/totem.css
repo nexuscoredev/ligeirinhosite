@@ -269,7 +269,7 @@ body.totem-kiosk > main {
     position: fixed;
     top: max(0.65rem, env(safe-area-inset-top, 0px));
     right: max(0.65rem, env(safe-area-inset-right, 0px));
-    z-index: 40;
+    z-index: 120;
 }
 
 .totem-btn--update-pending {
