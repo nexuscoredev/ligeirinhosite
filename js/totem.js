@@ -2514,7 +2514,7 @@ ${unitHtml}
         if (!categoriesBtnLabel) return;
         categoriesBtnLabel.textContent = catMeta
             ? catalog.formatCategoryLabel(catMeta.name)
-            : 'Todas as categorias';
+            : 'Todas';
     };
 
     const openCategoriesModal = () => {

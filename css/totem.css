@@ -3634,6 +3634,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     letter-spacing: 0.03em;
     text-transform: uppercase;
     line-height: 1;
+    white-space: nowrap;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -3699,6 +3700,10 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     color: #ffffff;
     background: linear-gradient(165deg, #0f766e 0%, #14b8a6 100%);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.22);
+}
+
+:is(.totem-grid--grid-s, .totem-grid--grid-m) .totem-product .ze-price-tier__promo {
+    display: none;
 }
 
 @keyframes totem-tier-promo-glow {
@@ -6584,11 +6589,14 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 .totem-detail__promo-badge {
     display: inline-flex;
     align-items: center;
-    padding: 0.15rem 0.5rem;
+    flex: 0 0 auto;
+    padding: 0.18rem 0.45rem;
     border-radius: 999px;
-    font-size: 0.58rem;
+    font-size: 0.52rem;
     font-weight: 900;
     letter-spacing: 0.06em;
+    line-height: 1;
+    white-space: nowrap;
     color: #14120f;
     background: linear-gradient(165deg, #fde047 0%, #f0c929 55%, #d4a81a 100%);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -6599,15 +6607,21 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     flex-wrap: wrap;
     align-items: center;
     gap: 0.35rem;
-    margin-top: 0.15rem;
+    margin-top: 0.2rem;
+    width: 100%;
+    min-width: 0;
 }
 
 .totem-detail__pay-toggle {
     display: inline-flex;
     align-items: stretch;
+    flex: 1 1 11.5rem;
+    min-width: min(100%, 11.5rem);
+    max-width: 100%;
     gap: 0;
     padding: 0.15rem;
     border-radius: 999px;
+    box-sizing: border-box;
     background: rgba(90, 68, 10, 0.28);
     box-shadow:
         inset 0 2px 5px rgba(0, 0, 0, 0.22),
@@ -6622,14 +6636,17 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
     min-height: 1.6rem;
-    padding: 0.22rem 0.62rem;
+    padding: 0.22rem 0.45rem;
     border-radius: 999px;
     font-family: inherit;
-    font-size: 0.58rem;
+    font-size: 0.55rem;
     font-weight: 800;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
     line-height: 1;
+    white-space: nowrap;
     color: rgba(20, 18, 15, 0.58);
     background: transparent;
     transition:
@@ -6680,19 +6697,17 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 }
 
 .totem-detail__price-block--card-pay .totem-detail__pay-toggle {
-    gap: 0.12rem;
-    background: #f7f7f7;
+    gap: 0;
+    background: #f3f1ed;
     box-shadow:
-        inset 0 0 0 1px rgba(20, 18, 15, 0.11),
-        0 1px 3px rgba(0, 0, 0, 0.12);
+        inset 0 0 0 1px rgba(20, 18, 15, 0.12),
+        0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .totem-detail__price-block--card-pay .totem-detail__pay-opt:not(.totem-detail__pay-opt--active) {
     color: #14120f;
-    background: #ffffff;
-    box-shadow:
-        inset 0 0 0 1px rgba(20, 18, 15, 0.14),
-        0 1px 2px rgba(0, 0, 0, 0.08);
+    background: transparent;
+    box-shadow: none;
 }
 
 .totem-detail__price-block--card-pay
@@ -6700,9 +6715,8 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     color: #14120f;
     background: #ffd21c;
     box-shadow:
-        inset 0 0 0 1px rgba(180, 128, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        0 1px 3px rgba(0, 0, 0, 0.18);
+        inset 0 0 0 1px rgba(180, 128, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .totem-detail__price-block--card-pay .totem-detail__price-old {
