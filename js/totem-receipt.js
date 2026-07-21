@@ -435,8 +435,21 @@
 
         const codeClass = forPrint ? 'totem-receipt__code totem-receipt__code--compact' : 'totem-receipt__code';
         const itemsBlock = forPrint
-            ? `<div class="totem-receipt__items">${itemsHtml}</div>`
+            ? ''
             : `<table class="totem-receipt__items" aria-label="Itens do pedido"><tbody>${itemsHtml}</tbody></table>`;
+        const paymentBlock = forPrint ? '' : buildPaymentReceiptBlock(order, forPrint);
+        const itemsSection = forPrint
+            ? `<div class="totem-receipt__divider" aria-hidden="true"></div>`
+            : itemsBlock
+              ? `<div class="totem-receipt__divider" aria-hidden="true"></div>
+${itemsBlock}
+<div class="totem-receipt__divider" aria-hidden="true"></div>`
+              : '';
+        const paymentSection =
+            forPrint || !paymentBlock
+                ? ''
+                : `${paymentBlock}
+<div class="totem-receipt__divider" aria-hidden="true"></div>`;
 
         return `<div class="totem-receipt__paper">
 <div class="totem-receipt__brand">${esc(unitLabel)}</div>
@@ -448,10 +461,8 @@
 ${buildBarcodeHtml(order.id, forPrint)}
 <p class="totem-receipt__meta">${esc(formatDateTime(order.createdAt))}</p>
 ${buildCustomerReceiptBlock(order, forPrint)}
-<div class="totem-receipt__divider" aria-hidden="true"></div>
-${itemsBlock}
-<div class="totem-receipt__divider" aria-hidden="true"></div>
-${buildPaymentReceiptBlock(order, forPrint)}
+${itemsSection}
+${paymentSection}
 <div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 <p class="totem-receipt__foot">Dirija-se ao caixa e passe o código de barras no leitor do PDV.</p>
@@ -886,16 +897,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
             tailLines.push(divider());
         }
 
-        (order.items || []).forEach((item) => {
-            const qty = Number(item.qty) || 1;
-            const lineTotal = formatPrice(Number(item.price) * qty);
-            const name = String(item.name || '').trim();
-            tailLines.push(`${qty}x ${name}`.slice(0, width));
-            tailLines.push(padLine('', lineTotal, width));
-        });
-
         tailLines.push(divider());
-        appendEscPosPaymentLines(tailLines, order, width, padLine);
         tailLines.push(padLine('Total', formatPrice(order.total), width));
         tailLines.push(divider());
         wrapCenterEscPos('Dirija-se ao caixa e passe o codigo de barras no leitor do PDV.', width).forEach(

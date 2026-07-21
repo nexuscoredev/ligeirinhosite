@@ -1,11 +1,4 @@
 import { compactTotemCode, scannerTotemCode } from '../totem-order-code.mjs';
-import {
-    resolveOrderSplits,
-    paymentMethodLabelShort,
-    computeCashChange,
-} from './payment-splits.mjs';
-
-const methodLabel = paymentMethodLabelShort;
 
 const formatPrice = (value) =>
     Number(value)
@@ -119,30 +112,7 @@ export function buildEscPosReceipt(order, opts = {}) {
         out += divider() + '\n';
     }
 
-    (order.items || []).forEach((item) => {
-        const qty = Number(item.qty) || 1;
-        const lineTotal = formatPrice(Number(item.price) * qty);
-        const name = String(item.name || '').trim();
-        out += `${qty}x ${name}`.slice(0, width) + '\n';
-        out += padLine('', lineTotal, width) + '\n';
-    });
-
     out += divider() + '\n';
-    const splits = resolveOrderSplits(order);
-    const isCashTender =
-        splits.length === 1 && String(splits[0]?.method || '').toLowerCase() === 'dinheiro';
-    if (splits.length >= 2 || isCashTender) {
-        splits.forEach((item) => {
-            out += padLine(methodLabel(item.method), formatPrice(item.amount), width) + '\n';
-        });
-        const troco = computeCashChange(splits, order.total);
-        if (troco > 0.009) {
-            out += padLine('Troco', formatPrice(troco), width) + '\n';
-        }
-    } else {
-        // Igual ao cupom HTML: sempre mostra a forma (padrao Dinheiro se ainda nao escolhida)
-        out += padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width) + '\n';
-    }
     out += padLine('Total', formatPrice(order.total), width) + '\n';
     out += divider() + '\n';
 
