@@ -125,12 +125,21 @@ async function upsertUsuario(authUserId) {
     ).then((r) => r.json());
 
     if (Array.isArray(existing) && existing.length) {
+        const current = existing[0];
+        const patch = {
+            email: row.email,
+            login: row.login,
+            nome: row.nome,
+            ativo: row.ativo,
+            admin_totem: row.admin_totem,
+        };
+        if (!current?.cargo) patch.cargo = row.cargo;
         const res = await fetch(
             `${SUPABASE_URL}/rest/v1/usuarios?id=eq.${encodeURIComponent(authUserId)}`,
             {
                 method: 'PATCH',
                 headers: adminHeaders({ Prefer: 'return=representation' }),
-                body: JSON.stringify(row),
+                body: JSON.stringify(patch),
             }
         );
         const data = await res.json();
