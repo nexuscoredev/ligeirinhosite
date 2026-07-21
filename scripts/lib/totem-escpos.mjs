@@ -113,8 +113,6 @@ export function buildEscPosReceipt(order, opts = {}) {
     }
 
     out += divider() + '\n';
-    out += padLine('Total', formatPrice(order.total), width) + '\n';
-    out += divider() + '\n';
 
     // ===== Rodape (centralizado por hardware) =====
     out += ALIGN_CENTER;

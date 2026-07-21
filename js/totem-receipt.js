@@ -450,6 +450,9 @@ ${itemsBlock}
                 ? ''
                 : `${paymentBlock}
 <div class="totem-receipt__divider" aria-hidden="true"></div>`;
+        const totalSection = forPrint
+            ? ''
+            : `<div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>`;
 
         return `<div class="totem-receipt__paper">
 <div class="totem-receipt__brand">${esc(unitLabel)}</div>
@@ -463,7 +466,7 @@ ${buildBarcodeHtml(order.id, forPrint)}
 ${buildCustomerReceiptBlock(order, forPrint)}
 ${itemsSection}
 ${paymentSection}
-<div class="totem-receipt__row totem-receipt__row--total"><span>Total</span><strong>${formatPrice(order.total)}</strong></div>
+${totalSection}
 <div class="totem-receipt__divider" aria-hidden="true"></div>
 <p class="totem-receipt__foot">Dirija-se ao caixa e passe o código de barras no leitor do PDV.</p>
 <p class="totem-receipt__foot totem-receipt__foot--muted">Ligeirinho Parceiros</p>
@@ -897,8 +900,6 @@ body{display:flex;justify-content:center;align-items:flex-start}
             tailLines.push(divider());
         }
 
-        tailLines.push(divider());
-        tailLines.push(padLine('Total', formatPrice(order.total), width));
         tailLines.push(divider());
         wrapCenterEscPos('Dirija-se ao caixa e passe o codigo de barras no leitor do PDV.', width).forEach(
             (line) => {
