@@ -1,6 +1,6 @@
 {
   "defaults": {
-    "idleBeforeCountdownMs": 20000,
+    "idleBeforeCountdownMs": 35000,
     "countdownMs": 15000,
     "adminPin": "123456",
     "autoPrintReceipt": true,

@@ -34,7 +34,7 @@
      * bump()/arm() reinicia a fase de espera (sem contagem visível).
      */
     const createCountdownTimeout = (opts = {}) => {
-        const idleMs = Math.max(1000, Number(opts.idleBeforeCountdownMs) || 20000);
+        const idleMs = Math.max(1000, Number(opts.idleBeforeCountdownMs) || 35000);
         const countdownMs = Math.max(1000, Number(opts.countdownMs) || 10000);
         let idleTimer = null;
         let countdownTimer = null;
