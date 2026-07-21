@@ -41,6 +41,9 @@
 <button type="button" class="totem-btn totem-btn--ghost totem-btn--icon totem-btn--admin-edit" id="totem-admin-edit-btn" aria-label="Editar itens da loja" title="Admin do Totem — ocultar itens esgotados" hidden>
 <span class="material-symbols-outlined totem-admin-edit-btn__icon" aria-hidden="true">edit</span>
 </button>
+<button type="button" class="totem-btn totem-btn--ghost totem-btn--icon totem-btn--admin-orders" id="totem-admin-orders-btn" aria-label="Pedidos pendentes do Totem" title="Ver pedidos pendentes" hidden>
+<span class="material-symbols-outlined totem-admin-orders-btn__icon" aria-hidden="true">receipt_long</span>
+</button>
 <button type="button" class="totem-btn totem-btn--promos totem-btn--icon" id="totem-promos-btn" aria-label="Ver promoções" hidden>
 <span class="totem-btn--promos__ring" aria-hidden="true"></span>
 <span class="totem-btn--promos__aura" aria-hidden="true"></span>
@@ -453,29 +456,44 @@
 </div>
 </div>
 
-<div id="totem-store-item-modal" class="totem-store-admin-modal" aria-hidden="true">
-<div class="totem-store-admin-modal__backdrop" aria-hidden="true"></div>
-<div class="totem-store-admin-modal__sheet" role="dialog" aria-labelledby="totem-store-item-title">
-<header class="totem-store-admin-modal__head">
-<h2 id="totem-store-item-title" class="totem-store-admin-modal__title">Item da loja</h2>
-<button type="button" class="totem-store-admin-modal__close" id="totem-store-item-close" aria-label="Fechar">
+<div id="totem-orders-admin-modal" class="totem-orders-admin-modal" aria-hidden="true">
+<div class="totem-orders-admin-modal__backdrop" aria-hidden="true"></div>
+<div class="totem-orders-admin-modal__sheet" role="dialog" aria-labelledby="totem-orders-admin-title">
+<header class="totem-orders-admin-modal__head">
+<div>
+<h2 id="totem-orders-admin-title" class="totem-orders-admin-modal__title">Pedidos pendentes</h2>
+<p class="totem-orders-admin-modal__status" id="totem-orders-admin-status"></p>
+</div>
+<div class="totem-orders-admin-modal__tools">
+<button type="button" class="totem-btn totem-btn--ghost totem-btn--icon" id="totem-orders-admin-refresh" aria-label="Atualizar lista">
+<span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+</button>
+<button type="button" class="totem-orders-admin-modal__close" id="totem-orders-admin-close" aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</div>
+</header>
+<p class="totem-orders-admin-modal__error" id="totem-orders-admin-error" hidden></p>
+<div class="totem-orders-admin-modal__list" id="totem-orders-admin-list"></div>
+</div>
+</div>
+
+<div id="totem-deactivate-modal" class="totem-deactivate-modal" aria-hidden="true">
+<div class="totem-deactivate-modal__backdrop" aria-hidden="true"></div>
+<div class="totem-deactivate-modal__sheet" role="dialog" aria-labelledby="totem-deactivate-title">
+<header class="totem-deactivate-modal__head">
+<h2 id="totem-deactivate-title" class="totem-deactivate-modal__title">Desativar produto</h2>
+<button type="button" class="totem-deactivate-modal__close" id="totem-deactivate-close" aria-label="Fechar">
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
 </header>
-<div class="totem-store-admin-modal__media" id="totem-store-item-media"></div>
-<div class="totem-store-admin-modal__body">
-<p class="totem-store-admin-modal__name" id="totem-store-item-name"></p>
-<p class="totem-store-admin-modal__price" id="totem-store-item-price"></p>
-<label class="totem-store-admin-modal__toggle">
-<input type="checkbox" id="totem-store-item-hidden">
-<span>Ocultar na loja (esgotado)</span>
-</label>
-<p class="totem-muted totem-store-admin-modal__hint">O item some deste Totem sem alterar o cadastro no Hub.</p>
-<p class="totem-store-admin-modal__error" id="totem-store-item-error" hidden></p>
-<div class="totem-store-admin-modal__actions">
-<button type="button" class="totem-btn totem-btn--ghost flex-1" id="totem-store-item-cancel">Cancelar</button>
-<button type="button" class="totem-btn totem-btn--primary flex-1" id="totem-store-item-save">Salvar</button>
-</div>
+<p class="totem-deactivate-modal__product" id="totem-deactivate-product-name"></p>
+<p class="totem-deactivate-modal__lead">Onde deseja desativar este produto?</p>
+<div class="totem-deactivate-modal__options" id="totem-deactivate-options" role="radiogroup" aria-label="Apresentação a desativar"></div>
+<p class="totem-deactivate-modal__error" id="totem-deactivate-error" hidden></p>
+<div class="totem-deactivate-modal__actions">
+<button type="button" class="totem-deactivate-modal__confirm" id="totem-deactivate-confirm">Desativar</button>
+<button type="button" class="totem-deactivate-modal__cancel" id="totem-deactivate-cancel">Cancelar</button>
 </div>
 </div>
 </div>
@@ -502,6 +520,7 @@
 <script src="js/promo-entry-notice.js"></script>
 <script src="js/totem-promos.js?v=no-price-promo-badge"></script>
 <script src="js/totem-store-admin.js"></script>
+<script src="js/totem-orders-admin.js"></script>
 <script src="js/totem-pwa-update.js?v=sw-v348"></script>
 <script src="js/totem.js?v=no-price-promo-badge"></script>
 </body>

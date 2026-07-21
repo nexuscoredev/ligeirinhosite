@@ -137,6 +137,33 @@
         return true;
     };
 
+    const loadOrderIntoCart = (order) => {
+        const items = Array.isArray(order?.items) ? order.items : [];
+        if (!items.length) return false;
+        const cart = {};
+        items.forEach((item) => {
+            const key = item.cartKey || item.id;
+            if (!key) return;
+            cart[key] = {
+                id: item.id || key,
+                cartKey: key,
+                name: item.name,
+                price: item.price,
+                qty: Math.max(1, Number(item.qty) || 1),
+                packType: item.packType || 'caixa',
+                image: item.image || '',
+                categoryId: item.categoryId || '',
+                categoryName: item.categoryName || '',
+                hubId: item.hubId || '',
+                sku: item.sku || '',
+                ...promoFieldsFromItem(item),
+            };
+        });
+        saveCart(cart);
+        saveLastOrder(cart, loadCheckout(), order?.id || null);
+        return true;
+    };
+
     const lastOrderSummary = () => {
         const data = loadLastOrder();
         if (!data) return null;
@@ -199,6 +226,7 @@
         saveLastOrder,
         loadLastOrder,
         restoreLastOrder,
+        loadOrderIntoCart,
         lastOrderSummary,
         loadPrefs,
         savePrefs,

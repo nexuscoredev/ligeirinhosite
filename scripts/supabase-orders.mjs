@@ -55,6 +55,38 @@ export async function fetchOrderById(supabaseUrl, apiKey, id, { useRpc = false }
     return Array.isArray(data) ? data[0] : null;
 }
 
+export async function listTotemPendingOrders(
+    supabaseUrl,
+    apiKey,
+    { limit = 50, unitId = null, useRpc = false } = {},
+) {
+    const safeLimit = Math.min(100, Math.max(1, Number(limit) || 50));
+    if (useRpc) {
+        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_list_totem_pending_orders`, {
+            method: 'POST',
+            headers: headers(apiKey),
+            body: JSON.stringify({
+                p_limit: safeLimit,
+                p_unit_id: unitId ? String(unitId).trim() : null,
+            }),
+        });
+        const data = await parseJson(res);
+        return Array.isArray(data) ? data : [];
+    }
+
+    const select =
+        'id,status,financial_status,total,customer_name,customer_phone,customer_cpf,payment_method,payment_splits,totem_label,unit_id,created_at,items,notes,channel';
+    let url =
+        `${supabaseUrl}/rest/v1/orders?channel=eq.totem&status=in.(pending,pending_payment)` +
+        `&financial_status=in.(pendente,aguardando_caixa)&order=created_at.desc&limit=${safeLimit}&select=${encodeURIComponent(select)}`;
+    if (unitId) {
+        url += `&unit_id=eq.${encodeURIComponent(String(unitId).trim())}`;
+    }
+    const res = await fetch(url, { headers: headers(apiKey) });
+    const data = await parseJson(res);
+    return Array.isArray(data) ? data : [];
+}
+
 export async function listOrdersByHubUserId(
     supabaseUrl,
     apiKey,

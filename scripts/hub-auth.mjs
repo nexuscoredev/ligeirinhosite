@@ -130,6 +130,7 @@ const TOTEM_LOGINS = new Set([
     'tablet1',
     'tablet2',
     'tablet3',
+    'patricia',
 ]);
 
 function isTotemLoginKey(loginKey) {

@@ -10,11 +10,15 @@ import { resolveHubLogin } from './hub-auth.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const LOGIN = (process.argv[2] || process.env.TOTEM_LOGIN || 'Totem').trim();
-const PASSWORD = (process.argv[3] || process.env.TOTEM_PASSWORD || 'admin123').trim();
+const PASSWORD = (process.argv[3] || process.env.TOTEM_PASSWORD || (LOGIN.toLowerCase() === 'patricia' ? '11989482901' : 'admin123')).trim();
 const NOME =
     process.env.TOTEM_NOME ||
     (LOGIN.toLowerCase() === 'totem' ? 'Ligeirinho Totem' : `Ligeirinho ${LOGIN}`);
 const CARGO = process.env.TOTEM_CARGO || 'Caixa';
+const ADMIN_TOTEM =
+    process.env.TOTEM_ADMIN_TOTEM === '1' ||
+    process.env.TOTEM_ADMIN_TOTEM === 'true' ||
+    LOGIN.toLowerCase() === 'patricia';
 
 function loadHubServiceKey() {
     if (process.env.HUB_SUPABASE_SERVICE_ROLE_KEY) return process.env.HUB_SUPABASE_SERVICE_ROLE_KEY;
@@ -112,6 +116,7 @@ async function upsertUsuario(authUserId) {
         cargo: CARGO,
         ativo: true,
         paginas_permitidas: null,
+        admin_totem: ADMIN_TOTEM,
     };
 
     const existing = await fetch(
@@ -158,7 +163,13 @@ async function main() {
     if (!authId) throw new Error('ID do usuário auth não retornado.');
 
     const usuario = await upsertUsuario(authId);
-    console.log('Perfil Hub:', { id: usuario.id, login: usuario.login, cargo: usuario.cargo, ativo: usuario.ativo });
+    console.log('Perfil Hub:', {
+        id: usuario.id,
+        login: usuario.login,
+        cargo: usuario.cargo,
+        ativo: usuario.ativo,
+        admin_totem: usuario.admin_totem === true,
+    });
 
     const hub = {
         url: SUPABASE_URL,
