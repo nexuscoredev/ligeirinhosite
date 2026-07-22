@@ -7,6 +7,8 @@
     const PACK_PCT_C_SLASH_UN_RE = /\s+PCT\s+C\/\s*(\d+)\s+UN\s*$/i;
     const CAIXA_PREFIX_RE = /^CAIXA\s+/i;
     const PACKAGING_WORDS_RE = /\b(LATA|LONG\s*NECK|LN|GFA|GARRAFA|RET(?:ORN[AÁ]VEL)?)\b/gi;
+    /** Agrupamento: não remove RETORNÁVEL — evita misturar garrafa com retornável no mesmo card. */
+    const GROUP_PACKAGING_WORDS_RE = /\b(LATA|LONG\s*NECK|LN|GFA|GARRAFA)\b/gi;
     const OPTIONAL_BEER_WORDS_RE = /\b(HELLS)\b/gi;
 
     /** Parceiros / Totem: somente caixa (sem UN nem PL). */
@@ -132,7 +134,7 @@
         packVariantFromProduct(product, pack || { type: 'caixa', packSize: 1 }, cat);
 
     const normalizeKey = (name, categoryId) => {
-        let base = stripPackSuffix(name).replace(PACKAGING_WORDS_RE, ' ');
+        let base = stripPackSuffix(name).replace(GROUP_PACKAGING_WORDS_RE, ' ');
         if (categoryId === 'cervejas') {
             base = base.replace(/^CERVEJA\s+/i, '').replace(OPTIONAL_BEER_WORDS_RE, ' ');
             base = base.replace(/\s+/g, ' ').trim().toUpperCase();
@@ -302,8 +304,14 @@
         return items;
     };
 
+    const totemTierHasPrice = (variant) => {
+        if (!variant || variant.price == null) return false;
+        const price = Number(variant.price);
+        return Number.isFinite(price) && price > 0;
+    };
+
     const getTotemAvailableTiers = (group) =>
-        ['unidade', 'caixa', 'pallet'].filter((tier) => group?.variants?.[tier]?.price != null);
+        ['unidade', 'caixa', 'pallet'].filter((tier) => totemTierHasPrice(group?.variants?.[tier]));
 
     const getTotemDefaultTier = (group) => {
         const tiers = getTotemAvailableTiers(group);

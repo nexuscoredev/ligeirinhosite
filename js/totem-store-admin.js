@@ -2,6 +2,7 @@
     let deps = {};
     let adminEditMode = false;
     let storeHiddenIds = new Set();
+    let storeHiddenHubIds = new Set();
     let currentItem = null;
     let currentTier = 'caixa';
     let selectedScope = 'all';
@@ -36,7 +37,11 @@
 
     const getHiddenIds = () => Array.from(storeHiddenIds);
 
-    const isHidden = (productId) => storeHiddenIds.has(String(productId || '').trim());
+    const isHidden = (productId) => {
+        const key = String(productId || '').trim();
+        if (!key) return false;
+        return storeHiddenIds.has(key) || storeHiddenHubIds.has(key);
+    };
 
     const variantForTier = (group, tier) => {
         if (!group) return null;
@@ -46,6 +51,7 @@
     const hideKeysForVariant = (variant) => {
         if (!variant) return [];
         const keys = [String(variant.id || '').trim()];
+        if (variant.hubId) keys.push(String(variant.hubId).trim());
         const cartKey = catalog()?.cartKeyFor?.(variant);
         if (cartKey) keys.push(String(cartKey).trim());
         return keys.filter(Boolean);
@@ -217,12 +223,31 @@
                 cache: 'no-store',
             });
             const data = await res.json();
-            storeHiddenIds = new Set((data.productIds || []).map((id) => String(id).trim()).filter(Boolean));
-            deps.onHiddenChange?.(getHiddenIds());
+            storeHiddenIds = new Set();
+            storeHiddenHubIds = new Set();
+            const items = Array.isArray(data.items) ? data.items : [];
+            if (items.length) {
+                items.forEach((item) => {
+                    const hubId = String(item?.hub_product_id || item?.hubProductId || '').trim();
+                    const productId = String(item?.product_id || item?.productId || '').trim();
+                    if (hubId) storeHiddenHubIds.add(hubId);
+                    else if (productId) storeHiddenIds.add(productId);
+                });
+            } else {
+                storeHiddenIds = new Set(
+                    (data.productIds || []).map((id) => String(id).trim()).filter(Boolean),
+                );
+            }
+            deps.onHiddenChange?.({
+                productIds: getHiddenIds(),
+                hubProductIds: Array.from(storeHiddenHubIds),
+                items,
+            });
             return getHiddenIds();
         } catch {
             storeHiddenIds = new Set();
-            deps.onHiddenChange?.([]);
+            storeHiddenHubIds = new Set();
+            deps.onHiddenChange?.({ productIds: [], hubProductIds: [], items: [] });
             return [];
         }
     };
@@ -246,7 +271,26 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Não foi possível desativar.');
-        storeHiddenIds = new Set((data.productIds || []).map((id) => String(id).trim()).filter(Boolean));
+        storeHiddenIds = new Set();
+        storeHiddenHubIds = new Set();
+        const items = Array.isArray(data.items) ? data.items : [];
+        if (items.length) {
+            items.forEach((item) => {
+                const hubId = String(item?.hub_product_id || item?.hubProductId || '').trim();
+                const productId = String(item?.product_id || item?.productId || '').trim();
+                if (hubId) storeHiddenHubIds.add(hubId);
+                else if (productId) storeHiddenIds.add(productId);
+            });
+        } else {
+            storeHiddenIds = new Set(
+                (data.productIds || []).map((id) => String(id).trim()).filter(Boolean),
+            );
+        }
+        deps.onHiddenChange?.({
+            productIds: getHiddenIds(),
+            hubProductIds: Array.from(storeHiddenHubIds),
+            items,
+        });
     };
 
     const confirmDeactivate = async () => {
@@ -272,7 +316,6 @@
             for (const variant of variants) {
                 await hideVariantOnStore(token, variant, productName);
             }
-            deps.onHiddenChange?.(getHiddenIds());
             closeDeactivateModal();
         } catch (err) {
             showError(err.message || 'Falha ao desativar.');

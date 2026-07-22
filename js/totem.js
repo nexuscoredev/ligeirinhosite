@@ -146,6 +146,7 @@
     let totemConfig = { defaults: {}, units: {}, loginUnitMap: {} };
     let unitSettings = null;
     let storeHiddenProductIds = new Set();
+    let storeHiddenHubIds = new Set();
     let idlePaused = false;
     let unbindActivity = null;
     let sessionTimeout = null;
@@ -1028,7 +1029,7 @@ ${unitHtml}
     const applyCatalogFromRaw = (rawCatalog) => {
         rawCatalogData = rawCatalog;
         catalogData = filterCatalog(rawCatalog);
-        pricing.rebuildGroups?.(catalogData);
+        pricing.rebuildGroups?.(rawCatalog);
         displayItems = buildDisplayItems();
         promoCatalogItems = buildPromoCatalogItems();
         normalizeDisplayItems();
@@ -1041,8 +1042,31 @@ ${unitHtml}
         refreshDetailIfOpen();
     };
 
-    const applyStoreHiddenIds = (ids) => {
-        storeHiddenProductIds = new Set((ids || []).map((id) => String(id).trim()).filter(Boolean));
+    const applyStoreHiddenIds = (payload) => {
+        const items = Array.isArray(payload) ? null : payload?.items;
+        const legacyIds = Array.isArray(payload)
+            ? payload
+            : payload?.productIds || payload?.ids || [];
+        storeHiddenProductIds = new Set();
+        storeHiddenHubIds = new Set();
+
+        if (Array.isArray(items) && items.length) {
+            items.forEach((item) => {
+                const hubId = String(item?.hub_product_id || item?.hubProductId || '').trim();
+                const productId = String(item?.product_id || item?.productId || '').trim();
+                if (hubId) storeHiddenHubIds.add(hubId);
+                else if (productId) storeHiddenProductIds.add(productId);
+            });
+        } else {
+            storeHiddenProductIds = new Set(
+                (legacyIds || []).map((id) => String(id).trim()).filter(Boolean),
+            );
+            const hubIds = Array.isArray(payload) ? [] : payload?.hubProductIds || [];
+            storeHiddenHubIds = new Set(
+                (hubIds || []).map((id) => String(id).trim()).filter(Boolean),
+            );
+        }
+
         if (rawCatalogData) applyCatalogFromRaw(rawCatalogData);
         window.LigeirinhoTotemPromos?.refresh?.();
     };
@@ -1134,19 +1158,27 @@ ${unitHtml}
         return pack?.type === 'caixa' || pack?.type === 'unidade' || pack?.type === 'pallet';
     };
 
+    const isStoreProductHidden = (product) => {
+        if (!product) return false;
+        const hubId = String(product.hubId || '').trim();
+        if (hubId && storeHiddenHubIds.has(hubId)) return true;
+        const productId = String(product.id || '').trim();
+        return productId && storeHiddenProductIds.has(productId);
+    };
+
     const filterCatalog = (data) => {
         const hiddenCats = new Set((unitSettings?.hiddenCategories || []).map((c) => String(c).toLowerCase()));
-        const hiddenIds = new Set([
-            ...(unitSettings?.hiddenProductIds || []),
-            ...storeHiddenProductIds,
-        ]);
+        const unitHiddenIds = new Set((unitSettings?.hiddenProductIds || []).map((id) => String(id).trim()));
         const categories = (data.categories || [])
             .filter((cat) => !hiddenCats.has(String(cat.id).toLowerCase()))
             .map((cat) => ({
                 ...cat,
-                products: (cat.products || []).filter(
-                    (p) => !hiddenIds.has(p.id) && isTotemSellableProduct(p),
-                ),
+                products: (cat.products || []).filter((p) => {
+                    const productId = String(p.id || '').trim();
+                    if (productId && unitHiddenIds.has(productId)) return false;
+                    if (isStoreProductHidden(p)) return false;
+                    return isTotemSellableProduct(p);
+                }),
             }))
             .filter((cat) => cat.products.length > 0);
         return { ...data, categories, totalProducts: categories.reduce((n, c) => n + c.products.length, 0) };
