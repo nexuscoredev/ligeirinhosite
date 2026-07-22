@@ -4241,6 +4241,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 }
 
 .totem-cart-panel--closing {
+    pointer-events: none;
     animation: totem-overlay-out 0.28s ease both;
 }
 
@@ -4585,7 +4586,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 .totem-cart-toast--visible {
     opacity: 1;
     transform: translateY(0);
-    pointer-events: auto;
+    pointer-events: none;
 }
 
 .totem-cart-toast__inner {
@@ -4662,17 +4663,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 }
 
 .totem-cart-toast__action {
-    flex-shrink: 0;
-    border: none;
-    background: transparent;
-    color: var(--lig-yellow-text);
-    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-    font-size: 0.75rem;
-    font-weight: 800;
-    padding: 0.35rem 0.5rem;
-    min-height: 36px;
-    border-radius: 0.5rem;
-    cursor: pointer;
+    display: none;
 }
 
 .totem-cart-toast__action:active {
@@ -4822,7 +4813,7 @@ html.totem-has-float-cart .totem-cart-toast {
     bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* ——— Idle timeout (20s inatividade + 15s aviso até reset) ——— */
+/* ——— Idle timeout (35s inatividade + 15s aviso até reset) ——— */
 .totem-idle-hint {
     position: fixed;
     inset: 0;
@@ -6440,12 +6431,14 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     -webkit-backdrop-filter: blur(12px);
 }
 
-.totem-detail--open {
+.totem-detail--open,
+.totem-detail--closing {
     display: flex;
     animation: totem-detail-overlay-in 0.28s var(--totem-ease-out) both;
 }
 
 .totem-detail--closing {
+    pointer-events: none;
     animation: totem-detail-overlay-out 0.22s ease both;
 }
 

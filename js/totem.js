@@ -158,6 +158,10 @@
     let searchQuery = '';
     let searchTimer = null;
     const SEARCH_DEBOUNCE_MS = 300;
+    const CART_TAP_COOLDOWN_MS = 480;
+    const LOGO_RESET_HOLD_MS = 900;
+    let lastCartTapAt = 0;
+    let logoResetTimer = null;
     let totemKeyboard = null;
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
@@ -551,8 +555,19 @@ ${perUnit}
             })
             .join('');
 
+    const suppressGhostClicks = (ms) => window.LigeirinhoTotemActivity?.suppressGhostClicks?.(ms);
+    const guardGhostClick = (e) => window.LigeirinhoTotemActivity?.guardGhostClick?.(e);
+
+    const beginCartTap = () => {
+        const now = Date.now();
+        if (now - lastCartTapAt < CART_TAP_COOLDOWN_MS) return false;
+        lastCartTapAt = now;
+        return true;
+    };
+
     const closeProductDetail = () => {
-        if (!detailPanel) return;
+        if (!detailPanel || detailPanel.classList.contains('totem-detail--closing')) return;
+        suppressGhostClicks(420);
         detailPanel.classList.add('totem-detail--closing');
         detailPanel.classList.remove('totem-detail--open');
         window.setTimeout(() => {
@@ -2469,7 +2484,9 @@ ${unitHtml}
 
     const isIdleBlocked = () => {
         if (detailPanel?.classList.contains('totem-detail--open')) return true;
+        if (detailPanel?.classList.contains('totem-detail--closing')) return true;
         if (isCartOpen()) return true;
+        if (cartPanel?.classList.contains('totem-cart-panel--closing')) return true;
         if (categoriesModal?.classList.contains('totem-categories-modal--open')) return true;
         if (totemKeyboard?.isOpen?.()) return true;
         if (adminModal?.classList.contains('totem-admin-modal--open')) return true;
@@ -2562,6 +2579,7 @@ ${unitHtml}
 
     const closeCategoriesModal = () => {
         if (!categoriesModal?.classList.contains('totem-categories-modal--open')) return;
+        suppressGhostClicks(360);
         categoriesModal.classList.remove('totem-categories-modal--open');
         categoriesModal.setAttribute('aria-hidden', 'true');
         categoriesBtn?.focus();
@@ -2839,6 +2857,7 @@ ${bodyHtml}
 
     const addItem = (cartKey, itemKey, opts = {}) => {
         if (!customerIdentified) return;
+        if (!opts._skipTapGuard && !beginCartTap()) return;
         totemKeyboard?.hide?.();
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
@@ -2932,6 +2951,7 @@ ${bodyHtml}
     const addDetailBlockToCart = (tier, blockEl) => {
         if (!customerIdentified || !detailItemKey || !tier) return;
         if (blockEl?.classList.contains('totem-detail__price-block--added')) return;
+        if (!beginCartTap()) return;
         totemKeyboard?.hide?.();
         const item = findDisplayItem(null, detailItemKey);
         if (!item) return;
@@ -3033,6 +3053,7 @@ ${bodyHtml}
 
     const addDetailToCart = (cartKey, itemKey) => {
         if (!customerIdentified) return;
+        if (!beginCartTap()) return;
         totemKeyboard?.hide?.();
         const qtyToAdd = Math.max(1, detailDraftQty);
         const item = findDisplayItem(cartKey, itemKey);
@@ -3046,6 +3067,7 @@ ${bodyHtml}
                     promoPrice: detailPromoOpts.promoPrice,
                     promoId: detailPromoOpts.promoId,
                     tier: detailPromoOpts.tier,
+                    _skipTapGuard: true,
                 });
             }
             detailDraftQty = 1;
@@ -3087,6 +3109,7 @@ ${bodyHtml}
 
     const changeQty = (cartKey, delta) => {
         if (!customerIdentified && delta > 0) return;
+        if (!beginCartTap()) return;
         totemKeyboard?.hide?.();
         const cart = cartApi.loadCart();
         let key = cartKey;
@@ -3232,6 +3255,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
 
     const closeCart = () => {
         if (!cartPanel?.classList.contains('totem-cart-panel--open')) return;
+        suppressGhostClicks(360);
         bumpIdle();
         cartPanel.classList.add('totem-cart-panel--closing');
         window.setTimeout(() => {
@@ -3544,23 +3568,27 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             bumpIdle();
         });
 
-        logoBtn?.addEventListener('click', () => {
-            totemKeyboard?.hide?.();
-            // Sempre volta à home (tela inicial), em qualquer etapa do fluxo.
+        logoBtn?.addEventListener('pointerdown', (e) => {
             if (views.welcome?.classList.contains('totem-view--active')) return;
-            resetSession();
-            bumpIdle();
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            window.clearTimeout(logoResetTimer);
+            logoResetTimer = window.setTimeout(() => {
+                logoResetTimer = null;
+                totemKeyboard?.hide?.();
+                resetSession();
+                bumpIdle();
+            }, LOGO_RESET_HOLD_MS);
         });
+        const cancelLogoReset = () => window.clearTimeout(logoResetTimer);
+        logoBtn?.addEventListener('pointerup', cancelLogoReset);
+        logoBtn?.addEventListener('pointercancel', cancelLogoReset);
+        logoBtn?.addEventListener('pointerleave', cancelLogoReset);
         cartBtn?.addEventListener('click', () => {
             if (!customerIdentified) return;
             openCart();
         });
         floatCartBtn?.addEventListener('click', () => {
             if (!customerIdentified) return;
-            openCart();
-        });
-        document.getElementById('totem-cart-toast-open')?.addEventListener('click', () => {
-            hideCartToast();
             openCart();
         });
         document.getElementById('totem-cart-close')?.addEventListener('click', closeCart);
@@ -3589,6 +3617,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
 
         productsGrid?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
             const tierBtn = e.target.closest('.ze-price-tier');
             if (tierBtn) {
                 const card = tierBtn.closest('.totem-product');
@@ -3705,6 +3734,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
 
         cartList?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
             const removeBtn = e.target.closest('.totem-remove');
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
@@ -3756,6 +3786,17 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
 
         initSearchKeyboard();
+
+        idleHint?.addEventListener(
+            'pointerdown',
+            (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                hideIdleWarning();
+                bumpIdle();
+            },
+            { passive: false },
+        );
 
         const activity = window.LigeirinhoTotemActivity;
         unbindActivity?.();

@@ -1,5 +1,32 @@
 (function () {
     const THROTTLE_MS = 400;
+    const GHOST_CLICK_MS = 420;
+    let ghostClickUntil = 0;
+    let ghostCaptureBound = false;
+
+    const suppressGhostClicks = (ms = GHOST_CLICK_MS) => {
+        ghostClickUntil = Date.now() + Math.max(100, Number(ms) || GHOST_CLICK_MS);
+        if (ghostCaptureBound || typeof document === 'undefined') return;
+        ghostCaptureBound = true;
+        document.addEventListener(
+            'click',
+            (e) => {
+                if (Date.now() >= ghostClickUntil) return;
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            },
+            true,
+        );
+    };
+
+    const isGhostClickSuppressed = () => Date.now() < ghostClickUntil;
+
+    const guardGhostClick = (e) => {
+        if (!isGhostClickSuppressed()) return false;
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+    };
 
     const bump = (fn) => {
         if (typeof fn !== 'function') return;
@@ -12,7 +39,7 @@
     const bind = (fn, root = document) => {
         if (!fn || !root?.addEventListener) return () => {};
         const handler = () => bump(fn);
-        const events = ['pointerdown', 'touchstart', 'keydown', 'click', 'wheel'];
+        const events = ['pointerdown', 'touchstart', 'keydown', 'wheel'];
         events.forEach((evt) => root.addEventListener(evt, handler, { passive: true }));
         root.addEventListener('touchmove', handler, { passive: true });
         return () => {
@@ -105,5 +132,8 @@
         bindScroll,
         createCountdownTimeout,
         createIdleTimer,
+        suppressGhostClicks,
+        isGhostClickSuppressed,
+        guardGhostClick,
     };
 })();

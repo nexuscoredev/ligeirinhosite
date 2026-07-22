@@ -139,6 +139,7 @@
     const closeDeactivateModal = () => {
         const el = modal();
         if (!el) return;
+        window.LigeirinhoTotemActivity?.suppressGhostClicks?.(360);
         el.classList.remove('totem-deactivate-modal--open');
         el.setAttribute('aria-hidden', 'true');
         currentItem = null;

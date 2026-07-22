@@ -199,6 +199,7 @@ ${unit ? `<span>${esc(unit)}</span>` : ''}
     const closePanel = () => {
         const el = modal();
         if (!el) return;
+        window.LigeirinhoTotemActivity?.suppressGhostClicks?.(360);
         el.classList.remove('totem-orders-admin-modal--open');
         el.setAttribute('aria-hidden', 'true');
         showError('');
