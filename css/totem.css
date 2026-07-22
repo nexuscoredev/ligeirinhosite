@@ -48,8 +48,6 @@ body.totem-kiosk {
     max-height: 100svh;
     overflow: hidden;
     overscroll-behavior: none;
-    touch-action: pan-y;
-    -ms-touch-action: pan-y;
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;
     touch-action: manipulation;
@@ -7522,6 +7520,21 @@ body.totem-keyboard-payment .totem-pay-summary__scroll {
 }
 
 /* ——— Kiosk lock (retorno ao totem) ——— */
+/* Escudo transparente — absorve toques fantasma apos fechar modal (monitores touch). */
+.totem-touch-shield {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    pointer-events: auto;
+    touch-action: none;
+    background: transparent;
+}
+
+.totem-touch-shield--active {
+    display: block;
+}
+
 .totem-kiosk-lock {
     position: fixed;
     inset: 0;

@@ -674,8 +674,7 @@ ${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         bound = true;
         bindSearch();
         deps.retryBtn?.addEventListener('click', () => refresh());
-        deps.gridEl.addEventListener('click', (e) => {
-            if (window.LigeirinhoTotemActivity?.guardGhostClick?.(e)) return;
+        const handlePromoGridTap = (e) => {
             const unitBtn = e.target.closest('[data-promo-unit]');
             if (unitBtn) {
                 const groupKey = unitBtn.dataset.promoGroupKey;
@@ -725,7 +724,8 @@ ${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
                 deps.openProductDetail?.(itemKey, buildDetailPromoOpts(grupo, ctx));
                 deps.onBumpIdle?.();
             }
-        });
+        };
+        window.LigeirinhoTotemActivity?.bindPointerTap?.(deps.gridEl, handlePromoGridTap);
     };
 
     const init = async (nextDeps) => {
