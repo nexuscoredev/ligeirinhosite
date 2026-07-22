@@ -158,10 +158,8 @@
     let searchQuery = '';
     let searchTimer = null;
     const SEARCH_DEBOUNCE_MS = 300;
-    const CART_TAP_COOLDOWN_MS = 480;
-    const LOGO_RESET_HOLD_MS = 900;
+    const CART_TAP_COOLDOWN_MS = 360;
     let lastCartTapAt = 0;
-    let logoResetTimer = null;
     let totemKeyboard = null;
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
@@ -578,6 +576,7 @@ ${perUnit}
             detailPromoOpts = null;
             detailPayModeByTier.clear();
             if (detailSheet) detailSheet.innerHTML = '';
+            updateFloatCart(cartApi.loadCart());
         }, 280);
     };
 
@@ -642,6 +641,7 @@ adicionar ao pedido
         detailPanel.setAttribute('aria-hidden', 'false');
         detailPanel.classList.add('totem-detail--open');
         detailPanel.classList.remove('totem-detail--closing');
+        updateFloatCart(cartApi.loadCart());
         bumpIdle();
     };
 
@@ -2396,12 +2396,20 @@ ${unitHtml}
 
     const isInShopping = () => isInCatalog() || isInPromos();
 
+    const blocksFloatCart = () =>
+        detailPanel?.classList.contains('totem-detail--open') ||
+        detailPanel?.classList.contains('totem-detail--closing') ||
+        categoriesModal?.classList.contains('totem-categories-modal--open') ||
+        isCartOpen() ||
+        cartPanel?.classList.contains('totem-cart-panel--closing');
+
     const resolvePromosBackTarget = () => (customerIdentified ? 'catalog' : promosReturnView || 'welcome');
 
     const leavePromosView = () => {
         window.LigeirinhoTotemPromos?.stopAuto?.();
         window.LigeirinhoTotemPromos?.clearSearch?.();
         const target = resolvePromosBackTarget();
+        if (target === 'catalog') suppressGhostClicks(320);
         setView(target);
         renderCart();
         renderProducts();
@@ -2424,12 +2432,13 @@ ${unitHtml}
             );
         }
 
-        const visible = customerIdentified && count > 0 && isInShopping() && !isCartOpen();
+        const visible =
+            customerIdentified && count > 0 && isInShopping() && !blocksFloatCart();
         floatCart?.classList.toggle('totem-float-cart--visible', visible);
         floatCart?.setAttribute('aria-hidden', visible ? 'false' : 'true');
         document.documentElement.classList.toggle(
             'totem-has-float-cart',
-            customerIdentified && count > 0 && isInShopping(),
+            customerIdentified && count > 0 && isInShopping() && !blocksFloatCart(),
         );
     };
 
@@ -2483,6 +2492,7 @@ ${unitHtml}
     };
 
     const isIdleBlocked = () => {
+        if (views.customer?.classList.contains('totem-view--active')) return true;
         if (detailPanel?.classList.contains('totem-detail--open')) return true;
         if (detailPanel?.classList.contains('totem-detail--closing')) return true;
         if (isCartOpen()) return true;
@@ -2490,6 +2500,13 @@ ${unitHtml}
         if (categoriesModal?.classList.contains('totem-categories-modal--open')) return true;
         if (totemKeyboard?.isOpen?.()) return true;
         if (adminModal?.classList.contains('totem-admin-modal--open')) return true;
+        if (document.getElementById('totem-orders-admin-modal')?.classList.contains('totem-orders-admin-modal--open')) {
+            return true;
+        }
+        if (document.getElementById('totem-deactivate-modal')?.classList.contains('totem-deactivate-modal--open')) {
+            return true;
+        }
+        if (document.documentElement.classList.contains('lig-promo-notice-open')) return true;
         return false;
     };
 
@@ -2574,6 +2591,7 @@ ${unitHtml}
         categoriesModal.classList.add('totem-categories-modal--open');
         categoriesModal.setAttribute('aria-hidden', 'false');
         categoriesCloseBtn?.focus();
+        updateFloatCart(cartApi.loadCart());
         bumpIdle();
     };
 
@@ -2583,6 +2601,7 @@ ${unitHtml}
         categoriesModal.classList.remove('totem-categories-modal--open');
         categoriesModal.setAttribute('aria-hidden', 'true');
         categoriesBtn?.focus();
+        updateFloatCart(cartApi.loadCart());
         bumpIdle();
     };
 
@@ -3109,7 +3128,7 @@ ${bodyHtml}
 
     const changeQty = (cartKey, delta) => {
         if (!customerIdentified && delta > 0) return;
-        if (!beginCartTap()) return;
+        if (delta > 0 && !beginCartTap()) return;
         totemKeyboard?.hide?.();
         const cart = cartApi.loadCart();
         let key = cartKey;
@@ -3358,6 +3377,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
     };
 
     const closeAdminModal = () => {
+        suppressGhostClicks(320);
         adminModal?.classList.remove('totem-admin-modal--open');
         adminModal?.setAttribute('aria-hidden', 'true');
         document.dispatchEvent(new CustomEvent('totem-admin-close'));
@@ -3568,26 +3588,29 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             bumpIdle();
         });
 
-        logoBtn?.addEventListener('pointerdown', (e) => {
+        logoBtn?.addEventListener('click', (e) => {
             if (views.welcome?.classList.contains('totem-view--active')) return;
-            if (e.pointerType === 'mouse' && e.button !== 0) return;
-            window.clearTimeout(logoResetTimer);
-            logoResetTimer = window.setTimeout(() => {
-                logoResetTimer = null;
-                totemKeyboard?.hide?.();
-                resetSession();
-                bumpIdle();
-            }, LOGO_RESET_HOLD_MS);
+            if (guardGhostClick(e)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (
+                !window.confirm(
+                    'Voltar à tela inicial?\n\nO pedido atual será cancelado.',
+                )
+            ) {
+                return;
+            }
+            totemKeyboard?.hide?.();
+            resetSession();
+            bumpIdle();
         });
-        const cancelLogoReset = () => window.clearTimeout(logoResetTimer);
-        logoBtn?.addEventListener('pointerup', cancelLogoReset);
-        logoBtn?.addEventListener('pointercancel', cancelLogoReset);
-        logoBtn?.addEventListener('pointerleave', cancelLogoReset);
-        cartBtn?.addEventListener('click', () => {
+        cartBtn?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
             if (!customerIdentified) return;
             openCart();
         });
-        floatCartBtn?.addEventListener('click', () => {
+        floatCartBtn?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
             if (!customerIdentified) return;
             openCart();
         });

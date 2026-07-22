@@ -37,6 +37,7 @@
             }
 
             const finish = () => {
+                window.LigeirinhoTotemActivity?.suppressGhostClicks?.(320);
                 modal.classList.remove('lig-promo-entry-notice--open');
                 document.documentElement.classList.remove('lig-promo-notice-open');
                 window.setTimeout(() => {

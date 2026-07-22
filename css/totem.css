@@ -6419,7 +6419,7 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
 .totem-detail {
     position: fixed;
     inset: 0;
-    z-index: 85;
+    z-index: 92;
     display: none;
     align-items: center;
     justify-content: center;

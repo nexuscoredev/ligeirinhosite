@@ -1,6 +1,6 @@
 (function () {
     const THROTTLE_MS = 400;
-    const GHOST_CLICK_MS = 420;
+    const GHOST_CLICK_MS = 320;
     let ghostClickUntil = 0;
     let ghostCaptureBound = false;
 
@@ -136,4 +136,8 @@
         isGhostClickSuppressed,
         guardGhostClick,
     };
+
+    if (typeof document !== 'undefined') {
+        suppressGhostClicks(0);
+    }
 })();

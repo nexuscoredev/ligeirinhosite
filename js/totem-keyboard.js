@@ -108,6 +108,7 @@
         root.setAttribute('aria-hidden', 'true');
         clearOpenClasses();
         input?.blur();
+        window.LigeirinhoTotemActivity?.suppressGhostClicks?.(320);
         onClose?.();
     };
 
