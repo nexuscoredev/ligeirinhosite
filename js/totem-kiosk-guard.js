@@ -63,7 +63,33 @@
         e.stopImmediatePropagation();
     };
 
+    const isAdminPinField = (el) => {
+        if (!(el instanceof Element)) return false;
+        if (el.id === 'totem-admin-pin') return true;
+        return Boolean(el.closest('#totem-admin-modal'));
+    };
+
+    const isAdminPinActive = () => {
+        const modal = document.getElementById('totem-admin-modal');
+        return Boolean(modal?.classList.contains('totem-admin-modal--open'));
+    };
+
+    /** Bloqueia teclado físico / leitor código (HID) nos campos touch do totem. */
+    const blockPhysicalInput = (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
+        if (isAdminPinField(t) && isAdminPinActive()) return;
+        if (t.dataset?.totemVkBound || t.readOnly || t.hasAttribute('readonly')) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    };
+
     const blockKey = (e) => {
+        blockPhysicalInput(e);
+        if (e.defaultPrevented) return;
+
         const key = String(e.key || '').toLowerCase();
         const code = String(e.code || '');
         const withMod = e.ctrlKey || e.metaKey || e.altKey;
@@ -205,6 +231,8 @@
     });
 
     document.addEventListener('keydown', blockKey, true);
+    document.addEventListener('keypress', blockPhysicalInput, true);
+    document.addEventListener('beforeinput', blockPhysicalInput, true);
 
     document.addEventListener(
         'click',

@@ -13,12 +13,15 @@ if not exist "%CHROME%" set CHROME=%LocalAppData%\Google\Chrome\Application\chro
 if not exist "%CHROME%" (echo Instale o Google Chrome & pause & exit /b 1)
 if not exist "%PROFILE%" mkdir "%PROFILE%"
 
-rem Chrome kiosk (Totem) + ponte ESC/POS dos tablets (via VBS, sem travar).
-rem A ponte sobe antes de cada abertura do Chrome (mata a antiga e sobe de novo).
+rem Chrome kiosk (Totem). Ponte ESC/POS dos tablets SO no PC do deposito:
+rem   set TOTEM_START_BRIDGE=1
+rem Nos monitores touch do salao use totem-kiosk-somente-chrome.bat (sem ponte).
 
 :loop
-if exist "%~dp0scripts\start-totem-print-bridge-hidden.vbs" (
-  wscript //nologo "%~dp0scripts\start-totem-print-bridge-hidden.vbs"
+if /I "%TOTEM_START_BRIDGE%"=="1" (
+  if exist "%~dp0scripts\start-totem-print-bridge-hidden.vbs" (
+    wscript //nologo "%~dp0scripts\start-totem-print-bridge-hidden.vbs"
+  )
 )
 start /wait "" "%CHROME%" --user-data-dir="%PROFILE%" --kiosk --kiosk-printing --disable-scripted-print-throttling --no-first-run --disable-infobars --disable-session-crashed-bubble --noerrdialogs --disable-translate --disable-pinch --overscroll-history-navigation=0 --disable-features=TranslateUI,OverscrollHistoryNavigation,TouchpadOverscrollHistoryNavigation,InsecureDownloadWarnings --disable-popup-blocking --disable-component-update --check-for-update-interval=31536000 "%URL%"
 goto loop
