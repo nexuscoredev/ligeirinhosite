@@ -398,6 +398,19 @@
         return `${rows.join('')}<div class="totem-receipt__divider" aria-hidden="true"></div>`;
     };
 
+    const sanitizeOrderForPhysicalReceipt = (order, opts = {}) => {
+        if (!order?.id) return null;
+        return {
+            id: order.id,
+            createdAt: order.createdAt,
+            customerName: order.customerName || order.customer_name || '',
+            customerPhone: order.customerPhone || order.customer_phone || '',
+            customerCpf: order.customerCpf || order.customer_cpf || '',
+            customerCnpj: order.customerCnpj || order.customer_cnpj || '',
+            totemLabel: order.totemLabel || opts.totemLabel || '',
+        };
+    };
+
     const buildBarcodeHtml = (orderId, forPrint = false) => {
         const bc = window.LigeirinhoTotemBarcode;
         const payload = bc?.scannerTotemCode?.(orderId) || '';
@@ -617,14 +630,17 @@ body{display:flex;justify-content:center;align-items:flex-start}
     const printViaBridge = async (order, opts = {}) => {
         const url = String(opts.printBridgeUrl || '').trim();
         if (!url) return false;
+        const printOrder = sanitizeOrderForPhysicalReceipt(order, opts);
+        if (!printOrder?.id) return false;
         try {
             const body = {
-                order,
+                order: printOrder,
                 totemLabel: opts.totemLabel,
                 escposLineChars: opts.escposLineChars,
                 printMarginLeftMm: opts.printMarginLeftMm,
                 printMarginRightMm: opts.printMarginRightMm,
                 printPaperWidthMm: opts.printPaperWidthMm,
+                receiptFormat: 'minimal',
             };
             const printerHost = String(opts.printerHost || '').trim();
             if (printerHost) {
@@ -947,6 +963,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
     const printViaEscPos = async (order, opts = {}) => {
         const port = await getSerialPort(Boolean(opts.requestSerial));
         if (!port) return false;
+        const printOrder = sanitizeOrderForPhysicalReceipt(order, opts) || order;
 
         const config = await loadReceiptConfig();
         const baudRate = Number(opts.escposBaudRate) || config.escposBaudRate;
@@ -958,7 +975,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 await port.close();
                 return false;
             }
-            const data = buildEscPosReceipt(order, { ...opts, ...config });
+            const data = buildEscPosReceipt(printOrder, { ...opts, ...config });
             await writer.write(data);
             writer.releaseLock();
             await port.close();

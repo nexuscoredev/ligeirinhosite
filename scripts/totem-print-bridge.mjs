@@ -17,7 +17,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import http from 'node:http';
 import net from 'node:net';
-import { buildEscPosReceipt } from './lib/totem-escpos.mjs';
+import { buildEscPosReceipt, sanitizeOrderForPhysicalReceipt } from './lib/totem-escpos.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -160,6 +160,7 @@ const server = http.createServer(async (req, res) => {
             JSON.stringify({
                 ok: true,
                 renderer: 'escpos',
+                receiptFormat: 'minimal',
                 printerName: PRINTER_NAME || null,
                 printerHost: PRINTER_HOST || null,
                 printerPort: PRINTER_PORT,
@@ -176,7 +177,7 @@ const server = http.createServer(async (req, res) => {
 
     try {
         const body = await readBody(req);
-        const order = body.order;
+        const order = sanitizeOrderForPhysicalReceipt(body.order, { totemLabel: body.totemLabel });
         if (!order?.id) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Pedido inválido' }));
@@ -197,7 +198,7 @@ const server = http.createServer(async (req, res) => {
             printerPort: body.printerPort,
         });
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, renderer: 'escpos' }));
+        res.end(JSON.stringify({ ok: true, renderer: 'escpos', receiptFormat: 'minimal' }));
     } catch (err) {
         console.error('[totem-print-bridge]', err.message || err);
         res.writeHead(500, { 'Content-Type': 'application/json' });

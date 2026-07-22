@@ -1,12 +1,5 @@
 import { compactTotemCode, scannerTotemCode } from '../totem-order-code.mjs';
 
-const formatPrice = (value) =>
-    Number(value)
-        .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-        // toLocaleString usa espaco nao-separavel (U+00A0) apos "R$";
-        // na impressora termica ele vira "á". Troca por espaco normal.
-        .replace(/\u00A0/g, ' ');
-
 const compactCode = compactTotemCode;
 
 /** Code 128 alinhado ao cupom HTML (barra alta e larga para o PDV). */
@@ -36,6 +29,25 @@ const padLine = (left, right, width) => {
     return l + ' '.repeat(spaces) + r;
 };
 
+const formatCpf = (raw) => {
+    const digits = String(raw || '').replace(/\D/g, '');
+    if (digits.length !== 11) return String(raw || '').trim();
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
+/** Pedido reduzido para cupom fisico/tablet — sem itens, valores ou total. */
+export function sanitizeOrderForPhysicalReceipt(order, opts = {}) {
+    if (!order?.id) return null;
+    return {
+        id: order.id,
+        createdAt: order.createdAt,
+        customerName: order.customerName || order.customer_name || '',
+        customerPhone: order.customerPhone || order.customer_phone || '',
+        customerCpf: order.customerCpf || order.customer_cpf || '',
+        totemLabel: order.totemLabel || opts.totemLabel || '',
+    };
+}
+
 const wrapCenter = (text, width) => {
     const words = String(text || '').trim().split(/\s+/).filter(Boolean);
     if (!words.length) return [];
@@ -55,10 +67,11 @@ const wrapCenter = (text, width) => {
 };
 
 export function buildEscPosReceipt(order, opts = {}) {
+    const safeOrder = sanitizeOrderForPhysicalReceipt(order, opts) || order;
     const width = Number(opts.escposLineChars) || 42;
-    const unitLabel = order.totemLabel || opts.totemLabel || 'Ligeirinho Totem';
-    const code = compactCode(order.id);
-    const scannerCode = scannerTotemCode(order.id);
+    const unitLabel = safeOrder.totemLabel || opts.totemLabel || 'Ligeirinho Totem';
+    const code = compactCode(safeOrder.id);
+    const scannerCode = scannerTotemCode(safeOrder.id);
 
     const divider = () => '-'.repeat(width);
 
@@ -94,21 +107,25 @@ export function buildEscPosReceipt(order, opts = {}) {
         out += '\n';
     }
 
-    out += formatDateTime(order.createdAt) + '\n';
+    out += formatDateTime(safeOrder.createdAt) + '\n';
 
-    // ===== Corpo (alinhado a esquerda) =====
+    // ===== Corpo (alinhado a esquerda) — sem lista de produtos, pagamento ou total =====
     out += ALIGN_LEFT;
     out += divider() + '\n';
 
-    const customerName = String(order.customerName || '').trim();
-    const customerPhone = String(order.customerPhone || '').trim();
+    const customerName = String(safeOrder.customerName || '').trim();
+    const customerPhone = String(safeOrder.customerPhone || '').trim();
+    const customerCpf = formatCpf(safeOrder.customerCpf);
     if (customerName) {
         out += padLine('Cliente', customerName.slice(0, Math.max(8, width - 10)), width) + '\n';
     }
     if (customerPhone) {
         out += padLine('Telefone', customerPhone.slice(0, Math.max(8, width - 11)), width) + '\n';
     }
-    if (customerName || customerPhone) {
+    if (customerCpf) {
+        out += padLine('CPF', customerCpf, width) + '\n';
+    }
+    if (customerName || customerPhone || customerCpf) {
         out += divider() + '\n';
     }
 
