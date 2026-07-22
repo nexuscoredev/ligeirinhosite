@@ -463,7 +463,7 @@
         if (group?.variants) {
             if (group.variants.unidade) pushVariant('unidade', group.variants.unidade);
             if (group.variants.caixa) pushVariant('caixa', group.variants.caixa);
-            else if (group.variants.pallet) pushVariant('pallet', group.variants.pallet);
+            if (group.variants.pallet) pushVariant('pallet', group.variants.pallet);
         } else if (variant || product) {
             const activeTier = tier || 'unidade';
             const refVariant = variant || { id: product.id, price: product.price, tier: activeTier };
@@ -734,7 +734,7 @@ ${qtyLine}`;
         if (preferred && group.variants?.[preferred]?.price != null) return preferred;
 
         // Preferência: embalagem que está em promoção.
-        for (const tier of ['caixa', 'unidade']) {
+        for (const tier of ['caixa', 'unidade', 'pallet']) {
             const variant = group.variants?.[tier];
             if (!variant || variant.price == null) continue;
             const key = catalog.cartKeyFor({ ...variant, tier });
@@ -767,8 +767,9 @@ ${qtyLine}`;
                 const cartKey = variant ? catalog.cartKeyFor(variant) : '';
                 const offer = resolvePromoOffer(cartKey, group.key, tier);
                 const label =
+                    pricing.TIER_SHORT?.[tier]?.toUpperCase() ||
                     pricing.TIER_LABELS?.[tier]?.toUpperCase() ||
-                    (tier === 'caixa' ? 'CAIXA' : tier === 'unidade' ? 'UNIDADE' : String(tier).toUpperCase());
+                    String(tier).toUpperCase();
                 const promoClass = offer?.promoId ? ' ze-price-tier--promo' : '';
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
@@ -1130,7 +1131,7 @@ ${unitHtml}
         const price = Number(product.price);
         if (!Number.isFinite(price) || price <= 0) return false;
         const pack = pricing.parsePack?.(product);
-        return pack?.type === 'caixa' || pack?.type === 'unidade';
+        return pack?.type === 'caixa' || pack?.type === 'unidade' || pack?.type === 'pallet';
     };
 
     const filterCatalog = (data) => {

@@ -96,6 +96,7 @@
 
     const isCaixaPack = (pack) => pack?.type === 'caixa';
     const isUnidadePack = (pack) => pack?.type === 'unidade';
+    const isPalletPack = (pack) => pack?.type === 'pallet';
 
     const packVariantFromProduct = (product, pack, cat) => {
         const tier = pack?.type === 'unidade' ? 'unidade' : 'caixa';
@@ -302,7 +303,7 @@
     };
 
     const getTotemAvailableTiers = (group) =>
-        ['unidade', 'caixa'].filter((tier) => group?.variants?.[tier]?.price != null);
+        ['unidade', 'caixa', 'pallet'].filter((tier) => group?.variants?.[tier]?.price != null);
 
     const getTotemDefaultTier = (group) => {
         const tiers = getTotemAvailableTiers(group);
@@ -312,7 +313,7 @@
         return null;
     };
 
-    /** Totem: um card por produto (UN + CX unidos), pallet fica de fora. */
+    /** Totem: um card por produto (UN + CX + PL no mesmo grupo quando existirem). */
     const getTotemDisplayProducts = (catalogData, groupsMap = null) => {
         const groups = groupsMap || buildGroups(catalogData);
         const items = [];
@@ -325,7 +326,7 @@
                 const price = Number(product.price);
                 if (!Number.isFinite(price) || price <= 0) return;
                 const pack = parsePack(product);
-                if (!isCaixaPack(pack) && !isUnidadePack(pack)) return;
+                if (!isCaixaPack(pack) && !isUnidadePack(pack) && !isPalletPack(pack)) return;
                 groupKeys.add(`${cat.id}::${normalizeKey(product.name, cat.id)}`);
             });
 
@@ -333,12 +334,16 @@
                 if (seen.has(key)) return;
                 const group = groups.get(key);
                 if (!group) return;
+                const availableTiers = getTotemAvailableTiers(group);
+                if (!availableTiers.length) return;
                 const defaultTier = getTotemDefaultTier(group);
-                if (!defaultTier || (defaultTier !== 'unidade' && defaultTier !== 'caixa')) return;
-                if (!getTotemAvailableTiers(group).length) return;
+                if (!defaultTier || !availableTiers.includes(defaultTier)) return;
 
                 const primary =
-                    group.variants[defaultTier] || group.variants.caixa || group.variants.unidade;
+                    group.variants[defaultTier] ||
+                    group.variants.caixa ||
+                    group.variants.unidade ||
+                    group.variants.pallet;
                 if (!primary) return;
                 seen.add(key);
                 items.push({
@@ -352,7 +357,13 @@
                         image: group.image || primary.image,
                         adultOnly: group.adultOnly ?? primary.adultOnly,
                         description: group.description || primary.description,
-                        unidade: primary.unidade || (defaultTier === 'unidade' ? 'UN' : 'CX'),
+                        unidade:
+                            primary.unidade ||
+                            (defaultTier === 'unidade'
+                                ? 'UN'
+                                : defaultTier === 'pallet'
+                                  ? 'PL'
+                                  : 'CX'),
                     },
                     categoryName: group.categoryName || cat.name,
                     categoryId: group.categoryId || cat.id,
