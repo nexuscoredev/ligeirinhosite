@@ -28,7 +28,6 @@
     let lowercaseInput = false;
     let lastInsertAt = 0;
     const INSERT_MIN_MS = 90;
-    const TAP_MAX_MOVE_PX = 16;
 
     const syncInput = () => {
         if (!input) return;
@@ -145,20 +144,12 @@
             e.preventDefault();
         });
 
-        const onVkTap = (e) => {
-            if (window.LigeirinhoTotemActivity?.isGhostClickSuppressed?.()) {
-                e.preventDefault();
-                return;
-            }
+        root.querySelector('.totem-vk__inner')?.addEventListener('click', (e) => {
+            if (window.LigeirinhoTotemActivity?.guardGhostClick?.(e)) return;
             const btn = e.target.closest('[data-action]');
             if (!btn) return;
             handleKey(btn.dataset.action, btn.dataset.value || '');
-        };
-        if (window.LigeirinhoTotemActivity?.bindPointerTap) {
-            window.LigeirinhoTotemActivity.bindPointerTap(root, onVkTap);
-        } else {
-            root.querySelector('.totem-vk__inner')?.addEventListener('click', onVkTap);
-        }
+        });
     };
 
     const buildFullKeyboard = (submitLabel = 'Buscar', { email = false } = {}) => {
@@ -331,43 +322,8 @@
 
         if (!input.dataset.totemVkBound) {
             input.dataset.totemVkBound = '1';
-            /** @type {Map<number, { x: number, y: number }>} */
-            const tapStart = new Map();
-            const onFieldPointerDown = (e) => {
-                if (e.pointerType === 'mouse' && e.button !== 0) return;
-                if (window.LigeirinhoTotemActivity?.isGhostClickSuppressed?.()) {
-                    e.preventDefault();
-                    return;
-                }
-                tapStart.set(e.pointerId, { x: e.clientX, y: e.clientY });
-            };
-            const onFieldPointerUp = (e) => {
-                const start = tapStart.get(e.pointerId);
-                tapStart.delete(e.pointerId);
-                if (!start) return;
-                if (window.LigeirinhoTotemActivity?.isGhostClickSuppressed?.()) {
-                    e.preventDefault();
-                    input.blur();
-                    return;
-                }
-                const dx = Math.abs(e.clientX - start.x);
-                const dy = Math.abs(e.clientY - start.y);
-                if (dx > TAP_MAX_MOVE_PX || dy > TAP_MAX_MOVE_PX) return;
-                show();
-            };
-            const onFieldPointerCancel = (e) => {
-                tapStart.delete(e.pointerId);
-            };
-            input.addEventListener('pointerdown', onFieldPointerDown, { passive: false });
-            input.addEventListener('pointerup', onFieldPointerUp, { passive: false });
-            input.addEventListener('pointercancel', onFieldPointerCancel, { passive: true });
-            input.addEventListener('focus', () => {
-                if (window.LigeirinhoTotemActivity?.isGhostClickSuppressed?.()) {
-                    input.blur();
-                    return;
-                }
-                if (!open) hide();
-            });
+            input.addEventListener('focus', () => show());
+            input.addEventListener('click', () => show());
         }
 
         return { show, hide, isOpen: () => open };

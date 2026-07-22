@@ -725,7 +725,10 @@ ${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
                 deps.onBumpIdle?.();
             }
         };
-        window.LigeirinhoTotemActivity?.bindPointerTap?.(deps.gridEl, handlePromoGridTap);
+        deps.gridEl.addEventListener('click', (e) => {
+            if (window.LigeirinhoTotemActivity?.guardGhostClick?.(e)) return;
+            handlePromoGridTap(e);
+        });
     };
 
     const init = async (nextDeps) => {

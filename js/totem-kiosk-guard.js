@@ -267,12 +267,6 @@
         if (!document.fullscreenElement) showLock();
     });
 
-    window.addEventListener('blur', () => {
-        window.setTimeout(() => {
-            if (!document.hasFocus() || document.visibilityState === 'hidden') showLock();
-        }, 250);
-    });
-
     window.addEventListener('focus', tryFullscreen);
 
     document.addEventListener('totem-admin-open', () => {

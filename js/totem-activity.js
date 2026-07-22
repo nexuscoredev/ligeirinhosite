@@ -1,12 +1,14 @@
 (function () {
     const THROTTLE_MS = 400;
-    const GHOST_CLICK_MS = 520;
+    const GHOST_CLICK_MS = 400;
+    const MAX_SHIELD_MS = 1200;
     const TAP_MAX_MOVE_PX = 16;
     const TAP_MAX_MS = 750;
     const TAP_DEDUPE_MS = 420;
     let ghostClickUntil = 0;
     let ghostCaptureBound = false;
     let shieldTimer = null;
+    let shieldFailsafeTimer = null;
     let shieldEl = null;
     let lastTapKey = '';
     let lastTapAt = 0;
@@ -18,36 +20,58 @@
         shieldEl.id = 'totem-touch-shield';
         shieldEl.className = 'totem-touch-shield';
         shieldEl.setAttribute('aria-hidden', 'true');
+        const absorb = (e) => {
+            if (!shieldEl?.classList.contains('totem-touch-shield--active')) return;
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        ['click', 'pointerdown', 'pointerup', 'touchstart', 'touchend'].forEach((evt) => {
+            shieldEl.addEventListener(evt, absorb, { passive: false });
+        });
         document.body.appendChild(shieldEl);
         return shieldEl;
     };
 
     const hideTouchShield = () => {
         shieldEl?.classList.remove('totem-touch-shield--active');
+        window.clearTimeout(shieldTimer);
+        window.clearTimeout(shieldFailsafeTimer);
+        shieldTimer = null;
+        shieldFailsafeTimer = null;
     };
 
     const bindGhostCapture = () => {
         if (ghostCaptureBound || typeof document === 'undefined') return;
         ghostCaptureBound = true;
-        const blockIfSuppressed = (e) => {
-            if (Date.now() >= ghostClickUntil) return;
-            e.preventDefault();
-            e.stopImmediatePropagation();
-        };
-        ['click', 'pointerdown', 'pointerup', 'touchstart', 'touchend'].forEach((evt) => {
-            document.addEventListener(evt, blockIfSuppressed, { capture: true, passive: false });
-        });
+        // So click sintetico pos-modal — NAO bloquear pointer/touch no document (mata o monitor).
+        document.addEventListener(
+            'click',
+            (e) => {
+                if (Date.now() >= ghostClickUntil) return;
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            },
+            true,
+        );
     };
 
     const suppressGhostClicks = (ms = GHOST_CLICK_MS) => {
-        ghostClickUntil = Date.now() + Math.max(120, Number(ms) || GHOST_CLICK_MS);
+        const duration = Math.max(120, Math.min(MAX_SHIELD_MS, Number(ms) || GHOST_CLICK_MS));
+        ghostClickUntil = Date.now() + duration;
         bindGhostCapture();
         const shield = ensureTouchShield();
         if (shield) {
             shield.classList.add('totem-touch-shield--active');
             window.clearTimeout(shieldTimer);
-            shieldTimer = window.setTimeout(hideTouchShield, Math.max(120, Number(ms) || GHOST_CLICK_MS));
+            window.clearTimeout(shieldFailsafeTimer);
+            shieldTimer = window.setTimeout(hideTouchShield, duration);
+            shieldFailsafeTimer = window.setTimeout(hideTouchShield, MAX_SHIELD_MS);
         }
+    };
+
+    const clearGhostSuppression = () => {
+        ghostClickUntil = 0;
+        hideTouchShield();
     };
 
     const isGhostClickSuppressed = () => Date.now() < ghostClickUntil;
@@ -69,8 +93,7 @@
     };
 
     /**
-     * Toque validado para monitores touch: pointerdown→pointerup, pouco movimento, sem ghost/dedupe.
-     * Preferir em grades e botoes do catalogo (evita click fantasma pos-modal).
+     * Toque validado (opcional). Preferir click + guardGhostClick na UI principal.
      */
     const bindPointerTap = (root, handler) => {
         if (!root || typeof handler !== 'function') return () => {};
@@ -79,10 +102,6 @@
 
         const onPointerDown = (e) => {
             if (e.pointerType === 'mouse' && e.button !== 0) return;
-            if (isGhostClickSuppressed()) {
-                e.preventDefault();
-                return;
-            }
             active.set(e.pointerId, { x: e.clientX, y: e.clientY, t: Date.now() });
         };
 
@@ -90,18 +109,12 @@
             const start = active.get(e.pointerId);
             active.delete(e.pointerId);
             if (!start) return;
-            if (isGhostClickSuppressed()) {
-                e.preventDefault();
-                return;
-            }
+            if (isGhostClickSuppressed()) return;
             const dx = Math.abs(e.clientX - start.x);
             const dy = Math.abs(e.clientY - start.y);
             if (dx > TAP_MAX_MOVE_PX || dy > TAP_MAX_MOVE_PX) return;
             if (Date.now() - start.t > TAP_MAX_MS) return;
-            if (isDuplicateTap(e.clientX, e.clientY)) {
-                e.preventDefault();
-                return;
-            }
+            if (isDuplicateTap(e.clientX, e.clientY)) return;
             handler(e);
         };
 
@@ -109,8 +122,8 @@
             active.delete(e.pointerId);
         };
 
-        root.addEventListener('pointerdown', onPointerDown, { passive: false });
-        root.addEventListener('pointerup', onPointerUp, { passive: false });
+        root.addEventListener('pointerdown', onPointerDown, { passive: true });
+        root.addEventListener('pointerup', onPointerUp, { passive: true });
         root.addEventListener('pointercancel', onPointerCancel, { passive: true });
         root.addEventListener('pointerleave', onPointerCancel, { passive: true });
 
@@ -150,10 +163,6 @@
         return () => targets.forEach((el) => el.removeEventListener('scroll', handler));
     };
 
-    /**
-     * Inatividade → contagem regressiva → callback.
-     * bump()/arm() reinicia a fase de espera (sem contagem visível).
-     */
     const createCountdownTimeout = (opts = {}) => {
         const idleMs = Math.max(1000, Number(opts.idleBeforeCountdownMs) || 35000);
         const countdownMs = Math.max(1000, Number(opts.countdownMs) || 10000);
@@ -211,7 +220,6 @@
         return { arm, bump: arm, cancel, isCountdown: () => inCountdown };
     };
 
-    /** @deprecated use createCountdownTimeout */
     const createIdleTimer = (callback, ms) => {
         return createCountdownTimeout({
             idleBeforeCountdownMs: 0,
@@ -228,6 +236,7 @@
         createCountdownTimeout,
         createIdleTimer,
         suppressGhostClicks,
+        clearGhostSuppression,
         isGhostClickSuppressed,
         guardGhostClick,
     };
