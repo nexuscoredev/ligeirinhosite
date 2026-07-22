@@ -129,36 +129,71 @@
 
     const formatPrice = (value) => deps?.formatPrice?.(value) ?? catalog()?.formatPrice?.(value) ?? String(value ?? '');
 
-    const normalizeSearch = (value) =>
-        String(value || '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .trim();
-
     const grupoSearchHaystack = (grupo) => {
         const entry = activeEntryForGroup(grupo);
         const promo = entry?.promo;
         const item = entry?.item;
-        return normalizeSearch(
-            [
-                grupo?.nomeExibicao,
-                promo?.name,
-                promo?.hubProductName,
-                item?.group?.baseName,
-                item?.product?.name,
-                promo?.sku,
-                item?.product?.sku,
-            ]
-                .filter(Boolean)
-                .join(' '),
-        );
+        const group = item?.group;
+        const variantBits = [];
+        if (group?.variants) {
+            Object.values(group.variants).forEach((variant) => {
+                if (!variant) return;
+                if (variant.sku) variantBits.push(variant.sku);
+                if (variant.hubId) variantBits.push(variant.hubId);
+                if (variant.name) variantBits.push(variant.name);
+                if (variant.id) variantBits.push(variant.id);
+            });
+        }
+        return [
+            grupo?.nomeExibicao,
+            promo?.name,
+            promo?.hubProductName,
+            promo?.hubProductId,
+            promo?.hubFamilyId,
+            promo?.sku,
+            promo?.unidade,
+            group?.baseName,
+            group?.key,
+            item?.product?.name,
+            item?.product?.sku,
+            item?.product?.hubId,
+            item?.product?.id,
+            item?.categoryName,
+            ...variantBits,
+            ...Object.values(grupo?.byUnit || {}).flatMap((unitEntry) => [
+                unitEntry?.promo?.name,
+                unitEntry?.promo?.sku,
+                unitEntry?.promo?.unidade,
+                unitEntry?.item?.product?.name,
+                unitEntry?.item?.product?.sku,
+            ]),
+        ]
+            .filter(Boolean)
+            .join(' ');
     };
 
     const getVisiblePromoGroups = () => {
-        const q = normalizeSearch(searchQuery);
+        const q = String(searchQuery || '').trim();
         if (!q) return promoGroups;
-        return promoGroups.filter((grupo) => grupoSearchHaystack(grupo).includes(q));
+        const search = window.LigeirinhoSearch;
+        if (search?.expandSearchQuery && search?.matchesHaystack && search?.buildHaystack) {
+            const queryInfo = search.expandSearchQuery(q);
+            return promoGroups.filter((grupo) =>
+                search.matchesHaystack(search.buildHaystack(grupoSearchHaystack(grupo)), queryInfo),
+            );
+        }
+        const norm = q
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim();
+        return promoGroups.filter((grupo) =>
+            grupoSearchHaystack(grupo)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .includes(norm),
+        );
     };
 
     const updateSearchClearBtn = () => {

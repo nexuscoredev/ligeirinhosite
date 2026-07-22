@@ -92,8 +92,14 @@
         return [...variants].filter(Boolean);
     };
 
+    /** Unifica volumes no texto: "2 L" / "2l" → "2l" (mesmo padrão do Hub). */
+    const normalizeVolumeTokens = (text) =>
+        normalizeText(text)
+            .replace(/(\d+)\s*ml\b/gi, '$1ml')
+            .replace(/(\d+(?:[.,]\d+)?)\s*l\b/gi, (_, n) => `${String(n).replace(',', '.')}l`);
+
     const buildHaystack = (text) => {
-        const base = normalizeText(text);
+        const base = normalizeVolumeTokens(text);
         return {
             base,
             compact: base.replace(/\s+/g, ''),
@@ -123,6 +129,12 @@
         let working = normalizeText(raw);
         const volumes = [];
 
+        // "coca2l" / "agua2l" → "coca 2l" para achar volume e marca.
+        working = working.replace(
+            /([a-zç]+)(\d+(?:[.,]\d+)?)(ml|l|lt|litros?)\b/gi,
+            '$1 $2$3',
+        );
+
         working = working.replace(/(\d+(?:[.,]\d+)?)\s*(ml|l|lt|litros?)\b/gi, (_, num, unit) => {
             const ml = parseVolumeMl(num, unit);
             if (ml) volumes.push(ml);
@@ -144,7 +156,7 @@
 
         return {
             raw,
-            phrase: normalizeText(raw),
+            phrase: normalizeVolumeTokens(raw),
             words,
             volumes: [...new Set(volumes)],
         };
