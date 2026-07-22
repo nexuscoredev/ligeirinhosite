@@ -640,6 +640,7 @@ ${visible.map((grupo, index) => buildPromoCardHtml(grupo, index)).join('')}
         bindSearch();
         deps.retryBtn?.addEventListener('click', () => refresh());
         deps.gridEl.addEventListener('click', (e) => {
+            if (window.LigeirinhoTotemActivity?.guardGhostClick?.(e)) return;
             const unitBtn = e.target.closest('[data-promo-unit]');
             if (unitBtn) {
                 const groupKey = unitBtn.dataset.promoGroupKey;
