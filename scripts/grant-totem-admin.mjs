@@ -5,6 +5,7 @@
  * Uso:
  *   node scripts/grant-totem-admin.mjs Patricia
  *   node scripts/grant-totem-admin.mjs Patricia 11989482901
+ *   node scripts/grant-totem-admin.mjs Patricia --revoke
  */
 import { readFileSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
@@ -13,8 +14,10 @@ import { hubConfig, resolveHubLogin } from './hub-auth.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const LOGIN = (process.argv[2] || process.env.TOTEM_LOGIN || 'Patricia').trim();
-const PASSWORD = (process.argv[3] || process.env.TOTEM_PASSWORD || '').trim();
+const args = process.argv.slice(2).filter((arg) => arg !== '--revoke');
+const REVOKE = process.argv.includes('--revoke');
+const LOGIN = (args[0] || process.env.TOTEM_LOGIN || 'Patricia').trim();
+const PASSWORD = (args[1] || process.env.TOTEM_PASSWORD || '').trim();
 const hub = hubConfig();
 
 function loadHubServiceKey() {
@@ -110,11 +113,11 @@ async function main() {
     }
 
     const email = String(usuario.email || loginParaEmail(usuario.login || LOGIN)).trim().toLowerCase();
-    const patchBody = { admin_totem: true };
+    const patchBody = REVOKE ? { admin_totem: false } : { admin_totem: true };
     if (!usuario.email) patchBody.email = email;
 
     const updated = await patchUsuario(usuario.id, patchBody);
-    console.log('Admin Totem concedido:', {
+    console.log(REVOKE ? 'Admin Totem revogado:' : 'Admin Totem concedido:', {
         id: updated.id,
         login: updated.login,
         nome: updated.nome,
@@ -123,7 +126,7 @@ async function main() {
         admin_totem: updated.admin_totem === true,
     });
 
-    if (PASSWORD) {
+    if (PASSWORD && !REVOKE) {
         await updateAuthUser(usuario.id, { password: PASSWORD, email: updated.email || email });
         console.log('Senha de acesso atualizada.');
 
@@ -143,10 +146,11 @@ async function main() {
     }
 
     console.log('');
-    console.log('Peça para a Patricia sair e entrar de novo no Totem.');
-    console.log('Login:', updated.login || LOGIN);
-    if (PASSWORD) console.log('Senha:', PASSWORD);
-    console.log('PIN para sair do Totem (5 toques no logo): 11989482901');
+    console.log(`Peça para ${updated.login || LOGIN} sair e entrar de novo no Totem.`);
+    if (!REVOKE && PASSWORD) {
+        console.log('Login:', updated.login || LOGIN);
+        console.log('Senha:', PASSWORD);
+    }
 }
 
 main().catch((err) => {

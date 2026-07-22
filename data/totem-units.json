@@ -3,10 +3,6 @@
     "idleBeforeCountdownMs": 35000,
     "countdownMs": 15000,
     "adminPin": "123456",
-    "adminUserPins": {
-      "Patricia": "11989482901",
-      "patricia": "11989482901"
-    },
     "autoPrintReceipt": true,
     "autoPrintDelayMs": 0,
     "printMode": "kiosk",
@@ -66,8 +62,6 @@
     "Tablet2": "tablet2",
     "tablet2": "tablet2",
     "Tablet3": "tablet3",
-    "tablet3": "tablet3",
-    "Patricia": "default",
-    "patricia": "default"
+    "tablet3": "tablet3"
   }
 }
