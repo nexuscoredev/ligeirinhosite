@@ -4199,6 +4199,24 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     transition: transform 0.2s var(--totem-ease-spring);
 }
 
+button.totem-qty-edit {
+    padding: 0.15rem 0.35rem;
+    margin: 0;
+    border: none;
+    border-radius: 0.45rem;
+    background: transparent;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    font: inherit;
+    line-height: 1;
+}
+
+button.totem-qty-edit:active {
+    transform: scale(0.96);
+    background: rgba(240, 201, 41, 0.18);
+}
+
 .totem-qty-value--pop {
     animation: totem-qty-pop 0.38s var(--totem-ease-spring) both;
 }
@@ -7145,6 +7163,22 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     font-size: 1.125rem;
     font-weight: 800;
     color: #1a1a1a;
+}
+
+button.totem-detail__qty-value.totem-qty-edit {
+    padding: 0.1rem 0.35rem;
+    border: none;
+    border-radius: 0.45rem;
+    background: transparent;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    font: inherit;
+    line-height: 1;
+}
+
+button.totem-detail__qty-value.totem-qty-edit:active {
+    background: rgba(240, 201, 41, 0.2);
 }
 
 .totem-detail__add {

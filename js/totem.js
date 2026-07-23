@@ -162,6 +162,8 @@
     const CART_TAP_COOLDOWN_MS = 360;
     let lastCartTapAt = 0;
     let totemKeyboard = null;
+    let qtyKeyboardTarget = null;
+    const MAX_CART_QTY = 999;
     let cachedQueryKey = '';
     let cachedQueryInfo = null;
     let detailItemKey = null;
@@ -621,7 +623,7 @@ ${priceBlocksHtml}
 <div class="totem-detail__actions">
 <div class="totem-detail__qty">
 <button type="button" class="totem-qty-btn totem-detail-minus" id="totem-detail-minus" aria-label="Diminuir quantidade" ${detailDraftQty <= 1 ? 'disabled' : ''}>−</button>
-<span class="totem-detail__qty-value" id="totem-detail-qty">${detailDraftQty}</span>
+<button type="button" class="totem-detail__qty-value totem-qty-edit" id="totem-detail-qty" aria-label="Digitar quantidade">${detailDraftQty}</button>
 <button type="button" class="totem-qty-btn totem-detail-plus" id="totem-detail-plus" aria-label="Aumentar quantidade">+</button>
 </div>
 <button type="button" class="totem-detail__add" id="totem-detail-add" data-cart-key="${esc(cartKey)}" data-item-key="${esc(detailItemKey)}" aria-label="Adicionar ao pedido">
@@ -1963,6 +1965,75 @@ ${unitHtml}
         attachCatalogSearchKeyboard();
     };
 
+    const parseQtyValue = (raw) => {
+        const digits = String(raw ?? '').replace(/\D/g, '');
+        if (!digits) return 0;
+        return Math.min(MAX_CART_QTY, Math.max(0, parseInt(digits, 10) || 0));
+    };
+
+    const getQtyInputEl = () => document.getElementById('totem-qty-input');
+
+    const applyQtyKeyboardSubmit = (qty) => {
+        const target = qtyKeyboardTarget;
+        qtyKeyboardTarget = null;
+        if (!target) return;
+        if (target.context === 'detail') {
+            detailDraftQty = Math.max(1, qty || 1);
+            renderProductDetail();
+            bumpIdle();
+            return;
+        }
+        if (target.context === 'grid') {
+            setItemQty(target.cartKey, target.itemKey, qty, target.opts || {});
+        }
+    };
+
+    const attachQtyKeyboard = () => {
+        const input = getQtyInputEl();
+        if (!input) return;
+        totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
+            input,
+            mode: 'numeric',
+            submitLabel: 'Confirmar',
+            onInput: bumpIdle,
+            onSubmit: (value) => applyQtyKeyboardSubmit(parseQtyValue(value)),
+            onClose: () => {
+                qtyKeyboardTarget = null;
+                bumpIdle();
+            },
+        });
+        totemKeyboard?.show?.();
+    };
+
+    const openQtyKeyboard = (target) => {
+        if (!target) return;
+        if (target.context === 'grid' && !customerIdentified) return;
+        qtyKeyboardTarget = target;
+        const input = getQtyInputEl();
+        if (!input) return;
+        const initial = Math.max(0, Number(target.initialQty) || 0);
+        input.value = initial > 0 ? String(initial) : '';
+        attachQtyKeyboard();
+        bumpIdle();
+    };
+
+    const openGridQtyKeyboard = (btn, card) => {
+        if (!btn || !card) return;
+        const cartKey = btn.dataset.cartKey || card.dataset.cartKey || '';
+        const itemKey = btn.dataset.itemKey || card.dataset.itemKey || '';
+        const tier = card.dataset.priceTier || '';
+        const cart = cartApi.loadCart();
+        const currentQty = cart[cartKey]?.qty || 0;
+        const offer = resolvePromoOffer(cartKey, itemKey, tier);
+        openQtyKeyboard({
+            context: 'grid',
+            cartKey,
+            itemKey,
+            initialQty: currentQty,
+            opts: { tier, ...(promoAddOpts(offer) || {}) },
+        });
+    };
+
     const bindCustomerKeyboard = (field, mode = null) => {
         if (!field) return;
         const keyboardMode =
@@ -2689,7 +2760,7 @@ ${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="to
 </div>`;
         const qtyHtml = `<div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
-<span class="totem-qty-value">${qty}</span>
+<button type="button" class="totem-qty-value totem-qty-edit" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" aria-label="Digitar quantidade">${qty}</button>
 <button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Aumentar">+</button>
 </div>`;
         const selectedClass = qty ? ' totem-product--selected' : '';
@@ -2997,6 +3068,55 @@ ${bodyHtml}
         bumpProductCardInGrid(itemKey, packType, baseCartKey(key));
         refreshPromosIfOpen();
         showCartAddedToast(name, cartLineImage(cart[key]));
+        bumpIdle();
+    };
+
+    const setItemQty = (cartKey, itemKey, qty, opts = {}) => {
+        if (!customerIdentified) return;
+        totemKeyboard?.hide?.();
+        const n = parseQtyValue(String(qty));
+        const item = findDisplayItem(cartKey, itemKey);
+        if (!item) return;
+        const group = item.group;
+        const card = itemKey ? productsGrid?.querySelector(`[data-item-key="${itemKey}"]`) : null;
+        const tier =
+            opts.tier ||
+            card?.dataset?.priceTier ||
+            item?.defaultTier ||
+            (group ? activeTierFor(group) : 'caixa');
+        const variant = group ? pricing.getVariant(group, tier) : null;
+        const product = item.product;
+        const key = cartKey || (variant ? catalog.cartKeyFor(variant) : product.id);
+        const packType = opts.tier || variant?.tier || tier || 'caixa';
+        const name = group
+            ? pricing.cartItemName({ ...(variant || {}), tier: packType }, group)
+            : product.name;
+        const cart = cartApi.loadCart();
+
+        if (n <= 0) {
+            if (cart[key]) {
+                delete cart[key];
+                cartApi.saveCart(cart);
+                renderCartIncremental(key);
+                bumpProductCardInGrid(itemKey, packType, baseCartKey(key));
+                refreshPromosIfOpen();
+                refreshDetailIfOpen();
+            }
+            bumpIdle();
+            return;
+        }
+
+        if (!cart[key]) {
+            addItem(key, itemKey, { ...opts, _skipTapGuard: true });
+        }
+        const nextCart = cartApi.loadCart();
+        if (!nextCart[key]) return;
+        nextCart[key].qty = n;
+        cartApi.saveCart(nextCart);
+        renderCartIncremental(key);
+        bumpProductCardInGrid(itemKey, packType, baseCartKey(key));
+        refreshPromosIfOpen();
+        showCartAddedToast(name, cartLineImage(nextCart[key]), n);
         bumpIdle();
     };
 
@@ -3679,6 +3799,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             }
             const plus = e.target.closest('.totem-plus');
             const minus = e.target.closest('.totem-minus');
+            const qtyEdit = e.target.closest('.totem-qty-edit');
+            if (qtyEdit) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = qtyEdit.closest('.totem-product');
+                if (card) openGridQtyKeyboard(qtyEdit, card);
+                return;
+            }
             if (plus) {
                 const offer = resolvePromoOffer(
                     plus.dataset.cartKey,
@@ -3767,7 +3895,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             }
             const plus = e.target.closest('.totem-detail-plus');
             const minus = e.target.closest('.totem-detail-minus');
+            const qtyEdit = e.target.closest('#totem-detail-qty');
             const addBtn = e.target.closest('#totem-detail-add');
+            if (qtyEdit) {
+                e.preventDefault();
+                e.stopPropagation();
+                openQtyKeyboard({ context: 'detail', initialQty: detailDraftQty });
+                return;
+            }
             if (plus) {
                 detailDraftQty += 1;
                 renderProductDetail();
