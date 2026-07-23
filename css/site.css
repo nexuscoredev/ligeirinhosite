@@ -474,6 +474,9 @@ html.lig-app-standalone .ze-app-header {
 
 /* ── App header ── */
 .ze-app-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     box-shadow: var(--lig-shadow-sm);
@@ -484,7 +487,10 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-header-main {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    min-width: 0;
 }
 
 .lig-desktop-nav {
@@ -2851,6 +2857,7 @@ body[data-page='pedidos'] .ze-product-card__price {
 /* ── Home mobile (estilo BEES) ── */
 .home-page {
     padding-bottom: 0.5rem;
+    max-width: 100%;
 }
 
 .home-hero-banner {
@@ -5386,6 +5393,23 @@ html.lig-story-open {
 .ofertas-list {
     flex: 1;
     background: var(--lig-surface);
+}
+
+.ofertas-promos-grid.totem-promos__grid {
+    padding: 0.75rem 0.85rem 1.25rem;
+    overflow: visible;
+}
+
+.ofertas-promos-grid .totem-product {
+    cursor: default;
+}
+
+.ofertas-promos-grid .totem-qty-btn {
+    cursor: pointer;
+}
+
+.ofertas-promos-grid .totem-promo-unit-btn {
+    cursor: pointer;
 }
 
 .ofertas-empty {

@@ -15,8 +15,7 @@
     const defaultPathForRole = (role, session) => {
         if (session?.mustChangePassword) return PASSWORD_HOME;
         if (auth.isTotemRole(role)) return TOTEM_HOME;
-        if (String(role || '').toUpperCase() === 'ADMIN') return PARCEIRO_HOME;
-        return ACCOUNT_HOME;
+        return PARCEIRO_HOME;
     };
 
     const safeNextUrl = (nextUrl, role, session) => {

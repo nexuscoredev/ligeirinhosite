@@ -7,11 +7,13 @@
     const pricing = window.LigeirinhoPricing;
     const cartUi = window.LigeirinhoCartUI;
     const promoCatalog = window.LigeirinhoPromoCatalog;
-    if (!cartApi || !catalog || !pricing || !promoCatalog) return;
+    const promoCards = window.LigeirinhoParceirosPromoCards;
+    if (!cartApi || !catalog || !pricing || !promoCatalog || !promoCards) return;
 
     let catalogData = null;
     let displayItems = [];
-    let promoEntries = [];
+    let promoGroups = [];
+    let selectedUnits = new Map();
     let sortMode = 'discount';
     let filterCategory = '';
     let filterOpen = false;
@@ -20,44 +22,30 @@
 
     const promoLoader = promoCatalog.createHubPromoLoader('/api/promocoes');
 
-    const mapPromoEntries = (promos) =>
-        promoCatalog.collapsePromoDuplicateUnits(
-            promoCatalog
-                .buildPromoEntries(promos, displayItems, { matchedOnly: true })
-                .map((entry) => promoCatalog.enrichPromoEntry(entry, displayItems)),
-            { preferUnit: 'CX' },
-        );
-
     const esc = (v) =>
         String(v ?? '')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/"/g, '&quot;');
 
-    const buildCartCtx = (entry) => {
-        const { promo, item } = entry;
-        const group = item?.group || null;
-        const product = item?.product;
-        const tier = group ? pricing.getDefaultTier(group) : item?.defaultTier || 'caixa';
-        const variant = group ? pricing.getVariant(group, tier) : null;
-        const cartKey = variant ? catalog.cartKeyFor(variant) : product?.id || '';
-        const originalPrice = promo.originalPrice ?? variant?.price ?? product?.price ?? 0;
-        const promoPrice = promo.promoPrice ?? originalPrice;
-        const discountPct =
-            promo.discountPct ||
-            (originalPrice > 0 ? Math.max(0, Math.round((1 - promoPrice / originalPrice) * 100)) : 0);
-        return {
-            group,
-            product,
-            tier,
-            variant,
-            cartKey,
-            originalPrice,
-            promoPrice,
-            discountPct,
-            promo,
-        };
+    const formatPrice = (value) => catalog.formatPrice(value);
+
+    const cardDeps = () => ({
+        promoCatalog,
+        catalog,
+        pricing,
+        formatPrice,
+        selectedUnits,
+        getCartQty: (key) => catalog.getCartQty(key),
+    });
+
+    const reloadPromoGroups = (promos) => {
+        const prepared = promoCards.preparePromoGroups(promos, displayItems, promoCatalog);
+        promoGroups = prepared.groups;
+        selectedUnits = prepared.selectedUnits;
     };
+
+    const buildCartCtx = (entry) => promoCards.buildCartCtx(entry, cardDeps());
 
     const addProduct = (entry) => {
         const ctx = buildCartCtx(entry);
@@ -69,7 +57,7 @@
                 cartKey: ctx.cartKey,
                 tier: ctx.tier,
             },
-            pricing
+            pricing,
         );
         if (!line) return;
         line.price = ctx.promoPrice;
@@ -85,7 +73,7 @@
         cartApi.saveCart(cart);
         cartUi?.render?.();
         cartUi?.showAddedFeedback?.(line.name);
-        renderList();
+        syncGridQty();
     };
 
     const removeProduct = (cartKey) => {
@@ -96,87 +84,69 @@
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
         cartApi.saveCart(cart);
         cartUi?.render?.();
-        renderList();
+        syncGridQty();
     };
 
-    const getFilteredEntries = () => {
-        let items = promoEntries.filter((e) => e.item);
+    const getFilteredGroups = () => {
+        let groups = [...promoGroups];
         if (filterCategory) {
-            items = items.filter((e) => e.item?.categoryId === filterCategory);
+            groups = groups.filter((grupo) => {
+                const entry = promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog);
+                return entry?.item?.categoryId === filterCategory;
+            });
         }
-        items = [...items];
         if (sortMode === 'price-asc') {
-            items.sort((a, b) => buildCartCtx(a).promoPrice - buildCartCtx(b).promoPrice);
+            groups.sort(
+                (a, b) =>
+                    buildCartCtx(promoCards.activeEntryForGroup(a, selectedUnits, promoCatalog)).promoPrice -
+                    buildCartCtx(promoCards.activeEntryForGroup(b, selectedUnits, promoCatalog)).promoPrice,
+            );
         } else if (sortMode === 'price-desc') {
-            items.sort((a, b) => buildCartCtx(b).promoPrice - buildCartCtx(a).promoPrice);
+            groups.sort(
+                (a, b) =>
+                    buildCartCtx(promoCards.activeEntryForGroup(b, selectedUnits, promoCatalog)).promoPrice -
+                    buildCartCtx(promoCards.activeEntryForGroup(a, selectedUnits, promoCatalog)).promoPrice,
+            );
         } else if (sortMode === 'name') {
-            items.sort((a, b) =>
-                (a.promo.name || a.item?.product?.name || '').localeCompare(
-                    b.promo.name || b.item?.product?.name || '',
-                    'pt-BR'
-                )
+            groups.sort((a, b) =>
+                (a.nomeExibicao || '').localeCompare(b.nomeExibicao || '', 'pt-BR'),
             );
         } else {
-            items.sort((a, b) => buildCartCtx(b).discountPct - buildCartCtx(a).discountPct);
+            groups.sort(
+                (a, b) =>
+                    buildCartCtx(promoCards.activeEntryForGroup(b, selectedUnits, promoCatalog)).discountPct -
+                    buildCartCtx(promoCards.activeEntryForGroup(a, selectedUnits, promoCatalog)).discountPct,
+            );
         }
-        return items;
+        return groups;
     };
 
-    const offerProductRow = (entry) => {
-        const ctx = buildCartCtx(entry);
-        const { group, product, tier, variant, cartKey, originalPrice, promoPrice, discountPct, promo } = ctx;
-        const qty = catalog.getCartQty(cartKey);
-        const unitPrice =
-            variant && pricing?.getUnitPrice
-                ? pricing.getUnitPrice({ ...variant, price: promoPrice, tier })
-                : promoPrice;
-        const unitOriginal =
-            variant && pricing?.getUnitPrice
-                ? pricing.getUnitPrice({ ...variant, price: originalPrice, tier })
-                : originalPrice;
-        const imgSrc = promo.imageUrl
-            ? catalog.productImageUrl(promo.imageUrl)
-            : catalog.productImageUrl(group && pricing ? pricing.getTierImage(group, tier) : product?.image);
-        const packLabel = variant
-            ? tier === 'pallet'
-                ? 'Pallet'
-                : tier === 'unidade'
-                  ? 'Unidade'
-                  : 'Caixa'
-            : '';
-        const validade = promoCatalog.formatValidade(promo);
-        const showOldPrice = discountPct > 0 && unitOriginal > unitPrice;
-        const name = promo.name || group?.baseName || product?.name || 'Promoção';
-        const groupAttr = group ? ` data-group-key="${esc(group.key)}" data-price-tier="${esc(tier)}"` : '';
-        const sub =
-            variant
-                ? [
-                      'por unidade',
-                      `Caixa c/ ${variant.packSize || '?'} un`,
-                      `total ${catalog.formatPrice(promoPrice)}`,
-                  ].join(' · ')
-                : '';
+    const findPromoCard = (groupKey) => {
+        if (!groupKey) return null;
+        return (
+            [...root.querySelectorAll('[data-promo-group-key]')].find(
+                (el) => el.dataset.promoGroupKey === groupKey,
+            ) || null
+        );
+    };
 
-        return `<article class="ofertas-product-row" data-product-id="${esc(product?.id || '')}" data-cart-key="${esc(cartKey)}"${groupAttr}>
-<div class="ofertas-product-row__media">
-${imgSrc ? `<img src="${esc(imgSrc)}" alt="" class="ofertas-product-row__img" loading="lazy">` : '<span class="material-symbols-outlined">liquor</span>'}
-${packLabel ? `<span class="ofertas-product-row__badge ofertas-product-row__badge--pack">${esc(packLabel)}</span>` : ''}
-${discountPct > 0 ? `<span class="ofertas-product-row__badge ofertas-product-row__badge--pct">-${discountPct}%</span>` : ''}
-</div>
-<div class="ofertas-product-row__body">
-<h3 class="ofertas-product-row__name">${esc(catalog.shortName(name, 56))}</h3>
-${sub ? `<p class="ofertas-product-row__sub">${esc(sub)}</p>` : ''}
-<p class="ofertas-product-row__prices">
-${showOldPrice ? `<span class="ofertas-product-row__old">${catalog.formatPrice(unitOriginal)}</span>` : ''}
-<span class="ofertas-product-row__price">${catalog.formatPrice(unitPrice)}</span>
-</p>
-<p class="ofertas-product-row__seller"><span class="material-symbols-outlined">store</span> Promoção Ligeirinho Hub</p>
-<p class="ofertas-product-row__promo">${esc(validade)}</p>
-<div class="ofertas-product-row__actions">
-${catalog.qtyStepperHtml(cartKey, qty, { dark: false })}
-</div>
-</div>
-</article>`;
+    const replacePromoCard = (grupo, index) => {
+        const card = findPromoCard(grupo.chave);
+        if (!card) return;
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = promoCards.buildPromoCardHtml(grupo, index, cardDeps());
+        const next = wrapper.firstElementChild;
+        if (next) card.replaceWith(next);
+    };
+
+    const syncGridQty = () => {
+        getFilteredGroups().forEach((grupo) => {
+            const entry = promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog);
+            if (!entry) return;
+            const ctx = buildCartCtx(entry);
+            if (!ctx.cartKey) return;
+            promoCards.updateCardQty(findPromoCard(grupo.chave), catalog.getCartQty(ctx.cartKey));
+        });
     };
 
     const renderShell = () => {
@@ -214,7 +184,7 @@ ${(catalogData?.categories || [])
 </select>
 </div>
 <div id="ofertas-status" class="ofertas-status" hidden></div>
-<div id="ofertas-list" class="ofertas-list" role="list"></div>
+<div id="ofertas-list" class="ofertas-list ofertas-promos-grid totem-promos__grid" role="list"></div>
 </div>`;
     };
 
@@ -232,7 +202,7 @@ ${(catalogData?.categories || [])
             return;
         }
 
-        if (loadError && !promoEntries.length) {
+        if (loadError && !promoGroups.length) {
             if (status) {
                 status.hidden = false;
                 status.innerHTML =
@@ -243,27 +213,51 @@ ${(catalogData?.categories || [])
             return;
         }
 
-        const items = getFilteredEntries();
+        const groups = getFilteredGroups();
         if (status) status.hidden = true;
 
-        if (items.length) {
-            list.innerHTML = items.map(offerProductRow).join('');
+        if (groups.length) {
+            list.innerHTML = promoCards.renderGridHtml(groups, cardDeps());
         } else {
             list.innerHTML =
                 '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre promoções no Ligeirinho Hub.</p>';
         }
-
-        bindListActions();
     };
 
-    const bindListActions = () => {
-        catalog.bindQtySteppers(root, {
-            onAdd: (ctx) => {
-                const key = ctx.cartKey;
-                const entry = promoEntries.find((e) => buildCartCtx(e).cartKey === key);
-                if (entry) addProduct(entry);
-            },
-            onRemove: (ctx) => removeProduct(ctx.cartKey),
+    const bindGrid = () => {
+        if (root.dataset.promoGridBound === '1') return;
+        root.dataset.promoGridBound = '1';
+
+        root.addEventListener('click', (e) => {
+            const list = root.querySelector('#ofertas-list');
+            if (!list || !list.contains(e.target)) return;
+            const unitBtn = e.target.closest('[data-promo-unit]');
+            if (unitBtn) {
+                const groupKey = unitBtn.dataset.promoGroupKey;
+                const unit = unitBtn.dataset.promoUnit;
+                const grupo = promoGroups.find((item) => item.chave === groupKey);
+                if (!grupo || !unit || !grupo.byUnit[unit]) return;
+                selectedUnits.set(groupKey, unit);
+                const visible = getFilteredGroups();
+                const index = visible.indexOf(grupo);
+                replacePromoCard(grupo, index >= 0 ? index : promoGroups.indexOf(grupo));
+                return;
+            }
+
+            const plus = e.target.closest('.totem-plus');
+            if (plus) {
+                const card = plus.closest('[data-promo-group-key]');
+                const grupo = promoGroups.find((item) => item.chave === card?.dataset?.promoGroupKey);
+                const entry = grupo ? promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog) : null;
+                if (!entry?.item) return;
+                addProduct(entry);
+                return;
+            }
+
+            const minus = e.target.closest('.totem-minus');
+            if (minus) {
+                removeProduct(minus.dataset.cartKey);
+            }
         });
     };
 
@@ -295,6 +289,7 @@ ${(catalogData?.categories || [])
         renderShell();
         renderList();
         bindShell();
+        bindGrid();
         const sortEl = root.querySelector('#ofertas-sort');
         if (sortEl) sortEl.value = sortMode;
         const filterEl = root.querySelector('#ofertas-filter-cat');
@@ -308,7 +303,7 @@ ${(catalogData?.categories || [])
         try {
             const promos = await promoLoader.load(true);
             loadError = promoLoader.hadError();
-            promoEntries = mapPromoEntries(promos);
+            reloadPromoGroups(promos);
         } catch {
             loadError = true;
         }
@@ -334,15 +329,13 @@ ${(catalogData?.categories || [])
             promoLoader.clear();
             const promos = await promoLoader.load(true);
             loadError = loadError || promoLoader.hadError();
-            promoEntries = mapPromoEntries(promos);
+            reloadPromoGroups(promos);
         } catch {
             loadError = true;
         }
         loading = false;
         renderList();
     };
-
-    const refreshPromos = refreshAll;
 
     const init = async () => {
         await window.LigeirinhoPromoEntryNotice?.show?.({ variant: 'site' });
@@ -363,7 +356,7 @@ ${(catalogData?.categories || [])
     };
 
     window.addEventListener('ligeirinho-cart-changed', () => {
-        renderList();
+        syncGridQty();
     });
 
     window.addEventListener('ligeirinho-catalog-sync-start', () => {

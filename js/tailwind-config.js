@@ -70,6 +70,9 @@ tailwind.config = {
                 gutter: '24px',
                 'margin-mobile': '16px',
             },
+            maxWidth: {
+                'container-max': '1280px',
+            },
             fontFamily: {
                 'body-md': ['Inter'],
                 'headline-lg-mobile': ['Hanken Grotesk'],

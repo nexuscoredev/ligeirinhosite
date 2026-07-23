@@ -15,30 +15,9 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        "vibrant-yellow": "#F7D53C",
-                        "vibrant-orange": "#F7D53C",
-                        "deep-black": "#1a1a1a"
-                    },
-                    spacing: {
-                        "margin-desktop": "64px",
-                        "container-max": "1280px",
-                        "margin-mobile": "16px"
-                    },
-                    fontFamily: {
-                        "body-md": ["Inter"],
-                        "headline-md": ["Hanken Grotesk"]
-                    }
-                }
-            }
-        }
-    </script>
+<script src="js/tailwind-config.js"></script>
 </head>
-<body data-page="inicio" class="antialiased min-h-screen flex flex-col font-body-md overflow-x-hidden">
+<body data-page="inicio" class="font-body-md antialiased min-h-screen flex flex-col">
 <div id="site-nav"></div>
 <main id="lig-page-main" class="flex-grow flex flex-col">
 <div id="home-app" class="min-h-[50vh]">
