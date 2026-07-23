@@ -445,7 +445,7 @@
             if (tierKey === 'pallet' && group?.variants?.pallet && group?.variants?.caixa) {
                 const cxVar = group.variants.caixa;
                 const caixas = Number(group.variants.pallet.boxCount) || 1;
-                if (caixas > 1) {
+                if (caixas >= 1) {
                     const cxPromo = detailTierPromoOpts('caixa');
                     const cxPackPromo =
                         cxPromo?.promoPrice != null && Number.isFinite(Number(cxPromo.promoPrice))

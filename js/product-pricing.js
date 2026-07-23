@@ -224,7 +224,28 @@
             pallet.unitsPerBox = unPerCx;
             pallet.totalUnits = caixas * unPerCx;
             pallet.packSize = pallet.totalUnits;
+            if (cx) {
+                const cxPrice = Number(cx.price);
+                if (Number.isFinite(cxPrice) && cxPrice > 0) {
+                    pallet.price = Math.round(cxPrice * caixas * 100) / 100;
+                }
+            }
         });
+    };
+
+    /** Preço de venda do pallet = caixas no PL × preço da CX (mantém sync com Hub). */
+    const resolvePalletPackagePrice = (group, palletVariant = null) => {
+        const pallet = palletVariant || group?.variants?.pallet;
+        const cx = group?.variants?.caixa;
+        if (!pallet) return 0;
+        const enriched = applyPlVariantFields({ ...pallet, tier: 'pallet' }, { group, tier: 'pallet' });
+        const caixas = Math.max(1, Number(enriched?.boxCount) || 1);
+        const cxPrice = Number(cx?.price);
+        if (cx && Number.isFinite(cxPrice) && cxPrice > 0) {
+            return Math.round(cxPrice * caixas * 100) / 100;
+        }
+        const catalogPrice = Number(pallet.price);
+        return Number.isFinite(catalogPrice) && catalogPrice > 0 ? catalogPrice : 0;
     };
 
     const matchBrand = (baseName, byBrand = {}) => {
@@ -293,7 +314,12 @@
     const getVariant = (group, tier) => {
         const variant = group?.variants?.[tier];
         if (!variant) return null;
-        return { ...variant, tier, tierLabel: TIER_LABELS[tier] || tier };
+        let out = { ...variant, tier, tierLabel: TIER_LABELS[tier] || tier };
+        if (tier === 'pallet') {
+            out = applyPlVariantFields(out, { group, tier });
+            out.price = resolvePalletPackagePrice(group, out);
+        }
+        return out;
     };
 
     /**

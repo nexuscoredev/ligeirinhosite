@@ -260,11 +260,19 @@ function enrichCatalogPalletPrices(categories, priceMap) {
             if (!cx || !pl) continue;
             const caixas = Math.max(1, Number(pl.fatorMultiplicacao) || 1);
             const unCx = Math.max(1, Number(cx.fatorMultiplicacao) || 1);
-            const unitPl = pl.hubId ? priceMap?.get(pl.hubId) : null;
+            const plHubId = pl.hubId ? String(pl.hubId) : '';
+            const cxHubId = cx.hubId ? String(cx.hubId) : '';
+            const unitPl =
+                plHubId && plHubId !== cxHubId ? priceMap?.get(plHubId) : null;
+            let nextPrice = null;
             if (unitPl != null && Number.isFinite(Number(unitPl))) {
-                pl.price = Math.round(precoEmbalagem(Number(unitPl), unCx) * caixas * 100) / 100;
-            } else if (Number(cx.price) > 0 && caixas > 1) {
-                pl.price = Math.round(Number(cx.price) * caixas * 100) / 100;
+                nextPrice = Math.round(precoEmbalagem(Number(unitPl), unCx) * caixas * 100) / 100;
+            } else if (Number(cx.price) > 0) {
+                nextPrice = Math.round(Number(cx.price) * caixas * 100) / 100;
+            }
+            if (nextPrice != null && Number.isFinite(nextPrice) && nextPrice > 0) {
+                pl.price = nextPrice;
+                pl.priceLabel = formatPriceLabel(nextPrice);
             }
         }
     }
