@@ -4,6 +4,8 @@
     const pricing = window.LigeirinhoPricing;
     const cartUi = window.LigeirinhoCartUI;
     const productCards = window.LigeirinhoParceirosProductCards;
+    const promoCatalog = window.LigeirinhoPromoCatalog;
+    const promoCards = window.LigeirinhoParceirosPromoCards;
 
     if (!cartApi || !catalog || !pricing || !productCards) return;
 
@@ -23,6 +25,7 @@
 
     let catalogData = null;
     let displayItems = [];
+    let promoOffers = { byCartKey: {}, byItemKey: {} };
     let activeCategory = '';
     let searchQuery = '';
     let searchTimer = null;
@@ -103,12 +106,32 @@
         return sorted;
     };
 
+    const promoLoader = promoCatalog?.createHubPromoLoader?.('/api/promocoes');
+
+    const reloadPromoOffers = async (force = false) => {
+        if (!promoLoader || !promoCatalog || !promoCards || !displayItems.length) return;
+        const promos = await promoLoader.load(force);
+        const prepared = promoCards.preparePromoGroups(promos, displayItems, promoCatalog);
+        promoOffers = promoCatalog.buildPromoOfferIndex(prepared.groups, {
+            buildCartCtx: (entry) =>
+                promoCards.buildCartCtx(entry, { promoCatalog, catalog, pricing }),
+        });
+    };
+
     const addProduct = (ctx) => {
         const line = catalog.buildCartLineFields(ctx, pricing);
         if (!line) return;
+        const offer = ctx.offer;
+        if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
+            line.price = Number(offer.promoPrice);
+            if (offer.promoId) line.promoId = offer.promoId;
+        }
         const cart = cartApi.loadCart();
         if (!cart[line.key]) {
             cart[line.key] = { ...line, qty: 0 };
+        } else if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
+            cart[line.key].price = Number(offer.promoPrice);
+            if (offer.promoId) cart[line.key].promoId = offer.promoId;
         }
         cart[line.key].qty += 1;
         cartApi.saveCart(cart);
@@ -157,6 +180,7 @@
         pricing,
         formatPrice: catalog.formatPrice.bind(catalog),
         getCartQty: catalog.getCartQty.bind(catalog),
+        promoOffers,
     });
 
     const refreshCards = () => {
@@ -241,7 +265,7 @@
     document.getElementById('catalog-categories-backdrop')?.addEventListener('click', closeCategoriesModal);
 
     productCards.bindCatalogGrid(document, {
-        deps: cardDeps(),
+        getDeps: cardDeps,
         onAdd: (ctx) => {
             addProduct(ctx);
             refreshCards();
@@ -272,11 +296,12 @@
 
     window.LigeirinhoCatalogLoader.load()
         .then((data) => Promise.all([pricing.loadPackConfig(), pricing.loadTierImages()]).then(() => data))
-        .then((data) => {
+        .then(async (data) => {
             catalogData = data;
             const groups = pricing.buildGroups(data);
             window.__ligProductGroups = groups;
             displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
+            await reloadPromoOffers(false);
             renderFilters();
 
             const params = new URLSearchParams(window.location.search);
@@ -302,13 +327,14 @@
 
     window.addEventListener('ligeirinho-cart-changed', refreshCards);
 
-    window.addEventListener('ligeirinho-catalog-synced', (event) => {
+    window.addEventListener('ligeirinho-catalog-synced', async (event) => {
         const data = event.detail?.catalogData;
         if (!data) return;
         catalogData = data;
         const groups = pricing.buildGroups(data);
         window.__ligProductGroups = groups;
         displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
+        await reloadPromoOffers(true);
         renderFilters();
         renderProducts();
     });

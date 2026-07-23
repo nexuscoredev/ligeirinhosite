@@ -1,5 +1,5 @@
 (function () {
-    /** Cards de promoção Parceiros — mesmo layout do Totem (sem tag Pix/Dinheiro). */
+    /** Cards de promoção Parceiros — réplica do Totem (totem-promos.js). */
     const esc = (value) =>
         String(value ?? '')
             .replace(/&/g, '&amp;')
@@ -127,6 +127,14 @@
             unitPrice = Math.round((packPrice / packSize) * 100) / 100;
         }
         const showUnitBreakdown = !isUnitPromo && packSize > 1 && unitPrice != null;
+        let detailText = '';
+        if (!isUnitPromo && ctx.variant && pricing?.pricePackMeta) {
+            const meta = pricing.pricePackMeta({ ...ctx.variant, price: packPrice, tier: ctx.tier });
+            detailText = meta?.detail || '';
+        } else if (!isUnitPromo && packSize > 1) {
+            detailText = ctx.tier === 'pallet' ? `PL c/ ${packSize}` : `CX c/ ${packSize} un`;
+        }
+        const detailHtml = `<p class="totem-price-card__detail">${detailText ? esc(detailText) : ''}</p>`;
         const unitHtml = `<p class="totem-price-card__unit">${
             showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
         }</p>`;
@@ -136,12 +144,16 @@
 ${showOld ? `<span class="totem-product__price-old">${formatPrice(packOriginal)}</span>` : ''}
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
 </div>
+${detailHtml}
 ${unitHtml}
 </div>`;
     };
 
     const promoTagHtml = () =>
         '<span class="totem-product__promo-tag" aria-label="Produto em promoção"><img src="img/tag-promocao.png?v=1" alt="" aria-hidden="true"></span>';
+
+    const promoPayTagHtml = () =>
+        `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`;
 
     const mediaPackTagHtml = (promoUnit, promoCatalog) => {
         const packLabel = promoCatalog.tagEmbalagemPromoTotem(promoUnit);
@@ -174,6 +186,7 @@ ${grupo.unidadesDisponiveis
         return `<article class="totem-product totem-product--promo totem-product--promo-unlinked" ${attrs}>
 <div class="totem-product__media">
 ${promoTagHtml()}
+${promoPayTagHtml()}
 ${mediaPackTagHtml(ctx.promoUnit, promoCatalog)}
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>
@@ -213,6 +226,7 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
         return `<article class="totem-product totem-product--promo${selectedClass}" ${attrs}>
 <div class="totem-product__media">
 ${promoTagHtml()}
+${promoPayTagHtml()}
 ${packTag}
 ${qty ? `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
 ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}

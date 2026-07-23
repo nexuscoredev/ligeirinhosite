@@ -1,18 +1,30 @@
 (function () {
-    /** Cards de catálogo Parceiros — layout Totem (sem tag Pix/Dinheiro). */
+    /** Cards de catálogo Parceiros — réplica do layout Totem (buildProductCardHtml). */
     const esc = (value) =>
         String(value ?? '')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/"/g, '&quot;');
 
-    const activeTierForItem = (item, pricing, tierOverride) => {
+    const activeTierForItem = (item, pricing, tierOverride, promoOffers) => {
         if (tierOverride) return tierOverride;
         const group = item?.group || null;
         if (!group || !pricing) return item?.defaultTier || 'caixa';
-        if (item?.defaultTier && pricing.getAvailableTiers(group).includes(item.defaultTier)) {
-            return item.defaultTier;
+
+        const tiers = pricing.getTotemAvailableTiers?.(group) || pricing.getAvailableTiers(group) || [];
+        const itemKey = group.key;
+
+        if (promoOffers?.byItemKey?.[itemKey]?.tier && tiers.includes(promoOffers.byItemKey[itemKey].tier)) {
+            return promoOffers.byItemKey[itemKey].tier;
         }
+
+        for (const tier of tiers) {
+            const variant = pricing.getVariant(group, tier);
+            const cartKey = variant ? window.LigeirinhoCatalog?.cartKeyFor?.(variant) : '';
+            if (cartKey && promoOffers?.byCartKey?.[cartKey]) return tier;
+        }
+
+        if (item?.defaultTier && tiers.includes(item.defaultTier)) return item.defaultTier;
         return pricing.getDefaultTier(group);
     };
 
@@ -29,27 +41,55 @@
         return `<span class="totem-product__pack-tag" aria-label="Embalagem ${esc(label)}"><span class="totem-product__pack-tag-label">${esc(label)}</span></span>`;
     };
 
-    const priceTiersHtml = (group, activeTier, pricing) => {
+    const mediaCartBadgeHtml = (qty) =>
+        qty ? `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>` : '';
+
+    const promoTagHtml = () =>
+        '<span class="totem-product__promo-tag" aria-label="Produto em promoção"><img src="img/tag-promocao.png?v=1" alt="" aria-hidden="true"></span>';
+
+    const promoPayTagHtml = () =>
+        `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`;
+
+    const priceTiersHtml = (group, activeTier, pricing, promoOffers, itemKey) => {
         if (!group || !pricing) return '';
-        const tiers = pricing.getAvailableTiers(group) || [];
+        const tiers = pricing.getTotemAvailableTiers?.(group) || pricing.getAvailableTiers(group) || [];
         if (tiers.length <= 1) return '';
+        const promoCatalog = window.LigeirinhoPromoCatalog;
+
         const buttons = tiers
             .map((tier) => {
                 const active = tier === activeTier;
+                const variant = pricing.getVariant(group, tier);
+                const cartKey = variant ? window.LigeirinhoCatalog?.cartKeyFor?.(variant) : '';
+                const offer = promoCatalog?.resolvePromoOffer?.(promoOffers, cartKey, itemKey, tier);
                 const label =
                     pricing.TIER_SHORT?.[tier]?.toUpperCase() ||
                     pricing.TIER_LABELS?.[tier]?.toUpperCase() ||
                     String(tier).toUpperCase();
-                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(label)}">${esc(label)}</button>`;
+                const promoClass = offer?.promoId ? ' ze-price-tier--promo' : '';
+                const promoMark = offer?.promoId
+                    ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
+                    : '';
+                return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(label)}">${esc(label)}${promoMark}</button>`;
             })
             .join('');
+
         return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Escolher embalagem">${buttons}</div></div>`;
     };
 
     const priceBlockHtml = (variant, pricing, formatPrice, opts = {}) => {
         if (!variant || !pricing) return '';
         const meta = pricing.pricePackMeta(variant);
-        const packPrice = meta?.packagePrice ?? variant.price;
+        const catalogPrice = meta?.packagePrice ?? variant.price;
+        const packPrice =
+            opts.promoPrice != null && Number.isFinite(Number(opts.promoPrice))
+                ? Number(opts.promoPrice)
+                : catalogPrice;
+        const originalPrice =
+            opts.originalPrice != null && Number.isFinite(Number(opts.originalPrice))
+                ? Number(opts.originalPrice)
+                : catalogPrice;
+        const showOld = originalPrice > packPrice;
         const units = Math.max(1, Number(variant.packSize) || 1);
         const unitPrice = units > 1 ? Math.round((packPrice / units) * 100) / 100 : null;
         const showUnitBreakdown = units > 1 && unitPrice != null;
@@ -57,9 +97,11 @@
         const unitHtml = `<p class="totem-price-card__unit">${
             showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
         }</p>`;
+        const oldHtml = showOld ? `<span class="totem-product__price-old">${formatPrice(originalPrice)}</span>` : '';
 
-        return `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+        return `<div class="totem-price-card ze-price-block totem-product__price-block${opts.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
 <div class="totem-price-card__main">
+${oldHtml}
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
 </div>
 ${detailHtml}
@@ -68,45 +110,58 @@ ${unitHtml}
     };
 
     const resolveItemContext = (item, deps, tierOverride) => {
-        const { catalog, pricing } = deps;
+        const { catalog, pricing, promoOffers } = deps;
         const group = item?.group || null;
         const product = item?.product || item;
-        const tier = activeTierForItem(item, pricing, tierOverride);
+        const tier = activeTierForItem(item, pricing, tierOverride, promoOffers);
         const variant = group && pricing ? pricing.getVariant(group, tier) : null;
         const cartKey = variant ? catalog.cartKeyFor(variant) : product.id;
         const itemKey = group?.key || product.id;
         const name = group?.baseName || product.name || '';
         const img = catalog.productImageUrl(group && pricing ? pricing.getTierImage(group, tier) : product.image);
-        return { group, product, tier, variant, cartKey, itemKey, name, img };
+        const offer = window.LigeirinhoPromoCatalog?.resolvePromoOffer?.(promoOffers, cartKey, itemKey, tier);
+        return { group, product, tier, variant, cartKey, itemKey, name, img, offer };
     };
 
     const buildCatalogCardHtml = (item, index, deps, opts = {}) => {
         const { catalog, pricing, formatPrice, getCartQty } = deps;
         const ctx = resolveItemContext(item, deps);
-        const { group, product, tier, variant, cartKey, itemKey, name, img } = ctx;
+        const { group, product, tier, variant, cartKey, itemKey, name, img, offer } = ctx;
         const qty = getCartQty?.(cartKey) || 0;
-        const tiersHtml = group ? priceTiersHtml(group, tier, pricing) : '';
+        const tiersHtml = group ? priceTiersHtml(group, tier, pricing, deps.promoOffers, itemKey) : '';
+        const priceOpts = {
+            hidePackLabel: true,
+            promoId: offer?.promoId,
+            promoPrice: offer?.promoPrice,
+            originalPrice: offer?.originalPrice,
+            discountPct: offer?.discountPct,
+        };
         const priceHtml = variant
-            ? priceBlockHtml(variant, pricing, formatPrice)
-            : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
+            ? priceBlockHtml(variant, pricing, formatPrice, priceOpts)
+            : `<div class="totem-price-card ze-price-block totem-product__price-block${offer?.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
 <div class="totem-price-card__main">
-<span class="totem-product__price totem-price-card__value">${formatPrice(product.price ?? 0)}</span>
+${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="totem-product__price-old">${formatPrice(offer.originalPrice)}</span>` : ''}
+<span class="totem-product__price totem-price-card__value">${formatPrice(offer?.promoPrice ?? product.price ?? 0)}</span>
 </div>
 <p class="totem-price-card__detail"></p>
 <p class="totem-price-card__unit"></p>
 </div>`;
-        const selectedClass = qty ? ' totem-product--selected' : '';
-        const scrollClass = opts.scroll ? ' totem-product--scroll' : '';
-        const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-product-id="${esc(product.id || '')}" style="--totem-card-i:${Math.min(index, 14)}"`;
 
-        return `<article class="totem-product${selectedClass}${scrollClass}" ${attrs}>
+        const selectedClass = qty ? ' totem-product--selected' : '';
+        const promoClass = offer?.promoId ? ' totem-product--promo' : '';
+        const scrollClass = opts.scroll ? ' totem-product--scroll' : '';
+        const attrs = `role="listitem" data-group-key="${esc(group?.key || '')}" data-price-tier="${esc(tier)}" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-product-id="${esc(product.id || '')}"${offer?.promoId ? ` data-promo-id="${esc(offer.promoId)}"` : ''} style="--totem-card-i:${Math.min(index, 14)}"`;
+
+        return `<article class="totem-product${selectedClass}${promoClass}${scrollClass}" ${attrs}>
 <div class="totem-product__media">
+${offer?.promoId ? promoTagHtml() : ''}
+${offer?.promoId ? promoPayTagHtml() : ''}
 ${variant && !tiersHtml ? mediaPackTagHtml(variant, tier) : ''}
-${qty ? `<span class="totem-product__badge totem-product__cart-badge" aria-label="${qty} no carrinho">${qty}</span>` : ''}
+${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>
 <div class="totem-product__body">
-<div class="totem-product__name">${esc(catalog.shortName?.(name, opts.scroll ? 36 : 56) || name)}</div>
+<div class="totem-product__name">${esc(name)}</div>
 <div class="totem-product__pricing">
 ${tiersHtml}
 <div class="totem-product__meta">${priceHtml}</div>
@@ -127,9 +182,7 @@ ${tiersHtml}
 
     const renderScrollHtml = (items, deps) => {
         if (!items.length) return '';
-        return items
-            .map((item, index) => buildCatalogCardHtml(item, index, deps, { scroll: true }))
-            .join('');
+        return items.map((item, index) => buildCatalogCardHtml(item, index, deps, { scroll: true })).join('');
     };
 
     const updateCardQty = (card, qty) => {
@@ -145,7 +198,7 @@ ${tiersHtml}
                     span.className = 'totem-product__badge totem-product__cart-badge';
                     span.setAttribute('aria-label', `${qty} no carrinho`);
                     span.textContent = String(qty);
-                    media.prepend(span);
+                    media.appendChild(span);
                 }
             }
         } else if (badge) {
@@ -159,60 +212,13 @@ ${tiersHtml}
 
     const updateCatalogCard = (card, item, deps) => {
         if (!card || !item) return;
-        const tier = card.dataset.priceTier || activeTierForItem(item, deps.pricing);
-        const ctx = resolveItemContext(item, deps, tier);
-        const { group, variant, cartKey, img } = ctx;
-        const qty = deps.getCartQty?.(cartKey) || 0;
-
-        card.dataset.cartKey = cartKey;
-        card.dataset.priceTier = tier;
-
-        const tiersSlot = card.querySelector('.ze-price-tiers-slot');
-        const tiersHtml = group ? priceTiersHtml(group, tier, deps.pricing) : '';
-        if (tiersSlot) {
-            if (tiersHtml) tiersSlot.outerHTML = tiersHtml;
-            else tiersSlot.remove();
-        } else if (tiersHtml) {
-            card.querySelector('.totem-product__pricing')?.insertAdjacentHTML('afterbegin', tiersHtml);
-        }
-
-        const priceBlock = card.querySelector('[data-price-display]');
-        if (priceBlock) {
-            const nextHtml = variant
-                ? priceBlockHtml(variant, deps.pricing, deps.formatPrice)
-                : `<div class="totem-price-card ze-price-block totem-product__price-block" data-price-display>
-<div class="totem-price-card__main">
-<span class="totem-product__price totem-price-card__value">${deps.formatPrice(ctx.product?.price ?? 0)}</span>
-</div>
-<p class="totem-price-card__detail"></p>
-<p class="totem-price-card__unit"></p>
-</div>`;
-            priceBlock.outerHTML = nextHtml;
-        }
-
-        const imgEl = card.querySelector('.totem-product__media > img');
-        if (imgEl && img) imgEl.src = img;
-
-        let packTag = card.querySelector('.totem-product__pack-tag');
-        if (variant && !tiersHtml) {
-            const packHtml = mediaPackTagHtml(variant, tier);
-            if (packHtml) {
-                if (packTag) packTag.outerHTML = packHtml;
-                else card.querySelector('.totem-product__media')?.insertAdjacentHTML('afterbegin', packHtml);
-            }
-        } else if (packTag) {
-            packTag.remove();
-        }
-
-        const plus = card.querySelector('.totem-plus');
-        if (plus) {
-            plus.dataset.cartKey = cartKey;
-            plus.dataset.priceTier = tier;
-        }
-        const minus = card.querySelector('.totem-minus');
-        if (minus) minus.dataset.cartKey = cartKey;
-
-        updateCardQty(card, qty);
+        const wrapper = document.createElement('div');
+        const index = Number(card.style.getPropertyValue('--totem-card-i')) || 0;
+        wrapper.innerHTML = buildCatalogCardHtml(item, index, deps, {
+            scroll: card.classList.contains('totem-product--scroll'),
+        });
+        const next = wrapper.firstElementChild;
+        if (next) card.replaceWith(next);
     };
 
     const findItemForCard = (card, items) => {
@@ -232,7 +238,7 @@ ${tiersHtml}
         root.querySelectorAll('.totem-product[data-item-key]').forEach((card) => {
             const item = findItemForCard(card, items);
             if (!item) return;
-            const tier = card.dataset.priceTier || activeTierForItem(item, deps.pricing);
+            const tier = card.dataset.priceTier || activeTierForItem(item, deps.pricing, null, deps.promoOffers);
             const ctx = resolveItemContext(item, deps, tier);
             updateCardQty(card, deps.getCartQty?.(ctx.cartKey) || 0);
         });
@@ -241,6 +247,7 @@ ${tiersHtml}
     const bindCatalogGrid = (root, handlers, getItems) => {
         if (!root || root.dataset.parceirosCatalogBound === '1') return;
         root.dataset.parceirosCatalogBound = '1';
+        const resolveDeps = () => handlers.getDeps?.() || handlers.deps || {};
 
         root.addEventListener('click', (e) => {
             const tierBtn = e.target.closest('.ze-price-tier');
@@ -251,7 +258,7 @@ ${tiersHtml}
                 const item = findItemForCard(card, items);
                 if (!item) return;
                 card.dataset.priceTier = tierBtn.dataset.priceTier || card.dataset.priceTier;
-                updateCatalogCard(card, item, handlers.deps);
+                updateCatalogCard(card, item, resolveDeps());
                 return;
             }
 
@@ -262,8 +269,8 @@ ${tiersHtml}
                 const item = findItemForCard(card, items);
                 if (!item) return;
                 const tier = card?.dataset?.priceTier || plus.dataset.priceTier;
-                const ctx = resolveItemContext(item, handlers.deps, tier);
-                handlers.onAdd?.({ ...ctx, cartKey: ctx.cartKey, variant: ctx.variant, group: ctx.group, tier: ctx.tier });
+                const ctx = resolveItemContext(item, resolveDeps(), tier);
+                handlers.onAdd?.({ ...ctx, cartKey: ctx.cartKey, variant: ctx.variant, group: ctx.group, tier: ctx.tier, offer: ctx.offer });
                 return;
             }
 

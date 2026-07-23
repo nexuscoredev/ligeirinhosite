@@ -5440,8 +5440,8 @@ html.lig-story-open {
 }
 
 .parceiros-product-scroll .totem-product--scroll {
-    flex: 0 0 clamp(7.25rem, 28vw, 10.25rem);
-    min-width: clamp(7.25rem, 28vw, 10.25rem);
+    flex: 0 0 var(--totem-grid-min, clamp(8.5rem, 38vw, 11rem));
+    min-width: var(--totem-grid-min, clamp(8.5rem, 38vw, 11rem));
 }
 
 .ze-catalog-main .parceiros-catalog-grid .totem-product {

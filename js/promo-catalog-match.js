@@ -238,6 +238,95 @@
         return `Até ${d} de ${meses[m - 1]}.`;
     };
 
+    const resolvePromoDetailItemKey = (grupo, activeEntryForGroup) => {
+        if (!grupo) return '';
+        for (const unit of grupo.unidadesDisponiveis || []) {
+            const key = grupo.byUnit?.[unit]?.item?.group?.key;
+            if (key) return key;
+        }
+        const entry = activeEntryForGroup?.(grupo);
+        if (!entry) return '';
+        const group = entry.item?.group;
+        const product = entry.item?.product;
+        return group?.key || product?.id || '';
+    };
+
+    /** Mapas de oferta ativa por cartKey/itemKey — mesma lógica do Totem promos. */
+    const buildPromoOfferIndex = (promoGroups, { buildCartCtx, activeEntryForGroup }) => {
+        const byCartKey = {};
+        const byItemKey = {};
+        const resolveActiveEntry =
+            activeEntryForGroup || ((grupo) => entryAtivoPromoGrupo(grupo, unidadePadraoPromoGrupo(grupo)));
+
+        (promoGroups || []).forEach((grupo) => {
+            const tiers = {};
+            (grupo.unidadesDisponiveis || []).forEach((unit) => {
+                const entry = entryAtivoPromoGrupo(grupo, unit);
+                if (!entry) return;
+                const ctx = buildCartCtx(entry);
+                if (!ctx?.cartKey || !ctx.promo?.id) return;
+                byCartKey[ctx.cartKey] = {
+                    promoId: ctx.promo.id,
+                    promoPrice: ctx.promoPrice,
+                    originalPrice: ctx.originalPrice,
+                    discountPct: ctx.discountPct,
+                    tier: ctx.tier,
+                };
+                if (ctx.tier) {
+                    tiers[ctx.tier] = {
+                        promoPrice: ctx.promoPrice,
+                        promoId: ctx.promo.id,
+                        originalPrice: ctx.originalPrice,
+                    };
+                }
+            });
+
+            const activeEntry = resolveActiveEntry(grupo);
+            const activeCtx = activeEntry ? buildCartCtx(activeEntry) : null;
+            const itemKey = resolvePromoDetailItemKey(grupo, resolveActiveEntry);
+            if (itemKey && activeCtx?.promo?.id) {
+                byItemKey[itemKey] = {
+                    promoPrice: activeCtx.promoPrice,
+                    promoId: activeCtx.promo.id,
+                    tier: activeCtx.tier,
+                    originalPrice: activeCtx.originalPrice,
+                    tiers,
+                    multiplo: Boolean(grupo.multiplo),
+                };
+            }
+        });
+
+        return { byCartKey, byItemKey };
+    };
+
+    const resolvePromoOffer = (index, cartKey, itemKey, tier) => {
+        const byCartKey = index?.byCartKey || {};
+        const byItemKey = index?.byItemKey || {};
+        if (cartKey && byCartKey[cartKey]) {
+            const byCart = byCartKey[cartKey];
+            if (!tier || !byCart?.tier || byCart.tier === tier) return byCart;
+        }
+        const byItem = itemKey ? byItemKey[itemKey] : null;
+        if (!byItem) return null;
+        if (tier) {
+            const tierOffer = byItem.tiers?.[tier];
+            if (!tierOffer) return null;
+            return {
+                promoId: tierOffer.promoId,
+                promoPrice: tierOffer.promoPrice,
+                originalPrice: tierOffer.originalPrice,
+                discountPct:
+                    tierOffer.originalPrice > tierOffer.promoPrice
+                        ? Math.max(0, Math.round((1 - tierOffer.promoPrice / tierOffer.originalPrice) * 100))
+                        : 0,
+                tier,
+                tiers: byItem.tiers,
+                multiplo: byItem.multiplo,
+            };
+        }
+        return byItem;
+    };
+
     const createHubPromoLoader = (apiUrl = '/api/promocoes') => {
         let hubPromos = [];
         let promosLoadedAt = 0;
@@ -300,6 +389,9 @@
         rotuloUnidadePromoTotem,
         tagEmbalagemPromoTotem,
         formatValidade,
+        buildPromoOfferIndex,
+        resolvePromoOffer,
+        resolvePromoDetailItemKey,
         createHubPromoLoader,
     };
 })();
