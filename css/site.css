@@ -5426,22 +5426,141 @@ html.lig-story-open {
     font-size: 0.875rem;
 }
 
-.parceiros-product-scroll {
+/* Carrosséis (Início) — réplica visual do totem-grid--grid-m */
+.parceiros-product-scroll,
+.ze-product-scroll:has(.totem-product),
+.home-suggested-scroll:has(.totem-product) {
+    --totem-grid-min: clamp(7.25rem, 13vw, 10.25rem);
+    --totem-grid-gap: clamp(0.55rem, 1.1vw, 0.85rem);
+    --totem-grid-name-size: 0.7rem;
+    --totem-grid-name-lines: 2;
     display: flex;
-    gap: 0.625rem;
+    gap: var(--totem-grid-gap);
+    align-items: stretch;
     overflow-x: auto;
     padding: 0 1rem 0.25rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
 }
 
-.parceiros-product-scroll::-webkit-scrollbar {
+.parceiros-product-scroll::-webkit-scrollbar,
+.ze-product-scroll:has(.totem-product)::-webkit-scrollbar,
+.home-suggested-scroll:has(.totem-product)::-webkit-scrollbar {
     display: none;
 }
 
-.parceiros-product-scroll .totem-product--scroll {
-    flex: 0 0 var(--totem-grid-min, clamp(8.5rem, 38vw, 11rem));
-    min-width: var(--totem-grid-min, clamp(8.5rem, 38vw, 11rem));
+.parceiros-product-scroll .totem-product,
+.ze-product-scroll:has(.totem-product) .totem-product,
+.home-suggested-scroll:has(.totem-product) .totem-product {
+    flex: 0 0 var(--totem-grid-min);
+    min-width: var(--totem-grid-min);
+    max-width: var(--totem-grid-min);
+    width: var(--totem-grid-min);
+    align-self: stretch;
+    background: rgba(255, 255, 255, 0.35);
+    border: 1px solid transparent;
+    box-shadow: none;
+    border-radius: 0.75rem;
+    padding: 0;
+    overflow: hidden;
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.22s ease,
+        transform 0.28s var(--totem-ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.parceiros-product-scroll .totem-product:hover,
+.ze-product-scroll:has(.totem-product) .totem-product:hover,
+.home-suggested-scroll:has(.totem-product) .totem-product:hover {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(20, 18, 15, 0.08);
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.parceiros-product-scroll .totem-product--selected,
+.ze-product-scroll:has(.totem-product) .totem-product--selected,
+.home-suggested-scroll:has(.totem-product) .totem-product--selected {
+    background: rgba(240, 201, 41, 0.14);
+    border-color: rgba(240, 201, 41, 0.5);
+    box-shadow:
+        0 0 0 2px rgba(240, 201, 41, 0.18),
+        var(--lig-shadow-sm);
+}
+
+.parceiros-product-scroll .totem-product__media,
+.ze-product-scroll:has(.totem-product) .totem-product__media,
+.home-suggested-scroll:has(.totem-product) .totem-product__media {
+    position: relative;
+    width: 100%;
+    margin: 0;
+    height: auto;
+    aspect-ratio: 1;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+    background: var(--lig-media-bg);
+}
+
+.parceiros-product-scroll .totem-product__media::after,
+.ze-product-scroll:has(.totem-product) .totem-product__media::after,
+.home-suggested-scroll:has(.totem-product) .totem-product__media::after {
+    display: none;
+}
+
+.parceiros-product-scroll .totem-product__body,
+.ze-product-scroll:has(.totem-product) .totem-product__body,
+.home-suggested-scroll:has(.totem-product) .totem-product__body {
+    align-items: center;
+    text-align: center;
+    padding: 0.3rem 0.35rem 0.45rem;
+    gap: 0.28rem;
+}
+
+.parceiros-product-scroll .totem-product__name,
+.ze-product-scroll:has(.totem-product) .totem-product__name,
+.home-suggested-scroll:has(.totem-product) .totem-product__name {
+    width: 100%;
+    text-align: center;
+    font-size: var(--totem-grid-name-size);
+    min-height: calc(var(--totem-grid-name-lines) * 1.25 * var(--totem-grid-name-size));
+    -webkit-line-clamp: var(--totem-grid-name-lines);
+}
+
+.parceiros-product-scroll .totem-product .ze-price-tiers-slot,
+.ze-product-scroll:has(.totem-product) .totem-product .ze-price-tiers-slot,
+.home-suggested-scroll:has(.totem-product) .totem-product .ze-price-tiers-slot {
+    width: 100%;
+}
+
+.parceiros-product-scroll .totem-product__meta .totem-price-card,
+.ze-product-scroll:has(.totem-product) .totem-product__meta .totem-price-card,
+.home-suggested-scroll:has(.totem-product) .totem-product__meta .totem-price-card {
+    padding: 0.25rem 0.15rem 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.parceiros-product-scroll .totem-product__meta .totem-price-card__main,
+.ze-product-scroll:has(.totem-product) .totem-product__meta .totem-price-card__main,
+.home-suggested-scroll:has(.totem-product) .totem-product__meta .totem-price-card__main {
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.parceiros-product-scroll .totem-product__qty,
+.ze-product-scroll:has(.totem-product) .totem-product__qty,
+.home-suggested-scroll:has(.totem-product) .totem-product__qty {
+    width: 100%;
+    padding-top: 0.15rem;
+    margin-top: auto;
+}
+
+.parceiros-product-scroll .totem-product .ze-price-tier__promo,
+.ze-product-scroll:has(.totem-product) .totem-product .ze-price-tier__promo,
+.home-suggested-scroll:has(.totem-product) .totem-product .ze-price-tier__promo {
+    display: none;
 }
 
 .ze-catalog-main .parceiros-catalog-grid .totem-product {
