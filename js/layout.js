@@ -167,7 +167,7 @@
     const desktopInstitutionalItems = [...institutionalNavItems];
     const desktopFinanceItems = operatorNav;
 
-    const desktopNavHtml = `<nav class="lig-desktop-nav hidden lg:flex" aria-label="Navegação principal">
+    const desktopNavHtml = `<nav class="lig-desktop-nav hidden md:flex" aria-label="Navegação principal">
 <div class="lig-desktop-nav__track">
 <div class="lig-desktop-nav__group">
 ${desktopAppNavItems.map(renderDesktopNavLink).join('\n')}
@@ -192,37 +192,9 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
     const searchPlaceholder =
         page === 'pedidos' ? 'Buscar produtos…' : page === 'inicio' ? 'O que você procura?' : 'Buscar…';
 
-    const navHtml = `<header class="ze-app-header lig-header-universal sticky top-0 z-50">
-<nav class="font-nav-bar">
-<div class="lig-header-main flex justify-between items-center w-full px-4 lg:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px]">
-<a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
-<img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
-<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
-</a>
-${desktopNavHtml}
-<div class="lig-header-actions flex items-center gap-0.5 shrink-0">
-<a href="${accountHref}" class="${accountLinkClass} hidden md:inline-flex" aria-current="${accountActive ? 'page' : 'false'}">
-<span class="material-symbols-outlined lig-nav-account__icon" aria-hidden="true">person</span>
-<span class="lig-nav-account__label">Minha conta</span>
-</a>
-<div id="lig-notifications-mount" class="shrink-0"></div>
-<button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
-<span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
-</button>
-<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
-<span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
-</button>
-<button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
-<span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
-</button>
-<div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="lig-header-cart hidden lg:flex" aria-label="Abrir caminhão" aria-expanded="false">
-<span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
-<span id="nav-cart-badge" class="lig-header-cart__badge hidden">0</span>
-</button>
-</div>
-</div>
-${showAppChrome && page !== 'conta' ? `<div class="ze-app-chrome">
+    const appChromeHtml =
+        showAppChrome && page !== 'conta'
+            ? `<div class="ze-app-chrome font-nav-bar">
 <div class="ze-fulfillment-bar ze-location-bar" id="ze-location-wrap">
 <button type="button" id="ze-location-main" class="ze-fulfillment-bar__main" aria-label="Forma de recebimento e endereço">
 <span class="ze-fulfillment-bar__icon-wrap" aria-hidden="true">
@@ -259,9 +231,44 @@ ${showAppChrome && page !== 'conta' ? `<div class="ze-app-chrome">
 <span class="ze-search-bar__icon material-symbols-outlined" aria-hidden="true">search</span>
 <input type="search" name="q" id="ze-search-input" placeholder="${searchPlaceholder}" autocomplete="off" aria-label="Buscar produtos">
 </form>
-</div>` : ''}
+</div>`
+            : '';
+
+    const navHtml = `<div class="lig-header-stack sticky top-0 z-50">
+<header class="ze-app-header lig-header-universal">
+<nav class="font-nav-bar">
+<div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px]">
+<a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
+<img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
+<span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
+</a>
+${desktopNavHtml}
+<div class="lig-header-actions flex items-center gap-0.5 shrink-0">
+<a href="${accountHref}" class="${accountLinkClass} hidden md:inline-flex" aria-current="${accountActive ? 'page' : 'false'}">
+<span class="material-symbols-outlined lig-nav-account__icon" aria-hidden="true">person</span>
+<span class="lig-nav-account__label">Minha conta</span>
+</a>
+<div id="lig-notifications-mount" class="shrink-0"></div>
+<button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
+<span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
+</button>
+<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
+<span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
+</button>
+<button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
+<span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
+</button>
+<div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
+<button type="button" id="nav-cart-toggle" class="lig-header-cart hidden md:flex" aria-label="Abrir caminhão" aria-expanded="false">
+<span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+<span id="nav-cart-badge" class="lig-header-cart__badge hidden">0</span>
+</button>
+</div>
+</div>
 </nav>
-</header>`;
+</header>
+${appChromeHtml}
+</div>`;
 
     const brandIcons = {
         whatsapp: 'img/icon-whatsapp.svg',
@@ -269,7 +276,7 @@ ${showAppChrome && page !== 'conta' ? `<div class="ze-app-chrome">
         maps: 'img/icon-google-maps.png',
     };
 
-    const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden lg:hidden" aria-hidden="true">
+    const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden" aria-hidden="true">
 <div class="nav-mobile-backdrop absolute inset-0" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
 <div class="nav-mobile-panel absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
 <div class="flex shrink-0 items-center justify-between border-b border-surface-variant/30 px-4 py-3.5">
@@ -305,7 +312,7 @@ ${navMobileLinksHtml}
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];
 
-    const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden" aria-label="Navegação do app">
+    const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Navegação do app">
 <div class="grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6">
 ${bottomTabItems
     .map((item) => {
@@ -458,7 +465,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
         const closeMobileMenu = () => setOpen(false);
         const openMenu = () => {
-            if (window.matchMedia('(min-width: 1024px)').matches) return;
+            if (window.matchMedia('(min-width: 768px)').matches) return;
             setOpen(true);
         };
 
@@ -499,7 +506,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     let headerOffsetObserver = null;
 
     const syncHeaderOffset = () => {
-        const header = document.querySelector('.ze-app-header');
+        const header = document.querySelector('.lig-header-stack') || document.querySelector('.ze-app-header');
         if (!header) return;
         const height = Math.ceil(header.getBoundingClientRect().height);
         if (height > 0) {
@@ -509,7 +516,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     };
 
     const bindHeaderOffset = () => {
-        const header = document.querySelector('.ze-app-header');
+        const header = document.querySelector('.lig-header-stack') || document.querySelector('.ze-app-header');
         if (!header) return;
         syncHeaderOffset();
         if (headerOffsetObserver) {
