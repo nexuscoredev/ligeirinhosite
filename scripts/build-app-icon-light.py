@@ -66,20 +66,20 @@ def draw_gold_ring(base: Image.Image, cx: int, cy: int, radius: int, width: int 
     base.alpha_composite(overlay)
 
 
-def draw_parceiros_wordmark(base: Image.Image, size: int) -> None:
-    """Somente Parceiros (Caveat), centralizado abaixo do emblema."""
+def draw_parceiros_wordmark(base: Image.Image, size: int, logo_bottom: int) -> None:
+    """Somente Parceiros (Caveat), centralizado logo abaixo do emblema."""
     overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
 
-    font_parceiros = load_font(FONT_CAVEAT, max(size // 9, 38))
+    font_parceiros = load_font(FONT_CAVEAT, max(size // 7, 48))
     text_p = "Parceiros"
 
     bbox = draw.textbbox((0, 0), text_p, font=font_parceiros)
     w_p = bbox[2] - bbox[0]
-    h_p = bbox[3] - bbox[1]
 
     x = (size - w_p) // 2 - bbox[0]
-    y = size - int(size * 0.09) - h_p
+    gap = max(int(size * 0.012), 4)
+    y = logo_bottom + gap - bbox[1]
 
     draw.text((x, y), text_p, fill=PARCEIROS_TEXT + (255,), font=font_parceiros)
     base.alpha_composite(overlay)
@@ -98,14 +98,14 @@ def compose_icon(size: int, logo_scale: float, show_wordmark: bool = True) -> Im
     shadow = shadow.filter(ImageFilter.GaussianBlur(radius=max(size // 64, 4)))
 
     cx = (size - logo_d) // 2
-    cy = (size - logo_d) // 2 - int(size * 0.03)
+    cy = (size - logo_d) // 2 - int(size * 0.05)
     base.alpha_composite(shadow, (cx, cy))
     base.alpha_composite(logo, (cx, cy))
 
     draw_gold_ring(base, size // 2, cy + logo_d // 2, logo_d // 2 + int(size * 0.012))
 
     if show_wordmark:
-        draw_parceiros_wordmark(base, size)
+        draw_parceiros_wordmark(base, size, cy + logo_d)
 
     radius = int(size * 0.2237)
     mask = rounded_rect_mask(size, radius)
