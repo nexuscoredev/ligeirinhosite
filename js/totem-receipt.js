@@ -193,8 +193,12 @@
     }
 
     const methodLabel = (m) => {
+        const splits = window.LigeirinhoPaymentSplits;
+        if (splits?.totemPaymentMethodLabel) return splits.totemPaymentMethodLabel(m);
         const key = String(m || '').toLowerCase().split('+')[0].trim();
         if (key === 'pix') return 'Pix';
+        if (key === 'cartao_credito') return 'Cartão de crédito';
+        if (key === 'cartao_debito') return 'Cartão de débito';
         if (key === 'cartao') return 'Cartão';
         return 'Dinheiro';
     };
@@ -212,6 +216,8 @@
     const mapHumanLabelToMethod = (label) => {
         const text = String(label || '').toLowerCase().trim();
         if (text.includes('pix')) return 'pix';
+        if (text.includes('crédito') || text.includes('credito')) return 'cartao_credito';
+        if (text.includes('débito') || text.includes('debito')) return 'cartao_debito';
         if (text.includes('cart') || text.includes('cartao') || text.includes('cartão')) return 'cartao';
         if (text.includes('dinheiro')) return 'dinheiro';
         return text;

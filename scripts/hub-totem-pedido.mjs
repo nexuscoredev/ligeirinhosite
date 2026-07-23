@@ -48,6 +48,8 @@ async function hubRest(config, path, options = {}) {
 function totemMethodToHubForma(method) {
     const m = normalizeTotemPaymentMethod(method);
     if (m === 'pix') return 'pix';
+    if (m === 'cartao_credito') return 'cartao_credito';
+    if (m === 'cartao_debito') return 'cartao_debito';
     if (m === 'cartao') return 'cartao_debito';
     return 'dinheiro';
 }
@@ -72,6 +74,8 @@ function parseMoneyBr(raw) {
 function mapHumanLabelToMethod(label) {
     const text = String(label || '').toLowerCase().trim();
     if (text.includes('pix')) return 'pix';
+    if (text.includes('crédito') || text.includes('credito')) return 'cartao_credito';
+    if (text.includes('débito') || text.includes('debito')) return 'cartao_debito';
     if (text.includes('cart') || text.includes('cartao') || text.includes('cartão')) return 'cartao';
     if (text.includes('dinheiro')) return 'dinheiro';
     return normalizeTotemPaymentMethod(text);

@@ -10,7 +10,8 @@
 
     const TOTEM_METHODS = [
         { id: 'pix', label: 'Pix', brand: 'img/icon-pix.svg' },
-        { id: 'cartao', label: 'Cartão', icon: 'credit_card' },
+        { id: 'cartao_credito', label: 'Cartão de crédito', icon: 'credit_card' },
+        { id: 'cartao_debito', label: 'Cartão de débito', icon: 'credit_score' },
         { id: 'dinheiro', label: 'Dinheiro', icon: 'payments' },
     ];
 
@@ -177,7 +178,7 @@
                 .reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
         );
 
-    /** Pix/Cartão: até o restante sem contar dinheiro. Dinheiro: sem teto (troco). */
+    /** Pix/Cartões: até o restante sem contar dinheiro. Dinheiro: sem teto (troco). */
     const maxAmountForField = (id, total) => {
         if (isCashMethod(id)) return null;
         const otherNonCash = selectedIds
@@ -298,7 +299,7 @@
         }
         selectedIds.push(id);
         if (selectedIds.length === 1) {
-            // Pix/Cartão único: valor = total no confirm. Dinheiro: pede o valor entregue.
+            // Pix/Cartões único: valor = total no confirm. Dinheiro: pede o valor entregue.
             amountInputs[id] = '';
             return;
         }
@@ -320,7 +321,7 @@
         const hint = cashOnly
             ? `Informe o valor que vai entregar. O total do pedido é ${formatPrice(total)} — se for maior, o troco aparece abaixo.`
             : hasCashSelected()
-              ? `Pix e Cartão: até o total (${formatPrice(total)}). Dinheiro pode ser maior — o troco aparece abaixo.`
+              ? `Pix e cartões: até o total (${formatPrice(total)}). Dinheiro pode ser maior — o troco aparece abaixo.`
               : `Máximo por forma: até o total do pedido (${formatPrice(total)}).`;
         const rows = (cashOnly ? ['dinheiro'] : selectedIds)
             .map((id) => {
@@ -491,7 +492,7 @@ Confirmar pagamento
             amount: clampFieldAmount(method, amountInputs[method], total),
         }));
         if (splits.some((item) => !isCashMethod(item.method) && item.amount > total + 0.009)) {
-            formError = 'Pix e Cartão não podem ser maiores que o total do pedido.';
+            formError = 'Pix e cartões não podem ser maiores que o total do pedido.';
             return null;
         }
         if (splits.some((item) => item.amount <= 0)) {

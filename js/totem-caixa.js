@@ -18,19 +18,21 @@
 
     const splitsApi = window.LigeirinhoPaymentSplits;
 
-    const methodLabelShort = (m) => {
-        const key = String(m || '').toLowerCase();
-        if (key === 'pix') return 'Pix';
-        if (key === 'cartao') return 'Cartão';
-        return 'Dinheiro';
-    };
+    const methodLabelShort = (m) => splitsApi?.totemPaymentMethodLabel?.(m) || m;
 
     const methodIconHtml = (m) => {
         const key = String(m || '').toLowerCase();
         if (key === 'pix') {
             return '<img src="img/icon-pix.svg" class="totem-caixa-pay-item__pix" width="52" height="20" alt="Pix">';
         }
-        const icon = key === 'cartao' ? 'credit_card' : 'payments';
+        const icon =
+            key === 'cartao_credito'
+                ? 'credit_card'
+                : key === 'cartao_debito'
+                  ? 'credit_score'
+                  : key === 'cartao'
+                    ? 'credit_card'
+                    : 'payments';
         return `<span class="material-symbols-outlined totem-caixa-pay-item__icon" aria-hidden="true">${icon}</span>`;
     };
 

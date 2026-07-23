@@ -40,7 +40,7 @@
     }
 
     function mensagemCartaoBloqueadoPromo() {
-        return 'Pedidos com promoção não aceitam cartão. Use Pix ou dinheiro.';
+        return 'Pedidos com promoção não aceitam cartão de crédito ou débito. Use Pix ou dinheiro.';
     }
 
     window.LigeirinhoTotemPromoPayment = {

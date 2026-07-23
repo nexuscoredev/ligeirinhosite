@@ -60,6 +60,24 @@
         return single ? [single] : [];
     };
 
+    const normalizeTotemPaymentMethod = (id) => {
+        const m = normalizeMethodId(id);
+        if (m === 'cartao_credito' || m === 'credito' || m === 'credit') return 'cartao_credito';
+        if (m === 'cartao_debito' || m === 'debito' || m === 'debit') return 'cartao_debito';
+        if (m === 'card' || m === 'cartao') return 'cartao';
+        if (m === 'pix' || m === 'dinheiro') return m;
+        return m || 'dinheiro';
+    };
+
+    const totemPaymentMethodLabel = (id) => {
+        const m = normalizeTotemPaymentMethod(id);
+        if (m === 'pix') return 'Pix';
+        if (m === 'cartao_credito') return 'Cartão de crédito';
+        if (m === 'cartao_debito') return 'Cartão de débito';
+        if (m === 'cartao') return 'Cartão';
+        return 'Dinheiro';
+    };
+
     const isCashMethod = (id) => normalizeMethodId(id) === 'dinheiro';
 
     /** Dinheiro pode exceder o total (troco); Pix/Cartão não. */
@@ -207,6 +225,8 @@
             const label = String(m[1] || '').toLowerCase().trim();
             let method = normalizeMethodId(label);
             if (label.includes('pix')) method = 'pix';
+            else if (label.includes('crédito') || label.includes('credito')) method = 'cartao_credito';
+            else if (label.includes('débito') || label.includes('debito')) method = 'cartao_debito';
             else if (label.includes('cart') || label.includes('cartão') || label.includes('cartao')) method = 'cartao';
             else if (label.includes('dinheiro')) method = 'dinheiro';
             const amount = parseMoneyInput(m[2]);
@@ -263,5 +283,7 @@
         encodeSplitsInNotes,
         parseSplitsFromNotes,
         resolveOrderSplits,
+        normalizeTotemPaymentMethod,
+        totemPaymentMethodLabel,
     };
 })();

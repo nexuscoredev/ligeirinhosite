@@ -30,6 +30,6 @@ export function validarPagamentoTotemSemCartaoComPromo(order, method, paymentSpl
     if (!pagamentoTotemUsaCartao(method, paymentSplits)) return { ok: true };
     return {
         ok: false,
-        error: 'Pedidos com promoção não aceitam cartão. Use Pix ou dinheiro.',
+        error: 'Pedidos com promoção não aceitam cartão de crédito ou débito. Use Pix ou dinheiro.',
     };
 }

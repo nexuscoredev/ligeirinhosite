@@ -61,15 +61,19 @@ async function sbRpc(url, key, fn, body) {
 
 export function normalizeTotemPaymentMethod(raw) {
     const m = String(raw || '').toLowerCase().trim();
-    if (m === 'card' || m === 'debito' || m === 'credito') return 'cartao';
+    if (m === 'cartao_credito' || m === 'credito' || m === 'credit') return 'cartao_credito';
+    if (m === 'cartao_debito' || m === 'debito' || m === 'debit') return 'cartao_debito';
+    if (m === 'card' || m === 'cartao') return 'cartao';
     if (m === 'balcao' || m === 'caixa') return 'dinheiro';
-    if (m === 'pix' || m === 'cartao' || m === 'dinheiro') return m;
+    if (m === 'pix' || m === 'dinheiro') return m;
     return 'dinheiro';
 }
 
 export function paymentMethodLabel(method) {
     const m = normalizeTotemPaymentMethod(method);
     if (m === 'pix') return 'Pix';
+    if (m === 'cartao_credito') return 'Cartão de crédito';
+    if (m === 'cartao_debito') return 'Cartão de débito';
     if (m === 'cartao') return 'Cartão';
     return 'Dinheiro';
 }
