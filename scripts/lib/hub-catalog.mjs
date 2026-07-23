@@ -374,7 +374,7 @@ export async function fetchHubProdutosForLookup(config) {
     );
 }
 
-export async function fetchHubCatalogData(config) {
+export async function fetchHubCatalogData(config, options = {}) {
     const token = config.serviceKey || config.accessToken;
     if (!token) {
         throw new Error('Credenciais do Hub ausentes (service role ou access token).');
@@ -386,13 +386,16 @@ export async function fetchHubCatalogData(config) {
         token,
     };
 
+    /** Hub: checkbox "Totem | Parceiros" → venda_parceiros (ambos os apps). */
+    const channelFilter = '&venda_parceiros=eq.true';
+
     const [categorias, produtos, tabelaPadrao] = await Promise.all([
         fetchAll(hub, 'categorias_produto', 'slug,nome,ordem_separacao', '', 'ordem_separacao.asc'),
         fetchAll(
             hub,
             'produtos',
             'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,updated_at,categorias_produto(slug,nome)',
-            '&ativo=eq.true&visivel_catalogo=eq.true&venda_parceiros=eq.true'
+            `&ativo=eq.true&visivel_catalogo=eq.true${channelFilter}`
         ),
         fetchTabelaPrecoPadrao(hub),
     ]);
@@ -411,8 +414,7 @@ export async function fetchHubCatalogData(config) {
 
 export async function fetchCatalogFromHub(env = process.env, options = {}) {
     const config = hubConfig(env);
-    const { categorias, produtos, tabelaPadrao, priceMap } =
-        await fetchHubCatalogData(config);
+    const { categorias, produtos, tabelaPadrao, priceMap } = await fetchHubCatalogData(config, options);
     return buildCatalog(produtos, categorias, {
         ...options,
         tabelaPadrao,

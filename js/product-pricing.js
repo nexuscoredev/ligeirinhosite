@@ -11,8 +11,8 @@
     const GROUP_PACKAGING_WORDS_RE = /\b(LATA|LONG\s*NECK|LN|GFA|GARRAFA)\b/gi;
     const OPTIONAL_BEER_WORDS_RE = /\b(HELLS)\b/gi;
 
-    /** Parceiros / Totem: somente caixa (sem UN nem PL). */
-    const WHOLESALE_TIERS = ['caixa'];
+    /** Parceiros e Totem: UN, CX e PL quando cadastrados no Hub. */
+    const WHOLESALE_TIERS = ['unidade', 'caixa', 'pallet'];
 
     /** Nomes equivalentes no catálogo (unidade vs caixa com nome abreviado). */
     const GROUP_NAME_ALIASES = {
@@ -251,12 +251,20 @@
         return group.image;
     };
 
+    const tierHasPrice = (variant) => {
+        if (!variant || variant.price == null) return false;
+        const price = Number(variant.price);
+        return Number.isFinite(price) && price > 0;
+    };
+
     const getAvailableTiers = (group) =>
-        WHOLESALE_TIERS.filter((tier) => group?.variants?.[tier]?.price != null);
+        WHOLESALE_TIERS.filter((tier) => tierHasPrice(group?.variants?.[tier]));
 
     const getDefaultTier = (group) => {
         const tiers = getAvailableTiers(group);
         if (tiers.includes('caixa')) return 'caixa';
+        if (tiers.includes('unidade')) return 'unidade';
+        if (tiers.includes('pallet')) return 'pallet';
         return tiers[0] || 'caixa';
     };
 
@@ -272,57 +280,11 @@
         return { ...variant, tier, tierLabel: TIER_LABELS[tier] || tier };
     };
 
-    /** Parceiros: um card por produto CX (não agrupa nem omite caixas distintas). */
-    const getDisplayProducts = (catalogData) => {
-        const items = [];
-
-        catalogData.categories.forEach((cat) => {
-            cat.products.forEach((product) => {
-                const pack = parsePack(product);
-                if (!isCaixaPack(pack)) return;
-
-                const group = caixaVariantFromProduct(product, pack, cat);
-                items.push({
-                    group,
-                    product: {
-                        id: product.id,
-                        hubId: product.hubId,
-                        sku: product.sku,
-                        name: group.baseName,
-                        price: product.price,
-                        image: product.image,
-                        adultOnly: product.adultOnly,
-                        description: product.description,
-                        unidade: product.unidade || 'CX',
-                    },
-                    categoryName: cat.name,
-                    categoryId: cat.id,
-                });
-            });
-        });
-
-        return items;
-    };
-
-    const totemTierHasPrice = (variant) => {
-        if (!variant || variant.price == null) return false;
-        const price = Number(variant.price);
-        return Number.isFinite(price) && price > 0;
-    };
-
-    const getTotemAvailableTiers = (group) =>
-        ['unidade', 'caixa', 'pallet'].filter((tier) => totemTierHasPrice(group?.variants?.[tier]));
-
-    const getTotemDefaultTier = (group) => {
-        const tiers = getTotemAvailableTiers(group);
-        if (tiers.includes('caixa')) return 'caixa';
-        if (tiers.includes('unidade')) return 'unidade';
-        if (group?.variants?.pallet?.price != null) return 'pallet';
-        return null;
-    };
-
-    /** Totem: um card por produto (UN + CX + PL no mesmo grupo quando existirem). */
-    const getTotemDisplayProducts = (catalogData, groupsMap = null) => {
+    /**
+     * Parceiros e Totem: um card por produto agrupado (UN + CX + PL no mesmo card).
+     * Respeita venda_parceiros do Hub (checkbox "Totem | Parceiros").
+     */
+    const buildCatalogDisplayProducts = (catalogData, groupsMap = null) => {
         const groups = groupsMap || buildGroups(catalogData);
         const items = [];
         const seen = new Set();
@@ -342,9 +304,9 @@
                 if (seen.has(key)) return;
                 const group = groups.get(key);
                 if (!group) return;
-                const availableTiers = getTotemAvailableTiers(group);
+                const availableTiers = getAvailableTiers(group);
                 if (!availableTiers.length) return;
-                const defaultTier = getTotemDefaultTier(group);
+                const defaultTier = getDefaultTier(group);
                 if (!defaultTier || !availableTiers.includes(defaultTier)) return;
 
                 const primary =
@@ -382,6 +344,15 @@
 
         return items;
     };
+
+    const getDisplayProducts = (catalogData, groupsMap = null) =>
+        buildCatalogDisplayProducts(catalogData, groupsMap);
+
+    const getTotemDisplayProducts = (catalogData, groupsMap = null) =>
+        buildCatalogDisplayProducts(catalogData, groupsMap);
+
+    const getTotemAvailableTiers = getAvailableTiers;
+    const getTotemDefaultTier = getDefaultTier;
 
     const getUnitPrice = (variant) => {
         if (!variant || variant.price == null) return null;

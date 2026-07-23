@@ -499,7 +499,12 @@ Adicionar
 
         const p = pricing();
 
-        const activeTier = group && p ? p.getDefaultTier(group) : 'caixa';
+        const activeTier =
+            group && p
+                ? item?.defaultTier && p.getAvailableTiers(group).includes(item.defaultTier)
+                    ? item.defaultTier
+                    : p.getDefaultTier(group)
+                : 'caixa';
 
         const variant = group && p ? p.getVariant(group, activeTier) : null;
 

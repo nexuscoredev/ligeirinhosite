@@ -27,7 +27,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        const catalog = await fetchCatalogFromHub(process.env, { syncMode: 'live' });
+        const catalog = await fetchCatalogFromHub(process.env, {
+            syncMode: 'live',
+            channel: 'parceiros',
+        });
 
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         setLiveCacheHeaders(res, req, CACHE_SECONDS);
