@@ -348,6 +348,9 @@
                 const res = await fetch(fetchUrl, {
                     credentials: 'same-origin',
                     cache: 'no-store',
+                    signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout
+                        ? AbortSignal.timeout(8000)
+                        : undefined,
                     headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : undefined,
                 });
                 if (!res.ok) throw new Error('fetch failed');

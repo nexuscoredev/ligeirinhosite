@@ -678,12 +678,10 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         if (searchForm && page === 'pedidos') {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const q = searchInput?.value?.trim();
-                if (q) {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('q', q);
-                    window.location.href = url.toString();
-                }
+                const q = searchInput?.value?.trim() || '';
+                window.dispatchEvent(
+                    new CustomEvent('ligeirinho-catalog-search', { detail: { q } })
+                );
             });
             const qParam = new URLSearchParams(window.location.search).get('q');
             if (qParam && searchInput) searchInput.value = qParam;
@@ -693,6 +691,12 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const q = searchInput?.value?.trim();
+                window.location.href = q ? `pedidos.html?q=${encodeURIComponent(q)}` : 'pedidos.html';
+            });
+            searchInput?.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                const q = searchInput.value?.trim();
                 window.location.href = q ? `pedidos.html?q=${encodeURIComponent(q)}` : 'pedidos.html';
             });
         }

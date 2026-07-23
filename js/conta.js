@@ -255,16 +255,10 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
                 nav: 'preferencias',
             },
             {
-                title: 'Ajuda e suporte',
+                title: 'Ajuda',
                 icon: 'help',
-                sub: 'Fale com nossa equipe.',
+                sub: 'WhatsApp, endereço e perguntas frequentes.',
                 nav: 'ajuda',
-            },
-            {
-                title: 'Contato e localização',
-                icon: 'location_on',
-                sub: 'WhatsApp, endereço e horários.',
-                href: 'contato.html',
             },
         ];
 
@@ -671,33 +665,32 @@ ${esc(cat.label)}
     };
 
     const renderAjuda = () => {
-        const body = `<div class="conta-sub-body">
-<div class="conta-help-hero">
-<span class="material-symbols-outlined conta-help-hero__icon">support_agent</span>
-<p class="conta-help-hero__title">Estamos aqui para ajudar</p>
-</div>
-<nav class="conta-menu-list conta-menu-list--flush">
-${menuRow({
-    title: 'Fale conosco',
-    icon: 'chat',
-    sub: 'WhatsApp · (11) 97092-4909',
-    href: WHATSAPP_URL,
-})}
+        const body = `<div class="conta-sub-body conta-help">
+<a class="conta-help-wa" href="${esc(WHATSAPP_URL)}" target="_blank" rel="noopener noreferrer">
+<span class="conta-help-wa__icon" aria-hidden="true"><span class="material-symbols-outlined">chat</span></span>
+<span class="conta-help-wa__body">
+<span class="conta-help-wa__title">Falar no WhatsApp</span>
+<span class="conta-help-wa__sub">(11) 97092-4909</span>
+</span>
+<span class="material-symbols-outlined conta-help-wa__chev" aria-hidden="true">arrow_outward</span>
+</a>
+<p class="conta-help-label">Mais opções</p>
+<nav class="conta-menu-list conta-menu-list--flush" aria-label="Opções de ajuda">
 ${menuRow({
     title: 'Como chegar',
-    icon: 'map',
+    icon: 'location_on',
     sub: 'Estr. do Campo Limpo, 2083 — São Paulo',
     href: MAPS_URL,
 })}
 ${menuRow({
     title: 'Perguntas frequentes',
-    icon: 'quiz',
-    sub: 'Horários, entrega e pagamento.',
+    icon: 'help',
+    sub: 'Horários, entrega e pagamento',
     nav: 'ajuda-faq',
 })}
 </nav>
 </div>`;
-        wrapPage('Ajuda e suporte', isDesktop() ? '' : '', body, 'ajuda');
+        wrapPage('Ajuda', isDesktop() ? '' : '', body, 'ajuda');
     };
 
     const renderAjudaFaq = () => {

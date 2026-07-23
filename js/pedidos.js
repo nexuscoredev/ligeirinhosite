@@ -309,13 +309,53 @@
         },
     }, () => sortItems(getFilteredProducts()));
 
-    searchInput()?.addEventListener('input', () => {
-        const value = searchInput()?.value?.trim().toLowerCase() || '';
+    const applySearchQuery = (raw, { updateUrl = false } = {}) => {
+        const value = String(raw || '').trim();
+        searchQuery = value.toLowerCase();
+        cachedQueryKey = '';
+        cachedQueryInfo = null;
+
+        if (updateUrl) {
+            const url = new URL(window.location.href);
+            if (value) url.searchParams.set('q', value);
+            else url.searchParams.delete('q');
+            const next = `${url.pathname}${url.search}${url.hash}`;
+            if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== next) {
+                window.history.replaceState(null, '', next);
+            }
+        }
+
+        if (catalogData) renderProducts();
+    };
+
+    const bindSearchInput = () => {
+        const input = searchInput();
+        if (!input || input.dataset.ligCatalogSearchBound === '1') return;
+        input.dataset.ligCatalogSearchBound = '1';
+
+        input.addEventListener('input', () => {
+            const value = input.value || '';
+            if (searchTimer) clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(() => {
+                applySearchQuery(value, { updateUrl: true });
+            }, 160);
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            if (searchTimer) clearTimeout(searchTimer);
+            applySearchQuery(input.value, { updateUrl: true });
+        });
+    };
+
+    bindSearchInput();
+    window.addEventListener('ligeirinho-catalog-search', (event) => {
+        const q = event.detail?.q ?? searchInput()?.value ?? '';
+        const input = searchInput();
+        if (input && input.value !== q) input.value = q;
         if (searchTimer) clearTimeout(searchTimer);
-        searchTimer = window.setTimeout(() => {
-            searchQuery = value;
-            renderProducts();
-        }, 200);
+        applySearchQuery(q, { updateUrl: true });
     });
 
     sortSelects.forEach((select) => {
@@ -334,22 +374,30 @@
             const groups = pricing.buildGroups(data);
             window.__ligProductGroups = groups;
             displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
-            await reloadPromoOffers(false);
-            renderFilters();
 
             const params = new URLSearchParams(window.location.search);
             const catParam = params.get('categoria');
             const searchParam = params.get('q');
 
+            bindSearchInput();
             if (searchParam) {
                 searchQuery = searchParam.toLowerCase();
-                if (searchInput()) searchInput().value = searchParam;
+                const input = searchInput();
+                if (input) input.value = searchParam;
             }
 
+            renderFilters();
             if (catParam && data.categories.some((c) => c.id === catParam)) {
                 applyCategory(catParam);
             } else {
                 renderProducts();
+            }
+
+            try {
+                await reloadPromoOffers(false);
+                refreshCards();
+            } catch {
+                /* promo opcional — não bloqueia a busca */
             }
         })
         .catch(() => {
@@ -367,9 +415,14 @@
         const groups = pricing.buildGroups(data);
         window.__ligProductGroups = groups;
         displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
-        await reloadPromoOffers(true);
         renderFilters();
         renderProducts();
+        try {
+            await reloadPromoOffers(true);
+            refreshCards();
+        } catch {
+            /* ignore */
+        }
     });
 
     document.getElementById('catalog-refresh')?.addEventListener('click', () => {
