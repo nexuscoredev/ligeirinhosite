@@ -514,7 +514,7 @@ adicionar ao pedido
     const isInteractiveTarget = (target) =>
         Boolean(
             target?.closest?.(
-                '.totem-qty-btn, .totem-plus, .totem-minus, .ze-price-tier, .totem-promo-unit-btn, .totem-detail__pay-opt',
+                '.totem-qty-btn, .totem-plus, .totem-minus, .totem-qty-edit, .ze-price-tier, .totem-promo-unit-btn, .totem-detail__pay-opt',
             ),
         );
 

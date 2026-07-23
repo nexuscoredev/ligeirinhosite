@@ -8,8 +8,9 @@
     const cartUi = window.LigeirinhoCartUI;
     const promoCatalog = window.LigeirinhoPromoCatalog;
     const promoCards = window.LigeirinhoParceirosPromoCards;
+    const productCards = window.LigeirinhoParceirosProductCards;
     const productDetail = window.LigeirinhoParceirosProductDetail;
-    if (!cartApi || !catalog || !pricing || !promoCatalog || !promoCards) return;
+    if (!cartApi || !catalog || !pricing || !promoCatalog || !promoCards || !productCards) return;
 
     let catalogData = null;
     let displayItems = [];
@@ -83,6 +84,38 @@
         if (!cart[cartKey]) return;
         cart[cartKey].qty -= 1;
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
+        cartApi.saveCart(cart);
+        cartUi?.render?.();
+        syncGridQty();
+    };
+
+    const setProductQty = (entry, qty) => {
+        const ctx = buildCartCtx(entry);
+        if (!ctx.variant || !ctx.cartKey) return;
+        const line = catalog.buildCartLineFields(
+            {
+                variant: ctx.variant,
+                group: ctx.group,
+                cartKey: ctx.cartKey,
+                tier: ctx.tier,
+            },
+            pricing,
+        );
+        if (!line) return;
+        line.price = ctx.promoPrice;
+        if (ctx.promo?.id) line.promoId = ctx.promo.id;
+        const cart = cartApi.loadCart();
+        if (qty <= 0) {
+            delete cart[line.key];
+        } else {
+            if (!cart[line.key]) {
+                cart[line.key] = { ...line, qty: 0 };
+            } else {
+                cart[line.key].price = ctx.promoPrice;
+                if (ctx.promo?.id) cart[line.key].promoId = ctx.promo.id;
+            }
+            cart[line.key].qty = qty;
+        }
         cartApi.saveCart(cart);
         cartUi?.render?.();
         syncGridQty();
@@ -265,6 +298,22 @@ ${(catalogData?.categories || [])
             const minus = e.target.closest('.totem-minus');
             if (minus) {
                 removeProduct(minus.dataset.cartKey);
+                return;
+            }
+
+            const qtyEdit = e.target.closest('.totem-qty-edit');
+            if (qtyEdit) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = qtyEdit.closest('[data-promo-group-key]');
+                const grupo = promoGroups.find((item) => item.chave === card?.dataset?.promoGroupKey);
+                const entry = grupo ? promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog) : null;
+                if (!entry?.item) return;
+                const ctx = buildCartCtx(entry);
+                const currentQty = catalog.getCartQty(ctx.cartKey) || 0;
+                const qty = productCards?.promptGridQty?.(currentQty);
+                if (qty == null) return;
+                setProductQty(entry, qty);
                 return;
             }
 

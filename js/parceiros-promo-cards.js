@@ -266,7 +266,7 @@ ${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
 </div>
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
-<span class="totem-qty-value">${qty}</span>
+<button type="button" class="totem-qty-value totem-qty-edit" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Digitar quantidade">${qty}</button>
 <button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Aumentar">+</button>
 </div>
 </div>

@@ -70,6 +70,27 @@
         window.LigeirinhoCartUI?.render?.();
     };
 
+    const setProductQty = (ctx, qty) => {
+        const line = catalog.buildCartLineFields(ctx, pricing);
+        if (!line) return;
+        const offer = ctx.offer;
+        const cart = cartApi.loadCart();
+        if (qty <= 0) {
+            delete cart[line.key];
+        } else {
+            if (!cart[line.key]) {
+                cart[line.key] = { ...line, qty: 0 };
+            }
+            if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
+                cart[line.key].price = Number(offer.promoPrice);
+                if (offer.promoId) cart[line.key].promoId = offer.promoId;
+            }
+            cart[line.key].qty = qty;
+        }
+        cartApi.saveCart(cart);
+        window.LigeirinhoCartUI?.render?.();
+    };
+
     const findDisplayItem = (displayItems, lineItem) => {
         const key = lineItem.cartKey || lineItem.id;
         return displayItems.find((item) => {
@@ -286,6 +307,10 @@ ${sectionOrder()
             },
             onRemove: (ctx) => {
                 removeProduct(ctx);
+                refreshSteppers();
+            },
+            onSetQty: (ctx) => {
+                setProductQty(ctx, ctx.qty);
                 refreshSteppers();
             },
         }, () => displayItemsCache);

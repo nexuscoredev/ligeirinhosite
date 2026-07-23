@@ -109,6 +109,16 @@ ${unitHtml}
 </div>`;
     };
 
+    const MAX_GRID_QTY = 999;
+
+    const promptGridQty = (currentQty) => {
+        const raw = window.prompt('Quantidade', String(Math.max(0, Number(currentQty) || 0)));
+        if (raw == null) return null;
+        const digits = String(raw).replace(/\D/g, '');
+        if (!digits) return 0;
+        return Math.min(MAX_GRID_QTY, Math.max(0, parseInt(digits, 10) || 0));
+    };
+
     const resolveItemContext = (item, deps, tierOverride) => {
         const { catalog, pricing, promoOffers } = deps;
         const group = item?.group || null;
@@ -168,7 +178,7 @@ ${tiersHtml}
 </div>
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
-<span class="totem-qty-value">${qty}</span>
+<button type="button" class="totem-qty-value totem-qty-edit" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Digitar quantidade">${qty}</button>
 <button type="button" class="totem-qty-btn totem-plus" data-cart-key="${esc(cartKey)}" data-item-key="${esc(itemKey)}" data-price-tier="${esc(tier)}" aria-label="Aumentar">+</button>
 </div>
 </div>
@@ -282,6 +292,24 @@ ${tiersHtml}
                 return;
             }
 
+            const qtyEdit = e.target.closest('.totem-qty-edit');
+            if (qtyEdit) {
+                e.preventDefault();
+                e.stopPropagation();
+                const card = qtyEdit.closest('.totem-product');
+                const items = getItems?.() || [];
+                const item = findItemForCard(card, items);
+                if (!item) return;
+                const tier = card?.dataset?.priceTier || qtyEdit.dataset.priceTier;
+                const deps = resolveDeps();
+                const ctx = resolveItemContext(item, deps, tier);
+                const currentQty = deps.getCartQty?.(ctx.cartKey) || 0;
+                const qty = promptGridQty(currentQty);
+                if (qty == null) return;
+                handlers.onSetQty?.({ ...ctx, qty });
+                return;
+            }
+
             const card = e.target.closest('.totem-product[data-item-key]');
             if (card && !window.LigeirinhoParceirosProductDetail?.isInteractiveTarget?.(e.target)) {
                 const items = getItems?.() || [];
@@ -309,5 +337,6 @@ ${tiersHtml}
         bindCatalogGrid,
         resolveItemContext,
         findItemForCard,
+        promptGridQty,
     };
 })();
