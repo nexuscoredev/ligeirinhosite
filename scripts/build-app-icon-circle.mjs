@@ -1,5 +1,8 @@
 /**
- * Gera logo circular transparente + ícones PWA sem card/quadrado de fundo.
+ * Gera ícones PWA só com o emblema (sem card branco / wordmark).
+ * No Windows, PNG transparente vira fundo branco — por isso o ícone "any"
+ * preenche 100% do quadrado com o logo (crop circular full-bleed).
+ *
  * Uso: node scripts/build-app-icon-circle.mjs
  */
 import sharp from 'sharp';
@@ -27,7 +30,7 @@ async function circularize(inputBuffer, size) {
     const { data, info } = resized;
     const cx = (info.width - 1) / 2;
     const cy = (info.height - 1) / 2;
-    const radius = Math.min(cx, cy) - 1;
+    const radius = Math.min(cx, cy) - 0.5;
 
     for (let y = 0; y < info.height; y++) {
         for (let x = 0; x < info.width; x++) {
@@ -42,32 +45,41 @@ async function circularize(inputBuffer, size) {
 
     return sharp(data, {
         raw: { width: info.width, height: info.height, channels: 4 },
-    }).png().toBuffer();
+    })
+        .png()
+        .toBuffer();
 }
 
-async function composeAny(size, logoScale = 0.92) {
+/**
+ * Ícone de atalho (Windows/Chrome): emblema cobrindo o quadrado, sem transparência
+ * nas bordas (o Windows pinta PNG transparente de branco = “card” feio).
+ */
+async function composeAny(size, coverScale = 1.55) {
     const src = readFileSync(logoPath);
-    const logoD = Math.round(size * logoScale);
+    const logoD = Math.round(size * coverScale);
     const logo = await circularize(src, logoD);
-    const left = Math.round((size - logoD) / 2);
-    const top = Math.round((size - logoD) / 2);
-
-    return sharp({
+    const flattened = await sharp({
         create: {
-            width: size,
-            height: size,
+            width: logoD,
+            height: logoD,
             channels: 4,
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
+            background: { r: 0, g: 0, b: 0, alpha: 1 },
         },
     })
-        .composite([{ input: logo, left, top }])
+        .composite([{ input: logo, left: 0, top: 0 }])
+        .png()
+        .toBuffer();
+
+    const inset = Math.max(0, Math.round((logoD - size) / 2));
+    return sharp(flattened)
+        .extract({ left: inset, top: inset, width: size, height: size })
         .png()
         .toBuffer();
 }
 
 async function composeMaskable(size) {
     const src = readFileSync(logoPath);
-    const logoD = Math.round(size * 0.72);
+    const logoD = Math.round(size * 0.78);
     const logo = await circularize(src, logoD);
     const left = Math.round((size - logoD) / 2);
     const top = Math.round((size - logoD) / 2);
@@ -96,4 +108,4 @@ writeFileSync(out512, icon512);
 writeFileSync(out192, icon192);
 writeFileSync(outMask, maskable);
 
-console.log('OK: ligeirinhologo.png, app-icon-light-512/192 + maskable');
+console.log('OK: emblema full-bleed (sem card branco) + maskable');
