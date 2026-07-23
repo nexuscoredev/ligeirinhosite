@@ -213,13 +213,20 @@
     };
 
     /** PL: packSize interno = UN totais; boxCount = caixas no pallet (para rótulos). */
+    const caixasNoPallet = (fatorPl, fatorCx) => {
+        const pl = Math.max(1, Number(fatorPl) || 1);
+        const cx = Math.max(1, Number(fatorCx) || 1);
+        if (cx > 1 && pl >= cx && pl % cx === 0) return pl / cx;
+        return pl;
+    };
+
     const enrichPalletVariants = (groups) => {
         groups.forEach((group) => {
             const pallet = group.variants?.pallet;
             if (!pallet) return;
-            const caixas = Math.max(1, Number(pallet.packSize) || 1);
             const cx = group.variants?.caixa;
             const unPerCx = cx ? Math.max(1, Number(cx.packSize) || 1) : 1;
+            const caixas = caixasNoPallet(pallet.packSize, unPerCx);
             pallet.boxCount = caixas;
             pallet.unitsPerBox = unPerCx;
             pallet.totalUnits = caixas * unPerCx;

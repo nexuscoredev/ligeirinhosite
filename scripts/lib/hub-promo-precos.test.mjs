@@ -40,4 +40,20 @@ describe('resolvePromoVitrinePrices — PL', () => {
         assert.equal(palletViaCaixa, 831.6);
         assert.notEqual(pl.promoPrice, palletViaCaixa);
     });
+
+    it('pallet com fator em UN totais (264) normaliza para 22 caixas', () => {
+        const out = resolvePromoVitrinePrices(
+            { preco_promo: 2.99 },
+            {
+                unidade: 'PL',
+                fator_multiplicacao: 264,
+                fator_caixa_cx: 12,
+                preco_base: 900,
+                preco_promo: 2.99,
+            },
+        );
+        assert.equal(out.promoPrice, 789.36);
+        assert.equal(out.fatorMultiplicacao, 264);
+        assert.equal(out.fatorCaixasPl, 22);
+    });
 });

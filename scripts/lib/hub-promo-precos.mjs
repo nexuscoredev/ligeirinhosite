@@ -26,6 +26,17 @@ export function fatorTotalPl(caixas, fatorCaixa) {
 }
 
 /**
+ * Hub pode enviar PL como caixas (22) ou UN totais (264 = 22×12).
+ * Quando divisível pelo UN/CX, converte para número de caixas.
+ */
+export function caixasNoPallet(fatorPl, fatorCaixa) {
+    const pl = fatorEmbalagemValido(fatorPl);
+    const cx = fatorEmbalagemValido(fatorCaixa);
+    if (cx > 1 && pl >= cx && pl % cx === 0) return pl / cx;
+    return pl;
+}
+
+/**
  * Converte preço unitário da tabela PROMOCAO para valor de venda da embalagem (caixa/pallet).
  * PL: caixas × preço da caixa (unitário × UN na CX), não caixas × UN isoladas.
  * @param {{ preco_original?: number, preco_promo?: number, unidade?: string }} row
@@ -33,8 +44,11 @@ export function fatorTotalPl(caixas, fatorCaixa) {
  */
 export function resolvePromoVitrinePrices(row, meta = null) {
     const unidade = String(meta?.unidade || row.unidade || '').trim().toUpperCase();
-    const caixasPl = fatorEmbalagemValido(meta?.fator_multiplicacao);
     const fatorCx = fatorEmbalagemValido(meta?.fator_caixa_cx);
+    const caixasPl =
+        unidade === 'PL'
+            ? caixasNoPallet(meta?.fator_multiplicacao, fatorCx)
+            : fatorEmbalagemValido(meta?.fator_multiplicacao);
     const fatorCxEmbalagem = unidade === 'PL' ? fatorCx : caixasPl;
     const precoPromoUnit = Number(meta?.preco_promo ?? row.preco_promo);
     const precoBaseCatalogo = Number(meta?.preco_base ?? row.preco_original);
