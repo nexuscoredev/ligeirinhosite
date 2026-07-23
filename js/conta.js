@@ -242,6 +242,15 @@ ${s.role ? `<span class="conta-user-card__role">${esc(formatRole(s.role))}</span
 <a href="${LOGIN('conta.html')}" class="conta-user-card__login">Entrar</a>
 </div>`;
 
+        const logoutBtn = s?.sub
+            ? `<div class="conta-menu-logout">
+<button type="button" class="conta-btn conta-btn--outline conta-btn--full" data-conta-nav="logout">
+<span class="material-symbols-outlined" aria-hidden="true">logout</span>
+Sair
+</button>
+</div>`
+            : '';
+
         if (isDesktop()) {
             root.innerHTML = `<div class="conta-desktop-layout">
 ${desktopAsideHtml('')}
@@ -251,6 +260,7 @@ ${authBlock}
 <nav class="conta-menu-list" aria-label="Menu da conta">
 ${menuItems.map(menuRow).join('')}
 </nav>
+${logoutBtn}
 </div>
 </div>
 </div>`;
@@ -261,6 +271,7 @@ ${authBlock}
 <nav class="conta-menu-list" aria-label="Menu da conta">
 ${menuItems.map(menuRow).join('')}
 </nav>
+${logoutBtn}
 </div>
 </div>`;
         }

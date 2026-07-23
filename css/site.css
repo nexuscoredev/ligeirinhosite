@@ -3915,6 +3915,18 @@ html.lig-story-open {
     box-shadow: var(--lig-shadow-sm);
 }
 
+.conta-menu-logout {
+    margin: 1rem 1rem 0;
+}
+
+.conta-menu-logout .conta-btn {
+    gap: 0.375rem;
+}
+
+.conta-menu-logout .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
 .conta-menu-list--flush {
     margin: 0;
     border-radius: 0.75rem;
