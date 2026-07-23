@@ -425,13 +425,30 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     const resetPageLocks = () => {
         const menu = document.getElementById('nav-mobile-menu');
         const menuHidden = !menu || menu.classList.contains('hidden');
+        const cartSheet = document.getElementById('cart-mobile-sheet');
+        const cartPanel = document.getElementById('cart-panel');
+        const cartOpen = Boolean(
+            (cartSheet && !cartSheet.classList.contains('hidden')) ||
+                (cartPanel && !cartPanel.classList.contains('hidden')),
+        );
+        const detailOpen = document.documentElement.classList.contains('parceiros-detail-open');
+        const catalogModalOpen = document.documentElement.classList.contains('lig-catalog-modal-open');
+        const storyOpen = document.documentElement.classList.contains('lig-story-open');
+        const promoNoticeOpen = document.documentElement.classList.contains('lig-promo-notice-open');
+        const loginModalOpen = document.documentElement.classList.contains('lig-login-modal-open');
 
         if (menuHidden) {
             menuIsOpen = false;
             unlockMenuScroll();
             menu?.setAttribute('aria-hidden', 'true');
         }
-        clearBodyScrollStyles();
+
+        /* Só limpa lock de body se nenhum overlay legítimo estiver aberto. */
+        if (menuHidden && !cartOpen && !detailOpen && !catalogModalOpen && !storyOpen && !promoNoticeOpen && !loginModalOpen) {
+            clearBodyScrollStyles();
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+        }
     };
 
     const bindMobileMenu = () => {

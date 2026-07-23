@@ -214,9 +214,13 @@ html.lig-app-mode.lig-has-float-cart body {
     padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
-html,
+/* Só no body — overflow-x em html+body vira overflow-y:auto nos dois e trava o scroll no mobile. */
 body {
     overflow-x: clip;
+    max-width: 100%;
+}
+
+html {
     max-width: 100%;
 }
 
@@ -1663,6 +1667,8 @@ html.dark .ze-price-tier--active {
 
     #lig-page-main {
         min-height: 100dvh;
+        touch-action: pan-y;
+        overscroll-behavior-y: auto;
     }
 
     .conta-btn,
@@ -6269,7 +6275,8 @@ html.lig-story-open {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
-    touch-action: pan-x;
+    /* pan-x sozinho bloqueava rolagem vertical da página nos carrosséis */
+    touch-action: pan-x pan-y;
 }
 
 @media (max-width: 767px) {
