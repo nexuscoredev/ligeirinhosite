@@ -238,7 +238,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
     const navHtml = `<div class="lig-header-stack sticky top-0 z-50">
 <header class="ze-app-header lig-header-universal">
 <nav class="font-nav-bar">
-<div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px]">
+<div class="lig-header-main flex justify-between items-center w-full">
 <a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
