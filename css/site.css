@@ -3659,30 +3659,6 @@ html.lig-story-open {
     padding: 0 0.625rem 0.625rem;
 }
 
-.home-add-all-btn {
-    display: block;
-    width: calc(100% - 2rem);
-    margin: 0.25rem 1rem 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 9999px;
-    border: 2px solid var(--lig-text);
-    background: var(--lig-surface);
-    color: var(--lig-text);
-    font-size: 0.875rem;
-    font-weight: 700;
-    cursor: pointer;
-    min-height: 2.75rem;
-    transition: background 0.15s, transform 0.1s;
-}
-
-.home-add-all-btn:hover {
-    background: var(--lig-surface-alt);
-}
-
-.home-add-all-btn:active {
-    transform: scale(0.98);
-}
-
 /* Home: separação entre blocos de seção */
 .home-page {
     --home-section-gap: 0.875rem;
@@ -4556,6 +4532,18 @@ html.lig-story-open {
     color: var(--lig-text);
     border: 2px solid var(--lig-border);
     width: 100%;
+}
+
+.conta-btn--danger {
+    background: transparent;
+    color: var(--lig-danger, #b42318);
+    border: 2px solid color-mix(in srgb, var(--lig-danger, #b42318) 35%, var(--lig-border));
+    width: 100%;
+}
+
+.conta-btn--danger:disabled {
+    opacity: 0.6;
+    cursor: wait;
 }
 
 .conta-btn--dark {
@@ -11502,6 +11490,17 @@ html.lig-promo-notice-open body {
     padding: 0 1rem 1.5rem;
 }
 
+.order-track__cancel-btn {
+    margin-bottom: 0.75rem;
+    color: var(--lig-danger, #b42318);
+    border-color: color-mix(in srgb, var(--lig-danger, #b42318) 40%, var(--lig-border));
+}
+
+.order-track__cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
 /* PWA — banner de atualização (Parceiros) */
 .lig-pwa-update {
     position: fixed;
@@ -11725,17 +11724,6 @@ html.dark .ze-section__title::before {
 html.dark .home-section__link,
 html.dark .ze-section__link {
     color: var(--lig-yellow-text);
-}
-
-html.dark .home-add-all-btn {
-    background: var(--lig-yellow);
-    border-color: var(--lig-yellow);
-    color: var(--lig-on-yellow);
-}
-
-html.dark .home-add-all-btn:hover {
-    background: var(--lig-yellow-hover);
-    border-color: var(--lig-yellow-hover);
 }
 
 html.dark .lig-header-stack,

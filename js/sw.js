@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v385';
+const CACHE_NAME = 'ligeirinho-app-v388';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -17,6 +17,11 @@ const NETWORK_FIRST_JS = new Set([
     '/js/promo-entry-notice.js',
     '/js/meus-pedidos.js',
     '/js/pedidos.js',
+    '/js/parceiros-product-cards.js',
+    '/js/parceiros-promo-cards.js',
+    '/js/parceiros-product-detail.js',
+    '/js/product-pricing.js',
+    '/js/order-status.js',
     '/js/cpf.js',
     '/js/cnpj.js',
     '/js/promo-catalog-match.js',
@@ -171,6 +176,7 @@ function cacheShellUrls(cache, urls) {
 }
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheShellUrls(cache, APP_SHELL)));
 });
 

@@ -50,13 +50,25 @@ const PREP_STATUSES = new Set([
 
 const DONE_STATUSES = new Set(['entregue', 'concluido', 'finalizado', 'entrega_concluida']);
 
+const CANCEL_STATUSES = new Set(['cancelado', 'cancelado_cliente', 'cancelled', 'cancelada']);
+
 export function buildOrderTracking(order, hubPedido = null) {
     const hubStatus = String(hubPedido?.status || '').toLowerCase();
     let step = 1;
     let stepLabel = 'Aguardando confirmação';
     let message = 'Seu pedido foi recebido e está aguardando confirmação no Ligeirinho Hub.';
+    let cancelled = false;
 
-    if (DONE_STATUSES.has(hubStatus)) {
+    if (
+        order?.status === 'cancelled' ||
+        CANCEL_STATUSES.has(hubStatus) ||
+        order?.financialStatus === 'cancelado'
+    ) {
+        cancelled = true;
+        step = 0;
+        stepLabel = 'Pedido cancelado';
+        message = 'Esta solicitação foi cancelada.';
+    } else if (DONE_STATUSES.has(hubStatus)) {
         step = 4;
         stepLabel = 'Entrega concluída';
         message = 'Seu pedido foi entregue. Obrigado pela preferência!';
@@ -81,7 +93,7 @@ export function buildOrderTracking(order, hubPedido = null) {
         message = 'Pagamento confirmado. Em breve iniciamos a separação.';
     }
 
-    if (order?.status === 'pending_payment') {
+    if (!cancelled && order?.status === 'pending_payment') {
         step = 0;
         stepLabel = 'Aguardando pagamento';
         message = 'Assim que o pagamento for confirmado, seguimos com o pedido.';
@@ -101,8 +113,14 @@ export function buildOrderTracking(order, hubPedido = null) {
         hubPedidoId: hubPedido?.id ?? order?.hubPedidoId ?? null,
         step,
         stepLabel,
-        headerTitle: headerTitleByStep[step] || stepLabel,
+        headerTitle: cancelled ? 'Pedido cancelado' : headerTitleByStep[step] || stepLabel,
         message,
+        cancelled,
+        canCancel:
+            !cancelled &&
+            (order?.channel || 'parceiros') === 'parceiros' &&
+            order?.status === 'pending' &&
+            (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus),
         steps: [
             { id: 'sent', icon: 'shopping_bag', label: 'Enviado' },
             { id: 'accept', icon: 'inventory_2', label: 'Aceite' },

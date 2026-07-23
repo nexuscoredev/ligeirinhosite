@@ -337,3 +337,47 @@ export async function ensureHubPedidoNfParceiros(order, env = process.env) {
 
     return createHubPedidoFromParceirosOrder(hub, order, { status: 'aguardando_emissao_nf' });
 }
+
+/** Status Hub ainda canceláveis pelo cliente (antes do aceite). */
+export const HUB_CANCELABLE_STATUSES = new Set(['pendente', 'aguardando_aceite', '']);
+
+/**
+ * Cancela pedido espelhado no Hub se ainda estiver aguardando aceite.
+ * @returns {{ ok: true, hubPedido: object|null } | { ok: false, code: string, message: string, hubPedido?: object }}
+ */
+export async function cancelHubPedidoForParceiros(order, env = process.env) {
+    const hub = hubConfig(env);
+    if (!hub.serviceKey) return { ok: true, hubPedido: null };
+    if (!order?.id) return { ok: true, hubPedido: null };
+
+    let hubPedido = null;
+    if (order.hub_pedido_id) {
+        const rows = await hubRest(
+            hub,
+            `pedidos?select=id,numero,status,parceiros_order_id&id=eq.${encodeURIComponent(order.hub_pedido_id)}&limit=1`,
+        );
+        hubPedido = Array.isArray(rows) ? rows[0] ?? null : null;
+    }
+    if (!hubPedido) {
+        hubPedido = await buscarHubPedidoPorParceirosId(hub, order.id);
+    }
+    if (!hubPedido?.id) return { ok: true, hubPedido: null };
+
+    const status = String(hubPedido.status || '').toLowerCase().trim();
+    if (!HUB_CANCELABLE_STATUSES.has(status)) {
+        return {
+            ok: false,
+            code: 'hub_already_accepted',
+            message: 'Este pedido já foi aceito pela loja e não pode mais ser cancelado por aqui.',
+            hubPedido,
+        };
+    }
+
+    const rows = await hubRest(hub, `pedidos?id=eq.${encodeURIComponent(hubPedido.id)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: { status: 'cancelado' },
+    });
+    const updated = Array.isArray(rows) ? rows[0] : rows;
+    return { ok: true, hubPedido: updated || { ...hubPedido, status: 'cancelado' } };
+}

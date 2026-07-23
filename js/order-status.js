@@ -6,6 +6,7 @@
     const orderId = params.get('order');
     let pollTimer = null;
     let summaryExpanded = false;
+    const auth = window.LigeirinhoAuth;
 
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -16,6 +17,43 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
+    const session = () => auth?.loadSession?.() || null;
+
+    const accountHeaders = async () => {
+        const headers = { 'Content-Type': 'application/json' };
+        const hubToken = await auth?.getHubAccessToken?.();
+        if (hubToken) {
+            headers.Authorization = `Bearer ${hubToken}`;
+            return headers;
+        }
+
+        let accountToken = auth?.getAccountSessionToken?.();
+        if (!accountToken) {
+            accountToken = await auth?.ensureAccountSession?.();
+        }
+        if (accountToken) {
+            headers['X-Account-Session'] = accountToken;
+            return headers;
+        }
+
+        const googleCred = auth?.getGoogleCredential?.();
+        if (googleCred) {
+            headers['X-Google-Credential'] = googleCred;
+            const s = session();
+            if (s?.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+
+        const s = session();
+        if (s?.provider === 'google' && s?.email) {
+            headers['X-Auth-Provider'] = 'google';
+            headers['X-Account-Email'] = s.email;
+            if (s.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+
+        throw new Error('Entre na conta para cancelar o pedido.');
+    };
     const formatDate = (value) => {
         if (!value) return '';
         return new Date(String(value).includes('T') ? value : `${value}T12:00:00`).toLocaleDateString(
@@ -203,6 +241,11 @@ Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chev
 </div>
 
 <div class="order-track__actions">
+${
+    tracking?.canCancel
+        ? `<button type="button" class="lig-btn-secondary w-full text-center order-track__cancel-btn" id="order-track-cancel">Cancelar solicitação</button>`
+        : ''
+}
 <a href="meus-pedidos.html" class="lig-btn-primary w-full text-center">Ir para pedidos</a>
 <a href="pedidos.html" class="lig-btn-secondary w-full text-center mt-3">Fazer novo pedido</a>
 </div>
@@ -235,6 +278,40 @@ Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chev
         root.querySelector('#order-track-notify-close')?.addEventListener('click', () => {
             root.querySelector('#order-track-notify')?.remove();
         });
+
+        root.querySelector('#order-track-cancel')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget;
+            const shortId = String(order.id || '').slice(0, 8).toUpperCase();
+            const ok = window.confirm(
+                `Cancelar a solicitação do pedido ${shortId}?\n\nSó é possível enquanto o pedido ainda aguarda confirmação da loja.`,
+            );
+            if (!ok) return;
+            const prev = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Cancelando…';
+            try {
+                const headers = await accountHeaders();
+                const s = session();
+                if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+                if (s?.email) headers['X-Account-Email'] = s.email;
+                const res = await fetch('/api/orders/cancel', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ orderId: order.id }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Não foi possível cancelar o pedido.');
+                if (pollTimer) {
+                    window.clearInterval(pollTimer);
+                    pollTimer = null;
+                }
+                render(data.order || { ...order, status: 'cancelled' }, data.tracking);
+            } catch (err) {
+                window.alert(err?.message || 'Não foi possível cancelar o pedido.');
+                button.disabled = false;
+                button.textContent = prev;
+            }
+        });
     };
 
     const loadOrder = async () => {
@@ -262,13 +339,13 @@ Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chev
                     source: 'order',
                 });
             }
-            const done = (data.tracking?.step || 0) >= 4;
+            const done = (data.tracking?.step || 0) >= 4 || data.tracking?.cancelled;
             if (!done && !pollTimer) {
                 pollTimer = window.setInterval(async () => {
                     try {
                         const fresh = await loadOrder();
                         render(fresh.order, fresh.tracking);
-                        if ((fresh.tracking?.step || 0) >= 4) {
+                        if ((fresh.tracking?.step || 0) >= 4 || fresh.tracking?.cancelled) {
                             window.clearInterval(pollTimer);
                             pollTimer = null;
                         }

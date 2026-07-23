@@ -112,6 +112,13 @@
         return { label: 'Em andamento', tone: 'wait' };
     };
 
+    const canCancelOrder = (order) =>
+        Boolean(
+            order?.id &&
+                order.status === 'pending' &&
+                (order.channel || 'parceiros') === 'parceiros',
+        );
+
     const orderItemsHtml = (items = []) =>
         items
             .map((item) => {
@@ -174,6 +181,11 @@ ${
         : ''
 }
 <button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-open-cart>Ir ao caminhão</button>
+${
+    canCancelOrder(order)
+        ? `<button type="button" class="conta-btn conta-btn--danger" data-meus-pedidos-cancel="${esc(order.id)}">Cancelar solicitação</button>`
+        : ''
+}
 </div>
 </article>`;
     };
@@ -197,6 +209,43 @@ ${
         return orderCardHtml(order, { showReorder: true });
     };
 
+    const cancelOrder = async (orderId, button) => {
+        const shortId = String(orderId || '').slice(0, 8).toUpperCase();
+        const ok = window.confirm(
+            `Cancelar a solicitação do pedido ${shortId}?\n\nSó é possível enquanto o pedido ainda aguarda confirmação da loja.`,
+        );
+        if (!ok) return;
+
+        const prevLabel = button?.textContent;
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Cancelando…';
+        }
+
+        try {
+            const headers = await accountHeaders();
+            const s = session();
+            if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+            if (s?.email) headers['X-Account-Email'] = s.email;
+            const res = await fetch('/api/orders/cancel', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ orderId }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Não foi possível cancelar o pedido.');
+            }
+            await loadOrders();
+        } catch (err) {
+            window.alert(err?.message || 'Não foi possível cancelar o pedido.');
+            if (button) {
+                button.disabled = false;
+                button.textContent = prevLabel || 'Cancelar solicitação';
+            }
+        }
+    };
+
     const bindActions = () => {
         root.querySelector('#meus-pedidos-reorder-btn')?.addEventListener('click', () => {
             if (cart?.restoreLastOrder?.()) {
@@ -206,6 +255,12 @@ ${
         });
         root.querySelectorAll('[data-meus-pedidos-open-cart]').forEach((btn) => {
             btn.addEventListener('click', openCaminhao);
+        });
+        root.querySelectorAll('[data-meus-pedidos-cancel]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const orderId = btn.getAttribute('data-meus-pedidos-cancel');
+                if (orderId) cancelOrder(orderId, btn);
+            });
         });
     };
 

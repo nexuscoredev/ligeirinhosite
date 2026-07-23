@@ -8,8 +8,6 @@
     const promoCards = window.LigeirinhoParceirosPromoCards;
     const productDetail = window.LigeirinhoParceirosProductDetail;
 
-    if (!cartApi || !catalog || !pricing || !productCards) return;
-
     const grid = document.getElementById('catalog-grid');
     const filtersEl = document.getElementById('catalog-filters');
     const filtersMobileEl = document.getElementById('catalog-filters-mobile');
@@ -23,6 +21,14 @@
     const searchInput = () => document.getElementById('ze-search-input');
 
     if (!grid) return;
+
+    if (!cartApi || !catalog || !pricing || !productCards) {
+        grid.innerHTML =
+            '<p class="parceiros-catalog-empty">Não foi possível iniciar o catálogo. Toque em Atualizar ou recarregue a página.</p>';
+        if (statsEl) statsEl.textContent = 'Falha ao carregar';
+        if (filtersEl) filtersEl.innerHTML = '<p class="parceiros-catalog-empty">—</p>';
+        return;
+    }
 
     let catalogData = null;
     let displayItems = [];
@@ -293,21 +299,25 @@
     document.getElementById('catalog-categories-close')?.addEventListener('click', closeCategoriesModal);
     document.getElementById('catalog-categories-backdrop')?.addEventListener('click', closeCategoriesModal);
 
-    productCards.bindCatalogGrid(grid, {
-        getDeps: cardDeps,
-        onAdd: (ctx) => {
-            addProduct(ctx);
-            refreshCards();
-        },
-        onRemove: (ctx) => {
-            removeProduct(ctx);
-            refreshCards();
-        },
-        onSetQty: (ctx) => {
-            setProductQty(ctx, ctx.qty);
-            refreshCards();
-        },
-    }, () => sortItems(getFilteredProducts()));
+    try {
+        productCards.bindCatalogGrid(grid, {
+            getDeps: cardDeps,
+            onAdd: (ctx) => {
+                addProduct(ctx);
+                refreshCards();
+            },
+            onRemove: (ctx) => {
+                removeProduct(ctx);
+                refreshCards();
+            },
+            onSetQty: (ctx) => {
+                setProductQty(ctx, ctx.qty);
+                refreshCards();
+            },
+        }, () => sortItems(getFilteredProducts()));
+    } catch (err) {
+        console.warn('[pedidos] bindCatalogGrid', err);
+    }
 
     const applySearchQuery = (raw, { updateUrl = false } = {}) => {
         const value = String(raw || '').trim();

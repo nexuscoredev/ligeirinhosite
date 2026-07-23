@@ -208,7 +208,6 @@
 <a class="home-section__link" href="pedidos.html">Mostrar todos</a>
 </div>
 <div class="parceiros-product-scroll home-suggested-scroll" id="home-suggested-scroll" role="list">${cards}</div>
-<button type="button" class="home-add-all-btn" id="home-add-all-btn">Adicionar tudo</button>
 </section>`;
     };
 
@@ -286,17 +285,6 @@ ${sectionOrder()
                 window.LigeirinhoCartUI?.render?.();
                 window.LigeirinhoCartUI?.open?.();
             }
-        });
-
-        root.querySelector('#home-add-all-btn')?.addEventListener('click', () => {
-            const cards = root.querySelector('#home-suggested-scroll')?.querySelectorAll('.totem-product') || [];
-            cards.forEach((card, i) => {
-                const item = productCards.findItemForCard(card, suggestedItems);
-                if (!item) return;
-                const ctx = productCards.resolveItemContext(item, cardDeps(), card.dataset.priceTier);
-                const qty = suggestedItems[i]?.suggestedQty || 1;
-                if (ctx?.variant) addProduct(ctx, qty);
-            });
         });
 
         productCards.bindCatalogGrid(root, {
