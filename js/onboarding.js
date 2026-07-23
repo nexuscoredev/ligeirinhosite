@@ -43,7 +43,7 @@
 <div class="lig-onboarding__panel">
 <div class="lig-onboarding__step lig-onboarding__step--active" data-step="0">
 <div class="text-center mb-4">
-<img src="img/ligeirinhologo.png" alt="" width="56" height="56" class="mx-auto rounded-xl mb-3" decoding="async">
+<img src="img/ligeirinhologo.png" alt="" width="56" height="56" class="mx-auto mb-3 lig-brand__logo" decoding="async">
 <h2 id="lig-onboarding-title" class="text-lg font-bold lig-page-section-title">Bem-vindo ao Ligeirinho</h2>
 <p class="text-sm lig-page-lead mt-2">Caixas e pallets para o seu negócio — peça em poucos toques.</p>
 </div>
