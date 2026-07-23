@@ -304,10 +304,11 @@ export default async function handler(req, res) {
                 console.error('orders/create hub sync', hubErr);
             }
             if (!hubPedido) {
-                console.warn('orders/create hub sync skipped', {
+                console.error('orders/create hub sync failed — pedido não chegou ao Hub', {
                     orderId: order.id,
                     hubUserId: order.hub_user_id || null,
                     customerEmail: order.customer_email || null,
+                    hasServiceKey: Boolean(process.env.HUB_SUPABASE_SERVICE_ROLE_KEY),
                 });
             }
         }

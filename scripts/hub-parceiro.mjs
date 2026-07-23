@@ -238,8 +238,26 @@ export function isHubUsuarioUuid(value) {
     );
 }
 
+function clientesDaPessoa(pessoa) {
+    return Array.isArray(pessoa?.clientes)
+        ? pessoa.clientes
+        : pessoa?.clientes
+          ? [pessoa.clientes]
+          : [];
+}
+
+/** Prefer canal parceiros; se a pessoa só tiver outro canal (ex.: totem), usa o ativo — Hub tem 1 cliente por pessoa. */
+function clienteAtivoFromPessoa(pessoa) {
+    const clientes = clientesDaPessoa(pessoa).filter((c) => c?.id && c?.ativo !== false);
+    if (!clientes.length) return null;
+    return (
+        clientes.find((c) => c.canal_cliente === 'parceiros') ||
+        clientes[0]
+    );
+}
+
 function clienteFromPessoa(pessoa) {
-    const cliente = clienteParceirosFromPessoa(pessoa);
+    const cliente = clienteAtivoFromPessoa(pessoa) || clienteParceirosFromPessoa(pessoa);
     if (!cliente?.id) return null;
     return {
         clienteId: cliente.id,
@@ -523,9 +541,8 @@ export async function fetchPessoaParceiroByCnpj(config, digits) {
     );
     const pessoa = Array.isArray(rows) ? rows[0] : null;
     if (!pessoa) return null;
-    const clientes = Array.isArray(pessoa.clientes) ? pessoa.clientes : pessoa.clientes ? [pessoa.clientes] : [];
-    const parceiro = clientes.some((c) => c?.canal_cliente === 'parceiros' && c?.ativo !== false);
-    if (!parceiro && digits.length === 14) return null;
+    // Aceita qualquer cliente ativo (parceiros ou totem): unique em clientes.pessoa_id impede multi-canal.
+    if (!clienteAtivoFromPessoa(pessoa)) return null;
     return pessoa;
 }
 
@@ -541,10 +558,7 @@ async function findPessoaForUsuario(config, usuario) {
             `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(${CLIENTE_PARCEIROS_SELECT})&email=ilike.${encodeURIComponent(usuario.email)}&limit=3`
         );
         const list = Array.isArray(rows) ? rows : [];
-        const match = list.find((p) => {
-            const clientes = Array.isArray(p.clientes) ? p.clientes : p.clientes ? [p.clientes] : [];
-            return clientes.some((c) => c?.canal_cliente === 'parceiros' && c?.ativo !== false);
-        });
+        const match = list.find((p) => clienteAtivoFromPessoa(p));
         if (match) return match;
     }
     const phoneDigits = normalizeDocDigits(usuario?.telefone);
@@ -555,10 +569,7 @@ async function findPessoaForUsuario(config, usuario) {
             `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(${CLIENTE_PARCEIROS_SELECT})&telefone=ilike.*${encodeURIComponent(local)}*&limit=3`
         );
         const list = Array.isArray(rows) ? rows : [];
-        const match = list.find((p) => {
-            const clientes = Array.isArray(p.clientes) ? p.clientes : p.clientes ? [p.clientes] : [];
-            return clientes.some((c) => c?.canal_cliente === 'parceiros' && c?.ativo !== false);
-        });
+        const match = list.find((p) => clienteAtivoFromPessoa(p));
         if (match) return match;
     }
     return null;

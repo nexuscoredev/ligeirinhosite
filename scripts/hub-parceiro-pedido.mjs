@@ -101,23 +101,43 @@ async function resolverProdutosHub(config, items = []) {
 
     for (const item of items) {
         if (resolveProdutoForItem(map, item)) continue;
-        const name = String(item.name || '').trim().toUpperCase();
-        if (name.length < 4 || map.has(name)) continue;
-        const byName = await hubRest(
-            config,
-            `produtos?select=id,sku,ean,nome,categorias_produto(ordem_separacao)&nome=ilike.${encodeURIComponent(name)}&ativo=eq.true&limit=3`,
-        );
-        const hit = Array.isArray(byName) ? byName[0] : null;
-        if (!hit?.id) continue;
-        map.set(name, hit);
-        for (const key of itemLookupKeys(item)) map.set(key, hit);
+        for (const name of productNameCandidates(item.name)) {
+            if (name.length < 4 || map.has(name)) continue;
+            const byName = await hubRest(
+                config,
+                `produtos?select=id,sku,ean,nome,categorias_produto(ordem_separacao)&nome=ilike.${encodeURIComponent(name)}&ativo=eq.true&limit=3`,
+            );
+            const hit = Array.isArray(byName) ? byName[0] : null;
+            if (!hit?.id) continue;
+            map.set(name, hit);
+            for (const key of itemLookupKeys(item)) map.set(key, hit);
+            break;
+        }
     }
 
     return map;
 }
 
+/** Remove sufixos de embalagem do app (Caixa/Pallet) para bater com o nome no Hub. */
+function productNameCandidates(rawName) {
+    const full = String(rawName || '').trim().toUpperCase();
+    if (!full) return [];
+    const base = full
+        .replace(/\s*\((?:CAIXA|PALLET|FARDO|PCT|PACK)[^)]*\)\s*$/i, '')
+        .replace(/\s*[·•\-–—]\s*(?:CAIXA|PALLET|FARDO).*$/i, '')
+        .trim();
+    return [...new Set([full, base].filter(Boolean))];
+}
+
 function itemLookupKeys(item) {
-    return [item.hubId, item.hubProductId, item.sku, item.id, item.cartKey, String(item.name || '').trim().toUpperCase()]
+    return [
+        item.hubId,
+        item.hubProductId,
+        item.sku,
+        item.id,
+        item.cartKey,
+        ...productNameCandidates(item.name),
+    ]
         .map((value) => String(value || '').trim())
         .filter(Boolean);
 }
@@ -134,7 +154,8 @@ function parceirosMethodToHubForma(method) {
     const m = String(method || '').toLowerCase();
     if (m === 'pix' || m === 'mercado_pago') return 'pix';
     if (m === 'cartao') return 'cartao_debito';
-    if (m === 'prazo' || m === 'boleto' || m === 'fiado' || m === 'credito') return 'crediario';
+    // Hub não tem forma "crediario" no split — mapeia a prazo para PIX (marcação fica nas observações).
+    if (m === 'prazo' || m === 'boleto' || m === 'fiado' || m === 'credito') return 'pix';
     return 'dinheiro';
 }
 
