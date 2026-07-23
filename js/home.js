@@ -107,17 +107,34 @@
         });
     };
 
+    const MIN_SUGGESTED_RAIL = 4;
+
     const getSuggestedItems = (displayItems) => {
         const last = cartApi.lastOrderSummary();
+        const mapped = [];
+        const seen = new Set();
+
+        const pushItem = (item, suggestedQty) => {
+            if (!item) return;
+            const key = String(item.groupKey || item.product?.id || '');
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            mapped.push(suggestedQty != null ? { ...item, suggestedQty } : item);
+        };
+
         if (last?.items?.length) {
-            const mapped = [];
             last.items.forEach((line) => {
-                const item = findDisplayItem(displayItems, line);
-                if (item) mapped.push({ ...item, suggestedQty: line.qty || 1 });
+                pushItem(findDisplayItem(displayItems, line), line.qty || 1);
             });
-            if (mapped.length) return mapped.slice(0, 12);
         }
-        return displayItems.slice(0, 12);
+
+        /* Completa a faixa com o catálogo para não deixar vácuo com 1–2 cards. */
+        for (const item of displayItems) {
+            if (mapped.length >= 12) break;
+            pushItem(item);
+        }
+
+        return mapped.slice(0, 12);
     };
 
     const cardDeps = () => ({
@@ -200,7 +217,7 @@
     };
 
     const suggestedSectionHtml = (items) => {
-        if (!items.length) return '';
+        if (items.length < MIN_SUGGESTED_RAIL) return '';
         const cards = productCards.renderScrollHtml(items, cardDeps());
         return `<section class="home-suggested ze-section" aria-labelledby="home-suggested-title">
 <div class="ze-section__head">
