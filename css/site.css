@@ -491,13 +491,20 @@ html.lig-app-standalone .ze-app-header {
     justify-content: space-between;
     align-items: center;
     min-width: 0;
+    gap: 0.5rem;
+}
+
+.lig-header-main .nav-brand,
+.lig-header-main .lig-brand {
+    flex-shrink: 0;
 }
 
 .lig-desktop-nav {
-    flex: 1;
+    flex: 1 1 0;
     justify-content: center;
     min-width: 0;
-    padding: 0 0.5rem;
+    overflow: hidden;
+    padding: 0 0.35rem;
 }
 
 .lig-desktop-nav__track {
@@ -509,6 +516,13 @@ html.lig-app-standalone .ze-app-header {
     border-radius: 999px;
     background: var(--lig-surface-alt);
     border: 1px solid var(--lig-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.lig-desktop-nav__track::-webkit-scrollbar {
+    display: none;
 }
 
 .lig-desktop-nav__group {
@@ -516,6 +530,7 @@ html.lig-app-standalone .ze-app-header {
     align-items: center;
     gap: 0.125rem;
     min-width: 0;
+    flex-shrink: 0;
 }
 
 .lig-desktop-nav__sep {
@@ -530,6 +545,7 @@ html.lig-app-standalone .ze-app-header {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     padding: 0.4375rem 0.75rem;
     border-radius: 999px;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -563,6 +579,7 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .lig-header-actions {
+    flex-shrink: 0;
     padding-left: 0.5rem;
     border-left: 1px solid var(--lig-border);
     position: relative;
@@ -8858,13 +8875,29 @@ html.lig-login-modal-open {
 }
 
 /* ── Sincronizar catálogo (Hub) ── */
+.lig-sync-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    padding: 0;
+    border-radius: 999px;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-yellow-text);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
 .lig-update-nav-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
+    width: 2.35rem;
     height: 2.35rem;
-    padding: 0 0.75rem;
+    padding: 0;
     border-radius: 999px;
     border: 1px solid rgba(234, 179, 8, 0.45);
     background: rgba(254, 243, 199, 0.92);
@@ -8914,32 +8947,12 @@ html.lig-login-modal-open {
     animation: lig-sync-spin 0.85s linear infinite;
 }
 
-.lig-sync-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    min-width: 2.35rem;
-    height: 2.35rem;
-    padding: 0 0.65rem;
-    border-radius: 999px;
-    border: 1px solid var(--lig-border);
-    background: var(--lig-surface);
-    color: var(--lig-yellow-text);
-    cursor: pointer;
-    flex-shrink: 0;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+.lig-sync-nav-btn__icon {
+    font-size: 1.15rem;
 }
 
-.lig-sync-nav-btn--labeled {
-    padding: 0 0.75rem;
-}
-
-.lig-sync-nav-btn__label {
-    line-height: 1;
-    white-space: nowrap;
+.lig-sync-nav-btn--busy .lig-sync-nav-btn__icon {
+    animation: lig-sync-spin 0.85s linear infinite;
 }
 
 .lig-sync-nav-btn:hover {
@@ -8952,30 +8965,9 @@ html.lig-login-modal-open {
     cursor: wait;
 }
 
-.lig-sync-nav-btn__icon {
-    font-size: 1.15rem;
-}
-
-.lig-sync-nav-btn--busy .lig-sync-nav-btn__icon {
-    animation: lig-sync-spin 0.85s linear infinite;
-}
-
 @keyframes lig-sync-spin {
     to {
         transform: rotate(360deg);
-    }
-}
-
-@media (max-width: 767px) {
-    .lig-sync-nav-btn__label,
-    .lig-update-nav-btn__label {
-        display: none;
-    }
-
-    .lig-sync-nav-btn--labeled,
-    .lig-update-nav-btn {
-        width: 2.35rem;
-        padding: 0;
     }
 }
 

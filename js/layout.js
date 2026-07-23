@@ -208,11 +208,9 @@ ${desktopNavHtml}
 <div id="lig-notifications-mount" class="shrink-0"></div>
 <button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
 <span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
-<span class="lig-update-nav-btn__label">Atualizar app</span>
 </button>
-${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn lig-sync-nav-btn--labeled" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
+${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
 <span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
-<span class="lig-sync-nav-btn__label">Atualizar</span>
 </button>` : ''}
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
