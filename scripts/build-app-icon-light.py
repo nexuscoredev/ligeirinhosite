@@ -66,46 +66,22 @@ def draw_gold_ring(base: Image.Image, cx: int, cy: int, radius: int, width: int 
     base.alpha_composite(overlay)
 
 
-def render_rotated_text(text: str, font: ImageFont.FreeTypeFont, fill: tuple[int, int, int, int], angle: float) -> Image.Image:
-    bbox = font.getbbox(text)
-    pad = 8
-    w = bbox[2] - bbox[0] + pad * 2
-    h = bbox[3] - bbox[1] + pad * 2
-    layer = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(layer)
-    draw.text((pad - bbox[0], pad - bbox[1]), text, fill=fill, font=font)
-    return layer.rotate(angle, expand=True, resample=Image.Resampling.BICUBIC)
-
-
 def draw_parceiros_wordmark(base: Image.Image, size: int) -> None:
-    """Wordmark igual ao anexo / site: Ligeirinho (sans amarelo) + Parceiros (Caveat)."""
+    """Somente Parceiros (Caveat), centralizado abaixo do emblema."""
     overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
 
-    font_ligeirinho = load_font(FONT_JAKARTA, max(size // 17, 24))
-    font_parceiros = load_font(FONT_CAVEAT, max(size // 13, 30))
-
-    text_l = "Ligeirinho"
+    font_parceiros = load_font(FONT_CAVEAT, max(size // 9, 38))
     text_p = "Parceiros"
 
-    bbox_l = draw.textbbox((0, 0), text_l, font=font_ligeirinho)
-    w_l = bbox_l[2] - bbox_l[0]
-    h_l = bbox_l[3] - bbox_l[1]
+    bbox = draw.textbbox((0, 0), text_p, font=font_parceiros)
+    w_p = bbox[2] - bbox[0]
+    h_p = bbox[3] - bbox[1]
 
-    parceiros_layer = render_rotated_text(text_p, font_parceiros, PARCEIROS_TEXT + (255,), -2.5)
-    w_p, h_p = parceiros_layer.size
+    x = (size - w_p) // 2 - bbox[0]
+    y = size - int(size * 0.09) - h_p
 
-    gap = max(size // 70, 3)
-    total_w = w_l + gap + w_p
-    x = (size - total_w) // 2
-    y = size - int(size * 0.105) - h_l
-
-    # Ligeirinho — amarelo brand (#F7D53C) como no anexo
-    draw.text((x, y), text_l, fill=BRAND + (255,), font=font_ligeirinho)
-
-    px = x + w_l + gap
-    py = y + int(h_l * 0.12)
-    overlay.alpha_composite(parceiros_layer, (px, py))
+    draw.text((x, y), text_p, fill=PARCEIROS_TEXT + (255,), font=font_parceiros)
     base.alpha_composite(overlay)
 
 
@@ -122,7 +98,7 @@ def compose_icon(size: int, logo_scale: float, show_wordmark: bool = True) -> Im
     shadow = shadow.filter(ImageFilter.GaussianBlur(radius=max(size // 64, 4)))
 
     cx = (size - logo_d) // 2
-    cy = (size - logo_d) // 2 - int(size * 0.045)
+    cy = (size - logo_d) // 2 - int(size * 0.03)
     base.alpha_composite(shadow, (cx, cy))
     base.alpha_composite(logo, (cx, cy))
 
