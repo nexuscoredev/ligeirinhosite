@@ -16,12 +16,12 @@
     };
 
     const STATUS_OPTIONS = [
-        { value: 'all', label: 'Todos os status' },
-        { value: 'pending', label: 'Aguardando confirmação' },
-        { value: 'pending_payment', label: 'Aguardando pagamento' },
-        { value: 'progress', label: 'Em andamento' },
-        { value: 'paid', label: 'Confirmado' },
-        { value: 'cancelled', label: 'Cancelado' },
+        { value: 'all', label: 'Todos os status', icon: 'list_alt', tone: 'muted' },
+        { value: 'pending', label: 'Aguardando confirmação', icon: 'hourglass_top', tone: 'wait' },
+        { value: 'pending_payment', label: 'Aguardando pagamento', icon: 'payments', tone: 'info' },
+        { value: 'progress', label: 'Em andamento', icon: 'local_shipping', tone: 'progress' },
+        { value: 'paid', label: 'Confirmado', icon: 'check_circle', tone: 'ok' },
+        { value: 'cancelled', label: 'Cancelado', icon: 'cancel', tone: 'danger' },
     ];
 
     const esc = (v) =>
@@ -115,17 +115,37 @@
     const orderShortId = (order) => String(order?.id || '').replace(/-/g, '').slice(0, 8).toUpperCase();
 
     const orderStatusMeta = (order) => {
-        if (!order) return { key: 'all', label: '—', tone: 'muted' };
-        if (order.status === 'paid') return { key: 'paid', label: 'Confirmado', tone: 'ok' };
-        if (order.status === 'cancelled') return { key: 'cancelled', label: 'Cancelado', tone: 'muted' };
+        if (!order) return { key: 'all', label: '—', tone: 'muted', icon: 'help' };
+        if (order.status === 'paid') {
+            return { key: 'paid', label: 'Confirmado', tone: 'ok', icon: 'check_circle' };
+        }
+        if (order.status === 'cancelled') {
+            return { key: 'cancelled', label: 'Cancelado', tone: 'danger', icon: 'cancel' };
+        }
         if (order.status === 'pending_payment') {
-            return { key: 'pending_payment', label: 'Aguardando pagamento', tone: 'wait' };
+            return {
+                key: 'pending_payment',
+                label: 'Aguardando pagamento',
+                tone: 'info',
+                icon: 'payments',
+            };
         }
         if ((order.channel || 'parceiros') === 'parceiros' && order.status === 'pending') {
-            return { key: 'pending', label: 'Aguardando confirmação', tone: 'wait' };
+            return {
+                key: 'pending',
+                label: 'Aguardando confirmação',
+                tone: 'wait',
+                icon: 'hourglass_top',
+            };
         }
-        return { key: 'progress', label: 'Em andamento', tone: 'wait' };
+        return { key: 'progress', label: 'Em andamento', tone: 'progress', icon: 'local_shipping' };
     };
+
+    const statusBadgeHtml = (status) =>
+        `<span class="conta-order-detail__badge conta-order-detail__badge--${esc(status.tone)}">
+<span class="material-symbols-outlined" aria-hidden="true">${esc(status.icon || 'info')}</span>
+<span class="conta-order-detail__badge-label">${esc(status.label)}</span>
+</span>`;
 
     const canCancelOrder = (order) =>
         Boolean(
@@ -194,6 +214,8 @@
     };
 
     const filtersHtml = () => {
+        const selectedStatus =
+            STATUS_OPTIONS.find((opt) => opt.value === STATE.status) || STATUS_OPTIONS[0];
         const statusOpts = STATUS_OPTIONS.map(
             (opt) =>
                 `<option value="${esc(opt.value)}"${STATE.status === opt.value ? ' selected' : ''}>${esc(opt.label)}</option>`,
@@ -203,7 +225,8 @@
 <span class="material-symbols-outlined" aria-hidden="true">search</span>
 <input type="search" id="meus-pedidos-q" value="${esc(STATE.q)}" placeholder="Nº do pedido" autocomplete="off" inputmode="search" aria-label="Buscar por número do pedido">
 </label>
-<label class="meus-pedidos-filters__field">
+<label class="meus-pedidos-filters__field meus-pedidos-filters__field--status meus-pedidos-filters__field--tone-${esc(selectedStatus.tone)}">
+<span class="material-symbols-outlined meus-pedidos-filters__status-icon" aria-hidden="true">${esc(selectedStatus.icon)}</span>
 <span class="sr-only">Status</span>
 <select id="meus-pedidos-status" aria-label="Filtrar por status">${statusOpts}</select>
 </label>
@@ -238,7 +261,7 @@ ${
 <p class="conta-order-detail__code">Pedido <code>${esc(shortId)}</code></p>
 <p class="conta-order-detail__date">${esc(formatDateTime(createdAt))}</p>
 </div>
-<span class="conta-order-detail__badge conta-order-detail__badge--${status.tone}">${esc(status.label)}</span>
+${statusBadgeHtml(status)}
 </div>
 <div class="conta-order-detail__summary-meta">
 <span>${itemCount} ${itemCount === 1 ? 'item' : 'itens'} · ${esc(deliveryLabel)}</span>
@@ -460,6 +483,12 @@ ${
         });
         statusSelect?.addEventListener('change', () => {
             STATE.status = statusSelect.value || 'all';
+            const bar = root.querySelector('.meus-pedidos-filters');
+            if (bar) {
+                const next = filtersHtml();
+                bar.outerHTML = next;
+                bindFilters();
+            }
             renderOrdersList();
         });
         dateInput?.addEventListener('change', () => {
