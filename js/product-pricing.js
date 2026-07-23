@@ -377,6 +377,43 @@
         return variant.price;
     };
 
+    /** PL: caixas no pallet + UN/CX — prioriza cadastro/catálogo, não UN totais da promo. */
+    const resolvePlVariantFields = ({ group, product, promo } = {}) => {
+        const cx = group?.variants?.caixa;
+        const pallet = group?.variants?.pallet;
+        const unPerCx = Math.max(
+            1,
+            Number(pallet?.unitsPerBox) ||
+                Number(cx?.packSize) ||
+                Number(promo?.fatorUnCx) ||
+                1,
+        );
+        const boxCount = Math.max(
+            0,
+            Number(pallet?.boxCount) ||
+                Number(promo?.fatorCaixasPl) ||
+                (String(product?.unidade || '').toUpperCase() === 'PL' &&
+                Number(product?.fatorMultiplicacao) > 1 &&
+                Number(product?.fatorMultiplicacao) < 5000
+                    ? Number(product?.fatorMultiplicacao)
+                    : 0) ||
+                0,
+        );
+        if (boxCount <= 1) return null;
+        return {
+            boxCount,
+            unitsPerBox: unPerCx,
+            packSize: boxCount * unPerCx,
+        };
+    };
+
+    const applyPlVariantFields = (variant, ctx = {}) => {
+        if (variant?.tier !== 'pallet' && ctx.tier !== 'pallet') return variant;
+        const pl = resolvePlVariantFields(ctx);
+        if (!pl) return variant;
+        return { ...variant, ...pl, tier: variant?.tier || 'pallet' };
+    };
+
     const pricePackMeta = (variant) => {
         if (!variant) {
             return { unitPrice: null, packagePrice: null, tierLabel: '', detail: '', unitSuffix: 'por unidade' };
@@ -462,6 +499,8 @@
         packLineLabel,
         getUnitPrice,
         pricePackMeta,
+        resolvePlVariantFields,
+        applyPlVariantFields,
         cartItemName,
         parsePack,
         loadPackConfig: () => {

@@ -75,6 +75,8 @@ function normalizePromoRow(row, meta = null, produto = null, familyId = null) {
         name: nome,
         unidade: prices.unidade,
         fatorMultiplicacao: prices.fatorMultiplicacao,
+        fatorCaixasPl: prices.fatorCaixasPl,
+        fatorUnCx: prices.fatorUnCx,
         originalPrice: prices.originalPrice,
         promoPrice: prices.promoPrice,
         discountPct: prices.discountPct,
@@ -197,6 +199,32 @@ async function fetchFatorCxPorFamiliaPl(config, token, plProductIds = []) {
     return out;
 }
 
+/** Caixas no pallet (cadastro produtos PL) — prevalece sobre fator da tabela PROMO. */
+async function fetchFatorCaixasPlProdutos(config, token, plProductIds = []) {
+    const ids = [...new Set(plProductIds.filter(Boolean))];
+    if (!ids.length || !config.serviceKey) return new Map();
+
+    const out = new Map();
+    for (let i = 0; i < ids.length; i += 80) {
+        const chunk = ids.slice(i, i + 80);
+        const res = await fetch(
+            `${config.url}/rest/v1/produtos?select=id,fator_multiplicacao,unidade&id=in.(${chunk.join(',')})`,
+            { headers: hubHeaders(config, token) },
+        );
+        const text = await res.text();
+        if (!res.ok) continue;
+        const rows = text ? JSON.parse(text) : [];
+        for (const row of rows || []) {
+            const id = String(row.id || '').trim();
+            const u = String(row.unidade || '').trim().toUpperCase();
+            if (u !== 'PL' && u !== 'PLT' && u !== 'PALLET') continue;
+            const f = Number(row.fator_multiplicacao);
+            if (id && Number.isFinite(f) && f > 1) out.set(id, f);
+        }
+    }
+    return out;
+}
+
 function isPlUnidade(unidade) {
     const u = String(unidade || '').trim().toUpperCase();
     return u === 'PL' || u === 'PLT' || u === 'PALLET' || u === 'PAL';
@@ -277,9 +305,10 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
             return meta?.produto_id || row.produto_id || null;
         })
         .filter(Boolean);
-    const [familyMap, fatorCxPorFamilia] = await Promise.all([
+    const [familyMap, fatorCxPorFamilia, fatorCaixasPorPl] = await Promise.all([
         fetchProdutoFamilyMap(config, token, productIds),
         fetchFatorCxPorFamiliaPl(config, token, plProductIds),
+        fetchFatorCaixasPlProdutos(config, token, plProductIds),
     ]);
 
     let promocoes = list.map((row) => {
@@ -298,6 +327,11 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
             };
         }
         if (isPlUnidade(u)) {
+            const plId = meta?.produto_id || hubProductIdRaw;
+            const caixasCadastro = plId ? fatorCaixasPorPl.get(plId) : null;
+            if (caixasCadastro > 1) {
+                meta = { ...meta, fator_multiplicacao: caixasCadastro };
+            }
             meta = enrichPlMetaFatorCx(
                 meta,
                 metaMaps,

@@ -43,18 +43,26 @@
         if (fromGroup?.tier === tier) return fromGroup;
 
         const promoUnit = promoCatalog().normalizePromoUnit(promo?.unidade);
+        const plFields =
+            tier === 'pallet'
+                ? pricing()?.resolvePlVariantFields?.({ group, product, promo })
+                : null;
         const packSize =
             tier === 'unidade'
                 ? 1
-                : Math.max(
-                      1,
-                      Number(promo?.fatorMultiplicacao) ||
-                          Number(fromGroup?.packSize) ||
-                          Number(product?.fatorMultiplicacao) ||
+                : tier === 'pallet' && plFields?.packSize
+                  ? plFields.packSize
+                  : tier === 'caixa'
+                    ? Math.max(
                           1,
-                  );
+                          Number(fromGroup?.packSize) ||
+                              Number(product?.fatorMultiplicacao) ||
+                              Number(promo?.fatorUnCx) ||
+                              1,
+                      )
+                    : Math.max(1, Number(fromGroup?.packSize) || Number(product?.fatorMultiplicacao) || 1);
 
-        return {
+        const variant = {
             id: String(promo?.catalogProductId || product?.id || promo?.hubProductId || '').trim(),
             hubId: String(promo?.hubProductId || product?.hubId || '').trim() || null,
             sku: String(promo?.sku || product?.sku || '').trim() || null,
@@ -68,7 +76,9 @@
             tierLabel: pricing()?.TIER_LABELS?.[tier] || tier,
             image: promo?.imageUrl || product?.image || group?.image || '',
             unidade: promoUnit,
+            ...(plFields || {}),
         };
+        return pricing()?.applyPlVariantFields?.(variant, { group, product, promo, tier }) || variant;
     };
 
     const buildCartCtx = (entry) => {
@@ -242,13 +252,7 @@
         const isUnitPromo = ctx.tier === 'unidade' || ctx.promoUnit === 'UN';
         const packSize = isUnitPromo
             ? 1
-            : Math.max(
-                  1,
-                  Number(ctx.variant?.packSize) ||
-                      Number(ctx.promo?.fatorMultiplicacao) ||
-                      Number(ctx.product?.fatorMultiplicacao) ||
-                      1,
-              );
+            : Math.max(1, Number(ctx.variant?.packSize) || 1);
         let unitPrice = null;
         if (!isUnitPromo && ctx.variant && pricing()?.getUnitPrice) {
             unitPrice = pricing().getUnitPrice({

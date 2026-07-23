@@ -154,7 +154,10 @@
                 price: Number(promo.originalPrice ?? promo.promoPrice ?? 0) || 0,
                 image: promo.imageUrl || '',
                 unidade: unit,
-                fatorMultiplicacao: Number(promo.fatorMultiplicacao) || 1,
+                fatorMultiplicacao:
+                    unit === 'PL' && Number(promo?.fatorCaixasPl) > 1
+                        ? Number(promo.fatorCaixasPl)
+                        : Number(promo.fatorMultiplicacao) || 1,
             },
             group: null,
             categoryId: '',
