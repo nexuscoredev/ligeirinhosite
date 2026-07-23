@@ -97,7 +97,9 @@
         const unitHtml = `<p class="totem-price-card__unit">${
             showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
         }</p>`;
-        const oldHtml = showOld ? `<span class="totem-product__price-old">${formatPrice(originalPrice)}</span>` : '';
+        const oldHtml = showOld
+            ? `<span class="totem-product__price-old">${formatPrice(originalPrice)}</span>`
+            : '<span class="totem-product__price-old totem-product__price-old--spacer" aria-hidden="true"></span>';
 
         return `<div class="totem-price-card ze-price-block totem-product__price-block${opts.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
 <div class="totem-price-card__main">
@@ -152,7 +154,7 @@ ${unitHtml}
             ? priceBlockHtml(variant, pricing, formatPrice, priceOpts)
             : `<div class="totem-price-card ze-price-block totem-product__price-block${offer?.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
 <div class="totem-price-card__main">
-${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="totem-product__price-old">${formatPrice(offer.originalPrice)}</span>` : ''}
+${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="totem-product__price-old">${formatPrice(offer.originalPrice)}</span>` : '<span class="totem-product__price-old totem-product__price-old--spacer" aria-hidden="true"></span>'}
 <span class="totem-product__price totem-price-card__value">${formatPrice(offer?.promoPrice ?? product.price ?? 0)}</span>
 </div>
 <p class="totem-price-card__detail"></p>

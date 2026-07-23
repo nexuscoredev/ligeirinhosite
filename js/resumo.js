@@ -98,7 +98,7 @@
 
             cartUi?.lineThumbHtml?.(item, 'checkout-product__thumb') ||
 
-            '<span class="checkout-product__thumb checkout-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
+            '<span class="checkout-product__thumb-box checkout-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
 
         const lineTotal = formatPrice(cartApi.lineSubtotal(item));
 

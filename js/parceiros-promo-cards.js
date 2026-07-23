@@ -167,7 +167,7 @@
 
         return `<div class="totem-price-card ze-price-block totem-product__price-block totem-product__price-block--promo" data-price-display>
 <div class="totem-price-card__main">
-${showOld ? `<span class="totem-product__price-old">${formatPrice(packOriginal)}</span>` : ''}
+${showOld ? `<span class="totem-product__price-old">${formatPrice(packOriginal)}</span>` : '<span class="totem-product__price-old totem-product__price-old--spacer" aria-hidden="true"></span>'}
 <span class="totem-product__price totem-price-card__value">${formatPrice(packPrice)}</span>
 </div>
 ${detailHtml}

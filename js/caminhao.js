@@ -95,7 +95,7 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
         const hasDiscount = listPrice > Number(item.price);
         const thumb =
             cartUi?.lineThumbHtml?.(item, 'caminhao-product__thumb') ||
-            '<span class="caminhao-product__thumb caminhao-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
+            '<span class="caminhao-product__thumb-box caminhao-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>';
         return `<article class="caminhao-product" data-cart-line="${esc(lineKey)}">
 <button type="button" class="caminhao-product__remove cart-remove" data-id="${esc(lineKey)}" aria-label="Remover">
 <span class="material-symbols-outlined">close</span>

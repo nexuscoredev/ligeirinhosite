@@ -345,9 +345,9 @@ ${pickerPaymentIds
     const productThumbHtml = (item) => {
         const src = item.image ? assetUrl(item.image) : '';
         if (src) {
-            return `<img src="${esc(src)}" alt="" class="resumo-product__thumb" loading="lazy" width="56" height="56" decoding="async">`;
+            return `<span class="resumo-product__thumb-box"><img src="${esc(src)}" alt="" class="resumo-product__thumb" loading="lazy" width="56" height="56" decoding="async"></span>`;
         }
-        return `<span class="resumo-product__thumb resumo-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
+        return `<span class="resumo-product__thumb-box resumo-product__thumb--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
     };
 
     const productPackDetail = (item) => {

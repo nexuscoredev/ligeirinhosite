@@ -2395,20 +2395,34 @@ body[data-page='pedidos'] .ze-product-card__price {
     padding-right: 0.625rem;
 }
 
-.lig-cart-line__thumb {
+.lig-cart-line__thumb-box {
     grid-area: thumb;
     width: 3.25rem;
     height: 3.25rem;
     border-radius: 0.5rem;
-    object-fit: contain;
-    background: var(--lig-surface-alt);
-    flex-shrink: 0;
-}
-
-.lig-cart-line__thumb--placeholder {
+    overflow: hidden;
+    background: var(--lig-media-bg);
+    border: 1px solid var(--lig-border);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    align-self: start;
+    box-sizing: border-box;
+}
+
+.lig-cart-line__thumb {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    border-radius: 0;
+    background: transparent;
+}
+
+.lig-cart-line__thumb--placeholder {
     color: var(--lig-text-subtle);
 }
 
@@ -5751,7 +5765,9 @@ html.lig-story-open {
 }
 
 :is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-product {
-    height: 100%;
+    height: auto;
+    min-height: 100%;
+    align-self: stretch;
 }
 
 :is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-product__body {
@@ -5798,6 +5814,34 @@ html.lig-story-open {
     display: grid;
     grid-template-rows: auto minmax(1.05em, auto) minmax(1.05em, auto);
     gap: 0.12rem;
+}
+
+:is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-price-card__main {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.1rem;
+}
+
+:is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-product__price-old,
+:is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-product__price-old--spacer {
+    display: block;
+    width: 100%;
+    min-height: 1em;
+    margin: 0;
+    font-size: 0.72em;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    text-decoration: line-through;
+    color: var(--lig-text-subtle);
+}
+
+:is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-product__price-old--spacer {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 :is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-price-card__detail:empty,
@@ -5847,6 +5891,8 @@ html.lig-story-open {
     min-width: var(--totem-grid-min);
     max-width: var(--totem-grid-min);
     width: var(--totem-grid-min);
+    height: auto;
+    min-height: 100%;
     align-self: stretch;
     background: rgba(255, 255, 255, 0.35);
     border: 1px solid transparent;
@@ -5936,8 +5982,37 @@ html.lig-story-open {
 .parceiros-product-scroll .totem-product__meta .totem-price-card__main,
 .ze-product-scroll:has(.totem-product) .totem-product__meta .totem-price-card__main,
 .home-suggested-scroll:has(.totem-product) .totem-product__meta .totem-price-card__main {
-    justify-content: center;
-    gap: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.1rem;
+}
+
+.parceiros-product-scroll .totem-product__price-old,
+.parceiros-product-scroll .totem-product__price-old--spacer,
+.ze-product-scroll:has(.totem-product) .totem-product__price-old,
+.ze-product-scroll:has(.totem-product) .totem-product__price-old--spacer,
+.home-suggested-scroll:has(.totem-product) .totem-product__price-old,
+.home-suggested-scroll:has(.totem-product) .totem-product__price-old--spacer {
+    display: block;
+    width: 100%;
+    min-height: 1em;
+    margin: 0;
+    font-size: 0.72em;
+    font-weight: 600;
+    line-height: 1.15;
+    text-align: center;
+    text-decoration: line-through;
+    color: var(--lig-text-subtle);
+}
+
+.parceiros-product-scroll .totem-product__price-old--spacer,
+.ze-product-scroll:has(.totem-product) .totem-product__price-old--spacer,
+.home-suggested-scroll:has(.totem-product) .totem-product__price-old--spacer {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .parceiros-product-scroll .totem-product__qty,
@@ -6535,21 +6610,38 @@ html.parceiros-detail-open body {
     padding-right: 1.5rem;
 }
 
-.caminhao-product__thumb {
+.caminhao-product__thumb-box {
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 0.5rem;
-    object-fit: contain;
+    overflow: hidden;
     background: var(--lig-media-bg);
     border: 1px solid var(--lig-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.caminhao-product__thumb {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
 }
 
 .caminhao-product__thumb--placeholder {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     color: var(--lig-text-muted);
+}
+
+.caminhao-product__thumb--placeholder .material-symbols-outlined {
+    font-size: 1.375rem;
 }
 
 .caminhao-product__info {
@@ -6875,18 +6967,30 @@ html.parceiros-detail-open body {
     border-bottom: 1px solid var(--lig-border);
 }
 
-.caminhao-item__thumb {
+.caminhao-item__thumb-box {
     width: 3.25rem;
     height: 3.25rem;
     border-radius: 0.5rem;
-    object-fit: contain;
-    background: var(--lig-surface-alt);
-}
-
-.caminhao-item__thumb--placeholder {
+    overflow: hidden;
+    background: var(--lig-media-bg);
+    border: 1px solid var(--lig-border);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.caminhao-item__thumb {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+}
+
+.caminhao-item__thumb--placeholder {
     color: var(--lig-text-subtle);
 }
 
@@ -10202,21 +10306,42 @@ html.lig-promo-notice-open body {
     padding-top: 0;
 }
 
-.resumo-product__thumb {
+.resumo-product__thumb-box,
+.checkout-product__thumb-box {
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 0.5rem;
-    object-fit: contain;
+    overflow: hidden;
     background: var(--lig-media-bg);
     border: 1px solid var(--lig-border);
-    flex-shrink: 0;
-}
-
-.resumo-product__thumb--placeholder {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.resumo-product__thumb,
+.checkout-product__thumb {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+}
+
+.resumo-product__thumb--placeholder,
+.checkout-product__thumb--placeholder {
     color: var(--lig-text-muted);
+}
+
+.resumo-product__thumb--placeholder .material-symbols-outlined,
+.checkout-product__thumb--placeholder .material-symbols-outlined {
+    font-size: 1.375rem;
 }
 
 .resumo-product__main {
@@ -11370,152 +11495,152 @@ html.lig-promo-notice-open body {
     cursor: pointer;
 }
 
-/* ── Dark mode: contraste seguro (cards, texto, ícones) ── */
-html.dark .ze-product-card,
-html.dark .ze-product-h,
-html.dark .home-suggested-card,
-html.dark .ofertas-product-row {
-    background: var(--lig-surface);
-    color: var(--lig-text);
-    border-color: var(--lig-border);
-}
-
-html.dark .ze-product-card__body,
-html.dark .ze-product-h__body,
-html.dark .home-suggested-card__actions,
-html.dark .home-suggested-card__pricing {
-    background: var(--lig-surface);
-    color: var(--lig-text);
-}
-
-html.dark .ze-product-card__name,
-html.dark .ze-product-h__name,
-html.dark .home-suggested-card__name,
-html.dark .ofertas-product-row__name {
-    color: var(--lig-text);
-}
-
-html.dark .ze-product-card__price,
-html.dark .ze-product-h__price,
-html.dark .home-suggested-card__price,
-html.dark .home-suggested-card .ze-product-card__price,
-html.dark .ofertas-product-row__price {
-    color: var(--lig-yellow-text);
-}
-
-html.dark .ze-product-card__media,
-html.dark .ze-product-h__media,
-html.dark .home-suggested-card__media,
-html.dark .ofertas-product-row__thumb {
-    background: #ffffff;
-}
-
-html.dark .ze-product-card__placeholder,
-html.dark .home-suggested-card__placeholder {
-    color: #9ca3af;
-    font-size: 2rem;
-}
-
-html.dark .ze-cat-tile__label,
-html.dark .home-story__label,
-html.dark .ze-section__title,
-html.dark .home-section__link,
-html.dark .ze-section__link {
-    color: var(--lig-text);
-}
-
-html.dark .home-section__link,
-html.dark .ze-section__link {
-    color: var(--lig-yellow-text);
-}
-
-html.dark .lig-header-actions .material-symbols-outlined,
-html.dark .lig-theme-toggle,
-html.dark .lig-install-nav-btn,
-html.dark .lig-header-cart {
-    color: var(--lig-text-muted);
-}
-
-html.dark .lig-theme-toggle:hover,
-html.dark .lig-install-nav-btn:hover,
-html.dark .lig-header-cart:hover {
-    color: var(--lig-yellow-text);
-}
-
-html.dark .lig-nav-account {
-    color: var(--lig-text-muted);
-}
-
-html.dark .lig-nav-account--active {
-    color: var(--lig-on-yellow);
-    background: var(--lig-yellow);
-}
-
-html.dark .lig-desktop-nav__track {
-    background: var(--lig-surface-alt);
-    border-color: var(--lig-border);
-}
-
-html.dark .lig-desktop-nav__link {
-    color: var(--lig-text-muted);
-}
-
-html.dark .lig-desktop-nav__link:hover {
-    color: var(--lig-text);
-    background: var(--lig-surface);
-}
-
-html.dark .lig-desktop-nav__link--active {
-    color: var(--lig-on-yellow);
-    background: var(--lig-yellow);
-}
-
-html.dark .ze-fulfillment-bar,
-html.dark .ze-location-bar,
-html.dark .ze-search-bar {
-    background: var(--lig-surface);
-    color: var(--lig-text);
-    border-color: var(--lig-border);
-}
-
-html.dark .ze-search-bar input {
-    color: var(--lig-text);
-    background: transparent;
-}
-
-html.dark .ze-search-bar input::placeholder {
-    color: var(--lig-text-subtle);
-}
-
-html.dark .ze-float-cart__btn {
-    color: var(--lig-on-yellow);
-}
-
-html.dark .caminhao-product,
-html.dark .caminhao-checkout,
-html.dark .lig-cart-line,
-html.dark .lig-cart-panel,
-html.dark .lig-cart-sheet {
-    background: var(--lig-surface-alt);
-    color: var(--lig-text);
-    border-color: var(--lig-border);
-}
-
-html.dark .caminhao-product__name,
-html.dark .lig-cart-line__name,
-html.dark .lig-cart-header__title {
-    color: var(--lig-text);
-}
-
-html.dark .conta-user-card,
-html.dark .conta-info-card,
-html.dark .conta-menu-row {
-    background: var(--lig-surface);
-    color: var(--lig-text);
-    border-color: var(--lig-border);
-}
-
-html.dark .qs-below-fold {
-    background: var(--lig-bg) !important;
+/* ── Dark mode: contraste seguro (cards, texto, ícones) ── */
+html.dark .ze-product-card,
+html.dark .ze-product-h,
+html.dark .home-suggested-card,
+html.dark .ofertas-product-row {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .ze-product-card__body,
+html.dark .ze-product-h__body,
+html.dark .home-suggested-card__actions,
+html.dark .home-suggested-card__pricing {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+}
+
+html.dark .ze-product-card__name,
+html.dark .ze-product-h__name,
+html.dark .home-suggested-card__name,
+html.dark .ofertas-product-row__name {
+    color: var(--lig-text);
+}
+
+html.dark .ze-product-card__price,
+html.dark .ze-product-h__price,
+html.dark .home-suggested-card__price,
+html.dark .home-suggested-card .ze-product-card__price,
+html.dark .ofertas-product-row__price {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .ze-product-card__media,
+html.dark .ze-product-h__media,
+html.dark .home-suggested-card__media,
+html.dark .ofertas-product-row__thumb {
+    background: #ffffff;
+}
+
+html.dark .ze-product-card__placeholder,
+html.dark .home-suggested-card__placeholder {
+    color: #9ca3af;
+    font-size: 2rem;
+}
+
+html.dark .ze-cat-tile__label,
+html.dark .home-story__label,
+html.dark .ze-section__title,
+html.dark .home-section__link,
+html.dark .ze-section__link {
+    color: var(--lig-text);
+}
+
+html.dark .home-section__link,
+html.dark .ze-section__link {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .lig-header-actions .material-symbols-outlined,
+html.dark .lig-theme-toggle,
+html.dark .lig-install-nav-btn,
+html.dark .lig-header-cart {
+    color: var(--lig-text-muted);
+}
+
+html.dark .lig-theme-toggle:hover,
+html.dark .lig-install-nav-btn:hover,
+html.dark .lig-header-cart:hover {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .lig-nav-account {
+    color: var(--lig-text-muted);
+}
+
+html.dark .lig-nav-account--active {
+    color: var(--lig-on-yellow);
+    background: var(--lig-yellow);
+}
+
+html.dark .lig-desktop-nav__track {
+    background: var(--lig-surface-alt);
+    border-color: var(--lig-border);
+}
+
+html.dark .lig-desktop-nav__link {
+    color: var(--lig-text-muted);
+}
+
+html.dark .lig-desktop-nav__link:hover {
+    color: var(--lig-text);
+    background: var(--lig-surface);
+}
+
+html.dark .lig-desktop-nav__link--active {
+    color: var(--lig-on-yellow);
+    background: var(--lig-yellow);
+}
+
+html.dark .ze-fulfillment-bar,
+html.dark .ze-location-bar,
+html.dark .ze-search-bar {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .ze-search-bar input {
+    color: var(--lig-text);
+    background: transparent;
+}
+
+html.dark .ze-search-bar input::placeholder {
+    color: var(--lig-text-subtle);
+}
+
+html.dark .ze-float-cart__btn {
+    color: var(--lig-on-yellow);
+}
+
+html.dark .caminhao-product,
+html.dark .caminhao-checkout,
+html.dark .lig-cart-line,
+html.dark .lig-cart-panel,
+html.dark .lig-cart-sheet {
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .caminhao-product__name,
+html.dark .lig-cart-line__name,
+html.dark .lig-cart-header__title {
+    color: var(--lig-text);
+}
+
+html.dark .conta-user-card,
+html.dark .conta-info-card,
+html.dark .conta-menu-row {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .qs-below-fold {
+    background: var(--lig-bg) !important;
     color: var(--lig-text);
 

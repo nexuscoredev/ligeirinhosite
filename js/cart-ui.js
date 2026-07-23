@@ -303,10 +303,11 @@ ${payBtnInnerHtml()}
 
     const lineThumbHtml = (item, className = 'lig-cart-line__thumb') => {
         const src = item.image ? escapeHtml(item.image) : '';
+        const boxClass = `${className}-box`;
         if (src) {
-            return `<img src="${src}" alt="" class="${className}" loading="lazy" width="52" height="52">`;
+            return `<span class="${boxClass}"><img src="${src}" alt="" class="${className}" loading="lazy" width="56" height="56" decoding="async"></span>`;
         }
-        return `<span class="${className} ${className}--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
+        return `<span class="${boxClass} ${className}--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
     };
 
     const cartLineHtml = (item) => {
