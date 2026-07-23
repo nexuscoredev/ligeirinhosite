@@ -7,25 +7,25 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#F7D53C",
+  "background_color": "#FFFCF5",
   "theme_color": "#F7D53C",
   "lang": "pt-BR",
   "categories": ["food", "shopping"],
   "icons": [
     {
-      "src": "img/app-icon-192.png",
+      "src": "img/app-icon-light-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "img/app-icon-512.png",
+      "src": "img/app-icon-light-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "img/app-icon-512-maskable.png",
+      "src": "img/app-icon-light-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -36,19 +36,19 @@
       "name": "Catálogo",
       "short_name": "Catálogo",
       "url": "/pedidos",
-      "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "img/app-icon-light-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Promoções",
       "short_name": "Promoções",
       "url": "/ofertas",
-      "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "img/app-icon-light-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Caminhão",
       "short_name": "Caminhão",
       "url": "/caminhao",
-      "icons": [{ "src": "img/app-icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "img/app-icon-light-192.png", "sizes": "192x192" }]
     }
   ]
 }

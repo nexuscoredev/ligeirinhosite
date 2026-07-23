@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v371';
+const CACHE_NAME = 'ligeirinho-app-v372';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -136,9 +136,9 @@ const APP_SHELL = [
     '/img/embalagens/brahma-pallet.webp',
     '/img/embalagens/pallet-generico.webp',
     '/img/ligeirinhologo.png',
-    '/img/app-icon-192.png',
-    '/img/app-icon-512.png',
-    '/img/app-icon-512-maskable.png',
+    '/img/app-icon-light-192.png',
+    '/img/app-icon-light-512.png',
+    '/img/app-icon-light-512-maskable.png',
     '/img/icon-whatsapp.svg',
     '/img/icon-pix.svg',
     '/img/icon-cartoes.svg',

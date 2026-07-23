@@ -202,7 +202,7 @@
             '<button type="button" class="lig-install-modal__close" data-install-close aria-label="Fechar">' +
             '<span class="material-symbols-outlined" aria-hidden="true">close</span></button></div>' +
             '<div class="lig-install-modal__preview">' +
-            '<img src="img/app-icon-192.png" alt="" width="48" height="48" />' +
+            '<img src="img/app-icon-light-192.png" alt="" width="48" height="48" />' +
             '<div><p class="lig-install-modal__app">Ligeirinho Parceiros</p><p class="lig-install-modal__meta">Caixas · pallets · ofertas · caminhão</p></div></div>' +
             stepsHtml(mode, shareFeedback) +
             '<div class="lig-install-modal__actions">' +
@@ -274,7 +274,7 @@
         banner.className = 'lig-install-banner';
         banner.innerHTML =
             '<div class="lig-install-banner__copy">' +
-            '<img src="img/app-icon-192.png" alt="" width="36" height="36" />' +
+            '<img src="img/app-icon-light-192.png" alt="" width="36" height="36" />' +
             '<div><p class="lig-install-banner__title">Baixar o app</p>' +
             '<p class="lig-install-banner__sub">Ligeirinho Parceiros na sua tela inicial</p></div></div>' +
             '<div class="lig-install-banner__actions">' +

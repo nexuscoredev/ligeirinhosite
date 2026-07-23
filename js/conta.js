@@ -224,7 +224,7 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
 
         const authBlock = s?.sub
             ? `<div class="conta-user-card">
-<img class="conta-user-card__avatar" src="${esc(/^https?:\/\//i.test(s.picture || '') ? s.picture : 'img/app-icon-192.png')}" alt="" width="52" height="52" loading="lazy" referrerpolicy="no-referrer">
+<img class="conta-user-card__avatar" src="${esc(/^https?:\/\//i.test(s.picture || '') ? s.picture : 'img/app-icon-light-192.png')}" alt="" width="52" height="52" loading="lazy" referrerpolicy="no-referrer">
 <div class="conta-user-card__info">
 <p class="conta-user-card__name">${esc(s.name || first || 'Parceiro')}</p>
 ${profileMeta(s) ? `<p class="conta-user-card__meta">${esc(profileMeta(s))}</p>` : ''}
