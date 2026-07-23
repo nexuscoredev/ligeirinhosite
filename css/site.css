@@ -5448,6 +5448,18 @@ html.lig-story-open {
     min-width: 0;
 }
 
+html.parceiros-detail-open {
+    overflow: hidden;
+}
+
+html.parceiros-detail-open body {
+    overflow: hidden;
+}
+
+#parceiros-product-detail.totem-detail {
+    z-index: 200;
+}
+
 .ofertas-empty {
     padding: 2.5rem 1rem;
     text-align: center;

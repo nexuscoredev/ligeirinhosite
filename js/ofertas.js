@@ -8,6 +8,7 @@
     const cartUi = window.LigeirinhoCartUI;
     const promoCatalog = window.LigeirinhoPromoCatalog;
     const promoCards = window.LigeirinhoParceirosPromoCards;
+    const productDetail = window.LigeirinhoParceirosProductDetail;
     if (!cartApi || !catalog || !pricing || !promoCatalog || !promoCards) return;
 
     let catalogData = null;
@@ -149,6 +150,12 @@
         });
     };
 
+    productDetail?.init?.({
+        getDisplayItems: () => displayItems,
+        getPromoOffers: () => ({}),
+        onCartChanged: syncGridQty,
+    });
+
     const renderShell = () => {
         root.innerHTML = `<div class="ofertas-shell">
 <header class="ofertas-header">
@@ -257,6 +264,27 @@ ${(catalogData?.categories || [])
             const minus = e.target.closest('.totem-minus');
             if (minus) {
                 removeProduct(minus.dataset.cartKey);
+                return;
+            }
+
+            const card = e.target.closest('.totem-product[data-item-key]');
+            if (
+                card &&
+                !card.dataset.promoUnlinked &&
+                !productDetail?.isInteractiveTarget?.(e.target)
+            ) {
+                const grupo = promoGroups.find((item) => item.chave === card.dataset.promoGroupKey);
+                const entry = grupo ? promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog) : null;
+                if (!entry?.item) return;
+                const ctx = promoCards.buildCartCtx(entry, cardDeps());
+                const itemKey = promoCatalog.resolvePromoDetailItemKey(grupo, (grupoRef) =>
+                    promoCards.activeEntryForGroup(grupoRef, selectedUnits, promoCatalog),
+                );
+                if (!itemKey) return;
+                productDetail?.open?.(
+                    itemKey,
+                    promoCards.buildDetailPromoOpts(grupo, ctx, cardDeps()),
+                );
             }
         });
     };

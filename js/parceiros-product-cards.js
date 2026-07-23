@@ -279,6 +279,22 @@ ${tiersHtml}
                 const cartKey = minus.dataset.cartKey;
                 if (!cartKey) return;
                 handlers.onRemove?.({ cartKey });
+                return;
+            }
+
+            const card = e.target.closest('.totem-product[data-item-key]');
+            if (card && !window.LigeirinhoParceirosProductDetail?.isInteractiveTarget?.(e.target)) {
+                const items = getItems?.() || [];
+                const item = findItemForCard(card, items);
+                if (!item) return;
+                const tier = card.dataset.priceTier;
+                const deps = resolveDeps();
+                const ctx = resolveItemContext(item, deps, tier);
+                const offer = ctx.offer;
+                window.LigeirinhoParceirosProductDetail?.open?.(
+                    card.dataset.itemKey,
+                    offer?.promoId ? offer : null,
+                );
             }
         });
     };

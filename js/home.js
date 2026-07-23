@@ -5,6 +5,7 @@
     const productCards = window.LigeirinhoParceirosProductCards;
     const promoCatalog = window.LigeirinhoPromoCatalog;
     const promoCards = window.LigeirinhoParceirosPromoCards;
+    const productDetail = window.LigeirinhoParceirosProductDetail;
     if (!cartApi || !catalog || !pricing || !productCards) return;
 
     const root = document.getElementById('home-app');
@@ -34,6 +35,7 @@
             buildCartCtx: (entry) =>
                 promoCards.buildCartCtx(entry, { promoCatalog, catalog, pricing }),
         });
+        productDetail?.refreshIfOpen?.();
     };
 
     const addProduct = (ctx, qty = 1) => {
@@ -110,6 +112,12 @@
     const refreshSteppers = () => {
         productCards.syncGridQty(root, displayItemsCache, cardDeps());
     };
+
+    productDetail?.init?.({
+        getDisplayItems: () => displayItemsCache,
+        getPromoOffers: () => promoOffers,
+        onCartChanged: refreshSteppers,
+    });
 
     const sectionOrder = () => {
         const prefs = cartApi.loadPrefs()?.categories || [];

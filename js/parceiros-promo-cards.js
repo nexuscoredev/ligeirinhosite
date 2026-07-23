@@ -88,6 +88,30 @@
     const activeEntryForGroup = (grupo, selectedUnits, promoCatalog) =>
         promoCatalog.entryAtivoPromoGrupo(grupo, activeUnitForGroup(grupo, selectedUnits, promoCatalog));
 
+    const buildDetailPromoOpts = (grupo, activeCtx, deps) => {
+        const { promoCatalog: pc, catalog: cat, pricing: pr } = deps;
+        const tiers = {};
+        (grupo?.unidadesDisponiveis || []).forEach((unit) => {
+            const entry = pc.entryAtivoPromoGrupo(grupo, unit);
+            if (!entry) return;
+            const tierCtx = buildCartCtx(entry, { promoCatalog: pc, catalog: cat, pricing: pr });
+            if (!tierCtx.tier || !tierCtx.promo?.id) return;
+            tiers[tierCtx.tier] = {
+                promoPrice: tierCtx.promoPrice,
+                promoId: tierCtx.promo.id,
+                originalPrice: tierCtx.originalPrice,
+            };
+        });
+        return {
+            promoPrice: activeCtx.promoPrice,
+            promoId: activeCtx.promo?.id,
+            tier: activeCtx.tier,
+            originalPrice: activeCtx.originalPrice,
+            tiers,
+            multiplo: Boolean(grupo?.multiplo),
+        };
+    };
+
     const preparePromoGroups = (promos, catalogItems, promoCatalog) => {
         const entries = promoCatalog
             .buildPromoEntries(promos, catalogItems, { matchedOnly: false })
@@ -281,6 +305,7 @@ ${groups.map((grupo, index) => buildPromoCardHtml(grupo, index, deps)).join('')}
 
     window.LigeirinhoParceirosPromoCards = {
         buildCartCtx,
+        buildDetailPromoOpts,
         activeEntryForGroup,
         activeUnitForGroup,
         preparePromoGroups,
