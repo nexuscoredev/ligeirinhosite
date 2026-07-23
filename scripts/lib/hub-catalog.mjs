@@ -1,6 +1,5 @@
 import { hubConfig } from '../hub-auth.mjs';
 import {
-    caixasNoPallet,
     fatorEmbalagemValido,
     precoEmbalagem,
     unidadeUsaPrecoEmbalagem,
@@ -259,8 +258,8 @@ function enrichCatalogPalletPrices(categories, priceMap) {
         }
         for (const { cx, pl } of grupos.values()) {
             if (!cx || !pl) continue;
+            const caixas = Math.max(1, Number(pl.fatorMultiplicacao) || 1);
             const unCx = Math.max(1, Number(cx.fatorMultiplicacao) || 1);
-            const caixas = caixasNoPallet(pl.fatorMultiplicacao, unCx);
             const unitPl = pl.hubId ? priceMap?.get(pl.hubId) : null;
             if (unitPl != null && Number.isFinite(Number(unitPl))) {
                 pl.price = Math.round(precoEmbalagem(Number(unitPl), unCx) * caixas * 100) / 100;

@@ -444,13 +444,7 @@
             // PL = caixas no pallet × preço da caixa (catálogo ou promo da CX).
             if (tierKey === 'pallet' && group?.variants?.pallet && group?.variants?.caixa) {
                 const cxVar = group.variants.caixa;
-                const unPerCx = Math.max(1, Number(cxVar.packSize) || 1);
-                let caixas = Number(group.variants.pallet.boxCount) || 0;
-                if (caixas <= 1) {
-                    const raw = Number(group.variants.pallet.packSize) || 1;
-                    caixas =
-                        unPerCx > 1 && raw >= unPerCx && raw % unPerCx === 0 ? raw / unPerCx : raw;
-                }
+                const caixas = Number(group.variants.pallet.boxCount) || 1;
                 if (caixas > 1) {
                     const cxPromo = detailTierPromoOpts('caixa');
                     const cxPackPromo =
