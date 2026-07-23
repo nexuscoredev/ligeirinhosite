@@ -135,6 +135,16 @@
         return `https://api.whatsapp.com/send/?phone=${n}&text=${encodeURIComponent(message)}`;
     };
 
+    /** Nome exibido na fila do totem (Caixa/Separação): cliente identificado, senão unidade. */
+    const totemOrderCustomerLabel = (order = {}) => {
+        const name = String(order.customer_name || order.customerName || '').trim();
+        if (name) return name;
+        return String(order.totem_label || order.totemLabel || '').trim() || 'Totem';
+    };
+
+    const totemOrderUnitLabel = (order = {}) =>
+        String(order.totem_label || order.totemLabel || '').trim() || 'Totem';
+
     window.LigeirinhoFinance = {
         TOKEN_KEY,
         getToken,
@@ -163,5 +173,7 @@
         statusLabel,
         statusClass,
         whatsAppUrl,
+        totemOrderCustomerLabel,
+        totemOrderUnitLabel,
     };
 })();

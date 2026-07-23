@@ -56,7 +56,7 @@
 
     const renderQueueItem = (o) => {
         const active = o.id === selectedId ? ' is-active' : '';
-        const label = o.totem_label || o.customer_name || 'Totem';
+        const label = fin.totemOrderCustomerLabel(o);
         return `<button type="button" class="sep-queue__item${active}" data-order="${esc(o.id)}">
 <strong>#${shortId(o.id)} · ${esc(label)}</strong>
 <div class="sep-queue__meta">${fin.formatMoney(o.total)} · ${o.progress?.label || '—'} · ${statusBadge(o.separation_status || 'em_separacao')}</div>
@@ -88,7 +88,7 @@ ${qtyLabel ? `<span class="sep-item__qty">${qtyLabel}</span>` : ''}
 <div class="sep-detail__head">
 <div>
 <h2 style="margin:0;font-size:1.125rem">#${shortId(order.id)}</h2>
-<p class="text-sm text-on-surface-variant" style="margin:0.25rem 0 0">${esc(order.totemLabel || order.customerName || 'Totem')} · ${fin.formatMoney(order.total)}</p>
+<p class="text-sm text-on-surface-variant" style="margin:0.25rem 0 0">${esc(fin.totemOrderCustomerLabel(order))}${String(order.customerName || order.customer_name || '').trim() ? ` · ${esc(fin.totemOrderUnitLabel(order))}` : ''} · ${fin.formatMoney(order.total)}</p>
 </div>
 <div class="sep-progress">${progress?.label || '0/0'}</div>
 </div>

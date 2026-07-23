@@ -87,6 +87,7 @@
 
     const show = () => {
         if (!root) return;
+        window.LigeirinhoTotemActivity?.clearGhostSuppression?.();
         const alreadyVisible = open && !root.hidden;
         open = true;
         root.hidden = false;
@@ -145,7 +146,6 @@
         });
 
         root.querySelector('.totem-vk__inner')?.addEventListener('click', (e) => {
-            if (window.LigeirinhoTotemActivity?.guardGhostClick?.(e)) return;
             const btn = e.target.closest('[data-action]');
             if (!btn) return;
             handleKey(btn.dataset.action, btn.dataset.value || '');

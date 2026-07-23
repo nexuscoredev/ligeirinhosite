@@ -116,6 +116,7 @@
     const idleHint = document.getElementById('totem-idle-hint');
     const idleCountdownEl = document.getElementById('totem-idle-countdown');
     const adminModal = document.getElementById('totem-admin-modal');
+    const homeConfirmModal = document.getElementById('totem-home-confirm-modal');
     const adminPin = document.getElementById('totem-admin-pin');
     const detailPanel = document.getElementById('totem-product-detail');
     const detailSheet = detailPanel?.querySelector('.totem-detail__sheet');
@@ -1973,6 +1974,19 @@ ${unitHtml}
 
     const getQtyInputEl = () => document.getElementById('totem-qty-input');
 
+    const updateQtyKeyboardPreview = (rawValue) => {
+        const target = qtyKeyboardTarget;
+        if (!target?.editEl) return;
+        const digits = String(rawValue ?? '').replace(/\D/g, '');
+        target.editEl.textContent = digits || '0';
+    };
+
+    const restoreQtyKeyboardPreview = (target) => {
+        if (!target?.editEl) return;
+        const initial = Math.max(0, Number(target.initialQty) || 0);
+        target.editEl.textContent = String(initial);
+    };
+
     const applyQtyKeyboardSubmit = (qty) => {
         const target = qtyKeyboardTarget;
         qtyKeyboardTarget = null;
@@ -1995,13 +2009,18 @@ ${unitHtml}
             input,
             mode: 'numeric',
             submitLabel: 'Confirmar',
-            onInput: bumpIdle,
+            onInput: (value) => {
+                bumpIdle();
+                updateQtyKeyboardPreview(value);
+            },
             onSubmit: (value) => applyQtyKeyboardSubmit(parseQtyValue(value)),
             onClose: () => {
+                restoreQtyKeyboardPreview(qtyKeyboardTarget);
                 qtyKeyboardTarget = null;
                 bumpIdle();
             },
         });
+        input.focus?.({ preventScroll: true });
         totemKeyboard?.show?.();
     };
 
@@ -2013,6 +2032,7 @@ ${unitHtml}
         if (!input) return;
         const initial = Math.max(0, Number(target.initialQty) || 0);
         input.value = initial > 0 ? String(initial) : '';
+        if (target.editEl) target.editEl.textContent = input.value || String(initial);
         attachQtyKeyboard();
         bumpIdle();
     };
@@ -2023,13 +2043,14 @@ ${unitHtml}
         const itemKey = btn.dataset.itemKey || card.dataset.itemKey || '';
         const tier = card.dataset.priceTier || '';
         const cart = cartApi.loadCart();
-        const currentQty = cart[cartKey]?.qty || 0;
+        const currentQty = cartQtyForProductKey(cart, cartKey);
         const offer = resolvePromoOffer(cartKey, itemKey, tier);
         openQtyKeyboard({
             context: 'grid',
             cartKey,
             itemKey,
             initialQty: currentQty,
+            editEl: btn,
             opts: { tier, ...(promoAddOpts(offer) || {}) },
         });
     };
@@ -2595,6 +2616,33 @@ ${unitHtml}
         window.setTimeout(() => applyPendingSystemUpdateIfSafe(), 250);
     };
 
+    const isWelcomeView = () => views.welcome?.classList.contains('totem-view--active');
+
+    const openHomeConfirmModal = () => {
+        if (isWelcomeView() || !homeConfirmModal) return;
+        totemKeyboard?.hide?.();
+        closeProductDetail();
+        closeCart();
+        closeCategoriesModal();
+        homeConfirmModal.classList.add('totem-deactivate-modal--open');
+        homeConfirmModal.setAttribute('aria-hidden', 'false');
+        suppressGhostClicks();
+        bumpIdle();
+    };
+
+    const closeHomeConfirmModal = () => {
+        if (!homeConfirmModal) return;
+        homeConfirmModal.classList.remove('totem-deactivate-modal--open');
+        homeConfirmModal.setAttribute('aria-hidden', 'true');
+        suppressGhostClicks();
+        bumpIdle();
+    };
+
+    const confirmGoHome = () => {
+        closeHomeConfirmModal();
+        resetSession();
+    };
+
     const isIdleBlocked = () => {
         if (views.customer?.classList.contains('totem-view--active')) return true;
         if (detailPanel?.classList.contains('totem-detail--open')) return true;
@@ -2610,6 +2658,7 @@ ${unitHtml}
         if (document.getElementById('totem-deactivate-modal')?.classList.contains('totem-deactivate-modal--open')) {
             return true;
         }
+        if (homeConfirmModal?.classList.contains('totem-deactivate-modal--open')) return true;
         if (document.documentElement.classList.contains('lig-promo-notice-open')) return true;
         return false;
     };
@@ -3063,17 +3112,21 @@ ${bodyHtml}
             }
         }
         cart[key].qty += 1;
+        if (opts._targetQty != null) {
+            cart[key].qty = Math.max(1, parseQtyValue(String(opts._targetQty)));
+        }
         cartApi.saveCart(cart);
         renderCartIncremental(key);
         bumpProductCardInGrid(itemKey, packType, baseCartKey(key));
         refreshPromosIfOpen();
-        showCartAddedToast(name, cartLineImage(cart[key]));
+        if (!opts._targetQty) {
+            showCartAddedToast(name, cartLineImage(cart[key]));
+        }
         bumpIdle();
     };
 
     const setItemQty = (cartKey, itemKey, qty, opts = {}) => {
         if (!customerIdentified) return;
-        totemKeyboard?.hide?.();
         const n = parseQtyValue(String(qty));
         const item = findDisplayItem(cartKey, itemKey);
         if (!item) return;
@@ -3094,6 +3147,7 @@ ${bodyHtml}
         const cart = cartApi.loadCart();
 
         if (n <= 0) {
+            totemKeyboard?.hide?.();
             if (cart[key]) {
                 delete cart[key];
                 cartApi.saveCart(cart);
@@ -3107,16 +3161,19 @@ ${bodyHtml}
         }
 
         if (!cart[key]) {
-            addItem(key, itemKey, { ...opts, _skipTapGuard: true });
+            addItem(key, itemKey, { ...opts, _skipTapGuard: true, _targetQty: n });
         }
         const nextCart = cartApi.loadCart();
         if (!nextCart[key]) return;
-        nextCart[key].qty = n;
-        cartApi.saveCart(nextCart);
+        if (nextCart[key].qty !== n) {
+            nextCart[key].qty = n;
+            cartApi.saveCart(nextCart);
+        }
         renderCartIncremental(key);
         bumpProductCardInGrid(itemKey, packType, baseCartKey(key));
         refreshPromosIfOpen();
         showCartAddedToast(name, cartLineImage(nextCart[key]), n);
+        totemKeyboard?.hide?.();
         bumpIdle();
     };
 
@@ -3447,6 +3504,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         bumpIdle();
 
         const s = session();
+        const unitSettings = resolveUnitSettings();
+        const deviceLabel = String(
+            unitSettings?.label || s?.totemLabel || s?.name || s?.login || 'Totem',
+        ).trim();
+        const customerName = String(totemCustomer.name || '').trim().replace(/\s+/g, ' ');
         const items = cartApi.cartEntries(cart).map((item) => {
             const originalPrice =
                 item.originalPrice != null ? Number(item.originalPrice) : null;
@@ -3490,10 +3552,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
                     notes: 'Pedido Totem',
                     channel: 'totem',
                     totemId: s?.hubUserId || s?.sub || '',
-                    totemLabel: s?.totemLabel || s?.name || s?.login || 'Totem',
-                    unitId: s?.totemUnitId || 'default',
+                    totemLabel: deviceLabel,
+                    unitId: resolveUnitId(),
                     customer: {
-                        name: totemCustomer.name || s?.totemLabel || s?.name || 'Cliente Totem',
+                        name: customerName || null,
                         phone:
                             sanitizeCustomerPhone(
                                 totemCustomer.phone,
@@ -3743,7 +3805,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
 
         logoBtn?.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            if (guardGhostClick(e)) return;
             bumpIdle();
+            if (isWelcomeView()) return;
+            openHomeConfirmModal();
         });
         const openCartTap = () => {
             if (!customerIdentified) return;
@@ -3776,6 +3842,9 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && categoriesModal?.classList.contains('totem-categories-modal--open')) {
                 closeCategoriesModal();
+            }
+            if (e.key === 'Escape' && homeConfirmModal?.classList.contains('totem-deactivate-modal--open')) {
+                closeHomeConfirmModal();
             }
         });
 
@@ -3900,7 +3969,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             if (qtyEdit) {
                 e.preventDefault();
                 e.stopPropagation();
-                openQtyKeyboard({ context: 'detail', initialQty: detailDraftQty });
+                openQtyKeyboard({
+                    context: 'detail',
+                    initialQty: detailDraftQty,
+                    editEl: qtyEdit,
+                });
                 return;
             }
             if (plus) {
@@ -3942,6 +4015,14 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         cartPanel?.addEventListener('click', (e) => {
             if (guardGhostClick(e)) return;
             if (e.target === cartPanel) closeCart();
+        });
+
+        document.getElementById('totem-home-confirm-yes')?.addEventListener('click', confirmGoHome);
+        document.getElementById('totem-home-confirm-no')?.addEventListener('click', closeHomeConfirmModal);
+        document.getElementById('totem-home-confirm-close')?.addEventListener('click', closeHomeConfirmModal);
+        document.getElementById('totem-home-confirm-backdrop')?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
+            closeHomeConfirmModal();
         });
 
         document.getElementById('totem-brand-tap')?.addEventListener('click', () => {

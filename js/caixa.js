@@ -59,7 +59,7 @@
 
     const renderQueueItem = (o) => {
         const active = o.id === selectedId ? ' is-active' : '';
-        const label = o.totem_label || o.customer_name || 'Totem';
+        const label = fin.totemOrderCustomerLabel(o);
         return `<button type="button" class="caixa-queue__item${active}" data-order="${esc(o.id)}">
 <strong>#${shortId(o.id)} · ${esc(label)}</strong>
 <div class="caixa-queue__meta">${fin.formatMoney(o.total)} · ${esc(methodLabel(o.payment_method))}</div>
@@ -95,7 +95,7 @@ ${esc(methodLabel(m))}
 
         return `<div class="caixa-pdv__body">
 <p class="caixa-pdv__code">#${shortId(order.id)}</p>
-<p class="fin-muted" style="text-align:center;margin:0 0 1rem">${esc(order.totem_label || 'Totem')} · escolheu ${esc(methodLabel(order.payment_method))}</p>
+<p class="fin-muted" style="text-align:center;margin:0 0 1rem">${esc(fin.totemOrderCustomerLabel(order))}${String(order.customer_name || order.customerName || '').trim() ? ` · ${esc(fin.totemOrderUnitLabel(order))}` : ''} · escolheu ${esc(methodLabel(order.payment_method))}</p>
 <ul class="caixa-pdv__items">${items}</ul>
 <div class="caixa-pdv__total"><span>Total a receber</span><strong>${fin.formatMoney(order.total)}</strong></div>
 <p class="fin-muted" style="margin:0 0 0.5rem;font-size:0.8125rem">Confirmar forma de recebimento no PDV:</p>

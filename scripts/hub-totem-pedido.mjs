@@ -173,9 +173,12 @@ function buildPagamentoSplit(order) {
 }
 
 function buildObservacoesTotem(order) {
+    const customerName = String(order.customer_name || '').trim();
     const totemLabel = order.totem_label || 'Ligeirinho Totem';
     const code = formatTotemCode(order.id);
-    const parts = [`${totemLabel} · código ${code}`];
+    const parts = [];
+    if (customerName) parts.push(customerName);
+    parts.push(`${totemLabel} · código ${code}`);
     const splits = resolveOrderSplits(order);
     const total = Number(order.total) || 0;
     if (splits.length >= 2) {
