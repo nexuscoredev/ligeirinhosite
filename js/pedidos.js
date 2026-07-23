@@ -293,7 +293,7 @@
     document.getElementById('catalog-categories-close')?.addEventListener('click', closeCategoriesModal);
     document.getElementById('catalog-categories-backdrop')?.addEventListener('click', closeCategoriesModal);
 
-    productCards.bindCatalogGrid(document, {
+    productCards.bindCatalogGrid(grid, {
         getDeps: cardDeps,
         onAdd: (ctx) => {
             addProduct(ctx);

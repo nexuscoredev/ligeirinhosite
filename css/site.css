@@ -11850,7 +11850,58 @@ html.dark .conta-menu-row {
     border-color: var(--lig-border);
 }
 
-html.dark .qs-below-fold {
-    background: var(--lig-bg) !important;
+/* Quem Somos — tema claro/escuro via tokens */
+body[data-page='quemsomos'].qs-page,
+.qs-page {
+    background: var(--lig-bg);
     color: var(--lig-text);
+}
+
+.qs-section--surface {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+}
+
+.qs-section--muted {
+    background: var(--lig-bg);
+    color: var(--lig-text);
+}
+
+.qs-brand-logo {
+    background: var(--lig-brand-logo-bg);
+    border: 1px solid var(--lig-promo-border);
+}
+
+.qs-card__title {
+    color: var(--lig-text);
+}
+
+.qs-card__text {
+    color: var(--lig-text-muted);
+}
+
+.qs-warehouse-tag {
+    background: color-mix(in srgb, var(--lig-surface) 94%, transparent);
+    color: var(--lig-yellow-text);
+    border: 1px solid var(--lig-promo-border);
+}
+
+html.dark .qs-page .lig-page-title,
+html.dark .qs-page .lig-page-body,
+html.dark .qs-page .lig-page-body strong {
+    color: var(--lig-text);
+}
+
+html.dark .qs-page .lig-page-body strong {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .qs-page .hero-glow {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(247, 213, 60, 0.12), transparent 70%);
+}
+
+html.dark .qs-card {
+    background: var(--lig-surface-alt);
+    border-color: var(--lig-border);
+    box-shadow: none;
 }

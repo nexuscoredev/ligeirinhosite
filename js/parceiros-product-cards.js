@@ -259,11 +259,13 @@ ${tiersSlotHtml}
     };
 
     const bindCatalogGrid = (root, handlers, getItems) => {
-        if (!root || root.dataset.parceirosCatalogBound === '1') return;
-        root.dataset.parceirosCatalogBound = '1';
+        if (!root) return;
+        const eventRoot = root.nodeType === 9 ? root : root;
+        if (eventRoot.__ligParceirosCatalogBound) return;
+        eventRoot.__ligParceirosCatalogBound = true;
         const resolveDeps = () => handlers.getDeps?.() || handlers.deps || {};
 
-        root.addEventListener('click', (e) => {
+        eventRoot.addEventListener('click', (e) => {
             const tierBtn = e.target.closest('.ze-price-tier');
             if (tierBtn) {
                 const card = tierBtn.closest('.totem-product');
