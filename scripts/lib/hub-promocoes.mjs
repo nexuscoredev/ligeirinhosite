@@ -96,7 +96,7 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
     });
     const text = await res.text();
     if (!res.ok) {
-        return { bySku: new Map(), byNome: new Map(), byId: new Map() };
+        return { bySku: new Map(), byNome: new Map(), byId: new Map(), byNomePreco: new Map(), fatorCxGrupo: new Map() };
     }
 
     const rows = text ? JSON.parse(text) : [];
@@ -133,7 +133,7 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
         }
     }
 
-    return { bySku, byNome, byId, byNomePreco };
+    return { bySku, byNome, byId, byNomePreco, fatorCxGrupo };
 }
 
 async function fetchProdutoFamilyMap(config, token, productIds = []) {
@@ -157,6 +157,67 @@ async function fetchProdutoFamilyMap(config, token, productIds = []) {
         }
     }
     return map;
+}
+
+/** UN/CX da caixa irmã quando gf_promocao_catalogo não traz a CX no lote. */
+async function fetchFatorCxPorFamiliaPl(config, token, plProductIds = []) {
+    const ids = [...new Set(plProductIds.filter(Boolean))];
+    if (!ids.length || !config.serviceKey) return new Map();
+
+    const familyMap = await fetchProdutoFamilyMap(config, token, ids);
+    const baseIds = [...new Set([...familyMap.values()].filter(Boolean))];
+    if (!baseIds.length) return new Map();
+
+    const fatorPorBase = new Map();
+    for (let i = 0; i < baseIds.length; i += 80) {
+        const chunk = baseIds.slice(i, i + 80);
+        const res = await fetch(
+            `${config.url}/rest/v1/produtos?select=produto_base_id,fator_multiplicacao,unidade&produto_base_id=in.(${chunk.join(',')})`,
+            { headers: hubHeaders(config, token) },
+        );
+        const text = await res.text();
+        if (!res.ok) continue;
+        const rows = text ? JSON.parse(text) : [];
+        for (const row of rows || []) {
+            const base = String(row.produto_base_id || '').trim();
+            const u = String(row.unidade || '').trim().toUpperCase();
+            if (u !== 'CX' && u !== 'FD') continue;
+            const f = Number(row.fator_multiplicacao);
+            if (!base || !Number.isFinite(f) || f <= 1) continue;
+            fatorPorBase.set(base, f);
+        }
+    }
+
+    const out = new Map();
+    for (const plId of ids) {
+        const base = familyMap.get(plId);
+        const fator = base ? fatorPorBase.get(base) : null;
+        if (fator != null) out.set(plId, fator);
+    }
+    return out;
+}
+
+function isPlUnidade(unidade) {
+    const u = String(unidade || '').trim().toUpperCase();
+    return u === 'PL' || u === 'PLT' || u === 'PALLET' || u === 'PAL';
+}
+
+function enrichPlMetaFatorCx(meta, maps, plProductId, fatorCxPorFamilia, nomeHint = '') {
+    const baseMeta =
+        meta ||
+        ({
+            unidade: 'PL',
+            produto_id: String(plProductId || '').trim(),
+            fator_caixa_cx: null,
+        });
+    if (baseMeta.fator_caixa_cx > 1) return baseMeta;
+    const id = String(plProductId || baseMeta.produto_id || '').trim();
+    const fromFamilia = id ? fatorCxPorFamilia.get(id) : null;
+    if (fromFamilia > 1) return { ...baseMeta, fator_caixa_cx: fromFamilia };
+    const nome = nomeGrupoPromoCatalogo(nomeHint);
+    const fromGrupo = nome ? maps.fatorCxGrupo?.get(nome) : null;
+    if (fromGrupo > 1) return { ...baseMeta, fator_caixa_cx: fromGrupo };
+    return baseMeta;
 }
 
 function resolvePromoMeta(row, maps) {
@@ -208,11 +269,44 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
             return meta?.produto_id || row.produto_id || null;
         })
         .filter(Boolean);
-    const familyMap = await fetchProdutoFamilyMap(config, token, productIds);
+    const plProductIds = list
+        .map((row) => {
+            const meta = resolvePromoMeta(row, metaMaps);
+            const u = String(meta?.unidade || row.unidade || '').trim().toUpperCase();
+            if (!isPlUnidade(u)) return null;
+            return meta?.produto_id || row.produto_id || null;
+        })
+        .filter(Boolean);
+    const [familyMap, fatorCxPorFamilia] = await Promise.all([
+        fetchProdutoFamilyMap(config, token, productIds),
+        fetchFatorCxPorFamiliaPl(config, token, plProductIds),
+    ]);
 
     let promocoes = list.map((row) => {
-        const meta = resolvePromoMeta(row, metaMaps);
-        const hubProductId = meta?.produto_id || (row.produto_id ? String(row.produto_id).trim() : null);
+        const hubProductIdRaw = row.produto_id ? String(row.produto_id).trim() : null;
+        let meta = resolvePromoMeta(row, metaMaps);
+        const u = String(meta?.unidade || row.unidade || '').trim().toUpperCase();
+        if (isPlUnidade(u) && !meta) {
+            meta = {
+                validade_fim: String(row.validade_fim || '').slice(0, 10),
+                unidade: u,
+                produto_id: hubProductIdRaw || '',
+                preco_base: Number(row.preco_original),
+                preco_promo: Number(row.preco_promo),
+                fator_multiplicacao: Number(row.fator_multiplicacao),
+                fator_caixa_cx: null,
+            };
+        }
+        if (isPlUnidade(u)) {
+            meta = enrichPlMetaFatorCx(
+                meta,
+                metaMaps,
+                meta?.produto_id || hubProductIdRaw,
+                fatorCxPorFamilia,
+                row.produto_nome || '',
+            );
+        }
+        const hubProductId = meta?.produto_id || hubProductIdRaw;
         const familyId = hubProductId ? familyMap.get(hubProductId) || hubProductId : null;
         return normalizePromoRow(row, meta, null, familyId);
     });
