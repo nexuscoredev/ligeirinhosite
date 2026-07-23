@@ -202,6 +202,12 @@ html.lig-app-mode.lig-has-float-cart body {
     padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
+html,
+body {
+    overflow-x: clip;
+    max-width: 100%;
+}
+
 html.lig-app-mode .lig-site-footer {
     display: none;
 }
@@ -1601,6 +1607,50 @@ html.dark .ze-price-tier--active {
     cursor: pointer;
     flex-shrink: 0;
     padding: 0;
+}
+
+@media (max-width: 767px) {
+    .ze-qty-stepper {
+        height: 2.75rem;
+        min-height: 2.75rem;
+        max-height: 2.75rem;
+    }
+
+    .ze-qty-btn {
+        width: 2.75rem;
+        height: 2.75rem;
+        min-width: 44px;
+        min-height: 44px;
+        max-width: 2.75rem;
+        max-height: 2.75rem;
+    }
+
+    .ze-qty-value {
+        height: 2.75rem;
+        min-width: 2rem;
+    }
+
+    .home-suggested-scroll:has(.totem-product) .totem-qty-btn,
+    .parceiros-product-scroll .totem-qty-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .ze-filter-pills,
+    .home-quick-chips {
+        overscroll-behavior-x: contain;
+    }
+
+    #lig-page-main {
+        min-height: 100dvh;
+    }
+
+    .conta-btn,
+    .meus-pedidos-filters__clear,
+    .home-quick-chip {
+        min-height: 44px;
+        touch-action: manipulation;
+    }
 }
 
 .ze-qty-value {
@@ -3575,6 +3625,7 @@ html.lig-story-open {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     align-items: stretch;
+    overscroll-behavior-x: contain;
 }
 
 .home-suggested-scroll::-webkit-scrollbar {
@@ -3666,6 +3717,14 @@ html.lig-story-open {
     --home-section-pad-top: 1.625rem;
     --home-section-pad-bottom: 1.5rem;
     --home-section-divider: color-mix(in srgb, var(--lig-text-muted) 28%, var(--lig-border));
+}
+
+@media (max-width: 767px) {
+    .home-page {
+        --home-section-gap: 0.5rem;
+        --home-section-pad-top: 0.875rem;
+        --home-section-pad-bottom: 0.875rem;
+    }
 }
 
 .home-page .ze-section {
@@ -4728,6 +4787,20 @@ html.lig-story-open {
         display: none;
     }
 
+    body[data-page='meus-pedidos'] .lig-header-stack,
+    body[data-page='ofertas'] .lig-header-stack {
+        display: none;
+    }
+
+    body[data-page='meus-pedidos'] .meus-pedidos-header,
+    body[data-page='ofertas'] .ofertas-header {
+        padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+    }
+
+    body[data-page='meus-pedidos'] .meus-pedidos-filters {
+        top: 0;
+    }
+
     body[data-page='conta'] {
         background: var(--lig-bg);
     }
@@ -5545,12 +5618,12 @@ html.lig-story-open {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
 }
 
 .ofertas-header {
     padding: 0.875rem 1rem;
-    padding-top: max(0.875rem, env(safe-area-inset-top, 0px));
+    padding-top: 0.875rem;
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     text-align: center;
@@ -5580,12 +5653,12 @@ html.lig-story-open {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
 }
 
 .meus-pedidos-header {
     padding: 0.875rem 1rem;
-    padding-top: max(0.875rem, env(safe-area-inset-top, 0px));
+    padding-top: 0.875rem;
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     text-align: center;
@@ -5608,12 +5681,36 @@ html.lig-story-open {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    padding: 0.65rem 1rem;
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     position: sticky;
-    top: 0;
-    z-index: 5;
+    top: var(--ze-header-offset, 0px);
+    z-index: 40;
+}
+
+@media (max-width: 639px) {
+    .meus-pedidos-filters {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.45rem;
+    }
+
+    .meus-pedidos-filters__field--search {
+        grid-column: 1 / -1;
+    }
+
+    .meus-pedidos-filters__clear {
+        grid-column: 1 / -1;
+    }
+
+    .meus-pedidos-filters__field {
+        min-height: 2.75rem;
+        padding: 0 0.65rem;
+    }
+
+    .meus-pedidos-header__lead {
+        display: none;
+    }
 }
 
 @media (min-width: 640px) {
@@ -6070,6 +6167,17 @@ html.lig-story-open {
     padding: 0 1rem 0.25rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x;
+}
+
+@media (max-width: 767px) {
+    .parceiros-product-scroll,
+    .ze-product-scroll:has(.totem-product),
+    .home-suggested-scroll:has(.totem-product) {
+        --totem-grid-min: min(10.25rem, 42vw);
+        --totem-grid-gap: 0.65rem;
+    }
 }
 
 .parceiros-product-scroll::-webkit-scrollbar,
@@ -6970,12 +7078,12 @@ html.parceiros-detail-open body {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(3.25rem + env(safe-area-inset-bottom, 0px));
     z-index: 40;
     background: var(--lig-surface);
     border-top: 1px solid var(--lig-border);
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
-    padding: 0.625rem 1rem calc(0.625rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.625rem 1rem;
 }
 
 .caminhao-savings {
@@ -9530,8 +9638,10 @@ html.lig-login-modal-open {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
     border-radius: 999px;
     border: 1px solid var(--lig-border);
@@ -9546,8 +9656,10 @@ html.lig-login-modal-open {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
     border-radius: 999px;
     border: 1px solid rgba(234, 179, 8, 0.45);
@@ -9658,8 +9770,10 @@ html.lig-login-modal-open {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.35rem;
-    height: 2.35rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
     border-radius: 999px;
     border: 1px solid var(--lig-border);
@@ -11639,9 +11753,9 @@ html.lig-promo-notice-open body {
 .lig-pwa-update {
     position: fixed;
     inset-inline: 0;
-    bottom: 0;
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
     z-index: 1150;
-    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.75rem 1rem;
     pointer-events: none;
     display: flex;
     justify-content: center;

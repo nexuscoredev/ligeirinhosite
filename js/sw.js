@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v392';
+const CACHE_NAME = 'ligeirinho-app-v393';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -34,6 +34,14 @@ const NETWORK_FIRST_JS = new Set([
     '/js/metodo-pagamento.js',
     '/js/payment-methods.js',
     '/js/payment-splits.js',
+]);
+
+const NETWORK_FIRST_STATIC = new Set([
+    ...NETWORK_FIRST_JS,
+    '/css/site.css',
+    '/css/totem.css',
+    '/css/theme-forms.css',
+    '/manifest.webmanifest',
 ]);
 
 const APP_SHELL = [
@@ -269,7 +277,7 @@ self.addEventListener('fetch', (event) => {
                 (isNavigate ? await caches.match('/') : null);
 
             if (isStaticAsset(url.pathname)) {
-                if (NETWORK_FIRST_JS.has(url.pathname)) {
+                if (NETWORK_FIRST_STATIC.has(url.pathname)) {
                     try {
                         const response = await fetch(canonicalUrl || request);
                         if (response.ok) {
