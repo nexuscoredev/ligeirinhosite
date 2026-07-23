@@ -499,6 +499,10 @@ html.lig-app-standalone .ze-app-header {
     flex-shrink: 0;
 }
 
+.lig-desktop-nav__label--short {
+    display: none;
+}
+
 .lig-desktop-nav {
     flex: 1 1 0;
     justify-content: center;
@@ -510,9 +514,10 @@ html.lig-app-standalone .ze-app-header {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    width: 100%;
+    width: auto;
     max-width: 100%;
     min-width: 0;
+    margin-inline: auto;
     padding: 0.25rem;
     border-radius: 999px;
     background: var(--lig-surface-alt);
@@ -531,7 +536,6 @@ html.lig-app-standalone .ze-app-header {
     display: inline-flex;
     align-items: center;
     gap: 0.125rem;
-    min-width: 0;
     flex-shrink: 0;
 }
 
@@ -650,10 +654,19 @@ html.lig-app-standalone .ze-app-header {
 
     .lig-header-main {
         gap: 0.375rem;
+        padding-inline: 1rem !important;
+    }
+
+    .lig-desktop-nav__label--full {
+        display: none;
+    }
+
+    .lig-desktop-nav__label--short {
+        display: inline;
     }
 
     .lig-desktop-nav__link {
-        padding: 0.4rem 0.625rem;
+        padding: 0.4rem 0.5625rem;
         font-size: 0.75rem;
     }
 }

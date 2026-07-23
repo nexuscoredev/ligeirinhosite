@@ -126,7 +126,10 @@
 
     const renderDesktopNavLink = (item) => {
         const active = isNavItemActive(item);
-        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${item.label}</a>`;
+        const labelHtml = item.shortLabel
+            ? `<span class="lig-desktop-nav__label lig-desktop-nav__label--full">${item.label}</span><span class="lig-desktop-nav__label lig-desktop-nav__label--short">${item.shortLabel}</span>`
+            : item.label;
+        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}${item.shortLabel ? ` aria-label="${item.label}"` : ''}>${labelHtml}</a>`;
     };
 
     const appNavItems = [
@@ -136,8 +139,8 @@
     ];
 
     const institutionalNavItems = [
-        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
-        { id: 'contato', href: 'contato.html', label: 'Fale conosco', icon: 'chat' },
+        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', shortLabel: 'Sobre', icon: 'storefront' },
+        { id: 'contato', href: 'contato.html', label: 'Fale conosco', shortLabel: 'Contato', icon: 'chat' },
     ];
 
     const navItems = [
@@ -194,7 +197,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
 
     const navHtml = `<header class="ze-app-header sticky top-0 z-50">
 <nav class="font-nav-bar">
-<div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px] gap-4">
+<div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px]">
 <a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
