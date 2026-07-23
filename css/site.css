@@ -1000,6 +1000,7 @@ html.lig-app-standalone .ze-app-header {
     line-height: 1;
     flex-shrink: 0;
     color: var(--lig-text-subtle);
+    cursor: pointer;
 }
 
 .ze-search-bar:focus-within {

@@ -675,13 +675,32 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         syncLocation();
         syncHeaderOffset();
 
+        let liveSearchTimer = null;
+        const dispatchCatalogSearch = (raw) => {
+            const q = String(raw ?? searchInput?.value ?? '').trim();
+            window.dispatchEvent(new CustomEvent('ligeirinho-catalog-search', { detail: { q } }));
+        };
+        const goCatalogSearch = (raw) => {
+            const q = String(raw ?? '').trim();
+            window.location.href = q ? `pedidos.html?q=${encodeURIComponent(q)}` : 'pedidos.html';
+        };
+
         if (searchForm && page === 'pedidos') {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const q = searchInput?.value?.trim() || '';
-                window.dispatchEvent(
-                    new CustomEvent('ligeirinho-catalog-search', { detail: { q } })
-                );
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                dispatchCatalogSearch(searchInput?.value);
+            });
+            searchInput?.addEventListener('input', () => {
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                liveSearchTimer = window.setTimeout(() => {
+                    dispatchCatalogSearch(searchInput.value);
+                }, 120);
+            });
+            searchForm.querySelector('.ze-search-bar__icon')?.addEventListener('click', () => {
+                searchInput?.focus();
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                dispatchCatalogSearch(searchInput?.value);
             });
             const qParam = new URLSearchParams(window.location.search).get('q');
             if (qParam && searchInput) searchInput.value = qParam;
@@ -690,14 +709,27 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         if (searchForm && page === 'inicio') {
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const q = searchInput?.value?.trim();
-                window.location.href = q ? `pedidos.html?q=${encodeURIComponent(q)}` : 'pedidos.html';
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                goCatalogSearch(searchInput?.value);
+            });
+            searchInput?.addEventListener('input', () => {
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                liveSearchTimer = window.setTimeout(() => {
+                    const q = searchInput.value?.trim() || '';
+                    if (q.length < 2) return;
+                    goCatalogSearch(q);
+                }, 280);
             });
             searchInput?.addEventListener('keydown', (e) => {
                 if (e.key !== 'Enter') return;
                 e.preventDefault();
-                const q = searchInput.value?.trim();
-                window.location.href = q ? `pedidos.html?q=${encodeURIComponent(q)}` : 'pedidos.html';
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                goCatalogSearch(searchInput.value);
+            });
+            searchForm.querySelector('.ze-search-bar__icon')?.addEventListener('click', () => {
+                searchInput?.focus();
+                if (liveSearchTimer) clearTimeout(liveSearchTimer);
+                goCatalogSearch(searchInput?.value);
             });
         }
     };

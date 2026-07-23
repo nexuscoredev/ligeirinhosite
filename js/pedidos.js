@@ -339,19 +339,22 @@
     };
 
     const bindSearchInput = () => {
-        const input = searchInput();
-        if (!input || input.dataset.ligCatalogSearchBound === '1') return;
-        input.dataset.ligCatalogSearchBound = '1';
+        if (document.documentElement.dataset.ligCatalogSearchBound === '1') return;
+        document.documentElement.dataset.ligCatalogSearchBound = '1';
 
-        input.addEventListener('input', () => {
+        document.addEventListener('input', (e) => {
+            const input = e.target;
+            if (!(input instanceof HTMLInputElement) || input.id !== 'ze-search-input') return;
             const value = input.value || '';
             if (searchTimer) clearTimeout(searchTimer);
             searchTimer = window.setTimeout(() => {
                 applySearchQuery(value, { updateUrl: true });
-            }, 160);
+            }, 100);
         });
 
-        input.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', (e) => {
+            const input = e.target;
+            if (!(input instanceof HTMLInputElement) || input.id !== 'ze-search-input') return;
             if (e.key !== 'Enter') return;
             e.preventDefault();
             if (searchTimer) clearTimeout(searchTimer);
@@ -390,10 +393,12 @@
             const searchParam = params.get('q');
 
             bindSearchInput();
+            const input = searchInput();
             if (searchParam) {
                 searchQuery = searchParam.toLowerCase();
-                const input = searchInput();
                 if (input) input.value = searchParam;
+            } else if (input?.value?.trim()) {
+                searchQuery = input.value.trim().toLowerCase();
             }
 
             renderFilters();

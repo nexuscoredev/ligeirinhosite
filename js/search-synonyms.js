@@ -35,9 +35,7 @@
         cigarro: ['cigarros', 'tabaco'],
         tabaco: ['cigarro', 'cigarros'],
         baly: ['energetico'],
-        heineken: ['cerveja', 'breja'],
-        brahma: ['cerveja', 'breja'],
-        skol: ['cerveja', 'breja'],
+        // Marcas: não expandir para a categoria (senão "skol" lista todas as cervejas).
         jack: ['whisky', 'jack daniels', 'jack daniel'],
         absolut: ['vodka'],
         smirnoff: ['vodka'],
