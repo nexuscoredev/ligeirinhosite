@@ -173,6 +173,13 @@
     /** @type {Map<string, 'pix' | 'card'>} */
     const detailPayModeByTier = new Map();
     const CART_PAY_CARD_SUFFIX = '::pay-card';
+    let visibleItemsCacheKey = '';
+    let visibleItemsCache = null;
+    let lastCategoriesRenderKey = '';
+    let displayItemByKey = new Map();
+    let displayItemByCartKey = new Map();
+    let promoCatalogChangeTimer = null;
+    let viewSwitcherRaf = null;
 
     const detailPayModeFor = (tier) => detailPayModeByTier.get(tier) || 'pix';
 
@@ -260,6 +267,14 @@
         }
     };
 
+    const scheduleViewSwitcherUpdate = () => {
+        if (viewSwitcherRaf != null) return;
+        viewSwitcherRaf = window.requestAnimationFrame(() => {
+            viewSwitcherRaf = null;
+            updateViewSwitcher();
+        });
+    };
+
     const syncListHead = (visible) => {
         if (!productsBody) return;
         let listHead = productsBody.querySelector('.totem-list-head');
@@ -283,12 +298,12 @@
         catalogView = next;
         saveCatalogView(catalogView);
         productsGrid?.classList.add('totem-grid--view-changing');
-        updateViewSwitcher();
+        scheduleViewSwitcherUpdate();
         renderProducts();
         refreshProductGrid();
         window.requestAnimationFrame(() => {
             productsGrid?.classList.remove('totem-grid--view-changing');
-            updateViewSwitcher();
+            scheduleViewSwitcherUpdate();
         });
         bumpIdle();
     };
@@ -660,6 +675,14 @@ adicionar ao pedido
 </button>
 </div>
 </div>`;
+    };
+
+    const updateDetailQtyUI = () => {
+        if (!detailSheet) return;
+        const qtyEl = detailSheet.querySelector('#totem-detail-qty');
+        const minusBtn = detailSheet.querySelector('#totem-detail-minus');
+        if (qtyEl) qtyEl.textContent = String(detailDraftQty);
+        if (minusBtn) minusBtn.disabled = detailDraftQty <= 1;
     };
 
     const openProductDetail = (itemKey, promoOpts = null) => {
@@ -1057,16 +1080,53 @@ ${unitHtml}
         return String(unitId).trim().toLowerCase().replace(/\s+/g, '-');
     };
 
-    const applyCatalogFromRaw = (rawCatalog) => {
+    const invalidateVisibleItemsCache = () => {
+        visibleItemsCacheKey = '';
+        visibleItemsCache = null;
+    };
+
+    const rebuildDisplayItemIndexes = () => {
+        displayItemByKey = new Map();
+        displayItemByCartKey = new Map();
+        const pools = [displayItems, promoCatalogItems, promoDisplayItems];
+        for (const pool of pools) {
+            for (const item of pool) {
+                const itemKey = item.group?.key || item.product?.id;
+                if (itemKey && !displayItemByKey.has(itemKey)) {
+                    displayItemByKey.set(itemKey, item);
+                }
+                const group = item.group;
+                if (group) {
+                    for (const tier of pricing.getAvailableTiers(group)) {
+                        const variant = pricing.getVariant(group, tier);
+                        if (!variant) continue;
+                        const ck = catalog.cartKeyFor(variant);
+                        if (ck && !displayItemByCartKey.has(ck)) {
+                            displayItemByCartKey.set(ck, item);
+                        }
+                    }
+                } else if (item.product?.id && !displayItemByCartKey.has(item.product.id)) {
+                    displayItemByCartKey.set(item.product.id, item);
+                }
+            }
+        }
+    };
+
+    const applyCatalogFromRaw = (rawCatalog, { skipGroupRebuild = false } = {}) => {
         rawCatalogData = rawCatalog;
         catalogData = filterCatalog(rawCatalog);
-        pricing.rebuildGroups?.(rawCatalog);
+        if (!skipGroupRebuild) {
+            pricing.rebuildGroups?.(rawCatalog);
+        }
         displayItems = buildDisplayItems();
         promoCatalogItems = buildPromoCatalogItems();
         normalizeDisplayItems();
         attachSearchIndex(displayItems);
+        rebuildDisplayItemIndexes();
+        invalidateVisibleItemsCache();
+        lastCategoriesRenderKey = '';
         totemCategories = buildTotemCategories();
-        renderCategories();
+        renderCategories(true);
         updateCategoriesBtnLabel();
         renderProducts();
         refreshProductGrid();
@@ -1098,7 +1158,7 @@ ${unitHtml}
             );
         }
 
-        if (rawCatalogData) applyCatalogFromRaw(rawCatalogData);
+        if (rawCatalogData) applyCatalogFromRaw(rawCatalogData, { skipGroupRebuild: true });
         window.LigeirinhoTotemPromos?.refresh?.();
     };
     const resolveUnitSettings = () => {
@@ -1266,6 +1326,8 @@ ${unitHtml}
 
     const registerPromoDisplayItems = (items = []) => {
         promoDisplayItems = Array.isArray(items) ? items.filter(Boolean) : [];
+        rebuildDisplayItemIndexes();
+        invalidateVisibleItemsCache();
     };
 
     const registerPromoCatalogExclusions = (exclusions = {}) => {
@@ -1412,13 +1474,20 @@ ${unitHtml}
     };
 
     const getVisibleItems = () => {
+        const cacheKey = `${searchQuery}|${activeCategory}|${displayItems.length}|${storeHiddenProductIds.size}|${storeHiddenHubIds.size}`;
+        if (cacheKey === visibleItemsCacheKey && visibleItemsCache) {
+            return visibleItemsCache;
+        }
         let items = displayItems.filter((item) => !window.LigeirinhoTotemStoreAdmin?.isItemHidden?.(item));
         if (searchQuery) {
             items = items.filter((item) => itemMatchesSearch(item));
         } else if (activeCategory) {
             items = items.filter((item) => item.categoryId === activeCategory);
         }
-        return sortVisibleItems(items);
+        const sorted = sortVisibleItems(items);
+        visibleItemsCacheKey = cacheKey;
+        visibleItemsCache = sorted;
+        return sorted;
     };
 
     const updateSearchClear = () => {
@@ -1430,6 +1499,7 @@ ${unitHtml}
         searchQuery = '';
         cachedQueryKey = '';
         cachedQueryInfo = null;
+        invalidateVisibleItemsCache();
         if (searchInput) searchInput.value = '';
         updateSearchClear();
     };
@@ -1438,6 +1508,7 @@ ${unitHtml}
         searchQuery = String(value || '').trim().toLowerCase();
         cachedQueryKey = '';
         cachedQueryInfo = null;
+        invalidateVisibleItemsCache();
         updateSearchClear();
         renderProducts();
         bumpIdle();
@@ -2021,7 +2092,7 @@ ${unitHtml}
         if (!target) return;
         if (target.context === 'detail') {
             detailDraftQty = Math.max(1, qty || 1);
-            renderProductDetail();
+            updateDetailQtyUI();
             bumpIdle();
             return;
         }
@@ -2288,8 +2359,27 @@ ${unitHtml}
         enterCatalog({ guest: customerSkippedIdentification });
     };
 
-    const renderCategories = () => {
+    const getCategoriesRenderKey = () =>
+        `${displayItems.length}|${totemCategories.map((cat) => `${cat.id}:${cat.count}`).join('|')}`;
+
+    const updateCategoryPillsActive = () => {
         if (!categoriesEl) return;
+        categoriesEl.querySelectorAll('.totem-cat-pill').forEach((pill) => {
+            const catId = pill.dataset.cat || '';
+            const active = catId ? catId === activeCategory : !activeCategory;
+            pill.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        updateCategoriesBtnLabel();
+    };
+
+    const renderCategories = (force = false) => {
+        if (!categoriesEl) return;
+        const renderKey = getCategoriesRenderKey();
+        if (!force && renderKey === lastCategoriesRenderKey && categoriesEl.children.length) {
+            updateCategoryPillsActive();
+            return;
+        }
+        lastCategoriesRenderKey = renderKey;
         const totalCount = displayItems.length;
         const pills =
             categoryPillHtml('', 'Todos', totalCount, !activeCategory) +
@@ -2789,7 +2879,7 @@ ${unitHtml}
     const applyCategory = (categoryId) => {
         clearSearch();
         activeCategory = categoryId ? canonCategoryId(categoryId) : '';
-        renderCategories();
+        updateCategoryPillsActive();
         renderProducts();
         closeCategoriesModal();
         bumpIdle();
@@ -2905,7 +2995,6 @@ ${bodyHtml}
             productsCount.textContent =
                 items.length === 1 ? '1 produto' : `${items.length} produtos`;
         }
-        updateViewSwitcher();
         if (!searching && catLabel && activeCategory !== lastAnimatedCategory) {
             refreshMotion(categoryTitle, 'totem-products__title--refresh');
             refreshMotion(productsCount, 'totem-products__count--refresh');
@@ -2938,6 +3027,7 @@ ${bodyHtml}
         if (isEmpty) {
             productGridRenderToken += 1;
             productsGrid.innerHTML = '';
+            scheduleViewSwitcherUpdate();
             return;
         }
 
@@ -2953,7 +3043,7 @@ ${bodyHtml}
         const firstEnd = Math.min(items.length, PRODUCT_GRID_INITIAL);
         productsGrid.innerHTML = paintSlice(0, firstEnd);
         refreshDetailIfOpen();
-        window.requestAnimationFrame(() => updateViewSwitcher());
+        scheduleViewSwitcherUpdate();
 
         if (firstEnd >= items.length) return;
 
@@ -3004,8 +3094,16 @@ ${bodyHtml}
     };
 
     const findDisplayItem = (cartKey, itemKey) => {
-        const pools = [displayItems, promoCatalogItems, promoDisplayItems];
+        if (itemKey) {
+            const byKey = displayItemByKey.get(itemKey);
+            if (byKey) return byKey;
+        }
         const lookupKey = baseCartKey(cartKey);
+        if (lookupKey) {
+            const byCart = displayItemByCartKey.get(lookupKey);
+            if (byCart) return byCart;
+        }
+        const pools = [displayItems, promoCatalogItems, promoDisplayItems];
         for (const pool of pools) {
             if (itemKey) {
                 const byGroup = pool.find((i) => (i.group?.key || i.product.id) === itemKey);
@@ -4006,13 +4104,13 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             }
             if (plus) {
                 detailDraftQty += 1;
-                renderProductDetail();
+                updateDetailQtyUI();
                 bumpIdle();
                 return;
             }
             if (minus && detailDraftQty > 1) {
                 detailDraftQty -= 1;
-                renderProductDetail();
+                updateDetailQtyUI();
                 bumpIdle();
                 return;
             }
@@ -4112,7 +4210,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             if (e.key === 'Enter') confirmAdminLogout();
         });
 
-        window.addEventListener('resize', () => updateViewSwitcher(), { passive: true });
+        window.addEventListener('resize', () => scheduleViewSwitcherUpdate(), { passive: true });
     };
 
     const init = async () => {
@@ -4201,8 +4299,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             registerPromoDisplayItems,
             registerPromoCatalogExclusions,
             onPromoCatalogChange: () => {
-                renderCategories();
-                renderProducts();
+                window.clearTimeout(promoCatalogChangeTimer);
+                promoCatalogChangeTimer = window.setTimeout(() => {
+                    invalidateVisibleItemsCache();
+                    renderProducts();
+                }, 80);
             },
             openProductDetail,
             addPromoItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),

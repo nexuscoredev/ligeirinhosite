@@ -74,7 +74,7 @@
             try {
                 const res = await fetch(fetchUrl, {
                     credentials: 'same-origin',
-                    cache: 'no-store',
+                    cache: force ? 'no-store' : 'default',
                     headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : undefined,
                 });
                 if (res.ok) {

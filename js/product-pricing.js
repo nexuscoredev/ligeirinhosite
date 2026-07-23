@@ -552,8 +552,27 @@
         applyTierImages,
         getTierImage,
         rebuildGroups: (catalogData) => {
+            const stamp =
+                catalogData?.exportedAt ||
+                catalogData?.generatedAt ||
+                catalogData?.updatedAt ||
+                '';
+            let productCount = 0;
+            (catalogData?.categories || []).forEach((cat) => {
+                productCount += (cat.products || []).length;
+            });
+            const cacheKey = `${stamp}|${productCount}`;
+            if (
+                cacheKey &&
+                cacheKey === window.__ligProductGroupsKey &&
+                Array.isArray(window.__ligProductGroups) &&
+                window.__ligProductGroups.length
+            ) {
+                return window.__ligProductGroups;
+            }
             const groups = buildGroups(catalogData);
             window.__ligProductGroups = groups;
+            window.__ligProductGroupsKey = cacheKey;
             return groups;
         },
     };

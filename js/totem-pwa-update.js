@@ -159,7 +159,7 @@
                 if (ev.persisted) void verificar({ silencioso: true });
             });
 
-            const id = window.setInterval(() => void verificar({ silencioso: true }), 30_000);
+            const id = window.setInterval(() => void verificar({ silencioso: true }), 5 * 60 * 1000);
             window.addEventListener(
                 'beforeunload',
                 () => {
