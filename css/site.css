@@ -5604,6 +5604,137 @@ html.lig-story-open {
     color: var(--lig-text-muted, var(--lig-text-secondary, #64748b));
 }
 
+.meus-pedidos-filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--lig-surface);
+    border-bottom: 1px solid var(--lig-border);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+@media (min-width: 640px) {
+    .meus-pedidos-filters {
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.9fr) auto;
+        align-items: center;
+    }
+}
+
+.meus-pedidos-filters__field {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0.75rem;
+    min-height: 2.75rem;
+    border: 1px solid var(--lig-border);
+    border-radius: 0.75rem;
+    background: var(--lig-bg, var(--lig-surface-alt, #f8fafc));
+    color: var(--lig-text-muted);
+}
+
+.meus-pedidos-filters__field .material-symbols-outlined {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.meus-pedidos-filters__field input,
+.meus-pedidos-filters__field select {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    color: var(--lig-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    outline: none;
+    min-height: 2.5rem;
+}
+
+.meus-pedidos-filters__field input[type='date'] {
+    color-scheme: light dark;
+}
+
+.meus-pedidos-filters__clear {
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border-radius: 9999px;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.meus-pedidos-count {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--lig-text-muted);
+}
+
+.meus-pedidos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.conta-order-detail__summary {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+    font: inherit;
+}
+
+.conta-order-detail__summary-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--lig-border);
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+}
+
+.conta-order-detail__summary-meta span:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
+.conta-order-detail__summary-meta strong {
+    color: var(--lig-text);
+    font-weight: 800;
+}
+
+.conta-order-detail__chev {
+    font-size: 1.25rem;
+    color: var(--lig-text-subtle, var(--lig-text-muted));
+}
+
+.conta-order-detail__panel[hidden] {
+    display: none !important;
+}
+
+.conta-order-detail__panel {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--lig-border);
+}
+
 .meus-pedidos-body {
     flex: 1;
     display: flex;
