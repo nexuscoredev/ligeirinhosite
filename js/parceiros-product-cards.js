@@ -7,9 +7,12 @@
             .replace(/"/g, '&quot;');
 
     const activeTierForItem = (item, pricing, tierOverride, promoOffers) => {
-        if (tierOverride) return tierOverride;
         const group = item?.group || null;
-        if (!group || !pricing) return item?.defaultTier || 'caixa';
+        if (!group || !pricing) return tierOverride || item?.defaultTier || 'caixa';
+
+        if (tierOverride) {
+            return pricing.resolveActiveTier?.(group, tierOverride) || tierOverride;
+        }
 
         const tiers = pricing.getTotemAvailableTiers?.(group) || pricing.getAvailableTiers(group) || [];
         const itemKey = group.key;
@@ -137,7 +140,7 @@ ${unitHtml}
 
     const buildCatalogCardHtml = (item, index, deps, opts = {}) => {
         const { catalog, pricing, formatPrice, getCartQty } = deps;
-        const ctx = resolveItemContext(item, deps);
+        const ctx = resolveItemContext(item, deps, opts.tier || null);
         const { group, product, tier, variant, cartKey, itemKey, name, img, offer } = ctx;
         const qty = getCartQty?.(cartKey) || 0;
         const tiersHtml = group ? priceTiersHtml(group, tier, pricing, deps.promoOffers, itemKey) : '';
@@ -230,6 +233,7 @@ ${tiersSlotHtml}
         const index = Number(card.style.getPropertyValue('--totem-card-i')) || 0;
         wrapper.innerHTML = buildCatalogCardHtml(item, index, deps, {
             scroll: card.classList.contains('totem-product--scroll'),
+            tier: card.dataset.priceTier || null,
         });
         const next = wrapper.firstElementChild;
         if (next) card.replaceWith(next);
