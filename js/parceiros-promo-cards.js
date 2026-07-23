@@ -178,6 +178,11 @@ ${unitHtml}
     const promoTagHtml = () =>
         '<span class="totem-product__promo-tag" aria-label="Produto em promoção"><img src="img/tag-promocao.png?v=1" alt="" aria-hidden="true"></span>';
 
+    const promoValidHtml = (validade) =>
+        validade
+            ? `<p class="totem-product__promo-valid">${esc(validade)}</p>`
+            : '<p class="totem-product__promo-valid totem-product__promo-valid--spacer" aria-hidden="true"></p>';
+
     const promoPayTagHtml = () =>
         `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`;
 
@@ -188,7 +193,9 @@ ${unitHtml}
     };
 
     const buildUnitToggleHtml = (grupo, selectedUnits, promoCatalog) => {
-        if (!grupo.multiplo) return '';
+        if (!grupo.multiplo) {
+            return '<div class="totem-promo-unit-toggle totem-promo-unit-toggle--spacer" aria-hidden="true"></div>';
+        }
         const active = activeUnitForGroup(grupo, selectedUnits, promoCatalog);
         return `<div class="totem-promo-unit-toggle" role="group" aria-label="Escolher unidade ou caixa">
 ${grupo.unidadesDisponiveis
@@ -221,7 +228,7 @@ ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="ma
 ${buildUnitToggleHtml(grupo, deps.selectedUnits, promoCatalog)}
 <div class="totem-product__pricing">
 <div class="totem-product__meta">${buildPromoPriceHtml(ctx, formatPrice, pricing)}</div>
-${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
+${promoValidHtml(validade)}
 </div>
 <p class="totem-product__promo-note">Indisponível no catálogo</p>
 </div>
@@ -262,7 +269,7 @@ ${imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy">` : '<span class="ma
 ${buildUnitToggleHtml(grupo, selectedUnits, promoCatalog)}
 <div class="totem-product__pricing">
 <div class="totem-product__meta">${buildPromoPriceHtml(ctx, formatPrice, pricing)}</div>
-${validade ? `<p class="totem-product__promo-valid">${esc(validade)}</p>` : ''}
+${promoValidHtml(validade)}
 </div>
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>

@@ -139,6 +139,8 @@ ${unitHtml}
         const { group, product, tier, variant, cartKey, itemKey, name, img, offer } = ctx;
         const qty = getCartQty?.(cartKey) || 0;
         const tiersHtml = group ? priceTiersHtml(group, tier, pricing, deps.promoOffers, itemKey) : '';
+        const tiersSlotHtml =
+            tiersHtml || '<div class="ze-price-tiers-slot ze-price-tiers-slot--spacer" aria-hidden="true"></div>';
         const priceOpts = {
             hidePackLabel: true,
             promoId: offer?.promoId,
@@ -173,7 +175,7 @@ ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
 <div class="totem-product__pricing">
-${tiersHtml}
+${tiersSlotHtml}
 <div class="totem-product__meta">${priceHtml}</div>
 </div>
 <div class="totem-product__qty">
