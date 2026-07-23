@@ -248,6 +248,42 @@
         return cashOf(b) > cashOf(a) + 0.009 ? b : a;
     };
 
+    const assinaturaSplits = (splits) =>
+        splits
+            .map((entry) => `${normalizeMethodId(entry.method)}:${roundMoney(entry.amount).toFixed(2)}`)
+            .sort()
+            .join('|');
+
+    const escolherSplitsConfiaveis = (fromColumn, fromJson, fromHuman) => {
+        const candidatos = [
+            { splits: fromJson, prioridade: 0 },
+            { splits: fromHuman, prioridade: 1 },
+            { splits: fromColumn, prioridade: 2 },
+        ].filter((item) => item.splits.length >= 2);
+
+        if (candidatos.length >= 2) {
+            const base = assinaturaSplits(candidatos[0].splits);
+            const diverge = candidatos.some((item) => assinaturaSplits(item.splits) !== base);
+            if (diverge) {
+                const json = candidatos.find((item) => item.prioridade === 0);
+                if (json) return json.splits;
+                const human = candidatos.find((item) => item.prioridade === 1);
+                if (human) return human.splits;
+            }
+            return candidatos[0].splits;
+        }
+        if (candidatos.length === 1) return candidatos[0].splits;
+
+        if (fromColumn.length >= 2 && fromJson.length >= 2) {
+            if (assinaturaSplits(fromColumn) !== assinaturaSplits(fromJson)) return fromJson;
+            return fromColumn;
+        }
+        if (fromColumn.length >= 2) return fromColumn;
+        if (fromJson.length >= 2) return fromJson;
+        if (fromHuman.length >= 2) return fromHuman;
+        return [];
+    };
+
     const resolveOrderSplits = (order) => {
         let fromColumn = [];
         if (Array.isArray(order?.paymentSplits) && order.paymentSplits.length >= 1) {
@@ -255,12 +291,12 @@
         } else if (Array.isArray(order?.payment_splits) && order.payment_splits.length >= 1) {
             fromColumn = normalizeSplits(order.payment_splits);
         }
-        if (fromColumn.length >= 2) return fromColumn;
 
         const fromJson = parseSplitsFromNotes(order?.notes);
-        if (fromJson.length >= 2) return fromJson;
         const fromHuman = parseSplitsFromNotesHuman(order?.notes);
-        if (fromHuman.length >= 2) return fromHuman;
+
+        const multi = escolherSplitsConfiaveis(fromColumn, fromJson, fromHuman);
+        if (multi.length >= 2) return multi;
 
         // Só dinheiro: preferir notes se tiverem valor entregue (troco) maior.
         return preferCashTendered(fromColumn, fromJson);

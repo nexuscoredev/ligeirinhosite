@@ -144,6 +144,43 @@ function preferCashTenderedSplits(a, b) {
     return cashOf(b) > cashOf(a) + 0.009 ? b : a;
 }
 
+function assinaturaSplits(splits) {
+    return splits
+        .map((entry) => `${normalizeTotemPaymentMethod(entry.method)}:${roundMoney(entry.amount).toFixed(2)}`)
+        .sort()
+        .join('|');
+}
+
+function escolherSplitsConfiaveis(fromColumn, fromJson, fromHuman) {
+    const candidatos = [
+        { splits: fromJson, prioridade: 0 },
+        { splits: fromHuman, prioridade: 1 },
+        { splits: fromColumn, prioridade: 2 },
+    ].filter((item) => item.splits.length >= 2);
+
+    if (candidatos.length >= 2) {
+        const base = assinaturaSplits(candidatos[0].splits);
+        const diverge = candidatos.some((item) => assinaturaSplits(item.splits) !== base);
+        if (diverge) {
+            const json = candidatos.find((item) => item.prioridade === 0);
+            if (json) return json.splits;
+            const human = candidatos.find((item) => item.prioridade === 1);
+            if (human) return human.splits;
+        }
+        return candidatos[0].splits;
+    }
+    if (candidatos.length === 1) return candidatos[0].splits;
+
+    if (fromColumn.length >= 2 && fromJson.length >= 2) {
+        if (assinaturaSplits(fromColumn) !== assinaturaSplits(fromJson)) return fromJson;
+        return fromColumn;
+    }
+    if (fromColumn.length >= 2) return fromColumn;
+    if (fromJson.length >= 2) return fromJson;
+    if (fromHuman.length >= 2) return fromHuman;
+    return [];
+}
+
 function resolveOrderSplits(order) {
     const fromColumn = coalesceSplitArray(order.payment_splits || order.paymentSplits)
         .map((entry) => ({
@@ -154,10 +191,27 @@ function resolveOrderSplits(order) {
                     : parseMoneyBr(entry?.amount ?? entry?.valor),
         }))
         .filter((entry) => entry.method && entry.amount > 0);
-    if (fromColumn.length >= 2) return fromColumn;
 
     const fromNotes = parseSplitsFromNotes(order.notes);
-    if (fromNotes.length >= 2) return fromNotes;
+    const fromHuman = (() => {
+        const text = String(order.notes || '');
+        const match = text.match(/Pagamento dividido(?: no totem)?:\s*([^[\n]+)/i);
+        if (!match) return [];
+        const chunks = match[1].split(/\s*\+\s*|\s*;\s*/);
+        const out = [];
+        chunks.forEach((chunk) => {
+            const part = chunk.trim();
+            const m = part.match(/^(.+?)\s+R\$\s*([\d.,]+)$/i);
+            if (!m) return;
+            const method = mapHumanLabelToMethod(m[1]);
+            const amount = parseMoneyBr(m[2]);
+            if (method && amount > 0) out.push({ method, amount });
+        });
+        return out.length >= 2 ? out : [];
+    })();
+
+    const multi = escolherSplitsConfiaveis(fromColumn, fromNotes, fromHuman);
+    if (multi.length >= 2) return multi;
 
     // Só dinheiro: preferir notes se tiverem valor entregue (troco) maior que a coluna.
     return preferCashTenderedSplits(fromColumn, fromNotes);
