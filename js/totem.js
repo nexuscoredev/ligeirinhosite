@@ -456,7 +456,7 @@
                 ? Number(tierPromo.originalPrice ?? catalogPrice)
                 : null;
 
-            // PL = caixas no pallet × preço da caixa (catálogo ou promo da CX).
+            // PL: promo cadastrada no Hub prevalece; senão deriva de CX × caixas; cartão = catálogo.
             if (tierKey === 'pallet' && group?.variants?.pallet && group?.variants?.caixa) {
                 const cxVar = group.variants.caixa;
                 const caixas = Number(group.variants.pallet.boxCount) || 1;
@@ -467,21 +467,36 @@
                             ? Number(cxPromo.promoPrice)
                             : null;
                     const cxPackCatalog = Number(cxVar.price);
-                    const usePromo = isPromoTier || Boolean(cxPromo?.promoId);
-                    const cxPack =
-                        usePromo && cxPackPromo != null ? cxPackPromo : cxPackCatalog;
-                    if (Number.isFinite(cxPack) && cxPack > 0) {
-                        blockPrice = Math.round(cxPack * caixas * 100) / 100;
-                        const cxOrig =
-                            cxPromo?.originalPrice != null
-                                ? Number(cxPromo.originalPrice)
-                                : cxPackCatalog;
-                        if (usePromo && Number.isFinite(cxOrig) && cxOrig > blockPrice) {
-                            originalPrice = Math.round(cxOrig * caixas * 100) / 100;
-                        }
+                    const catalogPlPrice =
+                        Number.isFinite(cxPackCatalog) && cxPackCatalog > 0
+                            ? Math.round(cxPackCatalog * caixas * 100) / 100
+                            : null;
+                    const plPromoPrice =
+                        isPromoTier &&
+                        tierPromo?.promoPrice != null &&
+                        Number.isFinite(Number(tierPromo.promoPrice))
+                            ? Number(tierPromo.promoPrice)
+                            : null;
+
+                    if (catalogPlPrice != null) {
+                        originalPrice = catalogPlPrice;
+                    }
+                    if (plPromoPrice != null) {
+                        blockPrice = plPromoPrice;
+                    } else if (Boolean(cxPromo?.promoId) && cxPackPromo != null) {
+                        blockPrice = Math.round(cxPackPromo * caixas * 100) / 100;
+                    } else if (catalogPlPrice != null) {
+                        blockPrice = catalogPlPrice;
                     }
                 }
             }
+
+            const promoActive =
+                isPromoTier ||
+                (tierKey === 'pallet' &&
+                    !isPromoTier &&
+                    originalPrice != null &&
+                    blockPrice < originalPrice);
 
             const packUnitLabel = (priceForUnit) => {
                 if (tierKey !== 'caixa' && tierKey !== 'pallet') return null;
@@ -497,11 +512,11 @@
                 label: detailTierLabel(tierKey, refVariant),
                 price: blockPrice,
                 originalPrice,
-                promo: isPromoTier,
+                promo: promoActive,
                 promoOpts: tierPromo,
                 perUnit: packUnitLabel(blockPrice),
                 originalPerUnit:
-                    isPromoTier && originalPrice != null ? packUnitLabel(originalPrice) : null,
+                    promoActive && originalPrice != null ? packUnitLabel(originalPrice) : null,
                 variant: refVariant,
                 actionable: true,
             });
@@ -3321,7 +3336,7 @@ ${bodyHtml}
         const qtyToAdd = Math.max(1, detailDraftQty);
         const tierPromo = block.promoOpts || null;
         const payMode = detailPayModeFor(tier);
-        const usePromo = Boolean(tierPromo?.promoId) && payMode !== 'card';
+        const usePromo = Boolean(block.promo) && payMode !== 'card';
         const variant = group
             ? pricing.getVariant(group, tier) ||
               (block?.variant ? { ...block.variant, tier: block.variant.tier || tier } : null)
@@ -3336,17 +3351,23 @@ ${bodyHtml}
             ? pricing.cartItemName({ ...(variant || {}), tier: packType }, group)
             : product.name;
         const price =
-            usePromo && tierPromo?.promoPrice != null
-                ? Number(tierPromo.promoPrice)
-                : Number((variant || product).price);
-        const basePrice = Number((variant || product).price);
+            payMode === 'card'
+                ? Number(block.originalPrice ?? (variant || product).price)
+                : usePromo
+                  ? Number(block.price)
+                  : Number((variant || product).price);
+        const basePrice = Number(block.originalPrice ?? (variant || product).price);
         const cart = cartApi.loadCart();
         const autoOffer =
             !usePromo && payMode !== 'card'
                 ? resolvePromoOffer(baseKey, detailItemKey || group?.key || product.id, packType)
                 : null;
         const appliedPromo = usePromo
-            ? tierPromo
+            ? {
+                  ...tierPromo,
+                  promoPrice: Number(block.price),
+                  originalPrice: Number(block.originalPrice ?? basePrice),
+              }
             : autoOffer
               ? {
                     promoId: autoOffer.promoId,

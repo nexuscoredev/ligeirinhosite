@@ -31,6 +31,20 @@ describe('resolvePromoVitrinePrices — PL', () => {
         assert.equal(palletViaCaixa, 9979.2);
     });
 
+    it('PL originalPrice vira preco pallet (cartao / tabela)', () => {
+        const out = resolvePromoVitrinePrices(
+            { preco_promo: 2.99, preco_original: 3.29 },
+            {
+                unidade: 'PL',
+                fator_multiplicacao: 264,
+                fator_caixa_cx: 12,
+                preco_base: 3.29,
+                preco_promo: 2.99,
+            },
+        );
+        assert.equal(out.originalPrice, 10422.72);
+    });
+
     it('nao usa unit × fator como se fator fosse UN avulsas', () => {
         const out = resolvePromoVitrinePrices(
             { preco_promo: 2.99 },

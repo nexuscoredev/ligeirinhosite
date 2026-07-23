@@ -51,6 +51,13 @@ export function resolvePromoVitrinePrices(row, meta = null) {
                 promoPrice = precoEmbalagem(promoPrice, caixasPl);
             }
         }
+        if (originalPrice != null && Number.isFinite(originalPrice)) {
+            if (fatorCx > 1) {
+                originalPrice = Math.round(precoEmbalagem(originalPrice, fatorCx) * caixasPl * 100) / 100;
+            } else if (caixasPl > 1) {
+                originalPrice = precoEmbalagem(originalPrice, caixasPl);
+            }
+        }
     } else if (unidadeUsaPrecoEmbalagem(unidade, caixasPl) && promoPrice != null) {
         promoPrice = precoEmbalagem(promoPrice, caixasPl);
     }

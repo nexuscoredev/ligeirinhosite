@@ -527,6 +527,7 @@
         pricePackMeta,
         resolvePlVariantFields,
         applyPlVariantFields,
+        resolvePalletPackagePrice,
         cartItemName,
         parsePack,
         loadPackConfig: () => {

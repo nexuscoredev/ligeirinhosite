@@ -88,10 +88,16 @@
         const tier = resolveTier(entry);
         const variant = resolvePromoVariant(entry);
         const cartKey = variant?.id ? catalog()?.cartKeyFor?.(variant) : product?.id || '';
-        const originalPrice =
-            promo?.originalPrice != null && Number.isFinite(Number(promo.originalPrice))
-                ? Number(promo.originalPrice)
-                : variant?.price ?? product?.price ?? 0;
+        const originalPrice = (() => {
+            if (tier === 'pallet' && group) {
+                const catalogPl = pricing()?.resolvePalletPackagePrice?.(group, variant);
+                if (Number.isFinite(catalogPl) && catalogPl > 0) return catalogPl;
+            }
+            if (promo?.originalPrice != null && Number.isFinite(Number(promo.originalPrice))) {
+                return Number(promo.originalPrice);
+            }
+            return variant?.price ?? product?.price ?? 0;
+        })();
         const promoPrice =
             promo?.promoPrice != null && Number.isFinite(Number(promo.promoPrice))
                 ? Number(promo.promoPrice)
