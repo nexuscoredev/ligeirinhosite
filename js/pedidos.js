@@ -3,8 +3,9 @@
     const catalog = window.LigeirinhoCatalog;
     const pricing = window.LigeirinhoPricing;
     const cartUi = window.LigeirinhoCartUI;
+    const productCards = window.LigeirinhoParceirosProductCards;
 
-    if (!cartApi || !catalog || !pricing) return;
+    if (!cartApi || !catalog || !pricing || !productCards) return;
 
     const grid = document.getElementById('catalog-grid');
     const filtersEl = document.getElementById('catalog-filters');
@@ -151,10 +152,15 @@
         if (modalStatsEl) modalStatsEl.textContent = text;
     };
 
+    const cardDeps = () => ({
+        catalog,
+        pricing,
+        formatPrice: catalog.formatPrice.bind(catalog),
+        getCartQty: catalog.getCartQty.bind(catalog),
+    });
+
     const refreshCards = () => {
-        grid.querySelectorAll('.ze-product-card[data-group-key]').forEach((card) => {
-            catalog.updateCardPriceUi(card);
-        });
+        productCards.syncGridQty(grid, sortItems(getFilteredProducts()), cardDeps());
     };
 
     const renderProducts = () => {
@@ -163,8 +169,8 @@
         updateStats(items.length);
         updateCategoryHead();
         grid.innerHTML = items.length
-            ? items.map((item) => catalog.productCardZe(item)).join('')
-            : '<p class="col-span-full text-center text-on-surface-variant py-12 text-sm">Nenhum produto encontrado.</p>';
+            ? productCards.renderGridHtml(items, cardDeps())
+            : '<p class="parceiros-catalog-empty">Nenhum produto encontrado.</p>';
         window.scrollTo(0, scrollY);
     };
 
@@ -234,7 +240,8 @@
     document.getElementById('catalog-categories-close')?.addEventListener('click', closeCategoriesModal);
     document.getElementById('catalog-categories-backdrop')?.addEventListener('click', closeCategoriesModal);
 
-    catalog.bindQtySteppers(grid, {
+    productCards.bindCatalogGrid(document, {
+        deps: cardDeps(),
         onAdd: (ctx) => {
             addProduct(ctx);
             refreshCards();
@@ -243,7 +250,7 @@
             removeProduct(ctx);
             refreshCards();
         },
-    });
+    }, () => sortItems(getFilteredProducts()));
 
     searchInput()?.addEventListener('input', () => {
         const value = searchInput()?.value?.trim().toLowerCase() || '';
@@ -290,7 +297,7 @@
         .catch(() => {
             if (statsEl) statsEl.textContent = 'Erro ao carregar catálogo';
             grid.innerHTML =
-                '<p class="col-span-full text-center text-on-surface-variant py-8 text-sm">Erro ao carregar o catálogo.</p>';
+                '<p class="parceiros-catalog-empty">Erro ao carregar o catálogo.</p>';
         });
 
     window.addEventListener('ligeirinho-cart-changed', refreshCards);

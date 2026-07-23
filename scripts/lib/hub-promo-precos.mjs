@@ -13,26 +13,45 @@ export function precoEmbalagem(precoUnitario, fator) {
 
 export function unidadeUsaPrecoEmbalagem(unidade, fator) {
     const u = String(unidade || '').trim().toUpperCase();
-    if (CAIXA_UNIDADES.has(u)) return true;
+    if (u === 'PL' || u === 'PLT' || u === 'PALLET' || u === 'PAL') return true;
+    if (u === 'CX' || u === 'FD' || u === 'PC' || u === 'FARDO') return true;
     return fatorEmbalagemValido(fator) > 1;
+}
+
+/** PL: caixas no pallet × UN por caixa (CX). */
+export function fatorTotalPl(caixas, fatorCaixa) {
+    const c = fatorEmbalagemValido(caixas);
+    const cx = fatorEmbalagemValido(fatorCaixa);
+    return c * cx;
 }
 
 /**
  * Converte preço unitário da tabela PROMOCAO para valor de venda da embalagem (caixa/pallet).
+ * PL: caixas × preço da caixa (unitário × UN na CX), não caixas × UN isoladas.
  * @param {{ preco_original?: number, preco_promo?: number, unidade?: string }} row
- * @param {{ preco_base?: number, preco_promo?: number, unidade?: string, fator_multiplicacao?: number } | null} meta
+ * @param {{ preco_base?: number, preco_promo?: number, unidade?: string, fator_multiplicacao?: number, fator_caixa_cx?: number } | null} meta
  */
 export function resolvePromoVitrinePrices(row, meta = null) {
     const unidade = String(meta?.unidade || row.unidade || '').trim().toUpperCase();
-    const fator = fatorEmbalagemValido(meta?.fator_multiplicacao);
+    const caixasPl = fatorEmbalagemValido(meta?.fator_multiplicacao);
+    const fatorCx = fatorEmbalagemValido(meta?.fator_caixa_cx);
+    const fatorCxEmbalagem = unidade === 'PL' ? fatorCx : caixasPl;
     const precoPromoUnit = Number(meta?.preco_promo ?? row.preco_promo);
     const precoBaseCatalogo = Number(meta?.preco_base ?? row.preco_original);
 
     let promoPrice = Number.isFinite(precoPromoUnit) ? precoPromoUnit : null;
     let originalPrice = Number.isFinite(precoBaseCatalogo) ? precoBaseCatalogo : Number(row.preco_original);
 
-    if (unidadeUsaPrecoEmbalagem(unidade, fator) && promoPrice != null) {
-        promoPrice = precoEmbalagem(promoPrice, fator);
+    if (unidade === 'PL') {
+        if (promoPrice != null) {
+            if (fatorCx > 1) {
+                promoPrice = Math.round(precoEmbalagem(promoPrice, fatorCx) * caixasPl * 100) / 100;
+            } else {
+                promoPrice = precoEmbalagem(promoPrice, caixasPl);
+            }
+        }
+    } else if (unidadeUsaPrecoEmbalagem(unidade, caixasPl) && promoPrice != null) {
+        promoPrice = precoEmbalagem(promoPrice, caixasPl);
     }
 
     if (!Number.isFinite(originalPrice)) originalPrice = null;
@@ -43,11 +62,16 @@ export function resolvePromoVitrinePrices(row, meta = null) {
             ? Math.max(0, Math.round((1 - promoPrice / originalPrice) * 100))
             : 0;
 
+    const fatorMultiplicacao =
+        unidade === 'PL' && fatorCx > 1 ? fatorTotalPl(caixasPl, fatorCx) : caixasPl;
+
     return {
         originalPrice,
         promoPrice,
         discountPct,
         unidade,
-        fatorMultiplicacao: fator,
+        fatorMultiplicacao,
+        fatorCaixasPl: unidade === 'PL' ? caixasPl : null,
+        fatorUnCx: unidade === 'PL' && fatorCx > 1 ? fatorCx : null,
     };
 }

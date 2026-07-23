@@ -12,6 +12,7 @@
 <meta name="description" content="Catálogo em caixa e pallet — adicione ao caminhão e pague com Mercado Pago.">
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/totem.css">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
@@ -175,8 +176,8 @@
 </nav>
 </aside>
 <section class="ze-catalog-main">
-<div id="catalog-grid" class="ze-product-grid">
-<p class="col-span-full text-center text-[var(--lig-text-subtle)] py-8 text-sm">Carregando produtos…</p>
+<div id="catalog-grid" class="totem-grid totem-grid--grid-m parceiros-catalog-grid" role="list">
+<p class="parceiros-catalog-empty" role="status">Carregando produtos…</p>
 </div>
 </section>
 </div>
@@ -210,5 +211,6 @@
 <script src="js/cart-store.js"></script>
 <script src="js/cart-ui.js"></script>
 <script src="js/layout.js"></script>
+<script src="js/parceiros-product-cards.js"></script>
 <script src="js/pedidos.js"></script>
 </body></html>

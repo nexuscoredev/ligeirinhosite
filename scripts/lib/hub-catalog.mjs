@@ -171,6 +171,9 @@ export function resolveCatalogPrice(produto, priceMap, tabelaPadrao) {
     if (precoUnitario != null && Number.isFinite(Number(precoUnitario))) {
         const unidade = normalizarUnidadeProduto(produto.unidade);
         const fator = fatorEmbalagemValido(produto.fator_multiplicacao);
+        if (unidade === 'PL') {
+            return precoEmbalagem(Number(precoUnitario), fator);
+        }
         if (unidadeUsaPrecoEmbalagem(unidade, fator)) {
             return precoEmbalagem(Number(precoUnitario), fator);
         }
@@ -231,6 +234,40 @@ export function productImageForCatalog(produto) {
         null;
 
     return imagemCatalogoUrl(raw, cacheBust);
+}
+
+function nomeGrupoCatalogo(nome) {
+    return String(nome || '')
+        .replace(/\s+(PCT|PCTO|CX|PC|FARDO|FD|PACK|PACOTE|PL)\b.*$/i, '')
+        .replace(/\s+C\/\s*\d+.*$/i, '')
+        .trim()
+        .toUpperCase();
+}
+
+/** Ajusta preço PL = caixas × preço CX (tabela unitária ou catálogo). */
+function enrichCatalogPalletPrices(categories, priceMap) {
+    for (const cat of categories) {
+        const grupos = new Map();
+        for (const p of cat.products || []) {
+            const key = nomeGrupoCatalogo(p.name);
+            if (!key) continue;
+            if (!grupos.has(key)) grupos.set(key, {});
+            const slot = grupos.get(key);
+            if (p.unidade === 'CX') slot.cx = p;
+            if (p.unidade === 'PL') slot.pl = p;
+        }
+        for (const { cx, pl } of grupos.values()) {
+            if (!cx || !pl) continue;
+            const caixas = Math.max(1, Number(pl.fatorMultiplicacao) || 1);
+            const unCx = Math.max(1, Number(cx.fatorMultiplicacao) || 1);
+            const unitPl = pl.hubId ? priceMap?.get(pl.hubId) : null;
+            if (unitPl != null && Number.isFinite(Number(unitPl))) {
+                pl.price = Math.round(precoEmbalagem(Number(unitPl), unCx) * caixas * 100) / 100;
+            } else if (Number(cx.price) > 0 && caixas > 1) {
+                pl.price = Math.round(Number(cx.price) * caixas * 100) / 100;
+            }
+        }
+    }
 }
 
 export function buildCatalog(produtos, categorias, options = {}) {
@@ -296,6 +333,8 @@ export function buildCatalog(produtos, categorias, options = {}) {
                 (orderBySlug.get(a.id) ?? 999) - (orderBySlug.get(b.id) ?? 999) ||
                 a.name.localeCompare(b.name, 'pt-BR')
         );
+
+    enrichCatalogPalletPrices(categories, options.priceMap);
 
     for (const cat of categories) {
         cat.products.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));

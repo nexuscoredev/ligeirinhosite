@@ -2,7 +2,8 @@
     const cartApi = window.LigeirinhoCart;
     const catalog = window.LigeirinhoCatalog;
     const pricing = window.LigeirinhoPricing;
-    if (!cartApi || !catalog || !pricing) return;
+    const productCards = window.LigeirinhoParceirosProductCards;
+    if (!cartApi || !catalog || !pricing || !productCards) return;
 
     const root = document.getElementById('home-app');
     if (!root) return;
@@ -73,10 +74,17 @@
         return displayItems.slice(0, 12);
     };
 
+    const cardDeps = () => ({
+        catalog,
+        pricing,
+        formatPrice: catalog.formatPrice.bind(catalog),
+        getCartQty: catalog.getCartQty.bind(catalog),
+    });
+
+    let displayItemsCache = [];
+
     const refreshSteppers = () => {
-        root.querySelectorAll('.ze-product-h[data-group-key], .home-suggested-card[data-group-key]').forEach((card) => {
-            catalog.updateCardPriceUi(card);
-        });
+        productCards.syncGridQty(root, displayItemsCache, cardDeps());
     };
 
     const sectionOrder = () => {
@@ -140,13 +148,13 @@
 
     const suggestedSectionHtml = (items) => {
         if (!items.length) return '';
-        const cards = items.map((item) => catalog.productCardSuggested(item)).join('');
+        const cards = productCards.renderScrollHtml(items, cardDeps());
         return `<section class="home-suggested ze-section" aria-labelledby="home-suggested-title">
 <div class="ze-section__head">
 <h2 id="home-suggested-title" class="ze-section__title">Pedido sugerido</h2>
 <a class="home-section__link" href="pedidos.html">Mostrar todos</a>
 </div>
-<div class="home-suggested-scroll" id="home-suggested-scroll">${cards}</div>
+<div class="parceiros-product-scroll home-suggested-scroll" id="home-suggested-scroll" role="list">${cards}</div>
 <button type="button" class="home-add-all-btn" id="home-add-all-btn">Adicionar tudo</button>
 </section>`;
     };
@@ -160,6 +168,7 @@
         }
 
         const categories = data.categories.filter((c) => c.products.length > 0);
+        displayItemsCache = displayItems;
         const suggestedItems = getSuggestedItems(displayItems);
 
         const itemsByCategory = {};
@@ -178,14 +187,14 @@
             .map((cat) => {
                 const items = itemsForCategory(cat, 8);
                 if (!items.length) return '';
-                const cards = items.map((item) => catalog.productCardHorizontal(item)).join('');
+                const cards = productCards.renderScrollHtml(items, cardDeps());
                 const title = catalog.formatCategoryLabel(cat.name);
                 return `<section class="ze-section home-desktop-only" aria-labelledby="sec-${cat.id}">
 <div class="ze-section__head">
 <h2 id="sec-${cat.id}" class="ze-section__title">${catalog.escapeHtml(title)}</h2>
 <a class="ze-section__link" href="pedidos.html?categoria=${encodeURIComponent(cat.id)}">Ver tudo</a>
 </div>
-<div class="ze-product-scroll">${cards}</div>
+<div class="parceiros-product-scroll ze-product-scroll" role="list">${cards}</div>
 </section>`;
             })
             .join('');
@@ -202,14 +211,14 @@ ${sectionOrder()
     .map((cat) => {
         const items = itemsForCategory(cat, 6);
         if (!items.length) return '';
-        const cards = items.map((item) => catalog.productCardSuggested(item)).join('');
+        const cards = productCards.renderScrollHtml(items, cardDeps());
         const title = catalog.formatCategoryLabel(cat.name);
         return `<section class="home-suggested ze-section" aria-labelledby="sec-m-${cat.id}">
 <div class="ze-section__head">
 <h2 id="sec-m-${cat.id}" class="ze-section__title">${catalog.escapeHtml(title)}</h2>
 <a class="home-section__link" href="pedidos.html?categoria=${encodeURIComponent(cat.id)}">Ver tudo</a>
 </div>
-<div class="home-suggested-scroll">${cards}</div>
+<div class="parceiros-product-scroll home-suggested-scroll" role="list">${cards}</div>
 </section>`;
     })
     .join('')}
@@ -227,15 +236,18 @@ ${sectionOrder()
         });
 
         root.querySelector('#home-add-all-btn')?.addEventListener('click', () => {
-            const cards = root.querySelector('#home-suggested-scroll')?.querySelectorAll('.home-suggested-card') || [];
+            const cards = root.querySelector('#home-suggested-scroll')?.querySelectorAll('.totem-product') || [];
             cards.forEach((card, i) => {
-                const ctx = catalog.resolveCardContext(card);
+                const item = productCards.findItemForCard(card, suggestedItems);
+                if (!item) return;
+                const ctx = productCards.resolveItemContext(item, cardDeps(), card.dataset.priceTier);
                 const qty = suggestedItems[i]?.suggestedQty || 1;
                 if (ctx?.variant) addProduct(ctx, qty);
             });
         });
 
-        catalog.bindQtySteppers(root, {
+        productCards.bindCatalogGrid(root, {
+            deps: cardDeps(),
             onAdd: (ctx) => {
                 addProduct(ctx);
                 refreshSteppers();
@@ -244,7 +256,7 @@ ${sectionOrder()
                 removeProduct(ctx);
                 refreshSteppers();
             },
-        });
+        }, () => displayItemsCache);
     };
 
     Promise.all([

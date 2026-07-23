@@ -436,10 +436,38 @@
             if (!refVariant) return;
             const isPromoTier = Boolean(tierPromo);
             const catalogPrice = Number(refVariant.price);
-            const blockPrice = isPromoTier ? Number(tierPromo.promoPrice) : catalogPrice;
-            const originalPrice = isPromoTier
+            let blockPrice = isPromoTier ? Number(tierPromo.promoPrice) : catalogPrice;
+            let originalPrice = isPromoTier
                 ? Number(tierPromo.originalPrice ?? catalogPrice)
                 : null;
+
+            // PL = caixas no pallet × preço da caixa (catálogo ou promo da CX).
+            if (tierKey === 'pallet' && group?.variants?.pallet && group?.variants?.caixa) {
+                const caixas = Number(group.variants.pallet.boxCount) || 1;
+                if (caixas > 1) {
+                    const cxPromo = detailTierPromoOpts('caixa');
+                    const cxVar = group.variants.caixa;
+                    const cxPackPromo =
+                        cxPromo?.promoPrice != null && Number.isFinite(Number(cxPromo.promoPrice))
+                            ? Number(cxPromo.promoPrice)
+                            : null;
+                    const cxPackCatalog = Number(cxVar.price);
+                    const usePromo = isPromoTier || Boolean(cxPromo?.promoId);
+                    const cxPack =
+                        usePromo && cxPackPromo != null ? cxPackPromo : cxPackCatalog;
+                    if (Number.isFinite(cxPack) && cxPack > 0) {
+                        blockPrice = Math.round(cxPack * caixas * 100) / 100;
+                        const cxOrig =
+                            cxPromo?.originalPrice != null
+                                ? Number(cxPromo.originalPrice)
+                                : cxPackCatalog;
+                        if (usePromo && Number.isFinite(cxOrig) && cxOrig > blockPrice) {
+                            originalPrice = Math.round(cxOrig * caixas * 100) / 100;
+                        }
+                    }
+                }
+            }
+
             const packUnitLabel = (priceForUnit) => {
                 if (tierKey !== 'caixa' && tierKey !== 'pallet') return null;
                 const unitPx = pricing.getUnitPrice({

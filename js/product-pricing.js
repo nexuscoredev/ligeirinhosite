@@ -206,9 +206,25 @@
             });
         });
 
+        enrichPalletVariants(groups);
         applyTierImages(groups, window.__ligTierImages || {});
 
         return groups;
+    };
+
+    /** PL: packSize interno = UN totais; boxCount = caixas no pallet (para rótulos). */
+    const enrichPalletVariants = (groups) => {
+        groups.forEach((group) => {
+            const pallet = group.variants?.pallet;
+            if (!pallet) return;
+            const caixas = Math.max(1, Number(pallet.packSize) || 1);
+            const cx = group.variants?.caixa;
+            const unPerCx = cx ? Math.max(1, Number(cx.packSize) || 1) : 1;
+            pallet.boxCount = caixas;
+            pallet.unitsPerBox = unPerCx;
+            pallet.totalUnits = caixas * unPerCx;
+            pallet.packSize = pallet.totalUnits;
+        });
     };
 
     const matchBrand = (baseName, byBrand = {}) => {
@@ -382,12 +398,18 @@
         }
 
         if (variant.tier === 'pallet') {
+            const boxes = Number(variant.boxCount) || 0;
+            const unCx = Number(variant.unitsPerBox) || 0;
             const size = Number(variant.packSize) || 0;
+            let detail = 'PL';
+            if (boxes > 1 && unCx > 1) detail = `PL · ${boxes} cx × ${unCx} un`;
+            else if (boxes > 1) detail = `PL c/ ${boxes} cx`;
+            else if (size > 1) detail = `PL c/ ${size}`;
             return {
                 unitPrice,
                 packagePrice,
                 tierLabel,
-                detail: size > 1 ? `PL c/ ${size}` : 'PL',
+                detail,
                 unitSuffix: 'por unidade',
             };
         }
@@ -415,7 +437,10 @@
             return size > 1 ? `${base} (CX c/ ${size})` : `${base} (CX)`;
         }
         if (variant.tier === 'pallet') {
-            const size = Number(variant.packSize) || 0;
+            const boxes = Number(variant.boxCount) || 0;
+            const unCx = Number(variant.unitsPerBox) || 0;
+            if (boxes > 1 && unCx > 1) return `${base} (PL · ${boxes} cx × ${unCx} un)`;
+            const size = boxes > 1 ? boxes : Number(variant.packSize) || 0;
             return size > 1 ? `${base} (PL c/ ${size})` : `${base} (PL)`;
         }
         return variant.name;

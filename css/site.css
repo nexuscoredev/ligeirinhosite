@@ -5412,6 +5412,42 @@ html.lig-story-open {
     cursor: pointer;
 }
 
+/* ── Parceiros: cards de produto estilo Totem ── */
+.parceiros-catalog-grid.totem-grid {
+    width: 100%;
+    padding: 0.25rem 0 1rem;
+}
+
+.parceiros-catalog-empty {
+    grid-column: 1 / -1;
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--lig-text-subtle);
+    font-size: 0.875rem;
+}
+
+.parceiros-product-scroll {
+    display: flex;
+    gap: 0.625rem;
+    overflow-x: auto;
+    padding: 0 1rem 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.parceiros-product-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.parceiros-product-scroll .totem-product--scroll {
+    flex: 0 0 clamp(7.25rem, 28vw, 10.25rem);
+    min-width: clamp(7.25rem, 28vw, 10.25rem);
+}
+
+.ze-catalog-main .parceiros-catalog-grid .totem-product {
+    min-width: 0;
+}
+
 .ofertas-empty {
     padding: 2.5rem 1rem;
     text-align: center;

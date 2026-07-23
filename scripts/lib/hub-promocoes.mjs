@@ -39,6 +39,26 @@ function normalizePromoLookupName(value) {
     return String(value || '').trim().toLowerCase();
 }
 
+/** Mesma regra do Hub — agrupa UN/CX/PL pelo nome base. */
+function nomeGrupoPromoCatalogo(nome) {
+    let limpo = String(nome || '').trim();
+    limpo = limpo.replace(/\s+(PCT|PCTO|CX|PC|FARDO|FD|PACK|PACOTE|PL)\b.*$/i, '').trim();
+    limpo = limpo.replace(/\s+C\/\s*\d+.*$/i, '').trim();
+    return limpo.toUpperCase();
+}
+
+function fatorCxPorNomeGrupo(list) {
+    const map = new Map();
+    for (const row of list) {
+        const u = String(row.unidade || '').trim().toUpperCase();
+        if (u !== 'CX' && u !== 'FD') continue;
+        const key = nomeGrupoPromoCatalogo(row.nome);
+        const f = Number(row.fator_multiplicacao);
+        if (key && Number.isFinite(f) && f > 1) map.set(key, f);
+    }
+    return map;
+}
+
 function normalizePromoRow(row, meta = null, produto = null, familyId = null) {
     const prices = resolvePromoVitrinePrices(row, meta);
 
@@ -81,6 +101,7 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
 
     const rows = text ? JSON.parse(text) : [];
     const list = Array.isArray(rows) ? rows : [];
+    const fatorCxGrupo = fatorCxPorNomeGrupo(list);
     const bySku = new Map();
     const byNome = new Map();
     const byId = new Map();
@@ -94,6 +115,10 @@ async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
             preco_base: Number(row.preco_base),
             preco_promo: Number(row.preco_promo),
             fator_multiplicacao: Number(row.fator_multiplicacao),
+            fator_caixa_cx:
+                String(row.unidade || '').trim().toUpperCase() === 'PL'
+                    ? fatorCxGrupo.get(nomeGrupoPromoCatalogo(row.nome)) ?? null
+                    : null,
         };
         const sku = String(row.sku || '').trim().toLowerCase();
         const id = meta.produto_id;
