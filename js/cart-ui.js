@@ -25,6 +25,10 @@
 </div>
 <div class="lig-cart-header__actions">
 <span id="cart-count-badge" class="lig-cart-header__count">0 itens</span>
+<button type="button" class="lig-cart-header__clear" id="cart-clear-btn" data-cart-clear hidden aria-label="Limpar caminhão">
+<span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span>
+<span class="lig-cart-header__clear-label">Limpar</span>
+</button>
 <button type="button" class="lig-cart-header__close" data-cart-close aria-label="Fechar caminhão">
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
@@ -69,12 +73,20 @@ ${payBtnInnerHtml()}
 <span class="material-symbols-outlined lig-cart-header__icon" aria-hidden="true">local_shipping</span>
 <span class="lig-cart-header__title">Seu caminhão</span>
 </div>
+<div class="lig-cart-header__actions">
+<span id="cart-count-badge-mobile" class="lig-cart-header__count">0 itens</span>
+<button type="button" class="lig-cart-header__clear" id="cart-clear-btn-mobile" data-cart-clear hidden aria-label="Limpar caminhão">
+<span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span>
+<span class="lig-cart-header__clear-label">Limpar</span>
+</button>
 <button type="button" class="lig-cart-header__close" data-cart-close aria-label="Fechar caminhão">
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
 </div>
+</div>
 <div class="lig-cart-scroll">
 <div id="cart-items-mobile" class="lig-cart-items"></div>
+<a href="pedidos.html" class="lig-cart-continue" id="cart-continue-link-mobile">Continuar comprando</a>
 <div class="cart-checkout lig-cart-checkout shrink-0">
 <p class="lig-cart-checkout__label">Detalhes do pedido</p>
 <div class="lig-cart-checkout__delivery">
@@ -472,8 +484,11 @@ ${lineThumbHtml(item)}
         const cartTotalEl = document.getElementById('cart-total');
         const cartTotalMobileEl = document.getElementById('cart-total-mobile');
         const cartCountBadge = document.getElementById('cart-count-badge');
+        const cartCountBadgeMobile = document.getElementById('cart-count-badge-mobile');
         const cartSummaryEl = document.getElementById('cart-summary');
         const continueLink = document.getElementById('cart-continue-link');
+        const continueLinkMobile = document.getElementById('cart-continue-link-mobile');
+        const clearBtns = document.querySelectorAll('[data-cart-clear]');
 
         if (cartItemsEl) cartItemsEl.innerHTML = listHtml;
         if (cartItemsMobileEl) cartItemsMobileEl.innerHTML = listHtml;
@@ -481,8 +496,15 @@ ${lineThumbHtml(item)}
         if (cartTotalMobileEl) cartTotalMobileEl.textContent = total;
         if (cartSummaryEl) cartSummaryEl.innerHTML = items.length ? summaryHtml(cart) : '';
         if (continueLink) continueLink.classList.toggle('hidden', !items.length);
+        if (continueLinkMobile) continueLinkMobile.classList.toggle('hidden', !items.length);
+        clearBtns.forEach((btn) => {
+            btn.hidden = !items.length;
+        });
         if (cartCountBadge) {
             cartCountBadge.textContent = count === 1 ? '1 item' : `${count} itens`;
+        }
+        if (cartCountBadgeMobile) {
+            cartCountBadgeMobile.textContent = count === 1 ? '1 item' : `${count} itens`;
         }
         setPayButtons(cart);
         cartApi.updateNavCartBadge();
@@ -525,6 +547,18 @@ ${lineThumbHtml(item)}
             undoRemoveSnapshot = null;
             hideUndoToast();
         }, 5000);
+    };
+
+    const clearCart = () => {
+        const cart = cartApi.loadCart();
+        if (!cartApi.cartItemCount(cart)) return;
+        if (!window.confirm('Remover todos os produtos do caminhão?')) return;
+        hideUndoToast();
+        undoRemoveSnapshot = null;
+        window.clearTimeout(undoRemoveTimer);
+        window.clearTimeout(undoHideTimer);
+        cartApi.saveCart({});
+        render();
     };
 
     const removeFromCart = (id) => {
@@ -670,6 +704,10 @@ ${lineThumbHtml(item)}
 
         panel?.querySelectorAll('[data-cart-close]').forEach((el) => {
             el.addEventListener('click', close);
+        });
+
+        document.querySelectorAll('[data-cart-clear]').forEach((el) => {
+            el.addEventListener('click', clearCart);
         });
 
         document.addEventListener('keydown', (e) => {

@@ -4,6 +4,7 @@
 
     const cart = window.LigeirinhoCart;
     const auth = window.LigeirinhoAuth;
+    const avatarApi = window.LigeirinhoProfileAvatar;
     const WHATSAPP_URL =
         'https://api.whatsapp.com/send/?phone=5511970924909&text&type=phone_number&app_absent=0';
     const LOGIN = (next) => `/?next=${encodeURIComponent(next || 'conta.html')}`;
@@ -72,6 +73,51 @@
         if (s?.phone) return formatPhoneDisplay(s.phone);
         if (s?.email) return s.email;
         return '';
+    };
+
+    const avatarSrc = (s) => avatarApi?.resolvePicture?.(s) || 'img/app-icon-light-192.png';
+
+    const bindAvatarPicker = () => {
+        const trigger = root.querySelector('[data-conta-avatar-pick]');
+        const input = root.querySelector('#conta-avatar-input');
+        const statusEl = root.querySelector('[data-conta-avatar-status]');
+        if (!trigger || !input || !session()?.sub) return;
+
+        const setStatus = (message, isError = false) => {
+            if (!statusEl) return;
+            statusEl.hidden = !message;
+            statusEl.textContent = message || '';
+            statusEl.classList.toggle('conta-user-card__avatar-status--error', Boolean(isError));
+        };
+
+        trigger.addEventListener('click', () => {
+            setStatus('');
+            input.click();
+        });
+
+        input.addEventListener('change', async () => {
+            const file = input.files?.[0];
+            input.value = '';
+            if (!file) return;
+            const s = session();
+            if (!s?.sub) return;
+            trigger.disabled = true;
+            setStatus('Atualizando foto…');
+            try {
+                const dataUrl = await avatarApi.compressImageFile(file);
+                if (!avatarApi.setAvatar(s.sub, dataUrl)) {
+                    throw new Error('Não foi possível salvar a foto neste dispositivo.');
+                }
+                const img = trigger.querySelector('.conta-user-card__avatar');
+                if (img) img.src = dataUrl;
+                auth?.patchSession?.({ picture: dataUrl });
+                setStatus('Foto atualizada.');
+            } catch (err) {
+                setStatus(err?.message || 'Não foi possível usar esta imagem.', true);
+            } finally {
+                trigger.disabled = false;
+            }
+        });
     };
 
     const formatPrice = (value) =>
@@ -224,11 +270,21 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
 
         const authBlock = s?.sub
             ? `<div class="conta-user-card">
-<img class="conta-user-card__avatar" src="${esc(/^https?:\/\//i.test(s.picture || '') ? s.picture : 'img/app-icon-light-192.png')}" alt="" width="52" height="52" loading="lazy" referrerpolicy="no-referrer">
+<div class="conta-user-card__avatar-wrap">
+<button type="button" class="conta-user-card__avatar-btn" data-conta-avatar-pick aria-label="Alterar foto do perfil">
+<img class="conta-user-card__avatar" src="${esc(avatarSrc(s))}" alt="" width="56" height="56" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='img/app-icon-light-192.png'">
+<span class="conta-user-card__avatar-edit" aria-hidden="true">
+<span class="material-symbols-outlined">photo_camera</span>
+</span>
+</button>
+<input id="conta-avatar-input" class="sr-only" type="file" accept="image/*" tabindex="-1" aria-hidden="true">
+</div>
 <div class="conta-user-card__info">
 <p class="conta-user-card__name">${esc(s.name || first || 'Parceiro')}</p>
 ${profileMeta(s) ? `<p class="conta-user-card__meta">${esc(profileMeta(s))}</p>` : ''}
 ${s.role ? `<span class="conta-user-card__role">${esc(formatRole(s.role))}</span>` : ''}
+<p class="conta-user-card__avatar-hint">Toque na foto para escolher da galeria ou do computador</p>
+<p class="conta-user-card__avatar-status" data-conta-avatar-status hidden></p>
 </div>
 </div>`
             : `<div class="conta-user-card conta-user-card--guest">
@@ -275,6 +331,7 @@ ${logoutBtn}
 </div>
 </div>`;
         }
+        bindAvatarPicker();
     };
 
     const openCnpjModal = () => {

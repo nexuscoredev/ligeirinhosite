@@ -126,7 +126,8 @@
 
     const renderDesktopNavLink = (item) => {
         const active = isNavItemActive(item);
-        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${item.label}</a>`;
+        const label = item.navLabel || item.label;
+        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${label}</a>`;
     };
 
     const appNavItems = [
@@ -136,8 +137,8 @@
     ];
 
     const institutionalNavItems = [
-        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
-        { id: 'contato', href: 'contato.html', label: 'Fale conosco', icon: 'chat' },
+        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', navLabel: 'Sobre', icon: 'storefront' },
+        { id: 'contato', href: 'contato.html', label: 'Fale conosco', navLabel: 'Contato', icon: 'chat' },
     ];
 
     const navItems = [

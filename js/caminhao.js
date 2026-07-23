@@ -133,8 +133,8 @@ ${hasDiscount ? `<span class="caminhao-product__was">${formatPrice(listPrice)}</
 </div>
 <div class="caminhao-products__list">${items.map(productCardHtml).join('')}</div>
 <button type="button" class="caminhao-clear-all" id="caminhao-clear-btn">
-<span class="caminhao-clear-all__icon" aria-hidden="true">×</span>
-<span>Excluir todos</span>
+<span class="material-symbols-outlined caminhao-clear-all__glyph" aria-hidden="true">delete_sweep</span>
+<span>Limpar caminhão</span>
 </button>
 </section>`;
     };

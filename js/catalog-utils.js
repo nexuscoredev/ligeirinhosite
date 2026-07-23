@@ -586,7 +586,7 @@ ${qtyStepperHtml(cartKey, qty)}
 
             ? `<img alt="" class="ze-product-h__img ze-product-card__img--${escapeHtml(activeTier)}" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
 
-            : `<span class="material-symbols-outlined text-3xl text-on-surface-variant/40">liquor</span>`;
+            : `<span class="material-symbols-outlined ze-product-card__placeholder">liquor</span>`;
 
 
 
@@ -672,7 +672,7 @@ ${qtyStepperHtml(cartKey, qty)}
 
             ? `<img alt="" class="home-suggested-card__img ze-product-h__img ze-product-card__img--${escapeHtml(activeTier)}" src="${escapeHtml(imgSrc)}" loading="lazy" decoding="async">`
 
-            : `<span class="material-symbols-outlined text-3xl text-on-surface-variant/40">liquor</span>`;
+            : `<span class="material-symbols-outlined ze-product-card__placeholder home-suggested-card__placeholder">liquor</span>`;
 
         const groupAttr = group ? ` data-group-key="${escapeHtml(group.key)}" data-price-tier="${escapeHtml(activeTier)}"` : '';
 
@@ -700,7 +700,7 @@ ${imageBlock}
 
 <div class="home-suggested-card__pricing">${priceTiersHtml(group, activeTier)}${priceHtml}</div>
 
-<div class="home-suggested-card__actions">${qtyStepperHtml(cartKey, qty, { dark: true })}</div>
+<div class="home-suggested-card__actions">${qtyStepperHtml(cartKey, qty)}</div>
 
 </article>`;
 

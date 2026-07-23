@@ -518,23 +518,26 @@ html.lig-app-standalone .ze-app-header {
     justify-content: center;
     min-width: 0;
     padding: 0 0.25rem;
+    overflow: hidden;
 }
 
 .lig-desktop-nav__track {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.25rem;
     width: auto;
     max-width: 100%;
     min-width: 0;
     margin-inline: auto;
-    padding: 0.25rem;
+    padding: 0.2rem;
     border-radius: 999px;
     background: var(--lig-surface-alt);
     border: 1px solid var(--lig-border);
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -545,24 +548,24 @@ html.lig-app-standalone .ze-app-header {
 .lig-desktop-nav__group {
     display: inline-flex;
     align-items: center;
-    gap: 0.125rem;
-    flex-shrink: 0;
+    gap: 0.1rem;
+    flex: 0 0 auto;
 }
 
 .lig-desktop-nav__sep {
     width: 1px;
-    height: 1.25rem;
+    height: 1.15rem;
     background: var(--lig-border);
-    flex-shrink: 0;
-    margin: 0 0.125rem;
+    flex: 0 0 auto;
+    margin: 0 0.1rem;
 }
 
 .lig-desktop-nav__link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    padding: 0.4375rem 0.75rem;
+    flex: 0 0 auto;
+    padding: 0.4rem 0.7rem;
     border-radius: 999px;
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     font-size: 0.8125rem;
@@ -676,6 +679,33 @@ html.lig-app-standalone .ze-app-header {
 
     .lig-header-universal .lig-header-actions {
         gap: 0.35rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+    .lig-nav-account__label {
+        display: none;
+    }
+
+    .lig-desktop-nav__link {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.75rem;
+    }
+
+    .lig-header-main {
+        gap: 0.5rem;
+    }
+
+    .lig-header-actions {
+        gap: 0.1rem;
+        padding-left: 0.35rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .lig-desktop-nav__link {
+        padding: 0.4375rem 0.8rem;
+        font-size: 0.84375rem;
     }
 }
 
@@ -1297,7 +1327,7 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-product-card__placeholder {
     font-size: 2.5rem;
-    color: #ddd;
+    color: var(--lig-text-subtle);
 }
 
 .ze-badge-adult {
@@ -1365,6 +1395,7 @@ html.lig-app-standalone .ze-app-header {
     gap: 0.375rem;
     padding-top: 0.375rem;
     margin-top: auto;
+    min-height: 2.25rem;
 }
 
 .ze-product-card__price {
@@ -1375,14 +1406,17 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-price-tiers {
     display: flex;
+    align-items: center;
     gap: 0.25rem;
     width: 100%;
+    height: 1.75rem;
 }
 
 .ze-price-tiers-slot {
-    min-height: 1.875rem;
+    height: 1.75rem;
+    min-height: 1.75rem;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     flex-shrink: 0;
 }
 
@@ -1392,9 +1426,13 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-price-tier {
+    box-sizing: border-box;
     flex: 1;
     min-width: 0;
-    padding: 0.3125rem 0.375rem;
+    height: 1.75rem;
+    min-height: 1.75rem;
+    max-height: 1.75rem;
+    padding: 0 0.375rem;
     border-radius: 9999px;
     border: 1px solid var(--lig-border);
     background: var(--lig-bg);
@@ -1403,7 +1441,9 @@ html.lig-app-standalone .ze-app-header {
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    min-height: 1.625rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
@@ -1413,19 +1453,40 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-price-tier--active {
-    border-color: rgba(166, 124, 0, 0.4);
-    background: var(--lig-yellow-light);
-    color: var(--lig-yellow-text);
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
+    box-shadow: none;
 }
 
 [data-theme='dark'] .ze-price-tier--active {
     border-color: var(--lig-yellow);
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
 }
 
 @media (prefers-color-scheme: dark) {
     [data-theme='auto'] .ze-price-tier--active {
         border-color: var(--lig-yellow);
+        background: var(--lig-yellow);
+        color: var(--lig-on-yellow);
     }
+}
+
+html.dark .ze-price-tier {
+    color: var(--lig-text-muted);
+    border-color: var(--lig-border);
+    background: var(--lig-surface-alt);
+}
+
+html.dark .ze-price-tier:hover {
+    color: var(--lig-text);
+}
+
+html.dark .ze-price-tier--active {
+    border-color: var(--lig-yellow);
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
 }
 
 .ze-price-block {
@@ -1444,26 +1505,32 @@ html.lig-app-standalone .ze-app-header {
 
 .ze-product-h .ze-price-tiers {
     margin: 0;
+    height: 1.625rem;
 }
 
 .ze-product-h .ze-price-tier {
     font-size: 0.5625rem;
-    min-height: 1.5rem;
-    padding: 0.25rem;
+    height: 1.625rem;
+    min-height: 1.625rem;
+    max-height: 1.625rem;
+    padding: 0 0.3rem;
 }
 
 /* ── Qty stepper ── */
 .ze-add-btn {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.25rem;
     width: 100%;
+    height: 2rem;
     min-height: 2rem;
-    padding: 0.25rem 0.5rem;
+    max-height: 2rem;
+    padding: 0 0.5rem;
     border-radius: 9999px;
     background: var(--lig-yellow);
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     font-size: 0.6875rem;
     font-weight: 700;
     border: none;
@@ -1480,11 +1547,14 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-qty-stepper {
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    height: 2rem;
     min-height: 2rem;
+    max-height: 2rem;
     border-radius: 9999px;
     background: var(--lig-yellow-light);
     border: 1px solid rgba(247, 213, 60, 0.25);
@@ -1492,25 +1562,39 @@ html.lig-app-standalone .ze-app-header {
 }
 
 .ze-qty-btn {
+    box-sizing: border-box;
     width: 2rem;
     height: 2rem;
-    display: flex;
+    min-width: 2rem;
+    min-height: 2rem;
+    max-width: 2rem;
+    max-height: 2rem;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     background: var(--lig-yellow);
-    color: #1a1a1a;
+    color: var(--lig-on-yellow);
     font-size: 1.125rem;
     font-weight: 700;
+    line-height: 1;
     border: none;
+    border-radius: 0;
     cursor: pointer;
     flex-shrink: 0;
+    padding: 0;
 }
 
 .ze-qty-value {
+    box-sizing: border-box;
     font-size: 0.8125rem;
     font-weight: 700;
+    line-height: 1;
     color: var(--lig-yellow-text);
     min-width: 1.5rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
 }
 
@@ -2216,6 +2300,43 @@ body[data-page='pedidos'] .ze-product-card__price {
     align-items: center;
     gap: 0.375rem;
     flex-shrink: 0;
+}
+
+.lig-cart-header__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    min-height: 2.25rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text-muted);
+    border-radius: 9999px;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    transition:
+        color var(--lig-motion-duration-fast) ease,
+        background var(--lig-motion-duration-fast) ease,
+        border-color var(--lig-motion-duration-fast) ease;
+}
+
+.lig-cart-header__clear:hover {
+    color: var(--lig-text);
+    background: var(--lig-surface-alt);
+    border-color: var(--lig-text-muted);
+}
+
+.lig-cart-header__clear .material-symbols-outlined {
+    font-size: 1.125rem;
+    line-height: 1;
+}
+
+.lig-cart-header__clear-label {
+    white-space: nowrap;
 }
 
 .lig-cart-header__close {
@@ -3636,26 +3757,37 @@ html.lig-story-open {
 }
 
 .ze-add-btn--dark {
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
     border-radius: 9999px;
     font-size: 0.75rem;
     font-weight: 700;
-    min-height: 2.125rem;
+    height: 2rem;
+    min-height: 2rem;
+    max-height: 2rem;
 }
 
 .ze-add-btn--dark:hover {
-    background: #333;
+    background: var(--lig-yellow-hover);
 }
 
 .ze-qty-stepper--dark {
-    background: #f5f5f5;
-    border-color: #e0e0e0;
+    background: var(--lig-yellow-light);
+    border-color: rgba(247, 213, 60, 0.25);
+    height: 2rem;
+    min-height: 2rem;
+    max-height: 2rem;
 }
 
 .ze-qty-stepper--dark .ze-qty-btn {
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
+    width: 2rem;
+    height: 2rem;
+}
+
+.ze-qty-stepper--dark .ze-qty-value {
+    color: var(--lig-yellow-text);
 }
 
 .home-desktop-only {
@@ -3836,6 +3968,27 @@ html.lig-story-open {
     flex-wrap: wrap;
 }
 
+.conta-user-card__avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.conta-user-card__avatar-btn {
+    position: relative;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 9999px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.conta-user-card__avatar-btn:focus-visible {
+    outline: 2px solid var(--lig-yellow);
+    outline-offset: 3px;
+}
+
 .conta-user-card__avatar {
     width: 3.5rem;
     height: 3.5rem;
@@ -3844,6 +3997,48 @@ html.lig-story-open {
     border: 2px solid var(--lig-yellow);
     flex-shrink: 0;
     box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.2);
+    display: block;
+    background: #111;
+}
+
+.conta-user-card__avatar-edit {
+    position: absolute;
+    right: -0.1rem;
+    bottom: -0.1rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
+    border: 2px solid var(--lig-surface);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+}
+
+.conta-user-card__avatar-edit .material-symbols-outlined {
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
+.conta-user-card__avatar-hint {
+    margin: 0.45rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.35;
+    color: var(--lig-text-muted);
+}
+
+.conta-user-card__avatar-status {
+    margin: 0.35rem 0 0;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--lig-text-muted);
+}
+
+.conta-user-card__avatar-status--error {
+    color: #b42318;
 }
 
 .conta-user-card__avatar--icon {
@@ -6460,7 +6655,8 @@ html.parceiros-detail-open body {
     cursor: pointer;
 }
 
-.caminhao-clear-all__icon {
+.caminhao-clear-all__icon,
+.caminhao-clear-all__glyph {
     width: 1.25rem;
     height: 1.25rem;
     border-radius: 999px;
@@ -6469,7 +6665,7 @@ html.parceiros-detail-open body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1;
     font-weight: 800;
 }
@@ -11173,3 +11369,153 @@ html.lig-promo-notice-open body {
     font-weight: 600;
     cursor: pointer;
 }
+
+/* ── Dark mode: contraste seguro (cards, texto, ícones) ── */
+html.dark .ze-product-card,
+html.dark .ze-product-h,
+html.dark .home-suggested-card,
+html.dark .ofertas-product-row {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .ze-product-card__body,
+html.dark .ze-product-h__body,
+html.dark .home-suggested-card__actions,
+html.dark .home-suggested-card__pricing {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+}
+
+html.dark .ze-product-card__name,
+html.dark .ze-product-h__name,
+html.dark .home-suggested-card__name,
+html.dark .ofertas-product-row__name {
+    color: var(--lig-text);
+}
+
+html.dark .ze-product-card__price,
+html.dark .ze-product-h__price,
+html.dark .home-suggested-card__price,
+html.dark .home-suggested-card .ze-product-card__price,
+html.dark .ofertas-product-row__price {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .ze-product-card__media,
+html.dark .ze-product-h__media,
+html.dark .home-suggested-card__media,
+html.dark .ofertas-product-row__thumb {
+    background: #ffffff;
+}
+
+html.dark .ze-product-card__placeholder,
+html.dark .home-suggested-card__placeholder {
+    color: #9ca3af;
+    font-size: 2rem;
+}
+
+html.dark .ze-cat-tile__label,
+html.dark .home-story__label,
+html.dark .ze-section__title,
+html.dark .home-section__link,
+html.dark .ze-section__link {
+    color: var(--lig-text);
+}
+
+html.dark .home-section__link,
+html.dark .ze-section__link {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .lig-header-actions .material-symbols-outlined,
+html.dark .lig-theme-toggle,
+html.dark .lig-install-nav-btn,
+html.dark .lig-header-cart {
+    color: var(--lig-text-muted);
+}
+
+html.dark .lig-theme-toggle:hover,
+html.dark .lig-install-nav-btn:hover,
+html.dark .lig-header-cart:hover {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .lig-nav-account {
+    color: var(--lig-text-muted);
+}
+
+html.dark .lig-nav-account--active {
+    color: var(--lig-on-yellow);
+    background: var(--lig-yellow);
+}
+
+html.dark .lig-desktop-nav__track {
+    background: var(--lig-surface-alt);
+    border-color: var(--lig-border);
+}
+
+html.dark .lig-desktop-nav__link {
+    color: var(--lig-text-muted);
+}
+
+html.dark .lig-desktop-nav__link:hover {
+    color: var(--lig-text);
+    background: var(--lig-surface);
+}
+
+html.dark .lig-desktop-nav__link--active {
+    color: var(--lig-on-yellow);
+    background: var(--lig-yellow);
+}
+
+html.dark .ze-fulfillment-bar,
+html.dark .ze-location-bar,
+html.dark .ze-search-bar {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .ze-search-bar input {
+    color: var(--lig-text);
+    background: transparent;
+}
+
+html.dark .ze-search-bar input::placeholder {
+    color: var(--lig-text-subtle);
+}
+
+html.dark .ze-float-cart__btn {
+    color: var(--lig-on-yellow);
+}
+
+html.dark .caminhao-product,
+html.dark .caminhao-checkout,
+html.dark .lig-cart-line,
+html.dark .lig-cart-panel,
+html.dark .lig-cart-sheet {
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .caminhao-product__name,
+html.dark .lig-cart-line__name,
+html.dark .lig-cart-header__title {
+    color: var(--lig-text);
+}
+
+html.dark .conta-user-card,
+html.dark .conta-info-card,
+html.dark .conta-menu-row {
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-color: var(--lig-border);
+}
+
+html.dark .qs-below-fold {
+    background: var(--lig-bg) !important;
+    color: var(--lig-text);
+

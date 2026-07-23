@@ -36,12 +36,18 @@
     const TOTEM_ROLES = new Set(['TOTEM', 'TOTEM_DEVICE']);
 
     const saveSession = (user) => {
+        const customPicture = window.LigeirinhoProfileAvatar?.getAvatar?.(user.sub) || '';
+        const picture =
+            customPicture ||
+            (window.LigeirinhoProfileAvatar?.isUsablePicture?.(user.picture)
+                ? user.picture
+                : user.picture || '');
         const session = {
             sub: user.sub,
             email: user.email || '',
             name: user.name || '',
             phone: user.phone || '',
-            picture: user.picture || '',
+            picture: picture || '',
             provider: user.provider || 'google',
             role: user.role || 'PARCEIRO',
             cargo: user.cargo || '',
