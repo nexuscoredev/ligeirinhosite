@@ -126,10 +126,7 @@
 
     const renderDesktopNavLink = (item) => {
         const active = isNavItemActive(item);
-        const labelHtml = item.shortLabel
-            ? `<span class="lig-desktop-nav__label lig-desktop-nav__label--full">${item.label}</span><span class="lig-desktop-nav__label lig-desktop-nav__label--short">${item.shortLabel}</span>`
-            : item.label;
-        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}${item.shortLabel ? ` aria-label="${item.label}"` : ''}>${labelHtml}</a>`;
+        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${item.label}</a>`;
     };
 
     const appNavItems = [
@@ -139,8 +136,8 @@
     ];
 
     const institutionalNavItems = [
-        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', shortLabel: 'Sobre', icon: 'storefront' },
-        { id: 'contato', href: 'contato.html', label: 'Fale conosco', shortLabel: 'Contato', icon: 'chat' },
+        { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', icon: 'storefront' },
+        { id: 'contato', href: 'contato.html', label: 'Fale conosco', icon: 'chat' },
     ];
 
     const navItems = [
@@ -170,7 +167,7 @@
     const desktopInstitutionalItems = [...institutionalNavItems];
     const desktopFinanceItems = operatorNav;
 
-    const desktopNavHtml = `<nav class="lig-desktop-nav hidden md:flex" aria-label="Navegação principal">
+    const desktopNavHtml = `<nav class="lig-desktop-nav hidden lg:flex" aria-label="Navegação principal">
 <div class="lig-desktop-nav__track">
 <div class="lig-desktop-nav__group">
 ${desktopAppNavItems.map(renderDesktopNavLink).join('\n')}
@@ -191,13 +188,13 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
         .join('\n');
 
     const showAppChrome = page === 'inicio' || page === 'pedidos';
-    const showCatalogSync = page === 'inicio' || page === 'pedidos' || page === 'ofertas';
+    const showCatalogSync = true;
     const searchPlaceholder =
         page === 'pedidos' ? 'Buscar produtos…' : page === 'inicio' ? 'O que você procura?' : 'Buscar…';
 
-    const navHtml = `<header class="ze-app-header sticky top-0 z-50">
+    const navHtml = `<header class="ze-app-header lig-header-universal sticky top-0 z-50">
 <nav class="font-nav-bar">
-<div class="lig-header-main flex justify-between items-center w-full px-4 md:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px]">
+<div class="lig-header-main flex justify-between items-center w-full px-4 lg:px-margin-desktop py-2.5 max-w-container-max mx-auto min-h-[56px]">
 <a class="lig-brand nav-brand shrink-0" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
 <img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="36" height="36" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
@@ -212,14 +209,14 @@ ${desktopNavHtml}
 <button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
 <span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
 </button>
-${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
+<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
 <span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
-</button>` : ''}
+</button>
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
 <div data-lig-theme-mount class="lig-theme-toggle-mount lig-theme-toggle-mount--header" role="group" aria-label="Tema do app"></div>
-<button type="button" id="nav-cart-toggle" class="lig-header-cart hidden md:flex" aria-label="Abrir caminhão" aria-expanded="false">
+<button type="button" id="nav-cart-toggle" class="lig-header-cart hidden lg:flex" aria-label="Abrir caminhão" aria-expanded="false">
 <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
 <span id="nav-cart-badge" class="lig-header-cart__badge hidden">0</span>
 </button>
@@ -272,7 +269,7 @@ ${showAppChrome && page !== 'conta' ? `<div class="ze-app-chrome">
         maps: 'img/icon-google-maps.png',
     };
 
-    const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden" aria-hidden="true">
+    const mobileMenuHtml = `<div id="nav-mobile-menu" class="fixed inset-0 z-[60] hidden lg:hidden" aria-hidden="true">
 <div class="nav-mobile-backdrop absolute inset-0" data-nav-menu-close tabindex="-1" aria-hidden="true"></div>
 <div class="nav-mobile-panel absolute top-0 right-0 flex h-full w-full max-w-[20rem] flex-col border-l border-surface-variant/40 bg-surface-gray shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="nav-mobile-menu-title">
 <div class="flex shrink-0 items-center justify-between border-b border-surface-variant/30 px-4 py-3.5">
@@ -308,7 +305,7 @@ ${navMobileLinksHtml}
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
     ];
 
-    const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Navegação do app">
+    const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 lg:hidden" aria-label="Navegação do app">
 <div class="grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6">
 ${bottomTabItems
     .map((item) => {
@@ -461,7 +458,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
         const closeMobileMenu = () => setOpen(false);
         const openMenu = () => {
-            if (window.matchMedia('(min-width: 768px)').matches) return;
+            if (window.matchMedia('(min-width: 1024px)').matches) return;
             setOpen(true);
         };
 
