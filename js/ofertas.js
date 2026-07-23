@@ -177,8 +177,9 @@
 </select>
 <span class="material-symbols-outlined ofertas-toolbar__sort-icon">sort</span>
 </div>
-<button type="button" class="ofertas-toolbar__btn" id="ofertas-refresh" title="Sincronizar com o Hub" aria-label="Sincronizar catálogo e promoções">
+<button type="button" class="ofertas-toolbar__btn" id="ofertas-refresh" title="Atualizar catálogo e promoções" aria-label="Atualizar catálogo e promoções">
 <span class="material-symbols-outlined">refresh</span>
+<span>Atualizar</span>
 </button>
 </div>
 <div id="ofertas-filter-panel" class="ofertas-filter-panel${filterOpen ? ' ofertas-filter-panel--open' : ''}"${filterOpen ? '' : ' hidden'}>

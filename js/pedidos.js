@@ -346,4 +346,8 @@
         renderFilters();
         renderProducts();
     });
+
+    document.getElementById('catalog-refresh')?.addEventListener('click', () => {
+        document.getElementById('lig-catalog-sync-btn')?.click();
+    });
 })();

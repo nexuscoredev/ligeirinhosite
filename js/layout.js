@@ -206,8 +206,13 @@ ${desktopNavHtml}
 <span class="lig-nav-account__label">Minha conta</span>
 </a>
 <div id="lig-notifications-mount" class="shrink-0"></div>
-${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Sincronizar catálogo com o Hub" title="Sincronizar produtos e preços">
-<span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">sync</span>
+<button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
+<span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
+<span class="lig-update-nav-btn__label">Atualizar app</span>
+</button>
+${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn lig-sync-nav-btn--labeled" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
+<span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
+<span class="lig-sync-nav-btn__label">Atualizar</span>
 </button>` : ''}
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
@@ -800,7 +805,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             syncBtn.classList.remove('lig-sync-nav-btn--busy');
             syncBtn.disabled = false;
             syncBtn.setAttribute('aria-busy', 'false');
-            syncBtn.setAttribute('aria-label', 'Sincronizar catálogo com o Hub');
+            syncBtn.setAttribute('aria-label', 'Atualizar catálogo e promoções');
             if (result?.ok) {
                 const hubAt = result.catalogData?.exportedAt
                     ? new Date(result.catalogData.exportedAt).toLocaleTimeString('pt-BR', {
@@ -851,6 +856,40 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         }
     }
 
+    const bindPwaUpdateButton = () => {
+        const updateBtn = document.getElementById('lig-pwa-update-btn');
+        if (!updateBtn || updateBtn.dataset.bound === '1') return;
+        const pwaUpdate = window.LigeirinhoPwaUpdate;
+        if (!pwaUpdate) return;
+        updateBtn.dataset.bound = '1';
+
+        const syncUpdateChrome = () => {
+            const pending = Boolean(pwaUpdate.isPending?.());
+            const checking = pwaUpdate.status?.() === 'checking';
+            updateBtn.hidden = !pending;
+            updateBtn.disabled = checking;
+            updateBtn.classList.toggle('lig-update-nav-btn--busy', checking);
+            updateBtn.classList.toggle('lig-update-nav-btn--pending', pending);
+            updateBtn.setAttribute('aria-busy', checking ? 'true' : 'false');
+            updateBtn.setAttribute(
+                'aria-label',
+                pending ? 'Aplicar atualização do sistema' : 'Atualizar',
+            );
+            document.documentElement.classList.toggle('lig-pwa-update-pending', pending);
+        };
+
+        pwaUpdate.onStatusChange?.(syncUpdateChrome);
+        syncUpdateChrome();
+
+        updateBtn.addEventListener('click', () => {
+            if (pwaUpdate.isPending?.()) void pwaUpdate.aplicar();
+        });
+    };
+
+    if (page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso' && page !== 'totem-caixa') {
+        ensureScript('js/pwa-update.js').then(bindPwaUpdateButton);
+    }
+
     const caminhaoParam = new URLSearchParams(window.location.search).get('caminhao');
     if (caminhaoParam === 'open' && window.LigeirinhoCartUI) {
         window.LigeirinhoCartUI.open?.();
@@ -868,10 +907,6 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         versionScript.src = 'js/app-version.js';
         versionScript.dataset.ligAppVersion = '1';
         document.body.appendChild(versionScript);
-    }
-
-    if (page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso' && page !== 'totem-caixa') {
-        ensureScript('js/pwa-update.js');
     }
 
     if (page !== 'login' && page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso') {
