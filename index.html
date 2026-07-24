@@ -79,8 +79,8 @@
 
 </div>
 
-<h1 class="lig-login-title">Entrar ou cadastrar</h1>
-<p class="lig-login-sub">Pedidos em caixa e pallet para revendedores</p>
+<h1 class="lig-login-title">Entre ou crie sua conta!</h1>
+<p class="lig-login-sub">Pedidos em caixa e pallet para o seu negócio</p>
 
 </div>
 
@@ -127,13 +127,41 @@ Ao continuar, você concorda com nossos termos de uso e política de privacidade
 <button type="button" class="lig-login-modal__close" data-login-phone-close aria-label="Fechar">
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
-<h2 id="login-phone-title" class="lig-login-phone__title">Entrar com telefone</h2>
-<p id="login-phone-hint" class="lig-login-phone__hint">Informe celular e nome. O nome é obrigatório para identificarmos você nos pedidos.</p>
-<label class="lig-login-setup__label" for="login-phone-input">Celular (WhatsApp)</label>
-<input id="login-phone-input" class="lig-login-setup__input" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="(11) 97092-4909">
-<label class="lig-login-setup__label" for="login-phone-name">Seu nome</label>
+<button type="button" class="lig-login-modal__back" id="login-signup-back" hidden aria-label="Voltar">
+<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+</button>
+<h2 id="login-phone-title" class="lig-login-phone__title">Criar conta</h2>
+<div class="lig-signup-progress" aria-hidden="true">
+<span class="lig-signup-progress__bar lig-signup-progress__bar--on" data-signup-bar="0"></span>
+<span class="lig-signup-progress__bar" data-signup-bar="1"></span>
+<span class="lig-signup-progress__bar" data-signup-bar="2"></span>
+</div>
+
+<div class="lig-signup-step" data-signup-step="0">
+<p class="lig-signup-ask">Qual é o seu nome e sobrenome?</p>
+<label class="sr-only" for="login-phone-name">Nome e sobrenome</label>
 <input id="login-phone-name" class="lig-login-setup__input" type="text" autocomplete="name" placeholder="Nome e sobrenome" required minlength="2">
-<button type="button" id="login-phone-submit" class="lig-login-setup__save">Entrar com telefone</button>
+<p class="lig-signup-promo"><span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>Entrega rápida na primeira compra do parceiro</p>
+<button type="button" class="lig-login-setup__save" data-signup-next>Continuar</button>
+</div>
+
+<div class="lig-signup-step" data-signup-step="1" hidden>
+<p class="lig-signup-ask">Qual é a sua data de nascimento?</p>
+<label class="sr-only" for="login-phone-birth">Data de nascimento</label>
+<input id="login-phone-birth" class="lig-login-setup__input" type="text" inputmode="numeric" autocomplete="bday" placeholder="Data de nascimento DD/MM/AAAA" maxlength="10">
+<p class="lig-signup-promo"><span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>Entrega rápida na primeira compra do parceiro</p>
+<button type="button" class="lig-login-setup__save" data-signup-next>Continuar</button>
+</div>
+
+<div class="lig-signup-step" data-signup-step="2" hidden>
+<p class="lig-signup-ask">Qual é o seu celular?</p>
+<label class="sr-only" for="login-phone-input">Celular DDD + número</label>
+<input id="login-phone-input" class="lig-login-setup__input" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="Celular DDD + número">
+<p class="lig-signup-note">Preencha corretamente. Usamos o WhatsApp para identificar você nos pedidos.</p>
+<p class="lig-signup-promo"><span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>Entrega rápida na primeira compra do parceiro</p>
+<button type="button" id="login-phone-submit" class="lig-login-setup__save">Criar conta</button>
+</div>
+
 <p id="login-phone-status" class="lig-login-status" hidden></p>
 </div>
 </div>

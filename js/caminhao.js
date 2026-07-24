@@ -243,7 +243,14 @@ ${
             if (e.target.matches('[data-checkout]')) onCheckoutChange();
         });
         root.addEventListener('input', (e) => {
-            if (e.target.matches('[data-checkout="address"], [data-checkout="notes"]')) onCheckoutChange();
+            if (e.target.matches('[data-checkout="notes"]')) onCheckoutChange();
+        });
+        root.addEventListener('focusin', (e) => {
+            if (e.target.matches('[data-checkout="address"]')) {
+                e.preventDefault();
+                e.target.blur();
+                openAddressPicker();
+            }
         });
     };
 
@@ -267,18 +274,26 @@ ${
         render();
     };
 
-    const focusAddressIfNeeded = () => {
-        if (window.location.hash !== '#endereco') return;
+    const openAddressPicker = () => {
         const checkout = cartApi.loadCheckout();
         if (checkout.deliveryType !== 'entrega') {
             cartApi.saveCheckout({ deliveryType: 'entrega' });
             renderCheckoutFields();
         }
-        window.requestAnimationFrame(() => {
-            const el = document.getElementById('caminhao-address');
-            el?.focus?.();
-            el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-        });
+        if (window.LigeirinhoAddressPicker?.open) {
+            window.LigeirinhoAddressPicker.open({
+                view: checkout.address?.trim() ? 'confirm' : 'search',
+                onConfirm: () => render(),
+            });
+            return;
+        }
+        const el = document.getElementById('caminhao-address');
+        el?.focus?.();
+    };
+
+    const focusAddressIfNeeded = () => {
+        if (window.location.hash !== '#endereco') return;
+        window.requestAnimationFrame(() => openAddressPicker());
     };
 
     const render = () => {

@@ -436,6 +436,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         const storyOpen = document.documentElement.classList.contains('lig-story-open');
         const promoNoticeOpen = document.documentElement.classList.contains('lig-promo-notice-open');
         const loginModalOpen = document.documentElement.classList.contains('lig-login-modal-open');
+        const addrOpen = document.documentElement.classList.contains('lig-addr-open');
 
         if (menuHidden) {
             menuIsOpen = false;
@@ -444,7 +445,16 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         }
 
         /* Só limpa lock de body se nenhum overlay legítimo estiver aberto. */
-        if (menuHidden && !cartOpen && !detailOpen && !catalogModalOpen && !storyOpen && !promoNoticeOpen && !loginModalOpen) {
+        if (
+            menuHidden &&
+            !cartOpen &&
+            !detailOpen &&
+            !catalogModalOpen &&
+            !storyOpen &&
+            !promoNoticeOpen &&
+            !loginModalOpen &&
+            !addrOpen
+        ) {
             clearBodyScrollStyles();
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';

@@ -617,7 +617,24 @@ ${lineThumbHtml(item)}
             cartApi.saveCheckout({ deliveryType: 'entrega' });
             renderCheckoutFields();
         }
-        open({ focusAddress: true });
+        const openPicker = () => {
+            if (window.LigeirinhoAddressPicker?.open) {
+                window.LigeirinhoAddressPicker.open({
+                    view: checkout.address?.trim() ? 'confirm' : 'search',
+                    onConfirm: () => render(),
+                });
+                return true;
+            }
+            return false;
+        };
+        if (openPicker()) return;
+        const script = document.createElement('script');
+        script.src = 'js/address-picker.js';
+        script.onload = () => {
+            if (!openPicker()) open({ focusAddress: true });
+        };
+        script.onerror = () => open({ focusAddress: true });
+        document.body.appendChild(script);
     };
 
     const open = (options = {}) => {
