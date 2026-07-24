@@ -6493,6 +6493,20 @@ html.parceiros-detail-open body {
     font-size: 0.875rem;
 }
 
+.ofertas-section {
+    margin: 0 0 1.25rem;
+}
+
+.ofertas-section__title {
+    margin: 0 0 0.65rem;
+    padding: 0 0.85rem;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
 .ofertas-mkt-gallery {
     padding: 0 1rem 1rem;
     background: var(--lig-surface);

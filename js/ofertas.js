@@ -10,11 +10,12 @@
     const promoCards = window.LigeirinhoParceirosPromoCards;
     const productCards = window.LigeirinhoParceirosProductCards;
     const productDetail = window.LigeirinhoParceirosProductDetail;
-    if (!cartApi || !catalog || !pricing || !promoCatalog || !promoCards || !productCards) return;
+    if (!cartApi || !catalog || !pricing || !promoCatalog || !promoCards) return;
 
     let catalogData = null;
     let displayItems = [];
     let promoGroups = [];
+    let promoOffers = { byCartKey: {}, byItemKey: {} };
     let selectedUnits = new Map();
     let sortMode = 'discount';
     let filterCategory = '';
@@ -45,6 +46,11 @@
         const prepared = promoCards.preparePromoGroups(promos, displayItems, promoCatalog);
         promoGroups = prepared.groups;
         selectedUnits = prepared.selectedUnits;
+        promoOffers = promoCatalog.buildPromoOfferIndex(promoGroups, {
+            buildCartCtx: (entry) => promoCards.buildCartCtx(entry, cardDeps()),
+            activeEntryForGroup: (grupo) =>
+                promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog),
+        });
     };
 
     const buildCartCtx = (entry) => promoCards.buildCartCtx(entry, cardDeps());
@@ -145,6 +151,12 @@
             groups.sort((a, b) =>
                 (a.nomeExibicao || '').localeCompare(b.nomeExibicao || '', 'pt-BR'),
             );
+        } else if (sortMode === 'category') {
+            groups.sort((a, b) => {
+                const catDiff = categoryLabelForGroup(a).localeCompare(categoryLabelForGroup(b), 'pt-BR');
+                if (catDiff) return catDiff;
+                return (a.nomeExibicao || '').localeCompare(b.nomeExibicao || '', 'pt-BR');
+            });
         } else {
             groups.sort(
                 (a, b) =>
@@ -185,15 +197,22 @@
 
     productDetail?.init?.({
         getDisplayItems: () => displayItems,
-        getPromoOffers: () => ({}),
+        getPromoOffers: () => promoOffers,
         onCartChanged: syncGridQty,
     });
 
     const renderShell = () => {
+        const count = promoGroups.length;
+        const lead =
+            loading
+                ? 'Carregando produtos com selo de promoção…'
+                : count
+                  ? `${count} ${count === 1 ? 'produto' : 'produtos'} com selo de promoção`
+                  : 'Produtos com o selo Ligeirinho Promoção';
         root.innerHTML = `<div class="ofertas-shell">
 <header class="ofertas-header">
 <h1 class="ofertas-header__title">Promoções</h1>
-<p class="ofertas-header__lead">Promoções ativas cadastradas no Ligeirinho Hub</p>
+<p class="ofertas-header__lead" id="ofertas-header-lead">${esc(lead)}</p>
 </header>
 <div class="ofertas-toolbar">
 <button type="button" class="ofertas-toolbar__btn" id="ofertas-filter-btn" aria-expanded="${filterOpen}">
@@ -204,6 +223,7 @@
 <div class="ofertas-toolbar__sort">
 <select id="ofertas-sort" class="ofertas-toolbar__select" aria-label="Ordenar por">
 <option value="discount">Maior desconto</option>
+<option value="category">Por categoria</option>
 <option value="name">Ordenar por nome</option>
 <option value="price-asc">Menor preço</option>
 <option value="price-desc">Maior preço</option>
@@ -229,16 +249,60 @@ ${(catalogData?.categories || [])
 </div>`;
     };
 
+    const categoryLabelForGroup = (grupo) => {
+        const entry = promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog);
+        const name = entry?.item?.categoryName;
+        if (name) return catalog.formatCategoryLabel?.(name) || name;
+        return 'Outras';
+    };
+
+    const categoryIdForGroup = (grupo) => {
+        const entry = promoCards.activeEntryForGroup(grupo, selectedUnits, promoCatalog);
+        return entry?.item?.categoryId || '';
+    };
+
+    const renderOrganizedGrid = (groups) => {
+        if (sortMode !== 'category') {
+            return promoCards.renderGridHtml(groups, cardDeps());
+        }
+
+        const sections = new Map();
+        groups.forEach((grupo) => {
+            const id = categoryIdForGroup(grupo) || '_other';
+            const label = categoryLabelForGroup(grupo);
+            if (!sections.has(id)) sections.set(id, { id, label, groups: [] });
+            sections.get(id).groups.push(grupo);
+        });
+
+        const ordered = [...sections.values()].sort((a, b) =>
+            a.label.localeCompare(b.label, 'pt-BR'),
+        );
+
+        return ordered
+            .map((section) => {
+                const cards = section.groups
+                    .map((grupo, index) => promoCards.buildPromoCardHtml(grupo, index, cardDeps()))
+                    .join('');
+                return `<section class="ofertas-section" aria-label="${esc(section.label)}">
+<h2 class="ofertas-section__title">${esc(section.label)}</h2>
+<div class="totem-grid totem-grid--grid-m totem-grid--promos" role="list">${cards}</div>
+</section>`;
+            })
+            .join('');
+    };
+
     const renderList = () => {
         const list = root.querySelector('#ofertas-list');
         const status = root.querySelector('#ofertas-status');
+        const leadEl = root.querySelector('#ofertas-header-lead');
         if (!list) return;
 
         if (loading) {
             if (status) {
                 status.hidden = false;
-                status.textContent = 'Carregando promoções do Hub…';
+                status.textContent = 'Carregando produtos com selo de promoção…';
             }
+            if (leadEl) leadEl.textContent = 'Carregando produtos com selo de promoção…';
             list.innerHTML = '';
             return;
         }
@@ -250,18 +314,24 @@ ${(catalogData?.categories || [])
                     'Não foi possível carregar as promoções. <button type="button" class="ofertas-status__retry" id="ofertas-retry">Tentar novamente</button>';
                 status.querySelector('#ofertas-retry')?.addEventListener('click', () => void refreshAll());
             }
+            if (leadEl) leadEl.textContent = 'Falha ao carregar promoções';
             list.innerHTML = '';
             return;
         }
 
         const groups = getFilteredGroups();
         if (status) status.hidden = true;
+        if (leadEl) {
+            leadEl.textContent = groups.length
+                ? `${groups.length} ${groups.length === 1 ? 'produto' : 'produtos'} com selo de promoção`
+                : 'Nenhum produto com selo no momento';
+        }
 
         if (groups.length) {
-            list.innerHTML = promoCards.renderGridHtml(groups, cardDeps());
+            list.innerHTML = renderOrganizedGrid(groups);
         } else {
             list.innerHTML =
-                '<p class="ofertas-empty">Nenhuma promoção ativa no momento. Cadastre promoções no Ligeirinho Hub.</p>';
+                '<p class="ofertas-empty">Nenhum produto com o selo de promoção ativo. Cadastre promoções no Ligeirinho Hub.</p>';
         }
     };
 
@@ -398,8 +468,9 @@ ${(catalogData?.categories || [])
                 const result = await window.LigeirinhoCatalogSync.sync();
                 if (result?.ok && result.catalogData) {
                     catalogData = result.catalogData;
-                    displayItems = pricing.getDisplayProducts(catalogData);
-                    window.__ligProductGroups = pricing.buildGroups(catalogData);
+                    const groups = pricing.buildGroups(catalogData);
+                    window.__ligProductGroups = groups;
+                    displayItems = pricing.getDisplayProducts(catalogData, groups);
                 } else if (!result?.busy) {
                     loadError = true;
                 }
@@ -423,8 +494,9 @@ ${(catalogData?.categories || [])
             const catalogJson = await window.LigeirinhoCatalogLoader.load();
             await Promise.all([pricing.loadPackConfig(), pricing.loadTierImages()]);
             catalogData = catalogJson;
-            displayItems = pricing.getDisplayProducts(catalogJson);
-            window.__ligProductGroups = pricing.buildGroups(catalogJson);
+            const groups = pricing.buildGroups(catalogJson);
+            window.__ligProductGroups = groups;
+            displayItems = pricing.getDisplayProducts(catalogJson, groups);
             await refreshAll();
         } catch {
             loadError = true;
@@ -445,8 +517,9 @@ ${(catalogData?.categories || [])
         const catalogJson = event.detail?.catalogData;
         if (!catalogJson) return;
         catalogData = catalogJson;
-        displayItems = pricing.getDisplayProducts(catalogJson);
-        window.__ligProductGroups = pricing.buildGroups(catalogJson);
+        const groups = pricing.buildGroups(catalogJson);
+        window.__ligProductGroups = groups;
+        displayItems = pricing.getDisplayProducts(catalogJson, groups);
         promoLoader.clear();
         void reloadPromos();
     });
