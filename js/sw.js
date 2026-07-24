@@ -35,7 +35,6 @@ const NETWORK_FIRST_JS = new Set([
     '/js/metodo-pagamento.js',
     '/js/payment-methods.js',
     '/js/payment-splits.js',
-    '/js/address-picker.js',
     '/js/onboarding.js',
     '/js/login-phone.js',
 ]);
