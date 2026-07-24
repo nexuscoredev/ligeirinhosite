@@ -1,6 +1,10 @@
 (function () {
-    const ensureMeta = (name, content) => {
-        if (document.querySelector(`meta[name="${name}"]`)) return;
+    const ensureMeta = (name, content, { replace = false } = {}) => {
+        const existing = document.querySelector(`meta[name="${name}"]`);
+        if (existing) {
+            if (replace) existing.content = content;
+            return;
+        }
         const meta = document.createElement('meta');
         meta.name = name;
         meta.content = content;
@@ -18,10 +22,14 @@
         document.head.appendChild(link);
     };
 
-    ensureMeta('theme-color', window.LigeirinhoTheme?.getEffective?.() === 'dark' ? '#121212' : '#ffffff');
+    ensureMeta(
+        'theme-color',
+        window.LigeirinhoTheme?.getEffective?.() === 'dark' ? '#0d0d0d' : '#ffffff',
+        { replace: true },
+    );
     ensureMeta('mobile-web-app-capable', 'yes');
     ensureMeta('apple-mobile-web-app-capable', 'yes');
-    ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent');
+    ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent', { replace: true });
     ensureMeta('apple-mobile-web-app-title', 'Ligeirinho Parceiros');
     ensureLink('manifest', 'manifest.webmanifest');
     ensureLink('stylesheet', 'css/theme-forms.css');
@@ -31,6 +39,7 @@
         window.matchMedia('(display-mode: fullscreen)').matches ||
         window.navigator.standalone === true;
 
+    document.documentElement.classList.add('lig-app-safe-areas');
     if (isStandalone) {
         document.documentElement.classList.add('lig-app-standalone');
     }

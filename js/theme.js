@@ -16,11 +16,20 @@
     };
 
     const updateMetaThemeColor = (effective) => {
-        const color = effective === 'dark' ? '#121212' : '#ffffff';
+        /* Mesma cor do chrome (header/nav) — evita faixa entre status bar e app. */
+        const color = effective === 'dark' ? '#0d0d0d' : '#ffffff';
         document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
             meta.content = color;
         });
+        let meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            document.head.appendChild(meta);
+        }
+        meta.content = color;
         document.documentElement.classList.toggle('dark', effective === 'dark');
+        document.documentElement.style.setProperty('--lig-chrome', color);
     };
 
     const apply = (mode) => {

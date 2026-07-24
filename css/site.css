@@ -214,7 +214,7 @@ html.lig-app-mode.lig-has-float-cart body {
     padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* Só no body — overflow-x em html+body vira overflow-y:auto nos dois e trava o scroll no mobile. */
+/* S? no body ? overflow-x em html+body vira overflow-y:auto nos dois e trava o scroll no mobile. */
 body {
     overflow-x: clip;
     max-width: 100%;
@@ -240,7 +240,9 @@ html.lig-app-mode .lig-site-footer {
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background: var(--lig-surface);
     border-top: 1px solid var(--lig-border);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+    box-shadow: none;
+    /* Evita ?faixa? entre a nav e a home indicator */
+    background-clip: padding-box;
 }
 
 .app-tab-active {
@@ -251,7 +253,7 @@ html.lig-app-mode .lig-site-footer {
     font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
-/* ── Motion (microinterações e reveal) ── */
+/* ?? Motion (microintera??es e reveal) ?? */
 html.lig-motion-ready #lig-page-main {
     animation: lig-page-enter 0.32s var(--lig-motion-ease) both;
 }
@@ -390,7 +392,36 @@ html.lig-app-standalone .ze-app-header {
     padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* ── Shared surfaces ── */
+/* Safe areas sempre no mobile ? remove quebra status bar / home indicator */
+@media (max-width: 767px) {
+    html.lig-app-safe-areas .lig-header-stack,
+    html.lig-app-standalone .lig-header-stack {
+        padding-top: env(safe-area-inset-top, 0px);
+        background: var(--lig-bg);
+        border-bottom-color: var(--lig-border);
+    }
+
+    html.lig-app-safe-areas .lig-header-stack .ze-app-header,
+    html.lig-app-safe-areas .lig-header-stack .ze-app-chrome,
+    html.lig-app-safe-areas .lig-header-stack .font-nav-bar {
+        background: transparent;
+    }
+
+    html.lig-app-safe-areas #app-bottom-nav,
+    html.lig-app-standalone #app-bottom-nav {
+        background: var(--lig-bg);
+        border-top-color: color-mix(in srgb, var(--lig-border) 80%, transparent);
+        /* Extende a cor da nav sob a home indicator sem ?degrau? */
+        box-shadow: 0 calc(env(safe-area-inset-bottom, 0px) + 1px) 0 0 var(--lig-bg);
+    }
+
+    html.lig-app-safe-areas body,
+    html.lig-app-standalone body {
+        background-color: var(--lig-bg);
+    }
+}
+
+/* ?? Shared surfaces ?? */
 .glass-panel,
 .lig-cart-panel {
     background: var(--lig-surface);
@@ -423,7 +454,7 @@ html.lig-app-standalone .ze-app-header {
     background: var(--lig-yellow);
 }
 
-/* ── Brand wordmark (header) ── */
+/* ?? Brand wordmark (header) ?? */
 .lig-brand {
     display: inline-flex;
     align-items: center;
@@ -498,7 +529,7 @@ html.lig-app-standalone .ze-app-header {
     }
 }
 
-/* ── App header ── */
+/* ?? App header ?? */
 .lig-header-stack {
     position: sticky;
     top: 0;
@@ -1053,7 +1084,7 @@ html.lig-app-standalone .ze-app-header {
     }
 }
 
-/* ── Promo banner ── */
+/* ?? Promo banner ?? */
 .ze-promo {
     margin: 0.75rem 1rem 1rem;
     border-radius: 0.75rem;
@@ -1092,7 +1123,7 @@ html.lig-app-standalone .ze-app-header {
     margin-top: 0.125rem;
 }
 
-/* ── Category tiles ── */
+/* ?? Category tiles ?? */
 .ze-cat-scroll {
     display: flex;
     gap: 0.875rem;
@@ -1188,7 +1219,7 @@ html.lig-app-standalone .ze-app-header {
     -webkit-box-orient: vertical;
 }
 
-/* ── Section rows ── */
+/* ?? Section rows ?? */
 .ze-section {
     margin-bottom: 1.25rem;
 }
@@ -1304,7 +1335,7 @@ html.lig-app-standalone .ze-app-header {
     color: var(--lig-yellow-text);
 }
 
-/* ── Product grid ── */
+/* ?? Product grid ?? */
 .ze-product-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1565,7 +1596,7 @@ html.dark .ze-price-tier--active {
     padding: 0 0.3rem;
 }
 
-/* ── Qty stepper ── */
+/* ?? Qty stepper ?? */
 .ze-add-btn {
     box-sizing: border-box;
     display: flex;
@@ -1693,7 +1724,7 @@ html.dark .ze-price-tier--active {
     text-align: center;
 }
 
-/* ── Filter pills ── */
+/* ?? Filter pills ?? */
 .ze-filter-pills {
     display: flex;
     gap: 0.5rem;
@@ -2140,7 +2171,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     font-size: 1rem;
 }
 
-/* ── Parceiros: laterais e overlays clicáveis ── */
+/* ?? Parceiros: laterais e overlays clic?veis ?? */
 #nav-mobile-menu[aria-hidden='true'],
 #nav-mobile-menu.hidden {
     display: none !important;
@@ -2204,7 +2235,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Floating cart bar (estilo sacola) ── */
+/* ?? Floating cart bar (estilo sacola) ?? */
 #ze-float-cart {
     position: fixed;
     left: 0.75rem;
@@ -2334,7 +2365,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     box-shadow: 0 2px 8px rgba(26, 26, 26, 0.18);
 }
 
-/* ── Cart sheet / panel ── */
+/* ?? Cart sheet / panel ?? */
 .lig-cart-panel {
     display: flex;
     flex-direction: column;
@@ -2905,7 +2936,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     }
 }
 
-/* ── Páginas internas (Quem Somos, Contato) ── */
+/* ?? P?ginas internas (Quem Somos, Contato) ?? */
 .lig-page-card {
     background: var(--lig-surface);
     border: 1px solid var(--lig-border);
@@ -3021,7 +3052,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     flex-shrink: 0;
 }
 
-/* ── Fase 1: reorder, combos, theme, onboarding ── */
+/* ?? Fase 1: reorder, combos, theme, onboarding ?? */
 .ze-reorder {
     margin: 0 1rem 1rem;
     padding: 1rem 1.125rem;
@@ -3170,7 +3201,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     transform: scale(0.97);
 }
 
-/* ── Home mobile (estilo BEES) ── */
+/* ?? Home mobile (estilo BEES) ?? */
 .home-page {
     padding-bottom: 0.5rem;
     max-width: 100%;
@@ -3311,7 +3342,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     white-space: nowrap;
 }
 
-/* ── Home: promo stories (estilo Instagram/WhatsApp) ── */
+/* ?? Home: promo stories (estilo Instagram/WhatsApp) ?? */
 .home-promo-stories {
     display: flex;
     gap: 0.875rem;
@@ -3737,7 +3768,7 @@ html.lig-story-open {
     padding: 0 0.625rem 0.625rem;
 }
 
-/* Home: separação entre blocos de seção */
+/* Home: separa??o entre blocos de se??o */
 .home-page {
     --home-section-gap: 0.875rem;
     --home-section-pad-top: 1.625rem;
@@ -3914,7 +3945,7 @@ html.lig-story-open {
     }
 }
 
-/* ── Conta (aba Perfil mobile) ── */
+/* ?? Conta (aba Perfil mobile) ?? */
 .conta-page {
     flex: 1;
     display: flex;
@@ -4918,7 +4949,7 @@ html.lig-story-open {
     }
 }
 
-/* ── Club Raios ── */
+/* ?? Club Raios ?? */
 .raios-body {
     background: var(--lig-bg);
 }
@@ -5666,7 +5697,7 @@ html.lig-story-open {
     padding-bottom: 0.4rem;
 }
 
-/* ── Ofertas (estilo BEES) ── */
+/* ?? Ofertas (estilo BEES) ?? */
 .ofertas-body {
     background: var(--lig-bg);
 }
@@ -6117,7 +6148,7 @@ html.lig-story-open {
     cursor: pointer;
 }
 
-/* ── Parceiros: cards de produto estilo Totem ── */
+/* ?? Parceiros: cards de produto estilo Totem ?? */
 .parceiros-catalog-grid.totem-grid {
     width: 100%;
     padding: 0.25rem 0 1rem;
@@ -6258,7 +6289,7 @@ html.lig-story-open {
     font-size: 0.875rem;
 }
 
-/* Carrosséis (Início) — réplica visual do totem-grid--grid-m */
+/* Carross?is (In?cio) ? r?plica visual do totem-grid--grid-m */
 .parceiros-product-scroll,
 .ze-product-scroll:has(.totem-product),
 .home-suggested-scroll:has(.totem-product) {
@@ -6275,7 +6306,7 @@ html.lig-story-open {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
-    /* pan-x sozinho bloqueava rolagem vertical da página nos carrosséis */
+    /* pan-x sozinho bloqueava rolagem vertical da p?gina nos carross?is */
     touch-action: pan-x pan-y;
 }
 
@@ -6837,7 +6868,7 @@ html.parceiros-detail-open body {
     }
 }
 
-/* ── Caminhão (carrinho distribuidora) ── */
+/* ?? Caminh?o (carrinho distribuidora) ?? */
 .caminhao-body {
     background: var(--lig-bg);
 }
@@ -7786,7 +7817,7 @@ html.parceiros-detail-open body {
     }
 }
 
-/* ── Site footer ── */
+/* ?? Site footer ?? */
 .lig-site-footer {
     background: var(--lig-surface);
     border-top: 1px solid var(--lig-border);
@@ -8162,7 +8193,7 @@ html {
     scrollbar-gutter: stable;
 }
 
-/* ── Header: Minha conta ── */
+/* ?? Header: Minha conta ?? */
 .lig-nav-account {
     align-items: center;
     gap: 0.375rem;
@@ -8196,7 +8227,7 @@ html {
     font-variation-settings: 'FILL' 1;
 }
 
-/* ── Micro-animações ── */
+/* ?? Micro-anima??es ?? */
 @keyframes ze-add-pop {
     0% { transform: scale(1); }
     45% { transform: scale(1.08); }
@@ -8254,7 +8285,7 @@ html {
     }
 }
 
-/* ── Login (estilo Zé Delivery) ── */
+/* ?? Login (estilo Z? Delivery) ?? */
 html:has(body.lig-login-page),
 body.lig-login-page {
     overflow: hidden;
@@ -9271,7 +9302,7 @@ html.lig-login-modal-open {
     background: var(--lig-yellow-light);
 }
 
-/* ── Versionamento modular ── */
+/* ?? Versionamento modular ?? */
 .lig-version-link {
     color: var(--lig-yellow-text);
     font-weight: 700;
@@ -9537,7 +9568,7 @@ html.lig-login-modal-open {
     text-decoration: underline;
 }
 
-/* ——— Pagamento Mercado Pago ——— */
+/* ??? Pagamento Mercado Pago ??? */
 .lig-payment-page {
     max-width: 28rem;
     margin: 0 auto;
@@ -9747,7 +9778,7 @@ html.lig-login-modal-open {
     background: var(--lig-surface-2, rgba(0, 0, 0, 0.04));
 }
 
-/* Tailwind CDN loads after site.css — text utilities need the contrast token */
+/* Tailwind CDN loads after site.css ? text utilities need the contrast token */
 .text-vibrant-yellow {
     color: var(--lig-yellow-text) !important;
 }
@@ -9766,7 +9797,7 @@ html.lig-login-modal-open {
     border-color: rgba(166, 124, 0, 0.35) !important;
 }
 
-/* ── Sincronizar catálogo (Hub) ── */
+/* ?? Sincronizar cat?logo (Hub) ?? */
 .lig-sync-nav-btn {
     display: inline-flex;
     align-items: center;
@@ -9898,7 +9929,7 @@ html.lig-login-modal-open {
     }
 }
 
-/* ── PWA: instalar app ── */
+/* ?? PWA: instalar app ?? */
 .lig-install-nav-btn {
     display: inline-flex;
     align-items: center;
@@ -10273,7 +10304,7 @@ html.lig-promo-notice-open body {
     cursor: pointer;
 }
 
-/* ── Notificações Hub ── */
+/* ?? Notifica??es Hub ?? */
 .lig-notif-root {
     position: relative;
 }
@@ -10451,7 +10482,7 @@ html.lig-promo-notice-open body {
     }
 }
 
-/* ── Desktop: nav, conta, ofertas wide ── */
+/* ?? Desktop: nav, conta, ofertas wide ?? */
 @media (min-width: 768px) {
     .ofertas-shell,
     .meus-pedidos-shell,
@@ -10557,7 +10588,7 @@ html.lig-promo-notice-open body {
 @media (min-width: 1024px) {
 }
 
-/* ——— Resumo do pedido (checkout B2B) ——— */
+/* ??? Resumo do pedido (checkout B2B) ??? */
 .resumo-body {
     background: var(--lig-bg);
     color: var(--lig-text);
@@ -11267,7 +11298,7 @@ html.lig-promo-notice-open body {
     line-height: 1.5;
 }
 
-/* ——— Conta: edição de dados ——— */
+/* ??? Conta: edi??o de dados ??? */
 .conta-info-row--link {
     display: flex;
     align-items: center;
@@ -11306,7 +11337,7 @@ html.lig-promo-notice-open body {
 .conta-alert--warn { background: var(--lig-warning-bg); border: 1px solid var(--lig-warning-border); color: var(--lig-warning-fg); }
 .conta-alert--warn p { margin: 0.35rem 0 0; font-size: 0.9rem; }
 
-/* ——— Acompanhar pedido ——— */
+/* ??? Acompanhar pedido ??? */
 .order-track-body {
     background: var(--lig-bg);
 }
@@ -11882,7 +11913,7 @@ html.lig-promo-notice-open body {
     cursor: wait;
 }
 
-/* PWA — banner de atualização (Parceiros) */
+/* PWA ? banner de atualiza??o (Parceiros) */
 .lig-pwa-update {
     position: fixed;
     inset-inline: 0;
@@ -11972,7 +12003,7 @@ html.lig-promo-notice-open body {
     border-color: color-mix(in srgb, var(--lig-text-muted) 45%, var(--lig-border));
 }
 
-/* ── Dark mode: contraste seguro (cards, texto, ícones) ── */
+/* ?? Dark mode: contraste seguro (cards, texto, ?cones) ?? */
 html.dark .ze-product-card,
 html.dark .ze-product-h,
 html.dark .home-suggested-card,
@@ -12115,6 +12146,11 @@ html.dark .font-nav-bar {
     border-color: var(--lig-border);
 }
 
+html.dark #app-bottom-nav {
+    background: var(--lig-bg);
+    border-top-color: var(--lig-border);
+}
+
 html.dark .lig-header-actions .material-symbols-outlined,
 html.dark .lig-theme-toggle,
 html.dark .lig-install-nav-btn,
@@ -12219,7 +12255,7 @@ html.dark .conta-menu-row {
     border-color: var(--lig-border);
 }
 
-/* Quem Somos — tema claro/escuro via tokens */
+/* Quem Somos ? tema claro/escuro via tokens */
 body[data-page='quemsomos'].qs-page,
 .qs-page {
     background: var(--lig-bg);
@@ -12279,7 +12315,7 @@ html.dark .qs-card {
     box-shadow: none;
 }
 
-/* -- Address picker (experi�ncia inicial estilo delivery) -- */
+/* -- Address picker (experi?ncia inicial estilo delivery) -- */
 html.lig-addr-open {
     overflow: hidden;
 }
@@ -12685,7 +12721,7 @@ html.lig-addr-open body {
     min-height: 2.5rem;
 }
 
-/* Login � criar conta em etapas */
+/* Login ? criar conta em etapas */
 .lig-signup-progress {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

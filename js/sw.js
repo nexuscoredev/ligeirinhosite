@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v399';
+const CACHE_NAME = 'ligeirinho-app-v400';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -37,6 +37,8 @@ const NETWORK_FIRST_JS = new Set([
     '/js/payment-splits.js',
     '/js/onboarding.js',
     '/js/login-phone.js',
+    '/js/theme.js',
+    '/js/app.js',
 ]);
 
 const NETWORK_FIRST_STATIC = new Set([
