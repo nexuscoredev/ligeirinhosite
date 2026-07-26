@@ -1,5 +1,5 @@
 (function () {
-    const CACHE_MS = 60_000;
+    const CACHE_MS = 120_000;
 
     const MARCADOR_EMBALAGEM_NOME = /\s+(PCT|PCTO|CX|PC|FARDO|FD|PACK|PACOTE|PL)\b/i;
     const SUFIXO_C_BARRA = /\s+C\/\s*\d+.*$/i;
@@ -331,9 +331,48 @@
     };
 
     const createHubPromoLoader = (apiUrl = '/api/promocoes') => {
+        const STORAGE_KEY = 'ligeirinho-promos-cache-v1';
         let hubPromos = [];
         let promosLoadedAt = 0;
         let fetchError = false;
+        let inflight = null;
+
+        const readStorage = () => {
+            try {
+                const raw = sessionStorage.getItem(STORAGE_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed?.promocoes)) return null;
+                if (parsed.apiUrl && parsed.apiUrl !== apiUrl) return null;
+                if (Date.now() - (parsed.savedAt || 0) > CACHE_MS) return null;
+                return parsed;
+            } catch {
+                return null;
+            }
+        };
+
+        const writeStorage = (promocoes) => {
+            try {
+                sessionStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify({
+                        savedAt: Date.now(),
+                        apiUrl,
+                        promocoes,
+                    }),
+                );
+            } catch {
+                /* quota / private mode */
+            }
+        };
+
+        const seed = (promocoes) => {
+            hubPromos = Array.isArray(promocoes) ? promocoes : [];
+            promosLoadedAt = Date.now();
+            fetchError = false;
+            writeStorage(hubPromos);
+            return hubPromos;
+        };
 
         const load = async (force = false) => {
             const now = Date.now();
@@ -341,37 +380,70 @@
                 fetchError = false;
                 return hubPromos;
             }
-            try {
-                const fetchUrl = force
-                    ? `${apiUrl}${apiUrl.includes('?') ? '&' : '?'}sync=${Date.now()}`
-                    : apiUrl;
-                const res = await fetch(fetchUrl, {
-                    credentials: 'same-origin',
-                    cache: 'no-store',
-                    signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout
-                        ? AbortSignal.timeout(8000)
-                        : undefined,
-                    headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : undefined,
-                });
-                if (!res.ok) throw new Error('fetch failed');
-                const data = await res.json();
-                hubPromos = Array.isArray(data?.promocoes) ? data.promocoes : [];
-                promosLoadedAt = now;
-                fetchError = false;
-            } catch {
-                fetchError = true;
-                if (!hubPromos.length) hubPromos = [];
+            if (!force) {
+                const stored = readStorage();
+                if (stored) {
+                    hubPromos = stored.promocoes;
+                    promosLoadedAt = stored.savedAt || now;
+                    fetchError = false;
+                    return hubPromos;
+                }
             }
-            return hubPromos;
+            if (!force && inflight) return inflight;
+
+            inflight = (async () => {
+                try {
+                    const fetchUrl = force
+                        ? `${apiUrl}${apiUrl.includes('?') ? '&' : '?'}sync=${Date.now()}`
+                        : apiUrl;
+                    const res = await fetch(fetchUrl, {
+                        credentials: 'same-origin',
+                        cache: force ? 'no-store' : 'default',
+                        signal:
+                            typeof AbortSignal !== 'undefined' && AbortSignal.timeout
+                                ? AbortSignal.timeout(8000)
+                                : undefined,
+                        headers: force
+                            ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' }
+                            : undefined,
+                    });
+                    if (!res.ok) throw new Error('fetch failed');
+                    const data = await res.json();
+                    return seed(Array.isArray(data?.promocoes) ? data.promocoes : []);
+                } catch {
+                    fetchError = true;
+                    if (!hubPromos.length) {
+                        const stored = readStorage();
+                        if (stored?.promocoes?.length) {
+                            hubPromos = stored.promocoes;
+                            promosLoadedAt = stored.savedAt || Date.now();
+                        } else {
+                            hubPromos = [];
+                        }
+                    }
+                    return hubPromos;
+                } finally {
+                    inflight = null;
+                }
+            })();
+
+            return inflight;
         };
 
         return {
             load,
+            seed,
             hadError: () => fetchError,
             clear: () => {
                 hubPromos = [];
                 promosLoadedAt = 0;
                 fetchError = false;
+                inflight = null;
+                try {
+                    sessionStorage.removeItem(STORAGE_KEY);
+                } catch {
+                    /* ignore */
+                }
             },
         };
     };

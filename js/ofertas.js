@@ -444,12 +444,22 @@ ${(catalogData?.categories || [])
         if (filterEl) filterEl.value = filterCategory;
     };
 
-    const reloadPromos = async () => {
+    const applyCatalogData = (catalogJson) => {
+        if (!catalogJson?.categories?.length) return false;
+        catalogData = catalogJson;
+        const groups = pricing.buildGroups(catalogJson);
+        window.__ligProductGroups = groups;
+        displayItems = pricing.getDisplayProducts(catalogJson, groups);
+        return true;
+    };
+
+    const reloadPromos = async ({ force = false } = {}) => {
         loading = true;
         loadError = false;
         renderList();
         try {
-            const promos = await promoLoader.load(true);
+            if (force) promoLoader.clear();
+            const promos = await promoLoader.load(force);
             loadError = promoLoader.hadError();
             reloadPromoGroups(promos);
         } catch {
@@ -467,42 +477,59 @@ ${(catalogData?.categories || [])
             if (window.LigeirinhoCatalogSync?.sync) {
                 const result = await window.LigeirinhoCatalogSync.sync();
                 if (result?.ok && result.catalogData) {
-                    catalogData = result.catalogData;
-                    const groups = pricing.buildGroups(catalogData);
-                    window.__ligProductGroups = groups;
-                    displayItems = pricing.getDisplayProducts(catalogData, groups);
+                    applyCatalogData(result.catalogData);
+                    if (Array.isArray(result.promoData)) {
+                        promoLoader.seed?.(result.promoData);
+                        reloadPromoGroups(result.promoData);
+                        loadError = false;
+                    } else {
+                        promoLoader.clear();
+                        const promos = await promoLoader.load(true);
+                        loadError = promoLoader.hadError();
+                        reloadPromoGroups(promos);
+                    }
                 } else if (!result?.busy) {
                     loadError = true;
                 }
+            } else {
+                const [catalogJson, , , promos] = await Promise.all([
+                    window.LigeirinhoCatalogLoader.load({ force: true }),
+                    pricing.loadPackConfig(),
+                    pricing.loadTierImages(),
+                    promoLoader.load(true),
+                ]);
+                applyCatalogData(catalogJson);
+                loadError = promoLoader.hadError();
+                reloadPromoGroups(promos);
             }
-            promoLoader.clear();
-            const promos = await promoLoader.load(true);
-            loadError = loadError || promoLoader.hadError();
+        } catch {
+            loadError = true;
+        }
+        loading = false;
+        render();
+    };
+
+    const init = async () => {
+        loading = true;
+        render();
+        /* Modal não bloqueia o fetch — carrega em paralelo atrás do aviso. */
+        void window.LigeirinhoPromoEntryNotice?.show?.({ variant: 'site' });
+
+        try {
+            const [catalogJson, , , promos] = await Promise.all([
+                window.LigeirinhoCatalogLoader.load(),
+                pricing.loadPackConfig(),
+                pricing.loadTierImages(),
+                promoLoader.load(false),
+            ]);
+            if (!applyCatalogData(catalogJson)) throw new Error('Catálogo vazio');
+            loadError = promoLoader.hadError();
             reloadPromoGroups(promos);
         } catch {
             loadError = true;
         }
         loading = false;
-        renderList();
-    };
-
-    const init = async () => {
-        await window.LigeirinhoPromoEntryNotice?.show?.({ variant: 'site' });
-        loading = true;
         render();
-        try {
-            const catalogJson = await window.LigeirinhoCatalogLoader.load();
-            await Promise.all([pricing.loadPackConfig(), pricing.loadTierImages()]);
-            catalogData = catalogJson;
-            const groups = pricing.buildGroups(catalogJson);
-            window.__ligProductGroups = groups;
-            displayItems = pricing.getDisplayProducts(catalogJson, groups);
-            await refreshAll();
-        } catch {
-            loadError = true;
-            loading = false;
-            renderList();
-        }
     };
 
     window.addEventListener('ligeirinho-cart-changed', () => {
@@ -516,12 +543,17 @@ ${(catalogData?.categories || [])
     window.addEventListener('ligeirinho-catalog-synced', (event) => {
         const catalogJson = event.detail?.catalogData;
         if (!catalogJson) return;
-        catalogData = catalogJson;
-        const groups = pricing.buildGroups(catalogJson);
-        window.__ligProductGroups = groups;
-        displayItems = pricing.getDisplayProducts(catalogJson, groups);
+        applyCatalogData(catalogJson);
+        if (Array.isArray(event.detail?.promoData)) {
+            promoLoader.seed?.(event.detail.promoData);
+            reloadPromoGroups(event.detail.promoData);
+            loading = false;
+            loadError = false;
+            renderList();
+            return;
+        }
         promoLoader.clear();
-        void reloadPromos();
+        void reloadPromos({ force: true });
     });
 
     init();
