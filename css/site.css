@@ -388,14 +388,18 @@ html.lig-motion-ready #lig-page-main {
     }
 }
 
-html.lig-app-standalone .ze-app-header {
-    padding-top: env(safe-area-inset-top, 0px);
+/* iOS: NÃO aplicar safe-area no header interno E no stack — causa faixa preta duplicada. */
+html.lig-app-standalone .lig-header-stack .ze-app-header,
+html.lig-app-safe-areas .lig-header-stack .ze-app-header {
+    padding-top: 0;
 }
 
-/* Safe areas sempre no mobile ? remove quebra status bar / home indicator */
+/* Safe areas mobile — um único padding no stack (status bar / home indicator) */
 @media (max-width: 767px) {
     html.lig-app-safe-areas .lig-header-stack,
     html.lig-app-standalone .lig-header-stack {
+        /* constant() = iOS antigo; env() = moderno */
+        padding-top: constant(safe-area-inset-top);
         padding-top: env(safe-area-inset-top, 0px);
         background: var(--lig-bg);
         border-bottom-color: var(--lig-border);
@@ -405,19 +409,30 @@ html.lig-app-standalone .ze-app-header {
     html.lig-app-safe-areas .lig-header-stack .ze-app-chrome,
     html.lig-app-safe-areas .lig-header-stack .font-nav-bar {
         background: transparent;
+        padding-top: 0;
     }
 
     html.lig-app-safe-areas #app-bottom-nav,
     html.lig-app-standalone #app-bottom-nav {
+        padding-bottom: constant(safe-area-inset-bottom);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
         background: var(--lig-bg);
         border-top-color: color-mix(in srgb, var(--lig-border) 80%, transparent);
-        /* Extende a cor da nav sob a home indicator sem ?degrau? */
         box-shadow: 0 calc(env(safe-area-inset-bottom, 0px) + 1px) 0 0 var(--lig-bg);
     }
 
     html.lig-app-safe-areas body,
     html.lig-app-standalone body {
         background-color: var(--lig-bg);
+        /* Evita padding extra no body empurrando o header */
+        padding-top: 0;
+    }
+
+    /* Safari iOS às vezes reserva espaço no html com 100vh — preferir dvh sem gap */
+    html.lig-app-safe-areas,
+    html.lig-app-standalone {
+        min-height: 100%;
+        min-height: -webkit-fill-available;
     }
 }
 
@@ -1698,6 +1713,7 @@ html.dark .ze-price-tier--active {
 
     #lig-page-main {
         min-height: 100dvh;
+        min-height: -webkit-fill-available;
         touch-action: pan-y;
         overscroll-behavior-y: auto;
     }

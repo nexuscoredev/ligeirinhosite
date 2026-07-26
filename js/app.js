@@ -39,9 +39,15 @@
         window.matchMedia('(display-mode: fullscreen)').matches ||
         window.navigator.standalone === true;
 
+    /* Safe areas: sempre (viewport-fit=cover). Padding só no header stack — ver CSS. */
     document.documentElement.classList.add('lig-app-safe-areas');
     if (isStandalone) {
         document.documentElement.classList.add('lig-app-standalone');
+    }
+
+    /* iOS PWA: status bar translúcida precisa estar setada antes do paint */
+    if (isStandalone || /iP(hone|od|ad)/.test(navigator.userAgent)) {
+        ensureMeta('apple-mobile-web-app-status-bar-style', 'black-translucent', { replace: true });
     }
 
     window.LigeirinhoApp = {
