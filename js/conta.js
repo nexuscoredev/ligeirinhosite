@@ -180,6 +180,7 @@ ${bodyHtml}
             return;
         }
         root.innerHTML = `${subHeader(title, backHash)}${bodyHtml}`;
+        window.LigeirinhoThemeUI?.renderAll?.();
     };
 
     const openCaminhao = () => {
@@ -196,6 +197,7 @@ ${bodyHtml}
 <span class="material-symbols-outlined">arrow_back</span>
 </button>
 <h1 class="conta-sub-header__title">${esc(title)}</h1>
+<div data-lig-theme-mount class="conta-sub-header__theme" role="group" aria-label="Tema do app"></div>
 </header>`;
 
     const menuRow = (item) => {
@@ -316,6 +318,10 @@ ${logoutBtn}
 </div>`;
         } else {
             root.innerHTML = `<div class="conta-menu-view">
+<header class="conta-topbar">
+<h1 class="conta-topbar__title">Conta</h1>
+<div data-lig-theme-mount class="conta-topbar__theme" role="group" aria-label="Tema do app"></div>
+</header>
 <div class="conta-menu-body">
 ${authBlock}
 <nav class="conta-menu-list" aria-label="Menu da conta">
@@ -324,6 +330,7 @@ ${menuItems.map(menuRow).join('')}
 ${logoutBtn}
 </div>
 </div>`;
+            window.LigeirinhoThemeUI?.renderAll?.();
         }
         bindAvatarPicker();
     };

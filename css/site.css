@@ -4085,6 +4085,46 @@ html.lig-story-open {
     flex-direction: column;
 }
 
+.conta-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    min-height: 3.25rem;
+    padding: max(0.75rem, env(safe-area-inset-top, 0px)) 1rem 0.75rem;
+    background: var(--lig-bg);
+    border-bottom: 1px solid var(--lig-border);
+    position: sticky;
+    top: 0;
+    z-index: 12;
+}
+
+.conta-topbar__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--lig-text);
+    letter-spacing: -0.02em;
+}
+
+.conta-topbar__theme,
+.conta-sub-header__theme {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.conta-topbar__theme .lig-theme-toggle,
+.conta-sub-header__theme .lig-theme-toggle {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--lig-surface);
+    border-color: var(--lig-border);
+    color: var(--lig-text);
+}
+
 .conta-hero-header {
     background: var(--lig-yellow);
     padding: 0.875rem 1rem 2.5rem;
@@ -4460,7 +4500,8 @@ html.lig-story-open {
 }
 
 .conta-sub-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1rem;
@@ -4491,13 +4532,13 @@ html.lig-story-open {
 }
 
 .conta-sub-header__title {
-    flex: 1;
+    margin: 0;
     font-size: 1.0625rem;
     font-weight: 700;
     color: var(--lig-text);
-    margin: 0;
     text-align: center;
-    padding-right: 2.5rem;
+    min-width: 0;
+    padding-right: 0;
 }
 
 .conta-sub-body {
@@ -5005,12 +5046,12 @@ html.lig-story-open {
 
 @media (max-width: 767px) {
     body[data-page='conta'] .lig-header-stack {
-        display: none;
+        display: none !important;
     }
 
     body[data-page='meus-pedidos'] .lig-header-stack,
     body[data-page='ofertas'] .lig-header-stack {
-        display: none;
+        display: none !important;
     }
 
     body[data-page='meus-pedidos'] .meus-pedidos-header,
@@ -5032,6 +5073,7 @@ html.lig-story-open {
         flex: 1;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
 
     body[data-page='conta'] .conta-page {
@@ -5039,17 +5081,32 @@ html.lig-story-open {
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
     }
 
     body[data-page='conta'] .conta-menu-view {
         min-height: 100%;
+        padding-bottom: 1.25rem;
     }
 
     body[data-page='conta'] .conta-menu-body {
-        padding-bottom: 0.5rem;
+        padding-bottom: 1.5rem;
+    }
+
+    body[data-page='conta'] .conta-menu-logout {
+        margin-bottom: 0.5rem;
     }
 
     .conta-sub-header {
+        padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+    }
+
+    /* constant() para iOS antigo + env() moderno */
+    html.lig-app-safe-areas body[data-page='conta'] .conta-topbar,
+    html.lig-app-standalone body[data-page='conta'] .conta-topbar,
+    html.lig-app-safe-areas body[data-page='conta'] .conta-sub-header,
+    html.lig-app-standalone body[data-page='conta'] .conta-sub-header {
+        padding-top: constant(safe-area-inset-top);
         padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
     }
 }
