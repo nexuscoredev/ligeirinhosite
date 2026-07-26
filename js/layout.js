@@ -999,6 +999,9 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     }
 
     if (page !== 'login' && page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso') {
+        ensureScript('js/mobile-scroll.js').then(() => {
+            window.LigeirinhoMobileScroll?.refresh?.();
+        });
         ensureScript('js/motion.js').then(() => {
             window.LigeirinhoMotion?.refresh?.();
         });

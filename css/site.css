@@ -1711,8 +1711,7 @@ html.dark .ze-price-tier--active {
         overscroll-behavior-x: contain;
     }
 
-    /* svh = viewport estável (não treme quando a barra do browser some/aparece).
-       overscroll none = evita bounce/pull-to-refresh no topo em Android/iOS. */
+    /* svh estável + sem pull-to-refresh roubando o gesto no topo. */
     html.lig-app-mode,
     html.lig-app-mode body {
         overscroll-behavior-y: none;
@@ -1721,9 +1720,35 @@ html.dark .ze-price-tier--active {
     #lig-page-main {
         min-height: 100svh;
         min-height: -webkit-fill-available;
-        touch-action: pan-y;
+        /* manipulation: pan livre sem delay de double-tap; vertical nunca trava */
+        touch-action: manipulation;
         overscroll-behavior-y: none;
         overflow-anchor: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /*
+     * Carrosséis: pan-y por padrão → arrastar pra descer SEMPRE rola a página.
+     * O eixo X é tratado em js/mobile-scroll.js quando o gesto é claramente horizontal.
+     */
+    .lig-hscroll,
+    .parceiros-product-scroll,
+    .home-suggested-scroll,
+    .ze-product-scroll,
+    .home-quick-chips,
+    .home-stories-scroll,
+    .ze-filter-pills {
+        touch-action: pan-y;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        overscroll-behavior-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .lig-hscroll--dragging {
+        touch-action: none;
+        cursor: grabbing;
     }
 
     .conta-btn,
@@ -1759,9 +1784,11 @@ html.dark .ze-price-tier--active {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 0 1rem 0.5rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    overscroll-behavior-x: contain;
     background: var(--lig-surface);
 }
 
@@ -3273,9 +3300,11 @@ body[data-page='pedidos'] .ze-product-card__price {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 0.875rem 1rem 0.25rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    overscroll-behavior-x: contain;
 }
 
 .home-quick-chips::-webkit-scrollbar {
@@ -3314,9 +3343,11 @@ body[data-page='pedidos'] .ze-product-card__price {
     display: flex;
     gap: 0.75rem;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 0.75rem 1rem 0.5rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    overscroll-behavior-x: contain;
 }
 
 .home-stories-scroll::-webkit-scrollbar {
@@ -6373,14 +6404,12 @@ html.lig-story-open {
     gap: var(--totem-grid-gap);
     align-items: stretch;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 0 1rem 0.25rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
-    overscroll-behavior-y: contain;
     overflow-anchor: none;
-    /* pan-x sozinho bloqueava rolagem vertical da página nos carrosséis */
-    touch-action: pan-x pan-y;
 }
 
 @media (max-width: 767px) {
