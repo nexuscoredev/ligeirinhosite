@@ -223,14 +223,15 @@
     });
 
     const renderProducts = () => {
-        const scrollY = window.scrollY;
+        const scrollY = window.LigeirinhoMobileScroll?.getY?.() ?? window.scrollY;
         const items = sortItems(getFilteredProducts());
         updateStats(items.length);
         updateCategoryHead();
         grid.innerHTML = items.length
             ? productCards.renderGridHtml(items, cardDeps())
             : '<p class="parceiros-catalog-empty">Nenhum produto encontrado.</p>';
-        window.scrollTo(0, scrollY);
+        if (window.LigeirinhoMobileScroll?.setY) window.LigeirinhoMobileScroll.setY(scrollY);
+        else window.scrollTo(0, scrollY);
     };
 
     const filterPillHtml = (id, label, count) => {

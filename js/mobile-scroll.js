@@ -17,6 +17,7 @@
     const THRESHOLD = 8;
     const LOCK_RATIO = 1.15;
     const COARSE = window.matchMedia('(hover: none), (pointer: coarse)');
+    const MOBILE = window.matchMedia('(max-width: 767px)');
 
     let startX = 0;
     let startY = 0;
@@ -26,6 +27,41 @@
     let pointerId = null;
 
     const isCoarse = () => COARSE.matches;
+
+    const getScrollRoot = () => {
+        if (MOBILE.matches && document.documentElement.classList.contains('lig-app-mode')) {
+            const main = document.getElementById('lig-page-main');
+            if (main) {
+                const style = window.getComputedStyle(main);
+                if (style.overflowY === 'auto' || style.overflowY === 'scroll') return main;
+                const nested = main.querySelector('.conta-page');
+                if (nested) {
+                    const ns = window.getComputedStyle(nested);
+                    if (ns.overflowY === 'auto' || ns.overflowY === 'scroll') return nested;
+                }
+                return main;
+            }
+        }
+        return document.scrollingElement || document.documentElement;
+    };
+
+    const getY = () => {
+        const root = getScrollRoot();
+        if (root === document.body || root === document.documentElement) {
+            return window.scrollY || root.scrollTop || 0;
+        }
+        return root.scrollTop || 0;
+    };
+
+    const setY = (y) => {
+        const root = getScrollRoot();
+        const top = Math.max(0, Number(y) || 0);
+        if (root === document.body || root === document.documentElement) {
+            window.scrollTo(0, top);
+        } else {
+            root.scrollTop = top;
+        }
+    };
 
     const reset = () => {
         if (activeEl) activeEl.classList.remove('lig-hscroll--dragging');
@@ -56,7 +92,6 @@
 
         if (!axis) {
             if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
-            /* Prefere vertical: só trava no X se for claramente dominante. */
             axis = Math.abs(dx) > Math.abs(dy) * LOCK_RATIO ? 'x' : 'y';
             if (axis === 'x') {
                 activeEl.classList.add('lig-hscroll--dragging');
@@ -72,7 +107,6 @@
             activeEl.scrollLeft = startLeft - dx;
             if (e.cancelable) e.preventDefault();
         }
-        /* axis === 'y': não interfere — touch-action:pan-y deixa a página rolar. */
     };
 
     const onPointerUp = (e) => {
@@ -80,7 +114,6 @@
         reset();
     };
 
-    /** Fallback iOS antigo / WebViews sem Pointer Events confiáveis */
     let touchEl = null;
     let touchAxis = null;
     let touchStartX = 0;
@@ -159,6 +192,9 @@
 
     window.LigeirinhoMobileScroll = {
         refresh: () => decorate(document),
+        getScrollRoot,
+        getY,
+        setY,
     };
 
     if (document.readyState === 'loading') {

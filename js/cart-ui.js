@@ -275,7 +275,13 @@ ${payBtnInnerHtml()}
     };
 
     const lockBodyScroll = () => {
-        scrollLockY = window.scrollY;
+        scrollLockY = window.LigeirinhoMobileScroll?.getY?.() ?? window.scrollY;
+        const root = window.LigeirinhoMobileScroll?.getScrollRoot?.();
+        if (root && root !== document.body && root !== document.documentElement) {
+            root.dataset.ligScrollLock = '1';
+            root.style.overflow = 'hidden';
+            return;
+        }
         document.body.style.position = 'fixed';
         document.body.style.top = `-${scrollLockY}px`;
         document.body.style.left = '0';
@@ -284,12 +290,21 @@ ${payBtnInnerHtml()}
     };
 
     const unlockBodyScroll = () => {
+        const root = document.querySelector('[data-lig-scroll-lock="1"]');
+        if (root) {
+            root.style.overflow = '';
+            delete root.dataset.ligScrollLock;
+            if (window.LigeirinhoMobileScroll?.setY) window.LigeirinhoMobileScroll.setY(scrollLockY);
+            else root.scrollTop = scrollLockY;
+            return;
+        }
         document.body.style.position = '';
         document.body.style.top = '';
         document.body.style.left = '';
         document.body.style.right = '';
         document.body.style.overflow = '';
-        window.scrollTo(0, scrollLockY);
+        if (window.LigeirinhoMobileScroll?.setY) window.LigeirinhoMobileScroll.setY(scrollLockY);
+        else window.scrollTo(0, scrollLockY);
     };
 
     const formatPrice = (value) => cartApi?.formatMoney?.(value) ?? '—';
