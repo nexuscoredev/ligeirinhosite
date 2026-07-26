@@ -532,20 +532,28 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
     };
 
     let headerOffsetObserver = null;
+    let headerOffsetRaf = 0;
+    let lastHeaderOffsetPx = -1;
 
     const syncHeaderOffset = () => {
-        const header = document.querySelector('.lig-header-stack') || document.querySelector('.ze-app-header');
-        if (!header) return;
-        const height = Math.ceil(header.getBoundingClientRect().height);
-        if (height > 0) {
-            document.documentElement.style.setProperty('--ze-header-offset', `${height}px`);
-            document.body?.style.setProperty('--ze-header-offset', `${height}px`);
-        }
+        if (headerOffsetRaf) return;
+        headerOffsetRaf = window.requestAnimationFrame(() => {
+            headerOffsetRaf = 0;
+            const header = document.querySelector('.lig-header-stack') || document.querySelector('.ze-app-header');
+            if (!header) return;
+            const height = Math.round(header.getBoundingClientRect().height);
+            if (height <= 0 || height === lastHeaderOffsetPx) return;
+            lastHeaderOffsetPx = height;
+            const value = `${height}px`;
+            document.documentElement.style.setProperty('--ze-header-offset', value);
+            document.body?.style.setProperty('--ze-header-offset', value);
+        });
     };
 
     const bindHeaderOffset = () => {
         const header = document.querySelector('.lig-header-stack') || document.querySelector('.ze-app-header');
         if (!header) return;
+        lastHeaderOffsetPx = -1;
         syncHeaderOffset();
         if (headerOffsetObserver) {
             headerOffsetObserver.disconnect();
@@ -554,8 +562,20 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         if (typeof ResizeObserver !== 'undefined') {
             headerOffsetObserver = new ResizeObserver(syncHeaderOffset);
             headerOffsetObserver.observe(header);
-        } else {
-            window.addEventListener('resize', syncHeaderOffset);
+        } else if (!window.__ligHeaderOffsetResizeBound) {
+            window.__ligHeaderOffsetResizeBound = true;
+            window.addEventListener('resize', syncHeaderOffset, { passive: true });
+        }
+        if (!window.__ligHeaderOffsetOrientBound) {
+            window.__ligHeaderOffsetOrientBound = true;
+            window.addEventListener(
+                'orientationchange',
+                () => {
+                    lastHeaderOffsetPx = -1;
+                    syncHeaderOffset();
+                },
+                { passive: true }
+            );
         }
     };
 

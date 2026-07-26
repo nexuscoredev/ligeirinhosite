@@ -1711,17 +1711,31 @@ html.dark .ze-price-tier--active {
         overscroll-behavior-x: contain;
     }
 
+    /* svh = viewport estável (não treme quando a barra do browser some/aparece).
+       overscroll none = evita bounce/pull-to-refresh no topo em Android/iOS. */
+    html.lig-app-mode,
+    html.lig-app-mode body {
+        overscroll-behavior-y: none;
+    }
+
     #lig-page-main {
-        min-height: 100dvh;
+        min-height: 100svh;
         min-height: -webkit-fill-available;
         touch-action: pan-y;
-        overscroll-behavior-y: auto;
+        overscroll-behavior-y: none;
+        overflow-anchor: none;
     }
 
     .conta-btn,
     .meus-pedidos-filters__clear,
     .home-quick-chip {
         min-height: 44px;
+        touch-action: manipulation;
+    }
+
+    .totem-product .ze-price-tier,
+    .totem-product .totem-qty-btn,
+    .totem-product .totem-qty-value {
         touch-action: manipulation;
     }
 }
@@ -6289,12 +6303,53 @@ html.lig-story-open {
     pointer-events: none;
 }
 
-:is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-price-card__detail:empty,
-:is(.parceiros-catalog-grid, .ofertas-promos-grid) .totem-price-card__unit:empty {
-    display: block;
+/* Reserva altura das linhas de preço (UN↔CX) — evita salto no carrossel/grid.
+   Precisa vencer .totem-price-card__*:empty { display:none } do totem.css. */
+:is(
+    .parceiros-catalog-grid,
+    .ofertas-promos-grid,
+    .parceiros-product-scroll,
+    .home-suggested-scroll,
+    .ze-product-scroll
+) .totem-price-card__detail:empty,
+:is(
+    .parceiros-catalog-grid,
+    .ofertas-promos-grid,
+    .parceiros-product-scroll,
+    .home-suggested-scroll,
+    .ze-product-scroll
+) .totem-price-card__unit:empty {
+    display: block !important;
     visibility: hidden;
     min-height: 1.05em;
     margin: 0;
+}
+
+/* Não reexecutar totem-card-in (spring) ao trocar UN/CX — causa tremor na tela. */
+:is(
+    .parceiros-catalog-grid,
+    .ofertas-promos-grid,
+    .parceiros-product-scroll,
+    .home-suggested-scroll,
+    .ze-product-scroll
+) .totem-product {
+    animation: none;
+    overflow-anchor: none;
+}
+
+@media (max-width: 767px) {
+    :is(
+        .parceiros-catalog-grid,
+        .ofertas-promos-grid,
+        .parceiros-product-scroll,
+        .home-suggested-scroll,
+        .ze-product-scroll
+    ) .totem-product {
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
 }
 
 .parceiros-catalog-empty {
@@ -6322,7 +6377,9 @@ html.lig-story-open {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     overscroll-behavior-x: contain;
-    /* pan-x sozinho bloqueava rolagem vertical da p?gina nos carross?is */
+    overscroll-behavior-y: contain;
+    overflow-anchor: none;
+    /* pan-x sozinho bloqueava rolagem vertical da página nos carrosséis */
     touch-action: pan-x pan-y;
 }
 

@@ -229,14 +229,96 @@ ${tiersSlotHtml}
 
     const updateCatalogCard = (card, item, deps) => {
         if (!card || !item) return;
-        const wrapper = document.createElement('div');
-        const index = Number(card.style.getPropertyValue('--totem-card-i')) || 0;
-        wrapper.innerHTML = buildCatalogCardHtml(item, index, deps, {
-            scroll: card.classList.contains('totem-product--scroll'),
-            tier: card.dataset.priceTier || null,
-        });
-        const next = wrapper.firstElementChild;
-        if (next) card.replaceWith(next);
+        const { catalog, pricing, formatPrice, getCartQty } = deps;
+        const ctx = resolveItemContext(item, deps, card.dataset.priceTier || null);
+        const { group, product, tier, variant, cartKey, itemKey, img, offer } = ctx;
+        const qty = getCartQty?.(cartKey) || 0;
+
+        card.dataset.priceTier = tier;
+        card.dataset.cartKey = cartKey;
+        card.dataset.itemKey = itemKey;
+        card.dataset.productId = product.id || '';
+        card.dataset.groupKey = group?.key || '';
+        if (offer?.promoId) card.dataset.promoId = offer.promoId;
+        else delete card.dataset.promoId;
+        card.classList.toggle('totem-product--selected', qty > 0);
+        card.classList.toggle('totem-product--promo', Boolean(offer?.promoId));
+
+        const imgEl = card.querySelector('.totem-product__media > img');
+        if (imgEl && img && imgEl.getAttribute('src') !== img) imgEl.src = img;
+
+        const media = card.querySelector('.totem-product__media');
+        const promoTag = card.querySelector('.totem-product__promo-tag');
+        const payTag = card.querySelector('.totem-product__pay-tag');
+        if (offer?.promoId) {
+            if (!promoTag) media?.insertAdjacentHTML('afterbegin', promoTagHtml());
+            if (!payTag) media?.insertAdjacentHTML('afterbegin', promoPayTagHtml());
+        } else {
+            promoTag?.remove();
+            payTag?.remove();
+        }
+
+        const tiersRoot = card.querySelector('.ze-price-tiers');
+        if (tiersRoot && group && pricing) {
+            tiersRoot.querySelectorAll('.ze-price-tier').forEach((btn) => {
+                const active = btn.dataset.priceTier === tier;
+                btn.classList.toggle('ze-price-tier--active', active);
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+        }
+
+        const packTag = card.querySelector('.totem-product__pack-tag');
+        const hasTierSelector = (tiersRoot?.querySelectorAll('.ze-price-tier').length || 0) > 1;
+        if (hasTierSelector) {
+            packTag?.remove();
+        } else if (variant && media && !packTag) {
+            media.insertAdjacentHTML('beforeend', mediaPackTagHtml(variant, tier));
+        } else if (packTag && variant) {
+            const label = packLabelForTier(tier);
+            const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
+            if (labelEl) labelEl.textContent = label;
+            packTag.setAttribute('aria-label', `Embalagem ${label}`);
+        }
+
+        const priceOpts = {
+            hidePackLabel: true,
+            promoId: offer?.promoId,
+            promoPrice: offer?.promoPrice,
+            originalPrice: offer?.originalPrice,
+            discountPct: offer?.discountPct,
+        };
+        const priceHtml = variant
+            ? priceBlockHtml(variant, pricing, formatPrice, priceOpts)
+            : `<div class="totem-price-card ze-price-block totem-product__price-block${offer?.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
+<div class="totem-price-card__main">
+${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="totem-product__price-old">${formatPrice(offer.originalPrice)}</span>` : '<span class="totem-product__price-old totem-product__price-old--spacer" aria-hidden="true"></span>'}
+<span class="totem-product__price totem-price-card__value">${formatPrice(offer?.promoPrice ?? product.price ?? 0)}</span>
+</div>
+<p class="totem-price-card__detail"></p>
+<p class="totem-price-card__unit"></p>
+</div>`;
+        const meta = card.querySelector('.totem-product__meta');
+        if (meta) meta.innerHTML = priceHtml;
+
+        const minus = card.querySelector('.totem-minus');
+        const plus = card.querySelector('.totem-plus');
+        const qtyEl = card.querySelector('.totem-qty-value');
+        if (minus) {
+            minus.dataset.cartKey = cartKey;
+            minus.disabled = qty <= 0;
+        }
+        if (plus) {
+            plus.dataset.cartKey = cartKey;
+            plus.dataset.itemKey = itemKey;
+            plus.dataset.priceTier = tier;
+        }
+        if (qtyEl) {
+            qtyEl.dataset.cartKey = cartKey;
+            qtyEl.dataset.itemKey = itemKey;
+            qtyEl.dataset.priceTier = tier;
+            qtyEl.textContent = String(qty);
+        }
+        updateCardQty(card, qty);
     };
 
     const findItemForCard = (card, items) => {
