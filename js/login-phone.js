@@ -6,6 +6,7 @@
 
     const phoneModal = document.getElementById('login-phone-modal');
     const phoneToggle = document.getElementById('login-phone-toggle');
+    const signupBtn = document.getElementById('login-signup-btn');
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
     const birthInput = document.getElementById('login-phone-birth');
@@ -149,6 +150,7 @@
     };
 
     phoneToggle?.addEventListener('click', openPhoneModal);
+    signupBtn?.addEventListener('click', openPhoneModal);
 
     closeTriggers().forEach((el) => {
         el.addEventListener('click', closePhoneModal);
@@ -169,7 +171,7 @@
         }
     });
 
-    if (params.get('metodo') === 'telefone') {
+    if (params.get('metodo') === 'telefone' || params.get('cadastro') === '1') {
         openPhoneModal();
     }
 

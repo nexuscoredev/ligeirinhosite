@@ -9576,6 +9576,28 @@ html.lig-login-modal-open {
     filter: brightness(1.05);
 }
 
+.lig-login-signup-btn {
+    width: 100%;
+    min-height: 2.75rem;
+    margin-top: 0.625rem;
+    border: 1.5px solid var(--lig-yellow);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--lig-yellow-text);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.lig-login-signup-btn:hover {
+    background: var(--lig-yellow-light);
+}
+
+[data-theme="dark"] .lig-login-signup-btn {
+    color: var(--lig-yellow);
+}
+
 .lig-login-setup__help {
     margin-top: 0.75rem;
     font-size: 0.75rem;
