@@ -13,6 +13,7 @@ import {
     getFinanceSettings,
 } from '../../scripts/supabase-finance.mjs';
 import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
+import { resolveParceirosDeliveryFee } from '../../scripts/lib/delivery-fee.mjs';
 import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
 import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import { registerTotemCustomer } from '../../scripts/lib/totem-customer-register.mjs';
@@ -96,8 +97,8 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Carrinho vazio ou inválido' });
         }
 
-        const total = roundMoney(items.reduce((sum, item) => sum + item.price * item.qty, 0));
-        if (total < 1) {
+        const subtotal = roundMoney(items.reduce((sum, item) => sum + item.price * item.qty, 0));
+        if (subtotal < 1) {
             return res.status(400).json({ error: 'Valor mínimo do pedido é R$ 1,00' });
         }
 
@@ -120,6 +121,13 @@ export default async function handler(req, res) {
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
         const isTotem = channel === 'totem';
         const isParceiros = !isTotem;
+
+        const deliveryFee = await resolveParceirosDeliveryFee(process.env, {
+            channel,
+            deliveryType,
+            hubUserId,
+        });
+        const total = roundMoney(subtotal + deliveryFee);
         let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
         let paymentSplits = null;
         try {
@@ -233,6 +241,7 @@ export default async function handler(req, res) {
             status: 'pending',
             items,
             total,
+            delivery_fee: deliveryFee,
             delivery_type: deliveryType,
             delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,
@@ -271,6 +280,7 @@ export default async function handler(req, res) {
                     nf_queue_status: _h,
                     hub_pedido_id: _i,
                     customer_cpf: _cpf,
+                    delivery_fee: _df,
                     ...legacyRow
                 } = row;
                 if (channel === 'totem') {

@@ -153,13 +153,24 @@
     };
 
     const deliveryApi = window.LigeirinhoParceiroDelivery;
+    const feeApi = () => window.LigeirinhoDeliveryFee;
+
+    const orderTotals = (cart, checkout) => {
+        const { subtotal } = cartApi.cartSummary(cart);
+        const deliveryFee = feeApi()?.resolveFee?.(session(), checkout) ?? 0;
+        const total = feeApi()?.orderTotal?.(subtotal, deliveryFee) ?? subtotal;
+        return { subtotal, deliveryFee, total };
+    };
 
     const deliveryOptions = () => {
         const dias = session()?.datasEntrega || [];
-        if (deliveryApi?.deliveryDateOptions) {
-            return deliveryApi.deliveryDateOptions(dias);
-        }
-        return [];
+        const checkout = loadCheckoutState();
+        const fee = feeApi()?.resolveFee?.(session(), checkout) ?? 0;
+        const priceLabel = feeApi()?.feeLabel?.(fee, formatPrice) ?? 'Grátis';
+        const base =
+            deliveryApi?.deliveryDateOptions?.(dias) ||
+            [];
+        return base.map((opt) => ({ ...opt, priceLabel }));
     };
 
     const syncDeliveryDateWithHub = () => {
@@ -414,15 +425,15 @@ ${body}
         }
 
         const checkout = loadCheckoutState();
-        const { units, subtotal } = cartApi.cartSummary(cart);
+        const { units, subtotal, deliveryFee, total } = orderTotals(cart, checkout);
         const s = session();
-        const errors = validateCheckout(checkout, subtotal);
+        const errors = validateCheckout(checkout, total);
         const dateLabel =
             deliveryOptions().find((d) => d.value === checkout.deliveryDate)?.label || 'Selecionar data';
         const diasLabel = s?.datasEntrega?.length
             ? s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || ''
             : '';
-        const payLabel = paymentMethodSelectHtml(checkout, subtotal);
+        const payLabel = paymentMethodSelectHtml(checkout, total);
 
         const productsBody = `<div class="resumo-products-list">${items.map(productLineHtml).join('')}</div>`;
 
@@ -446,7 +457,8 @@ ${cardHtml('Produtos', productsBody, String(units))}
 ${cardHtml(
     'Resumo do pedido',
     `<div class="resumo-total-row resumo-total-row--final"><span>Subtotal (${units} produtos)</span><strong>${formatPrice(subtotal)}</strong></div>
-<div class="resumo-total-row"><span>Taxa de entrega</span><span class="resumo-free">Grátis</span></div>`
+<div class="resumo-total-row"><span>Taxa de entrega</span><span class="${deliveryFee > 0 ? '' : 'resumo-free'}">${esc(feeApi()?.feeLabel?.(deliveryFee, formatPrice) || 'Grátis')}</span></div>
+<div class="resumo-total-row resumo-total-row--final"><span>Total</span><strong>${formatPrice(total)}</strong></div>`
 )}
 </div>
 <div class="resumo-footer resumo-footer--action">
@@ -472,7 +484,7 @@ ${cardHtml(
     const renderPicker = () => {
         const checkout = loadCheckoutState();
         const cart = cartApi.loadCart();
-        const { subtotal } = cartApi.cartSummary(cart);
+        const { total } = orderTotals(cart, loadCheckoutState());
         const title = pickerMode === 'date' ? 'Data de entrega' : 'Condições de pagamento';
 
         let body = '';
@@ -489,7 +501,7 @@ ${cardHtml(
                 .join('');
         } else {
             if (!pickerPaymentInitialized) {
-                initPickerPaymentState(checkout, subtotal);
+                initPickerPaymentState(checkout, total);
                 pickerPaymentInitialized = true;
             }
             body = `${paymentMethods()
@@ -505,7 +517,7 @@ ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
 </button>`;
                 })
                 .join('')}
-${pickerPaymentAmountsHtml(subtotal)}
+${pickerPaymentAmountsHtml(total)}
 ${pickerPaymentError ? `<p class="resumo-error">${esc(pickerPaymentError)}</p>` : ''}
 <button type="button" class="resumo-confirm-btn resumo-payment-confirm" id="resumo-payment-confirm">
 <span>Confirmar pagamento</span>
@@ -545,7 +557,7 @@ ${headerHtml(title)}
         });
         root.querySelectorAll('[data-toggle-payment]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                togglePickerPayment(btn.dataset.togglePayment, subtotal);
+                togglePickerPayment(btn.dataset.togglePayment, total);
                 renderPicker();
             });
         });
@@ -554,7 +566,7 @@ ${headerHtml(title)}
                 pickerPaymentAmounts[input.dataset.paymentAmount] = input.value;
                 const amounts = root.querySelector('.resumo-payment-amounts');
                 if (amounts) {
-                    amounts.outerHTML = pickerPaymentAmountsHtml(subtotal);
+                    amounts.outerHTML = pickerPaymentAmountsHtml(total);
                     root.querySelectorAll('[data-payment-amount]').forEach((el) => {
                         el.addEventListener('input', () => {
                             pickerPaymentAmounts[el.dataset.paymentAmount] = el.value;
@@ -571,7 +583,7 @@ ${headerHtml(title)}
             });
         });
         root.querySelector('#resumo-payment-confirm')?.addEventListener('click', () => {
-            if (!savePickerPayment(subtotal)) {
+            if (!savePickerPayment(total)) {
                 renderPicker();
                 return;
             }
@@ -585,7 +597,7 @@ ${headerHtml(title)}
     const confirmOrder = async () => {
         const cart = cartApi.loadCart();
         const checkout = loadCheckoutState();
-        const errors = validateCheckout(checkout, cartApi.cartSummary(cart).subtotal);
+        const errors = validateCheckout(checkout, orderTotals(cart, checkout).total);
         if (Object.keys(errors).length) {
             step = 'resumo';
             render();

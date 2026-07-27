@@ -168,7 +168,12 @@ ${condicaoBlock}
     };
 
     const stickyFooterHtml = (cart) => {
+        const checkout = cartApi.loadCheckout();
         const { subtotal } = cartApi.cartSummary(cart);
+        const feeApi = window.LigeirinhoDeliveryFee;
+        const auth = window.LigeirinhoAuth;
+        const deliveryFee = feeApi?.resolveFee?.(auth?.loadSession?.(), checkout) ?? 0;
+        const total = feeApi?.orderTotal?.(subtotal, deliveryFee) ?? subtotal;
         const savings = cartApi.cartEntries(cart).reduce((sum, item) => {
             const list = Number(item.listPrice) || 0;
             const price = Number(item.price) || 0;
@@ -184,7 +189,7 @@ ${
 <div class="caminhao-sticky-foot__bar">
 <div class="caminhao-sticky-foot__total">
 <span class="caminhao-sticky-foot__label">Total estimado</span>
-<strong class="caminhao-sticky-foot__value" id="caminhao-total-value">${formatPrice(subtotal)}</strong>
+<strong class="caminhao-sticky-foot__value" id="caminhao-total-value">${formatPrice(total)}</strong>
 </div>
 <button type="button" id="caminhao-pay-btn" class="caminhao-continue-btn caminhao-pay-btn--continue" disabled aria-label="${PAY_LABEL}">
 <span>${PAY_LABEL}</span>

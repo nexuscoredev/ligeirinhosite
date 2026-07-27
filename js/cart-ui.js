@@ -347,10 +347,21 @@ ${lineThumbHtml(item)}
     };
 
     const summaryHtml = (cart) => {
+        const checkout = cartApi.loadCheckout();
         const { units, subtotal } = cartApi.cartSummary(cart);
+        const feeApi = window.LigeirinhoDeliveryFee;
+        const auth = window.LigeirinhoAuth;
+        const deliveryFee = feeApi?.resolveFee?.(auth?.loadSession?.(), checkout) ?? 0;
+        const total = feeApi?.orderTotal?.(subtotal, deliveryFee) ?? subtotal;
         const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
+        const feeRow =
+            deliveryFee > 0
+                ? `<div class="lig-cart-summary__row"><span>Taxa de entrega</span><span>${formatPrice(deliveryFee)}</span></div>`
+                : '';
         return `<div class="lig-cart-summary">
-<div class="lig-cart-summary__row lig-cart-summary__row--total"><span>Subtotal (${unitsLabel})</span><strong>${formatPrice(subtotal)}</strong></div>
+<div class="lig-cart-summary__row"><span>Subtotal (${unitsLabel})</span><span>${formatPrice(subtotal)}</span></div>
+${feeRow}
+<div class="lig-cart-summary__row lig-cart-summary__row--total"><span>Total</span><strong>${formatPrice(total)}</strong></div>
 </div>`;
     };
 

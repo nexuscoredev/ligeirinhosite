@@ -64,6 +64,7 @@
             deliveryDateOptions: user.deliveryDateOptions || [],
             datasEntrega: user.datasEntrega || [],
             diasEntregaLabel: user.diasEntregaLabel || '',
+            taxaEntrega: user.taxaEntrega ?? null,
             razaoSocial: user.razaoSocial || '',
             totemAdmin: Boolean(user.totemAdmin),
             loggedInAt: Date.now(),
@@ -361,6 +362,7 @@
             deliveryDateOptions: profile.deliveryDateOptions || [],
             datasEntrega: profile.datasEntrega || [],
             diasEntregaLabel: profile.diasEntregaLabel || '',
+            taxaEntrega: profile.taxaEntrega ?? null,
             razaoSocial: profile.razaoSocial || '',
             totemAdmin: Boolean(profile.totemAdmin),
         });

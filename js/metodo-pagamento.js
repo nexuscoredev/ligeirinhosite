@@ -120,6 +120,16 @@ ${opt.hint ? `<span class="pay-method-opt__hint">${esc(opt.hint)}</span>` : ''}
         return true;
     };
 
+    const orderTotal = () => {
+        const cart = cartApi.loadCart();
+        const checkout = cartApi.loadCheckout();
+        const subtotal = cartApi.cartSummary(cart).subtotal;
+        const feeApi = window.LigeirinhoDeliveryFee;
+        const auth = window.LigeirinhoAuth;
+        const fee = feeApi?.resolveFee?.(auth?.loadSession?.(), checkout) ?? 0;
+        return feeApi?.orderTotal?.(subtotal, fee) ?? subtotal;
+    };
+
     const render = () => {
         const cart = cartApi.loadCart();
         if (!cartApi.cartItemCount(cart)) {
@@ -127,7 +137,7 @@ ${opt.hint ? `<span class="pay-method-opt__hint">${esc(opt.hint)}</span>` : ''}
             return;
         }
 
-        const { subtotal } = cartApi.cartSummary(cart);
+        const total = orderTotal();
         const canConfirm = selectedIds.length > 0;
 
         root.innerHTML = `<div class="checkout-flow-shell checkout-flow-shell--plain pay-method-shell">
@@ -142,15 +152,15 @@ ${opt.hint ? `<span class="pay-method-opt__hint">${esc(opt.hint)}</span>` : ''}
 </header>
 
 <div class="checkout-flow-content pay-method-list">
-${methods.OPTIONS.map((opt) => optionHtml(opt, subtotal)).join('')}
-${amountsHtml(subtotal)}
+${methods.OPTIONS.map((opt) => optionHtml(opt, total)).join('')}
+${amountsHtml(total)}
 ${formError ? `<p class="pay-method-error">${esc(formError)}</p>` : ''}
 </div>
 
 <footer class="pay-method-footer">
 <div class="pay-method-footer__total">
 <p class="pay-method-footer__label">Total estimado</p>
-<strong class="pay-method-footer__value">${formatPrice(subtotal)}</strong>
+<strong class="pay-method-footer__value">${formatPrice(total)}</strong>
 </div>
 <button type="button" id="pay-method-confirm-btn" class="checkout-continue-btn pay-method-footer__btn${canConfirm ? '' : ' checkout-continue-btn--disabled'}" ${canConfirm ? '' : 'disabled'} aria-label="Confirmar método de pagamento">
 <span>Confirmar método</span>
@@ -159,7 +169,7 @@ ${formError ? `<p class="pay-method-error">${esc(formError)}</p>` : ''}
 </footer>
 </div>`;
 
-        bindActions(subtotal);
+        bindActions(total);
     };
 
     const afterConfirm = () => {
@@ -227,7 +237,7 @@ ${formError ? `<p class="pay-method-error">${esc(formError)}</p>` : ''}
     if (!cartApi.cartItemCount(cart)) {
         window.location.replace('caminhao.html');
     } else {
-        initState(cartApi.loadCheckout(), cartApi.cartSummary(cart).subtotal);
+        initState(cartApi.loadCheckout(), orderTotal());
         render();
     }
 })();

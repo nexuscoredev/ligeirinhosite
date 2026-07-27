@@ -67,12 +67,24 @@ export function resolveParceiroClienteFields(pessoa) {
         if (c) return c;
         return String(pessoaValue || '').trim();
     };
+    const pickTaxaEntrega = (clienteValue, pessoaValue) => {
+        if (clienteValue != null && clienteValue !== '') {
+            const n = Number(clienteValue);
+            if (Number.isFinite(n) && n >= 0) return Math.round(n * 100) / 100;
+        }
+        if (pessoaValue != null && pessoaValue !== '') {
+            const n = Number(pessoaValue);
+            if (Number.isFinite(n) && n >= 0) return Math.round(n * 100) / 100;
+        }
+        return null;
+    };
 
     return {
         condicaoPagamento: pickText(cliente?.condicao_pagamento, pessoa?.condicao_pagamento),
         parcelasVencimento: pickText(cliente?.parcelas_vencimento, pessoa?.parcelas_vencimento),
         formasPagamentoIds: pickArray(cliente?.formas_pagamento_ids, pessoa?.formas_pagamento_ids),
         datasEntrega: resolveDatasEntregaParceiro(pessoa),
+        taxaEntrega: pickTaxaEntrega(cliente?.taxa_entrega, pessoa?.taxa_entrega),
     };
 }
 

@@ -284,6 +284,7 @@ export function publicOrderView(order) {
         status: order.status,
         financialStatus: order.financial_status || 'pendente',
         total: Number(order.total),
+        deliveryFee: Number(order.delivery_fee) || 0,
         deliveryType: order.delivery_type,
         deliveryDate: order.delivery_date || null,
         address: order.address,

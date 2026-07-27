@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v423';
+const CACHE_NAME = 'ligeirinho-app-v424';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -41,6 +41,7 @@ const APP_SHELL = [
     '/js/install-app.js',
     '/js/client-notifications.js',
     '/js/auth-store.js',
+    '/js/delivery-fee.js',
     '/js/layout.js',
     '/js/mobile-scroll.js',
     '/js/motion.js',

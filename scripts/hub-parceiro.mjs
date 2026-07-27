@@ -6,6 +6,7 @@ import {
     resolveParceiroClienteFields,
     rotuloDiasEntrega,
 } from './parceiro-delivery.mjs';
+import { fetchClienteTaxaEntrega } from './lib/delivery-fee.mjs';
 
 const CLIENTE_PARCEIROS_SELECT =
     'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids';
@@ -455,6 +456,11 @@ export async function buildParceiroExtrasFromPessoa(config, pessoa) {
     const cnpjDigits = pessoa.cpf_cnpj_digits || normalizeDocDigits(pessoa.cpf_cnpj);
     const datasEntrega = clienteFields.datasEntrega;
 
+    const taxaEntrega =
+        clienteFields.taxaEntrega != null
+            ? clienteFields.taxaEntrega
+            : await fetchClienteTaxaEntrega(config, pessoa);
+
     return {
         pessoaId: pessoa.id,
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
@@ -463,6 +469,7 @@ export async function buildParceiroExtrasFromPessoa(config, pessoa) {
         parcelasVencimento: clienteFields.parcelasVencimento,
         datasEntrega,
         diasEntregaLabel: rotuloDiasEntrega(datasEntrega),
+        taxaEntrega,
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
         paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
@@ -644,6 +651,11 @@ export async function buildParceiroExtras(config, usuario) {
     const cnpjDigits = pessoa.cpf_cnpj_digits || normalizeDocDigits(pessoa.cpf_cnpj);
     const datasEntrega = clienteFields.datasEntrega;
 
+    const taxaEntrega =
+        clienteFields.taxaEntrega != null
+            ? clienteFields.taxaEntrega
+            : await fetchClienteTaxaEntrega(config, pessoa);
+
     return {
         pessoaId: pessoa.id,
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
@@ -652,6 +664,7 @@ export async function buildParceiroExtras(config, usuario) {
         parcelasVencimento: clienteFields.parcelasVencimento,
         datasEntrega,
         diasEntregaLabel: rotuloDiasEntrega(datasEntrega),
+        taxaEntrega,
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
         paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),

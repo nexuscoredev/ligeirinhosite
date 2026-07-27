@@ -78,7 +78,12 @@
 
         const paymentOk = (() => {
             const splitsApi = window.LigeirinhoPaymentSplits;
-            const total = cartApi.cartSummary(cartApi.loadCart()).subtotal;
+            const feeApi = window.LigeirinhoDeliveryFee;
+            const auth = window.LigeirinhoAuth;
+            const cart = cartApi.loadCart();
+            const co = cartApi.loadCheckout();
+            const subtotal = cartApi.cartSummary(cart).subtotal;
+            const total = feeApi?.orderTotal?.(subtotal, feeApi.resolveFee?.(auth?.loadSession?.(), co)) ?? subtotal;
             return splitsApi?.validateCheckoutPayment?.(checkout, total, (id) => methods?.label?.(id))?.ok;
         })();
 
@@ -141,6 +146,11 @@ ${thumb}
         const items = cartApi.cartEntries(cart);
 
         const { units, subtotal } = cartApi.cartSummary(cart);
+        const feeApi = window.LigeirinhoDeliveryFee;
+        const auth = window.LigeirinhoAuth;
+        const deliveryFee = feeApi?.resolveFee?.(auth?.loadSession?.(), checkout) ?? 0;
+        const total = feeApi?.orderTotal?.(subtotal, deliveryFee) ?? subtotal;
+        const feeLabel = feeApi?.feeLabel?.(deliveryFee, formatPrice) || 'Grátis';
 
         const unitsLabel = units === 1 ? '1 produto' : `${units} produtos`;
 
@@ -283,7 +293,9 @@ ${
 
 <div class="checkout-summary-row"><span>Subtotal (${unitsLabel})</span><span>${formatPrice(subtotal)}</span></div>
 
-<div class="checkout-summary-row"><span>Taxa de entrega</span><strong class="checkout-summary-free">Grátis</strong></div>
+<div class="checkout-summary-row"><span>Taxa de entrega</span><strong class="${deliveryFee > 0 ? '' : 'checkout-summary-free'}">${esc(feeLabel)}</strong></div>
+
+<div class="checkout-summary-row checkout-summary-row--total"><span>Total</span><strong>${formatPrice(total)}</strong></div>
 
 <p class="checkout-summary-note">O total inclui impostos aplicáveis. Valores finais podem variar conforme legislação estadual.</p>
 

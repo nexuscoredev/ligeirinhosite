@@ -1,6 +1,11 @@
 import { hubConfig } from './hub-auth.mjs';
 import { resolveClienteParceiroForOrder } from './hub-parceiro.mjs';
 import { buildHubProductLookup, fetchHubProdutosForLookup } from './lib/hub-catalog.mjs';
+import {
+    DELIVERY_FEE_HUB_PRODUCT_ID,
+    DELIVERY_FEE_PRODUCT_NAME,
+    roundMoney,
+} from './lib/delivery-fee.mjs';
 
 export const PARCEIROS_NF_TAG = 'Ligeirinho Parceiros';
 export const PARCEIROS_TAG = PARCEIROS_NF_TAG;
@@ -173,8 +178,51 @@ function buildPagamentoSplit(order) {
     return [{ forma: parceirosMethodToHubForma(order.payment_method), valor: total }];
 }
 
-function roundMoney(n) {
-    return Math.round(Number(n) * 100) / 100;
+function orderDeliveryFee(order) {
+    const direct = Number(order?.delivery_fee);
+    if (Number.isFinite(direct) && direct >= 0) return roundMoney(direct);
+    const items = Array.isArray(order?.items) ? order.items : [];
+    const subtotal = roundMoney(items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0));
+    const total = Number(order?.total) || 0;
+    const diff = roundMoney(total - subtotal);
+    return diff > 0 ? diff : 0;
+}
+
+async function fetchDeliveryFeeProduct(hub) {
+    const rows = await hubRest(
+        hub,
+        `produtos?select=id,sku,ean,nome,categorias_produto(ordem_separacao)&id=eq.${encodeURIComponent(DELIVERY_FEE_HUB_PRODUCT_ID)}&ativo=eq.true&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+
+async function inserirTaxaEntregaNoPedidoHub(hub, pedidoId, fee, porSku) {
+    const amount = roundMoney(fee);
+    if (!amount || amount <= 0) return false;
+
+    let prod = porSku?.get?.(DELIVERY_FEE_HUB_PRODUCT_ID) || null;
+    if (!prod?.id) prod = await fetchDeliveryFeeProduct(hub);
+    if (!prod?.id) {
+        console.warn('hub-parceiro-pedido: produto taxa de entrega não encontrado no Hub');
+        return false;
+    }
+
+    const cat = prod.categorias_produto;
+    const catOrdem = (Array.isArray(cat) ? cat[0] : cat)?.ordem_separacao ?? 999;
+    await hubRest(hub, 'pedido_itens', {
+        method: 'POST',
+        body: [
+            {
+                pedido_id: pedidoId,
+                produto_id: prod.id,
+                nome_snapshot: String(prod.nome || DELIVERY_FEE_PRODUCT_NAME).slice(0, 200),
+                categoria_ordem: catOrdem,
+                qty_pedida: 1,
+                preco_unitario: amount,
+            },
+        ],
+    });
+    return true;
 }
 
 function formatDeliveryDate(value) {
@@ -263,16 +311,24 @@ function buildLinhasInsert(pedidoId, items, porSku) {
 
 async function inserirItensNoPedidoHub(hub, pedidoId, order) {
     const items = Array.isArray(order.items) ? order.items : [];
-    if (!items.length) return false;
+    if (!items.length && !orderDeliveryFee(order)) return false;
 
     const porSku = await resolverProdutosHub(hub, items);
     const linhasInsert = buildLinhasInsert(pedidoId, items, porSku);
-    if (!linhasInsert.length) return false;
+    if (linhasInsert.length) {
+        await hubRest(hub, 'pedido_itens', {
+            method: 'POST',
+            body: linhasInsert,
+        });
+    }
 
-    await hubRest(hub, 'pedido_itens', {
-        method: 'POST',
-        body: linhasInsert,
-    });
+    const fee = orderDeliveryFee(order);
+    if (fee > 0) {
+        await inserirTaxaEntregaNoPedidoHub(hub, pedidoId, fee, porSku);
+    }
+
+    if (!linhasInsert.length && fee <= 0) return false;
+
     await fetch(`${hub.url}/rest/v1/rpc/recalcular_totais_pedido`, {
         method: 'POST',
         headers: hubHeaders(hub),
