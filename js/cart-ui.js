@@ -180,7 +180,7 @@ ${payBtnInnerHtml()}
             const toast = document.createElement('div');
             toast.id = 'cart-add-toast';
             toast.className =
-                'fixed z-[80] bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 md:bottom-8 md:left-auto md:right-8 md:max-w-sm hidden';
+                'fixed z-[80] left-4 right-4 md:left-auto md:right-8 md:max-w-sm lig-cart-toast hidden';
             toast.setAttribute('role', 'status');
             toast.setAttribute('aria-live', 'polite');
             toast.setAttribute('aria-atomic', 'true');
@@ -205,7 +205,7 @@ ${payBtnInnerHtml()}
             const undo = document.createElement('div');
             undo.id = 'cart-undo-toast';
             undo.className =
-                'fixed z-[80] bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 md:bottom-8 md:left-auto md:right-8 md:max-w-sm hidden';
+                'fixed z-[80] left-4 right-4 md:left-auto md:right-8 md:max-w-sm lig-cart-toast hidden';
             undo.setAttribute('role', 'status');
             undo.innerHTML = `<div class="lig-toast-inner flex items-center gap-3 rounded-xl px-4 py-3">
 <p class="text-sm font-semibold lig-cart-text min-w-0 flex-1 truncate" id="cart-undo-toast-text">Item removido</p>

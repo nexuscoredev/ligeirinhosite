@@ -3233,11 +3233,33 @@ body[data-page='pedidos'] .ze-product-card__price {
     filter: brightness(0.9);
 }
 
-#cart-add-toast .lig-toast-inner {
+#cart-add-toast .lig-toast-inner,
+#cart-undo-toast .lig-toast-inner {
     background: var(--lig-surface);
     border: 1px solid var(--lig-border);
     box-shadow: var(--lig-shadow);
     color: var(--lig-text);
+}
+
+/* Toast acima da bottom nav; com caminhão flutuante, sobe para não cobrir o botão amarelo */
+.lig-cart-toast {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    transition: bottom 0.22s ease, opacity 0.22s ease, transform 0.22s ease;
+}
+
+html.lig-has-float-cart .lig-cart-toast {
+    /* float: bottom 4.25rem + ~3.25rem altura + 0.5rem gap */
+    bottom: calc(8.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+    .lig-cart-toast {
+        bottom: 2rem;
+    }
+
+    html.lig-has-float-cart .lig-cart-toast {
+        bottom: 6.25rem;
+    }
 }
 
 @media (min-width: 768px) {
