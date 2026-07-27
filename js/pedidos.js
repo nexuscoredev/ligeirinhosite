@@ -135,6 +135,7 @@
             if (offer.promoId) line.promoId = offer.promoId;
         }
         const cart = cartApi.loadCart();
+        const wasEmpty = !cart[line.key] || cart[line.key].qty <= 0;
         if (!cart[line.key]) {
             cart[line.key] = { ...line, qty: 0 };
         } else if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
@@ -143,8 +144,7 @@
         }
         cart[line.key].qty += 1;
         cartApi.saveCart(cart);
-        cartUi?.render?.();
-        cartUi?.showAddedFeedback?.(line.name);
+        if (wasEmpty) cartUi?.showAddedFeedback?.(line.name);
     };
 
     const removeProduct = (ctx) => {
@@ -155,7 +155,6 @@
         cart[key].qty -= 1;
         if (cart[key].qty <= 0) delete cart[key];
         cartApi.saveCart(cart);
-        cartUi?.render?.();
     };
 
     const setProductQty = (ctx, qty) => {
@@ -176,7 +175,6 @@
             cart[line.key].qty = qty;
         }
         cartApi.saveCart(cart);
-        cartUi?.render?.();
     };
 
     const activeCategoryLabel = () => {
@@ -213,22 +211,29 @@
     });
 
     const refreshCards = () => {
-        productCards.syncGridQty(grid, sortItems(getFilteredProducts()), cardDeps());
+        productCards.syncGridQty(grid, filteredSortedCache, cardDeps());
+    };
+
+    let filteredSortedCache = [];
+    let cardsTimer = null;
+    const scheduleRefreshCards = () => {
+        window.clearTimeout(cardsTimer);
+        cardsTimer = window.setTimeout(refreshCards, 48);
     };
 
     productDetail?.init?.({
         getDisplayItems: () => displayItems,
         getPromoOffers: () => promoOffers,
-        onCartChanged: refreshCards,
+        onCartChanged: scheduleRefreshCards,
     });
 
     const renderProducts = () => {
         const scrollY = window.LigeirinhoMobileScroll?.getY?.() ?? window.scrollY;
-        const items = sortItems(getFilteredProducts());
-        updateStats(items.length);
+        filteredSortedCache = sortItems(getFilteredProducts());
+        updateStats(filteredSortedCache.length);
         updateCategoryHead();
-        grid.innerHTML = items.length
-            ? productCards.renderGridHtml(items, cardDeps())
+        grid.innerHTML = filteredSortedCache.length
+            ? productCards.renderGridHtml(filteredSortedCache, cardDeps())
             : '<p class="parceiros-catalog-empty">Nenhum produto encontrado.</p>';
         if (window.LigeirinhoMobileScroll?.setY) window.LigeirinhoMobileScroll.setY(scrollY);
         else window.scrollTo(0, scrollY);
@@ -305,17 +310,14 @@
             getDeps: cardDeps,
             onAdd: (ctx) => {
                 addProduct(ctx);
-                refreshCards();
             },
             onRemove: (ctx) => {
                 removeProduct(ctx);
-                refreshCards();
             },
             onSetQty: (ctx) => {
                 setProductQty(ctx, ctx.qty);
-                refreshCards();
             },
-        }, () => sortItems(getFilteredProducts()));
+        }, () => filteredSortedCache);
     } catch (err) {
         console.warn('[pedidos] bindCatalogGrid', err);
     }
@@ -425,7 +427,7 @@
                 '<p class="parceiros-catalog-empty">Erro ao carregar o catálogo.</p>';
         });
 
-    window.addEventListener('ligeirinho-cart-changed', refreshCards);
+    window.addEventListener('ligeirinho-cart-changed', scheduleRefreshCards);
 
     window.addEventListener('ligeirinho-catalog-synced', async (event) => {
         const data = event.detail?.catalogData;

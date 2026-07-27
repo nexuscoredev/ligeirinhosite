@@ -97,6 +97,19 @@
         return name.replace(/\s*\(Caixa c\/\s*\d+\)/i, '').trim() || name;
     };
 
+    const STEP_GLYPHS = {
+        sent: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.4 20.4 20.85 12.9a1 1 0 0 0 0-1.8L3.4 3.6a1 1 0 0 0-1.4 1.15L4.7 11H13a1 1 0 1 1 0 2H4.7L2 19.25a1 1 0 0 0 1.4 1.15Z"/></svg>',
+        accept: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2.2-2.2a1 1 0 0 1 1.4-1.4l1.5 1.49 4.3-4.29a1 1 0 0 1 1.4 1.4Z"/></svg>',
+        prep: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.5 8.2 12.7 4.5a1.5 1.5 0 0 0-1.4 0L4.5 8.2A1.5 1.5 0 0 0 3.8 9.5v5a1.5 1.5 0 0 0 .7 1.3l6.8 3.7a1.5 1.5 0 0 0 1.4 0l6.8-3.7a1.5 1.5 0 0 0 .7-1.3v-5a1.5 1.5 0 0 0-.7-1.3ZM12 6.1 17 8.8 12 11.5 7 8.8Zm-6.2 4.5 5.2 2.8v5.3l-5.2-2.8Zm7.2 8.1v-5.3l5.2-2.8v5.3Z"/></svg>',
+        route: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 7h-2V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h.2a2.5 2.5 0 0 0 4.6 0h4.4a2.5 2.5 0 0 0 4.6 0H20a2 2 0 0 0 2-2v-4a4 4 0 0 0-4-4ZM6.5 17a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 6.5 17ZM4 13V5h10v8Zm11.5 4a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Zm4.5-2h-2v-4h2a2 2 0 0 1 2 2Z"/></svg>',
+        done: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.5 3.2a1 1 0 0 0-1 0l-8 5.1A1 1 0 0 0 3 9.1V20a1 1 0 0 0 1 1h5.2a1 1 0 0 0 1-1v-5.2h3.6V20a1 1 0 0 0 1 1H20a1 1 0 0 0 1-1V9.1a1 1 0 0 0-.5-.8Z"/></svg>',
+    };
+
+    const stepGlyphHtml = (step) => {
+        const svg = STEP_GLYPHS[step?.id] || STEP_GLYPHS.sent;
+        return `<span class="order-track__step-glyph">${svg}</span>`;
+    };
+
     const timelineHtml = (tracking) => {
         const active = Number(tracking?.step) || 0;
         const steps = tracking?.steps || [];
@@ -109,9 +122,7 @@ ${steps
     .map((step, index) => {
         const state = index < active ? 'done' : index === active ? 'active' : 'pending';
         return `<li class="order-track__step order-track__step--${state}">
-<span class="order-track__step-badge" aria-hidden="true">
-<span class="material-symbols-outlined order-track__step-glyph">${esc(step.icon)}</span>
-</span>
+<span class="order-track__step-badge" aria-hidden="true">${stepGlyphHtml(step)}</span>
 <span class="order-track__step-label">${esc(step.label)}</span>
 </li>`;
     })

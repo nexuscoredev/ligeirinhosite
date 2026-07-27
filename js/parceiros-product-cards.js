@@ -370,9 +370,19 @@ ${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="to
                 const items = getItems?.() || [];
                 const item = findItemForCard(card, items);
                 if (!item) return;
+                const deps = resolveDeps();
                 const tier = card?.dataset?.priceTier || plus.dataset.priceTier;
-                const ctx = resolveItemContext(item, resolveDeps(), tier);
-                handlers.onAdd?.({ ...ctx, cartKey: ctx.cartKey, variant: ctx.variant, group: ctx.group, tier: ctx.tier, offer: ctx.offer });
+                const ctx = resolveItemContext(item, deps, tier);
+                const nextQty = (deps.getCartQty?.(ctx.cartKey) || 0) + 1;
+                if (card) updateCardQty(card, nextQty);
+                handlers.onAdd?.({
+                    ...ctx,
+                    cartKey: ctx.cartKey,
+                    variant: ctx.variant,
+                    group: ctx.group,
+                    tier: ctx.tier,
+                    offer: ctx.offer,
+                });
                 return;
             }
 
@@ -380,6 +390,10 @@ ${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="to
             if (minus) {
                 const cartKey = minus.dataset.cartKey;
                 if (!cartKey) return;
+                const card = minus.closest('.totem-product');
+                const deps = resolveDeps();
+                const nextQty = Math.max(0, (deps.getCartQty?.(cartKey) || 0) - 1);
+                if (card) updateCardQty(card, nextQty);
                 handlers.onRemove?.({ cartKey });
                 return;
             }
@@ -398,6 +412,7 @@ ${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="to
                 const currentQty = deps.getCartQty?.(ctx.cartKey) || 0;
                 const qty = promptGridQty(currentQty);
                 if (qty == null) return;
+                if (card) updateCardQty(card, qty);
                 handlers.onSetQty?.({ ...ctx, qty });
                 return;
             }

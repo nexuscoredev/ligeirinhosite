@@ -47,6 +47,7 @@
             if (offer.promoId) line.promoId = offer.promoId;
         }
         const cart = cartApi.loadCart();
+        const wasEmpty = !cart[line.key] || cart[line.key].qty <= 0;
         if (!cart[line.key]) {
             cart[line.key] = { ...line, qty: 0 };
         } else if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
@@ -55,8 +56,7 @@
         }
         cart[line.key].qty += qty;
         cartApi.saveCart(cart);
-        window.LigeirinhoCartUI?.render?.();
-        window.LigeirinhoCartUI?.showAddedFeedback?.(line.name);
+        if (wasEmpty) window.LigeirinhoCartUI?.showAddedFeedback?.(line.name);
     };
 
     const removeProduct = (ctx) => {
@@ -67,7 +67,6 @@
         cart[key].qty -= 1;
         if (cart[key].qty <= 0) delete cart[key];
         cartApi.saveCart(cart);
-        window.LigeirinhoCartUI?.render?.();
     };
 
     const setProductQty = (ctx, qty) => {
@@ -88,7 +87,6 @@
             cart[line.key].qty = qty;
         }
         cartApi.saveCart(cart);
-        window.LigeirinhoCartUI?.render?.();
     };
 
     const findDisplayItem = (displayItems, lineItem) => {
@@ -146,15 +144,21 @@
     });
 
     let displayItemsCache = [];
+    let steppersTimer = null;
 
     const refreshSteppers = () => {
         productCards.syncGridQty(root, displayItemsCache, cardDeps());
     };
 
+    const scheduleRefreshSteppers = () => {
+        window.clearTimeout(steppersTimer);
+        steppersTimer = window.setTimeout(refreshSteppers, 48);
+    };
+
     productDetail?.init?.({
         getDisplayItems: () => displayItemsCache,
         getPromoOffers: () => promoOffers,
-        onCartChanged: refreshSteppers,
+        onCartChanged: scheduleRefreshSteppers,
     });
 
     const sectionOrder = () => {
@@ -308,15 +312,12 @@ ${sectionOrder()
             getDeps: cardDeps,
             onAdd: (ctx) => {
                 addProduct(ctx);
-                refreshSteppers();
             },
             onRemove: (ctx) => {
                 removeProduct(ctx);
-                refreshSteppers();
             },
             onSetQty: (ctx) => {
                 setProductQty(ctx, ctx.qty);
-                refreshSteppers();
             },
         }, () => displayItemsCache);
     };
@@ -343,7 +344,7 @@ ${sectionOrder()
                 '<p class="px-4 py-8 text-center text-[var(--lig-text-subtle)] text-sm">Não foi possível carregar o catálogo. Use um servidor local.</p>';
         });
 
-    window.addEventListener('ligeirinho-cart-changed', refreshSteppers);
+    window.addEventListener('ligeirinho-cart-changed', scheduleRefreshSteppers);
     window.addEventListener('ligeirinho-prefs-changed', () => {
         if (catalogData) {
             const groups = window.__ligProductGroups || pricing.buildGroups(catalogData);

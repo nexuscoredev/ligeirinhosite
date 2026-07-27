@@ -79,8 +79,7 @@
         }
         cart[line.key].qty += 1;
         cartApi.saveCart(cart);
-        cartUi?.render?.();
-        cartUi?.showAddedFeedback?.(line.name);
+        if (cart[line.key].qty === 1) cartUi?.showAddedFeedback?.(line.name);
         syncGridQty();
     };
 
@@ -91,7 +90,6 @@
         cart[cartKey].qty -= 1;
         if (cart[cartKey].qty <= 0) delete cart[cartKey];
         cartApi.saveCart(cart);
-        cartUi?.render?.();
         syncGridQty();
     };
 
@@ -123,7 +121,6 @@
             cart[line.key].qty = qty;
         }
         cartApi.saveCart(cart);
-        cartUi?.render?.();
         syncGridQty();
     };
 

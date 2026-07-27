@@ -1,6 +1,7 @@
 (function () {
     const LG_QUERY = '(min-width: 1024px)';
     const PAY_BTN_LABEL = 'Escolher data de entrega';
+    let cartRenderTimer = null;
     const payBtnInnerHtml = () =>
         `<span class="material-symbols-outlined lig-cart-continue-btn__icon" aria-hidden="true">calendar_month</span><span>${PAY_BTN_LABEL}</span>`;
 
@@ -747,7 +748,10 @@ ${lineThumbHtml(item)}
             if (e.key === 'Escape') close();
         });
 
-        window.addEventListener('ligeirinho-cart-changed', render);
+        window.addEventListener('ligeirinho-cart-changed', () => {
+            window.clearTimeout(cartRenderTimer);
+            cartRenderTimer = window.setTimeout(render, 40);
+        });
         window.addEventListener('ligeirinho-checkout-changed', () => {
             renderCheckoutFields();
             setPayButtons(cartApi.loadCart());

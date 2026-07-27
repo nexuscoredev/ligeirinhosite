@@ -12211,17 +12211,17 @@ html.lig-promo-notice-open body {
 }
 
 .order-track__step-glyph {
+    display: grid;
+    place-items: center;
+    width: 1.15rem;
+    height: 1.15rem;
+    line-height: 0;
+}
+
+.order-track__step-glyph svg {
     display: block;
-    width: 1.2rem;
-    height: 1.2rem;
-    font-size: 1.2rem;
-    line-height: 1.2rem;
-    text-align: center;
-    overflow: hidden;
-    speak: never;
-    font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
-    /* Material Symbols costuma “subir” no círculo — correção óptica */
-    transform: translateY(0.06em);
+    width: 1.15rem;
+    height: 1.15rem;
 }
 
 .order-track__step-label {
@@ -12240,19 +12240,11 @@ html.lig-promo-notice-open body {
     color: #fff;
 }
 
-.order-track__step--done .order-track__step-glyph {
-    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
-}
-
 .order-track__step--active .order-track__step-badge {
     background: #1a1a1a;
     border-color: #1a1a1a;
     color: #fff;
     box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.5);
-}
-
-.order-track__step--active .order-track__step-glyph {
-    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 20;
 }
 
 .order-track__step--done .order-track__step-label,

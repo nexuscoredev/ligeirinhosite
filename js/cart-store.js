@@ -5,6 +5,7 @@
     const PREFS_KEY = 'ligeirinho-prefs-v1';
 
     let cartCache = null;
+    let persistTimer = null;
 
     const loadCart = () => {
         if (cartCache) return cartCache;
@@ -16,11 +17,26 @@
         return cartCache;
     };
 
+    const flushCart = () => {
+        if (!cartCache) return;
+        try {
+            localStorage.setItem(CART_KEY, JSON.stringify(cartCache));
+        } catch {
+            /* quota / private mode */
+        }
+    };
+
     const saveCart = (cart) => {
         cartCache = cart;
-        localStorage.setItem(CART_KEY, JSON.stringify(cart));
         window.dispatchEvent(new CustomEvent('ligeirinho-cart-changed'));
+        window.clearTimeout(persistTimer);
+        persistTimer = window.setTimeout(flushCart, 60);
     };
+
+    window.addEventListener('pagehide', flushCart);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushCart();
+    });
 
     const defaultCheckout = () => ({
         deliveryType: 'entrega',
