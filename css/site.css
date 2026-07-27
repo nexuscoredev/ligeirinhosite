@@ -1129,18 +1129,18 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 .ze-app-chrome {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.45rem;
     box-sizing: border-box;
     width: 100%;
     max-width: var(--lig-container-max);
     margin: 0 auto;
-    padding: 0 var(--lig-gutter-x) 0.5rem;
+    padding: 0.55rem var(--lig-gutter-x) 0.65rem;
 }
 
 .ze-app-chrome .ze-fulfillment-bar,
 .ze-app-chrome .ze-location-bar {
     width: 100%;
-    min-height: 2.75rem;
+    min-height: 3rem;
     border-radius: 0.75rem;
     border: 1px solid var(--lig-border);
     overflow: visible;
