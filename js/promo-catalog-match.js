@@ -330,7 +330,12 @@
         return byItem;
     };
 
+    /** Um loader por URL — evita fetch duplicado entre home/pedidos/ofertas/layout. */
+    const promoLoadersByUrl = new Map();
+
     const createHubPromoLoader = (apiUrl = '/api/promocoes') => {
+        if (promoLoadersByUrl.has(apiUrl)) return promoLoadersByUrl.get(apiUrl);
+
         const STORAGE_KEY = 'ligeirinho-promos-cache-v1';
         let hubPromos = [];
         let promosLoadedAt = 0;
@@ -430,7 +435,7 @@
             return inflight;
         };
 
-        return {
+        const loader = {
             load,
             seed,
             hadError: () => fetchError,
@@ -446,6 +451,8 @@
                 }
             },
         };
+        promoLoadersByUrl.set(apiUrl, loader);
+        return loader;
     };
 
     window.LigeirinhoPromoCatalog = {

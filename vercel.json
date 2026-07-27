@@ -17,8 +17,16 @@
     }
   ],
   "functions": {
+    "api/catalog.js": {
+      "memory": 512,
+      "maxDuration": 30
+    },
+    "api/totem/catalog.js": {
+      "memory": 512,
+      "maxDuration": 30
+    },
     "api/**/*.js": {
-      "memory": 128,
+      "memory": 256,
       "maxDuration": 30
     }
   },
@@ -28,8 +36,16 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/promocoes",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/totem/catalog",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/totem/promocoes",
+      "schedule": "*/5 * * * *"
     }
   ],
   "headers": [

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v410';
+const CACHE_NAME = 'ligeirinho-app-v411';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -117,8 +117,6 @@ const APP_SHELL = [
     '/data/auth-config.json',
     '/data/precos-embalagem.json',
     '/data/imagem-embalagem.json',
-    '/img/embalagens/brahma-pallet.webp',
-    '/img/embalagens/pallet-generico.webp',
     '/img/ligeirinhologo.png',
     '/img/app-icon-light-192.png',
     '/img/app-icon-light-512.png',
@@ -130,14 +128,8 @@ const APP_SHELL = [
     '/img/icon-google-maps.png',
     '/img/icon-google.svg',
     '/img/icon-apple.svg',
-    '/img/mercado-pago-logo-white-horizontal.svg',
-    '/img/mercado-pago-wallet-logo.svg',
-    '/img/mercado-pago-btn.png',
     '/img/mercado-pago-logo-color.png',
-    '/img/mercado-pago-logo-white-full.png',
-    '/img/mercado-pago-logo-white.svg',
     '/img/mercado-pago-logo.svg',
-    '/img/mp-checkout-btn.png',
 ];
 
 function cacheShellUrls(cache, urls) {

@@ -1,6 +1,9 @@
 import { fetchCatalogFromHub } from '../../scripts/lib/hub-catalog.mjs';
+import { getCachedOrCompute, invalidateCache } from '../../scripts/lib/server-cache.mjs';
 
-const CACHE_SECONDS = Number(process.env.TOTEM_CATALOG_CACHE_SECONDS || 60);
+const CACHE_SECONDS = Number(process.env.TOTEM_CATALOG_CACHE_SECONDS || 180);
+const MEM_TTL_MS = Number(process.env.TOTEM_CATALOG_MEM_CACHE_MS || 45_000);
+const CACHE_KEY = 'catalog:totem';
 
 function setLiveCacheHeaders(res, req, seconds) {
     if (req.query?.sync != null) {
@@ -9,8 +12,16 @@ function setLiveCacheHeaders(res, req, seconds) {
     }
     res.setHeader(
         'Cache-Control',
-        `public, s-maxage=${seconds}, stale-while-revalidate=${seconds}`,
+        `public, s-maxage=${seconds}, stale-while-revalidate=${seconds * 2}`,
     );
+}
+
+async function buildCatalog() {
+    return fetchCatalogFromHub(process.env, {
+        syncMode: 'live',
+        storeName: 'Ligeirinho Totem',
+        channel: 'totem',
+    });
 }
 
 export default async function handler(req, res) {
@@ -27,11 +38,12 @@ export default async function handler(req, res) {
     }
 
     try {
-        const catalog = await fetchCatalogFromHub(process.env, {
-            syncMode: 'live',
-            storeName: 'Ligeirinho Totem',
-            channel: 'totem',
-        });
+        const sync = req.query?.sync != null;
+        if (sync) invalidateCache(CACHE_KEY);
+
+        const catalog = sync
+            ? await buildCatalog()
+            : await getCachedOrCompute(CACHE_KEY, MEM_TTL_MS, buildCatalog);
 
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         setLiveCacheHeaders(res, req, CACHE_SECONDS);

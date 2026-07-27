@@ -1,11 +1,13 @@
 /** Proxy Nominatim — busca de endereço (Brasil). */
+import { gatedNominatim } from '../../scripts/lib/nominatim-gate.mjs';
+
 export const config = { maxDuration: 15 };
 
 const UA = 'LigeirinhoParceiros/1.0 (parceiros@ligeirinho; delivery-address)';
 
 export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=60');
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120, max-age=30');
 
     if (req.method !== 'GET') {
         res.setHeader('Allow', 'GET');
@@ -17,39 +19,43 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Informe ao menos 3 caracteres.' });
     }
 
-    try {
-        const url = new URL('https://nominatim.openstreetmap.org/search');
-        url.searchParams.set('q', q);
-        url.searchParams.set('format', 'json');
-        url.searchParams.set('addressdetails', '1');
-        url.searchParams.set('countrycodes', 'br');
-        url.searchParams.set('limit', '8');
-        url.searchParams.set('accept-language', 'pt-BR');
+    const cacheKey = `search:${q.toLowerCase()}`;
 
-        const upstream = await fetch(url.toString(), {
-            headers: { Accept: 'application/json', 'User-Agent': UA },
-        });
-        if (!upstream.ok) {
-            return res.status(502).json({ error: 'Falha ao buscar endereço.' });
-        }
-        const raw = await upstream.json();
-        const results = (Array.isArray(raw) ? raw : []).map((item) => {
-            const a = item.address || {};
-            const street =
-                a.road || a.pedestrian || a.residential || a.street || a.path || a.neighbourhood || '';
-            return {
-                id: String(item.place_id || `${item.lat},${item.lon}`),
-                label: item.display_name || '',
-                lat: Number(item.lat),
-                lng: Number(item.lon),
-                street,
-                number: a.house_number || '',
-                neighborhood: a.suburb || a.neighbourhood || a.quarter || a.city_district || '',
-                city: a.city || a.town || a.municipality || a.village || a.county || '',
-                state: a.state || '',
-                stateCode: (a['ISO3166-2-lvl4'] || '').replace(/^BR-/, '') || '',
-                postcode: a.postcode || '',
-            };
+    try {
+        const results = await gatedNominatim(cacheKey, async () => {
+            const url = new URL('https://nominatim.openstreetmap.org/search');
+            url.searchParams.set('q', q);
+            url.searchParams.set('format', 'json');
+            url.searchParams.set('addressdetails', '1');
+            url.searchParams.set('countrycodes', 'br');
+            url.searchParams.set('limit', '8');
+            url.searchParams.set('accept-language', 'pt-BR');
+
+            const upstream = await fetch(url.toString(), {
+                headers: { Accept: 'application/json', 'User-Agent': UA },
+            });
+            if (!upstream.ok) {
+                throw new Error(`nominatim ${upstream.status}`);
+            }
+            const raw = await upstream.json();
+            return (Array.isArray(raw) ? raw : []).map((item) => {
+                const a = item.address || {};
+                const street =
+                    a.road || a.pedestrian || a.residential || a.street || a.path || a.neighbourhood || '';
+                return {
+                    id: String(item.place_id || `${item.lat},${item.lon}`),
+                    label: item.display_name || '',
+                    lat: Number(item.lat),
+                    lng: Number(item.lon),
+                    street,
+                    number: a.house_number || '',
+                    neighborhood: a.suburb || a.neighbourhood || a.quarter || a.city_district || '',
+                    city: a.city || a.town || a.municipality || a.village || a.county || '',
+                    state: a.state || '',
+                    stateCode: (a['ISO3166-2-lvl4'] || '').replace(/^BR-/, '') || '',
+                    postcode: a.postcode || '',
+                };
+            });
         });
         return res.status(200).json({ results });
     } catch (err) {

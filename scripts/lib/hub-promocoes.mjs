@@ -162,11 +162,12 @@ async function fetchProdutoFamilyMap(config, token, productIds = []) {
 }
 
 /** UN/CX da caixa irmã quando gf_promocao_catalogo não traz a CX no lote. */
-async function fetchFatorCxPorFamiliaPl(config, token, plProductIds = []) {
+async function fetchFatorCxPorFamiliaPl(config, token, plProductIds = [], familyMapPre = null) {
     const ids = [...new Set(plProductIds.filter(Boolean))];
     if (!ids.length || !config.serviceKey) return new Map();
 
-    const familyMap = await fetchProdutoFamilyMap(config, token, ids);
+    const familyMap =
+        familyMapPre || (await fetchProdutoFamilyMap(config, token, ids));
     const baseIds = [...new Set([...familyMap.values()].filter(Boolean))];
     if (!baseIds.length) return new Map();
 
@@ -305,9 +306,9 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
             return meta?.produto_id || row.produto_id || null;
         })
         .filter(Boolean);
-    const [familyMap, fatorCxPorFamilia, fatorCaixasPorPl] = await Promise.all([
-        fetchProdutoFamilyMap(config, token, productIds),
-        fetchFatorCxPorFamiliaPl(config, token, plProductIds),
+    const familyMap = await fetchProdutoFamilyMap(config, token, productIds);
+    const [fatorCxPorFamilia, fatorCaixasPorPl] = await Promise.all([
+        fetchFatorCxPorFamiliaPl(config, token, plProductIds, familyMap),
         fetchFatorCaixasPlProdutos(config, token, plProductIds),
     ]);
 

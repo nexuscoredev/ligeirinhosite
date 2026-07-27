@@ -1,6 +1,9 @@
 import { getDeliverySchedule } from '../../scripts/lib/hub-delivery.mjs';
+import { getCachedOrCompute } from '../../scripts/lib/server-cache.mjs';
 
 const CACHE_SECONDS = Number(process.env.DELIVERY_CACHE_SECONDS || 120);
+const MEM_TTL_MS = Number(process.env.DELIVERY_MEM_CACHE_MS || 60_000);
+const CACHE_KEY = 'delivery:schedule';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -9,11 +12,13 @@ export default async function handler(req, res) {
     }
 
     try {
-        const schedule = await getDeliverySchedule(process.env);
+        const schedule = await getCachedOrCompute(CACHE_KEY, MEM_TTL_MS, () =>
+            getDeliverySchedule(process.env),
+        );
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader(
             'Cache-Control',
-            `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=${CACHE_SECONDS * 2}`
+            `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=${CACHE_SECONDS * 2}`,
         );
         return res.status(200).json(schedule);
     } catch (err) {

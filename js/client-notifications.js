@@ -4,7 +4,7 @@
     const HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
     const HUB_ANON_KEY =
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxpc3pwd29jd3ZreXR6eWF4dml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjczNzUsImV4cCI6MjA5NTMwMzM3NX0.rMfpheVgAKQ4HelKB0ZoNDZXiU_3XQdv7ujLHxgdjEA';
-    const POLL_MS = 90000;
+    const POLL_MS = 180000;
 
     const SEED = [
         {
