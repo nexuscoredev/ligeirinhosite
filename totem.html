@@ -13,7 +13,7 @@
 <script src="js/totem-kiosk-guard.js"></script>
 <script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <link rel="stylesheet" href="css/site.css">
-<link rel="stylesheet" href="css/totem.css?v=sw-v347">
+<link rel="stylesheet" href="css/totem.css?v=sw-v349">
 <link rel="stylesheet" href="css/totem-receipt.css">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -388,9 +388,15 @@
 <h2 id="totem-cart-title" class="text-xl font-bold">Seu pedido</h2>
 <p id="totem-cart-count" class="totem-cart-sheet__count">Nenhum item</p>
 </div>
+<div class="totem-cart-sheet__head-actions">
+<button type="button" class="totem-cart-clear-btn" id="totem-cart-clear-btn" hidden>
+<span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span>
+<span>Limpar</span>
+</button>
 <button type="button" class="totem-btn totem-btn--ghost totem-cart-sheet__close" id="totem-cart-close" aria-label="Fechar">
 <span class="material-symbols-outlined">close</span>
 </button>
+</div>
 </div>
 <div class="totem-cart-list" id="totem-cart-list"></div>
 <div class="totem-cart-sheet__footer">
@@ -515,6 +521,23 @@
 </div>
 </div>
 
+<div id="totem-clear-cart-modal" class="totem-deactivate-modal" aria-hidden="true">
+<div class="totem-deactivate-modal__backdrop" id="totem-clear-cart-backdrop" aria-hidden="true"></div>
+<div class="totem-deactivate-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="totem-clear-cart-title">
+<header class="totem-deactivate-modal__head">
+<h2 id="totem-clear-cart-title" class="totem-deactivate-modal__title">Limpar carrinho?</h2>
+<button type="button" class="totem-deactivate-modal__close" id="totem-clear-cart-close" aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</header>
+<p class="totem-deactivate-modal__lead">Você deseja limpar o carrinho?</p>
+<div class="totem-deactivate-modal__actions">
+<button type="button" class="totem-deactivate-modal__confirm" id="totem-clear-cart-yes">Sim, limpar</button>
+<button type="button" class="totem-deactivate-modal__cancel" id="totem-clear-cart-no">Cancelar</button>
+</div>
+</div>
+</div>
+
 <input type="text" id="totem-qty-input" class="totem-qty-input" tabindex="-1" aria-hidden="true" hidden readonly inputmode="none" autocomplete="off">
 
 <script src="js/site-config.js"></script>
@@ -541,6 +564,6 @@
 <script src="js/totem-store-admin.js"></script>
 <script src="js/totem-orders-admin.js"></script>
 <script src="js/totem-pwa-update.js?v=sw-v348"></script>
-<script src="js/totem.js?v=no-price-promo-badge"></script>
+<script src="js/totem.js?v=clear-cart-confirm"></script>
 </body>
 </html>

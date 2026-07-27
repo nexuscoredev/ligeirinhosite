@@ -92,6 +92,8 @@
     const cartTotalEl = document.getElementById('totem-cart-total');
     const cartCountEl = document.getElementById('totem-cart-count');
     const checkoutBtn = document.getElementById('totem-checkout-btn');
+    const clearCartBtn = document.getElementById('totem-cart-clear-btn');
+    const clearCartModal = document.getElementById('totem-clear-cart-modal');
     const categoriesEl = document.getElementById('totem-categories');
     const categoriesBtn = document.getElementById('totem-categories-btn');
     const categoriesBtnLabel = document.getElementById('totem-categories-btn-label');
@@ -2760,6 +2762,7 @@ ${unitHtml}
         closeProductDetail();
         closeCart();
         closeCategoriesModal();
+        closeClearCartModal();
         homeConfirmModal.classList.add('totem-deactivate-modal--open');
         homeConfirmModal.setAttribute('aria-hidden', 'false');
         suppressGhostClicks();
@@ -2779,6 +2782,33 @@ ${unitHtml}
         resetSession();
     };
 
+    const openClearCartModal = () => {
+        const cart = cartApi.loadCart();
+        if (!cartApi.cartItemCount(cart) || !clearCartModal) return;
+        totemKeyboard?.hide?.();
+        clearCartModal.classList.add('totem-deactivate-modal--open');
+        clearCartModal.setAttribute('aria-hidden', 'false');
+        suppressGhostClicks();
+        bumpIdle();
+    };
+
+    const closeClearCartModal = () => {
+        if (!clearCartModal) return;
+        clearCartModal.classList.remove('totem-deactivate-modal--open');
+        clearCartModal.setAttribute('aria-hidden', 'true');
+        suppressGhostClicks();
+        bumpIdle();
+    };
+
+    const confirmClearCart = () => {
+        closeClearCartModal();
+        resetCart();
+        renderProducts();
+        refreshPromosIfOpen();
+        refreshDetailIfOpen();
+        bumpIdle();
+    };
+
     const isIdleBlocked = () => {
         if (views.customer?.classList.contains('totem-view--active')) return true;
         if (detailPanel?.classList.contains('totem-detail--open')) return true;
@@ -2795,6 +2825,7 @@ ${unitHtml}
             return true;
         }
         if (homeConfirmModal?.classList.contains('totem-deactivate-modal--open')) return true;
+        if (clearCartModal?.classList.contains('totem-deactivate-modal--open')) return true;
         if (document.documentElement.classList.contains('lig-promo-notice-open')) return true;
         return false;
     };
@@ -3574,6 +3605,9 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             checkoutBtn.disabled = count === 0;
             checkoutBtn.textContent = count ? 'Ir para pagamento' : 'Adicione produtos';
         }
+        if (clearCartBtn) {
+            clearCartBtn.hidden = count === 0;
+        }
         updateFloatCart(cart);
     };
 
@@ -3973,6 +4007,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             openCartTap();
         });
         document.getElementById('totem-cart-close')?.addEventListener('click', closeCart);
+        clearCartBtn?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
+            openClearCartModal();
+        });
         checkoutBtn?.addEventListener('click', startCheckout);
 
         categoriesBtn?.addEventListener('click', openCategoriesModal);
@@ -3994,6 +4032,9 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             }
             if (e.key === 'Escape' && homeConfirmModal?.classList.contains('totem-deactivate-modal--open')) {
                 closeHomeConfirmModal();
+            }
+            if (e.key === 'Escape' && clearCartModal?.classList.contains('totem-deactivate-modal--open')) {
+                closeClearCartModal();
             }
         });
 
@@ -4172,6 +4213,13 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         document.getElementById('totem-home-confirm-backdrop')?.addEventListener('click', (e) => {
             if (guardGhostClick(e)) return;
             closeHomeConfirmModal();
+        });
+        document.getElementById('totem-clear-cart-yes')?.addEventListener('click', confirmClearCart);
+        document.getElementById('totem-clear-cart-no')?.addEventListener('click', closeClearCartModal);
+        document.getElementById('totem-clear-cart-close')?.addEventListener('click', closeClearCartModal);
+        document.getElementById('totem-clear-cart-backdrop')?.addEventListener('click', (e) => {
+            if (guardGhostClick(e)) return;
+            closeClearCartModal();
         });
 
         document.getElementById('totem-brand-tap')?.addEventListener('click', () => {

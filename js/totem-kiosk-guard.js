@@ -33,6 +33,7 @@
         '.totem-cart-sheet',
         '.totem-detail',
         '.totem-categories-modal',
+        '.totem-deactivate-modal',
         '.totem-search',
         '.totem-customer__form',
         '.lig-payment-card',
