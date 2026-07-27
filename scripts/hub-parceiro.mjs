@@ -227,7 +227,7 @@ export async function fetchUsuarioByEmail(config, email) {
 export async function fetchUsuarioById(config, userId, token) {
     const rows = await hubRest(
         config,
-        `usuarios?select=id,email,login,nome,cargo,ativo,telefone,must_change_password,admin_totem&id=eq.${encodeURIComponent(userId)}&limit=1`,
+        `usuarios?select=id,email,login,nome,cargo,ativo,telefone,must_change_password,pessoa_id,admin_totem&id=eq.${encodeURIComponent(userId)}&limit=1`,
         { token: token || config.serviceKey }
     );
     return Array.isArray(rows) ? rows[0] : null;
@@ -565,7 +565,22 @@ export async function fetchPessoaParceiroByCnpj(config, digits) {
     return pessoa;
 }
 
+export async function fetchPessoaParceiroById(config, pessoaId) {
+    if (!config.serviceKey || !pessoaId) return null;
+    const rows = await hubRest(
+        config,
+        `pessoas?select=id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,condicao_pagamento,parcelas_vencimento,datas_entrega,formas_pagamento_ids,bloqueado_pedido,inadimplente,clientes(${CLIENTE_PARCEIROS_SELECT})&id=eq.${encodeURIComponent(pessoaId)}&limit=1`,
+    );
+    const pessoa = Array.isArray(rows) ? rows[0] : null;
+    if (!pessoa || !clienteAtivoFromPessoa(pessoa)) return null;
+    return pessoa;
+}
+
 async function findPessoaForUsuario(config, usuario) {
+    if (usuario?.pessoa_id) {
+        const byPessoaId = await fetchPessoaParceiroById(config, usuario.pessoa_id);
+        if (byPessoaId) return byPessoaId;
+    }
     const loginDigits = normalizeDocDigits(usuario?.login);
     if (loginDigits.length >= 11) {
         const byLogin = await fetchPessoaParceiroByCnpj(config, loginDigits);
@@ -709,13 +724,20 @@ async function fetchTabelaPrecoMetaById(config, tabelaPrecoId) {
 }
 
 async function fetchTabelaPrecoMetaByCodigo(config, codigo) {
-    const code = String(codigo || '').trim().toUpperCase();
-    if (!code || code === 'PADRAO') return null;
-    const rows = await hubRest(
+    const raw = String(codigo || '').trim();
+    if (!raw) return null;
+    const code = raw.toUpperCase();
+    if (code === 'PADRAO') return null;
+    const byCodigo = await hubRest(
         config,
         `tabelas_preco?select=${TABELA_PRECO_META_SELECT}&codigo=eq.${encodeURIComponent(code)}&ativo=eq.true&limit=1`,
     );
-    return Array.isArray(rows) ? rows[0] : null;
+    if (Array.isArray(byCodigo) && byCodigo[0]) return byCodigo[0];
+    const byNome = await hubRest(
+        config,
+        `tabelas_preco?select=${TABELA_PRECO_META_SELECT}&nome=ilike.${encodeURIComponent(raw)}&ativo=eq.true&limit=1`,
+    );
+    return Array.isArray(byNome) ? byNome[0] || null : null;
 }
 
 /** Indica se a linha/código legado aponta para a tabela PADRAO do Hub. */

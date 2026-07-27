@@ -90,7 +90,7 @@ async function hubSignIn(config, login, password) {
 
 async function fetchUsuarioByAuthId(config, userId, accessToken) {
     const select =
-        'id,email,nome,cargo,ativo,login,telefone,must_change_password,admin_totem';
+        'id,email,nome,cargo,ativo,login,telefone,must_change_password,admin_totem,pessoa_id';
     const url = `${config.url}/rest/v1/usuarios?select=${encodeURIComponent(select)}&id=eq.${encodeURIComponent(userId)}&limit=1`;
     let res = await fetch(url, { headers: hubHeaders(config.anonKey, accessToken) });
     let rows = await res.json();
