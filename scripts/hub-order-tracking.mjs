@@ -81,8 +81,8 @@ export function buildOrderTracking(order, hubPedido = null) {
                 : 'Seu pedido saiu para entrega.';
     } else if (PREP_STATUSES.has(hubStatus)) {
         step = 2;
-        stepLabel = 'Preparando pedido';
-        message = 'Seu pedido foi aceito e está sendo preparado.';
+        stepLabel = 'Em preparação';
+        message = 'Seu pedido foi aceito e está em preparação no depósito.';
     } else if (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus) {
         step = 1;
         stepLabel = 'Aguardando confirmação';
@@ -90,7 +90,7 @@ export function buildOrderTracking(order, hubPedido = null) {
     } else if (order?.status === 'paid') {
         step = 2;
         stepLabel = 'Confirmado';
-        message = 'Pagamento confirmado. Em breve iniciamos a separação.';
+        message = 'Pagamento confirmado. Em breve iniciamos a preparação.';
     }
 
     if (!cancelled && order?.status === 'pending_payment') {
@@ -102,7 +102,7 @@ export function buildOrderTracking(order, hubPedido = null) {
     const headerTitleByStep = [
         'Aguardando pagamento',
         'Aguardando confirmação',
-        'Preparando pedido',
+        'Em preparação',
         'Saiu para entrega',
         'Pedido entregue',
     ];
@@ -122,9 +122,9 @@ export function buildOrderTracking(order, hubPedido = null) {
             order?.status === 'pending' &&
             (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus),
         steps: [
-            { id: 'sent', icon: 'shopping_bag', label: 'Enviado' },
-            { id: 'accept', icon: 'inventory_2', label: 'Aceite' },
-            { id: 'prep', icon: 'soup_kitchen', label: 'Preparo' },
+            { id: 'sent', icon: 'send', label: 'Enviado' },
+            { id: 'accept', icon: 'task_alt', label: 'Aceite' },
+            { id: 'prep', icon: 'package_2', label: 'Preparação' },
             { id: 'route', icon: 'local_shipping', label: 'Rota' },
             { id: 'done', icon: 'home', label: 'Entregue' },
         ],
