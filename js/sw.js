@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v441';
+const CACHE_NAME = 'ligeirinho-app-v442';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -31,6 +31,7 @@ const APP_SHELL = [
     '/versao',
     '/manifest.webmanifest',
     '/css/site.css',
+    '/css/order-dav-print.css',
     '/css/totem.css',
     '/css/theme-forms.css',
     '/img/tag-pix-dinheiro.png',
@@ -59,6 +60,8 @@ const APP_SHELL = [
     '/js/ofertas.js',
     '/js/promo-entry-notice.js',
     '/js/meus-pedidos.js',
+    '/js/order-dav-print.js',
+    '/js/totem-barcode.js',
     '/js/promo-catalog-match.js',
     '/js/caminhao.js',
     '/js/parceiro-delivery.js',

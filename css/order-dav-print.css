@@ -1,0 +1,195 @@
+@page {
+    size: A4 portrait;
+    margin: 10mm;
+}
+
+@media print {
+    body {
+        margin: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+.dav-doc {
+    box-sizing: border-box;
+    color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9pt;
+    line-height: 1.25;
+    max-width: 190mm;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.dav-doc *,
+.dav-doc *::before,
+.dav-doc *::after {
+    box-sizing: border-box;
+}
+
+.dav-doc table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.dav-doc td,
+.dav-doc th {
+    border: 1px solid #000;
+    padding: 2px 4px;
+    vertical-align: top;
+}
+
+.dav-doc__header td {
+    padding: 4px 6px;
+}
+
+.dav-doc__brand {
+    width: 58%;
+}
+
+.dav-doc__brand-inner {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+}
+
+.dav-doc__logo {
+    flex-shrink: 0;
+    height: 42px;
+    object-fit: contain;
+    width: 42px;
+}
+
+.dav-doc__issuer-name {
+    font-size: 10pt;
+    font-weight: 700;
+    margin: 0 0 2px;
+    text-transform: uppercase;
+}
+
+.dav-doc__issuer-meta {
+    font-size: 8pt;
+    margin: 0;
+}
+
+.dav-doc__meta {
+    text-align: center;
+    width: 42%;
+}
+
+.dav-doc__title {
+    font-size: 9pt;
+    font-weight: 700;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+}
+
+.dav-doc__meta-row {
+    font-size: 8pt;
+    margin: 1px 0;
+    text-align: left;
+}
+
+.dav-doc__meta-row strong {
+    display: inline-block;
+    min-width: 4.2rem;
+}
+
+.dav-doc__dav-no {
+    font-size: 10pt;
+    font-weight: 700;
+    margin: 4px 0 2px;
+    text-align: center;
+}
+
+.dav-doc__barcode {
+    margin: 2px auto 0;
+    max-width: 100%;
+}
+
+.dav-doc__barcode svg {
+    display: block;
+    height: 36px;
+    margin: 0 auto;
+    width: auto;
+}
+
+.dav-doc__disclaimer td {
+    font-size: 7.5pt;
+    font-weight: 700;
+    padding: 3px 6px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.dav-doc__section-title td {
+    background: #d9d9d9;
+    font-size: 8pt;
+    font-weight: 700;
+    padding: 2px 6px;
+    text-transform: uppercase;
+}
+
+.dav-doc__dest-label {
+    font-size: 7.5pt;
+    font-weight: 700;
+    width: 18%;
+}
+
+.dav-doc__dest-value {
+    font-size: 8pt;
+}
+
+.dav-doc__items th {
+    background: #efefef;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.dav-doc__items td {
+    font-size: 8pt;
+}
+
+.dav-doc__items .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.dav-doc__items .idx,
+.dav-doc__items .und {
+    text-align: center;
+}
+
+.dav-doc__items .desc {
+    min-width: 8rem;
+}
+
+.dav-doc__totals td {
+    border: none;
+    padding: 0;
+}
+
+.dav-doc__totals-wrap {
+    margin-left: auto;
+    margin-top: 4px;
+    width: 42%;
+}
+
+.dav-doc__totals-wrap td {
+    border: 1px solid #000;
+    font-size: 8pt;
+}
+
+.dav-doc__totals-wrap .label {
+    font-weight: 700;
+    text-align: right;
+    width: 62%;
+}
+
+.dav-doc__totals-wrap .value {
+    text-align: right;
+    width: 38%;
+}

@@ -34,6 +34,7 @@
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
     const session = () => auth?.loadSession?.() || null;
+    const canPrintDav = () => window.LigeirinhoOrderDavPrint?.isDistribuidoraAccount?.(session());
 
     const openCaminhao = () => {
         if (window.matchMedia('(min-width: 1024px)').matches) {
@@ -292,6 +293,11 @@ ${
         ? `<a href="pedido-confirmado.html?order=${encodeURIComponent(order.id)}" class="conta-btn conta-btn--outline">Ver confirmação</a>`
         : ''
 }
+${
+    canPrintDav() && order.id
+        ? `<button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-print-dav="${esc(order.id)}">Imprimir DAV</button>`
+        : ''
+}
 <button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-open-cart>Ir ao caminhão</button>
 ${
     canCancelOrder(order)
@@ -381,6 +387,23 @@ ${
             btn.addEventListener('click', () => {
                 const orderId = btn.getAttribute('data-meus-pedidos-cancel');
                 if (orderId) cancelOrder(orderId, btn);
+            });
+        });
+        root.querySelectorAll('[data-meus-pedidos-print-dav]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const orderId = btn.getAttribute('data-meus-pedidos-print-dav');
+                if (!orderId) return;
+                const prevLabel = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = 'Preparando…';
+                try {
+                    await window.LigeirinhoOrderDavPrint.printOrderDav(orderId, session());
+                } catch (err) {
+                    window.alert(err?.message || 'Não foi possível imprimir o DAV.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = prevLabel;
+                }
             });
         });
     };
