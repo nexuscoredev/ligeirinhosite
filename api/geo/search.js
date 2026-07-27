@@ -1,5 +1,6 @@
 /** Proxy Nominatim — busca de endereço (Brasil). */
 import { gatedNominatim } from '../../scripts/lib/nominatim-gate.mjs';
+import { extractHouseNumber, mapNominatimAddress } from '../../scripts/lib/nominatim-address.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -19,7 +20,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Informe ao menos 3 caracteres.' });
     }
 
-    const cacheKey = `search:${q.toLowerCase()}`;
+    const queryNumber = extractHouseNumber(q);
+    const cacheKey = `search:v2:${q.toLowerCase()}`;
 
     try {
         const results = await gatedNominatim(cacheKey, async () => {
@@ -39,22 +41,13 @@ export default async function handler(req, res) {
             }
             const raw = await upstream.json();
             return (Array.isArray(raw) ? raw : []).map((item) => {
-                const a = item.address || {};
-                const street =
-                    a.road || a.pedestrian || a.residential || a.street || a.path || a.neighbourhood || '';
-                return {
-                    id: String(item.place_id || `${item.lat},${item.lon}`),
-                    label: item.display_name || '',
+                const mapped = mapNominatimAddress(item, {
                     lat: Number(item.lat),
                     lng: Number(item.lon),
-                    street,
-                    number: a.house_number || '',
-                    neighborhood: a.suburb || a.neighbourhood || a.quarter || a.city_district || '',
-                    city: a.city || a.town || a.municipality || a.village || a.county || '',
-                    state: a.state || '',
-                    stateCode: (a['ISO3166-2-lvl4'] || '').replace(/^BR-/, '') || '',
-                    postcode: a.postcode || '',
-                };
+                    query: q,
+                });
+                if (!mapped.number && queryNumber) mapped.number = queryNumber;
+                return mapped;
             });
         });
         return res.status(200).json({ results });

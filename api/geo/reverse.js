@@ -1,5 +1,6 @@
 /** Proxy Nominatim — reverse geocode (lat/lng → endereço). */
 import { gatedNominatim } from '../../scripts/lib/nominatim-gate.mjs';
+import { mapNominatimAddress } from '../../scripts/lib/nominatim-address.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -20,41 +21,36 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Informe lat e lng válidos.' });
     }
 
-    const cacheKey = `rev:${lat.toFixed(5)},${lng.toFixed(5)}`;
+    const cacheKey = `rev:v2:${lat.toFixed(5)},${lng.toFixed(5)}`;
 
     try {
         const result = await gatedNominatim(cacheKey, async () => {
-            const url = new URL('https://nominatim.openstreetmap.org/reverse');
-            url.searchParams.set('lat', String(lat));
-            url.searchParams.set('lon', String(lng));
-            url.searchParams.set('format', 'json');
-            url.searchParams.set('addressdetails', '1');
-            url.searchParams.set('zoom', '18');
-            url.searchParams.set('accept-language', 'pt-BR');
+            const fetchReverse = async (withLayer) => {
+                const url = new URL('https://nominatim.openstreetmap.org/reverse');
+                url.searchParams.set('lat', String(lat));
+                url.searchParams.set('lon', String(lng));
+                url.searchParams.set('format', 'json');
+                url.searchParams.set('addressdetails', '1');
+                url.searchParams.set('zoom', '18');
+                url.searchParams.set('accept-language', 'pt-BR');
+                if (withLayer) url.searchParams.set('layer', 'address');
 
-            const upstream = await fetch(url.toString(), {
-                headers: { Accept: 'application/json', 'User-Agent': UA },
-            });
-            if (!upstream.ok) {
-                throw new Error(`nominatim ${upstream.status}`);
-            }
-            const item = await upstream.json();
-            const a = item?.address || {};
-            const street =
-                a.road || a.pedestrian || a.residential || a.street || a.path || a.neighbourhood || '';
-            return {
-                id: String(item.place_id || `${lat},${lng}`),
-                label: item.display_name || '',
-                lat,
-                lng,
-                street,
-                number: a.house_number || '',
-                neighborhood: a.suburb || a.neighbourhood || a.quarter || a.city_district || '',
-                city: a.city || a.town || a.municipality || a.village || a.county || '',
-                state: a.state || '',
-                stateCode: (a['ISO3166-2-lvl4'] || '').replace(/^BR-/, '') || '',
-                postcode: a.postcode || '',
+                const upstream = await fetch(url.toString(), {
+                    headers: { Accept: 'application/json', 'User-Agent': UA },
+                });
+                if (!upstream.ok) {
+                    throw new Error(`nominatim ${upstream.status}`);
+                }
+                return upstream.json();
             };
+
+            let item;
+            try {
+                item = await fetchReverse(true);
+            } catch {
+                item = await fetchReverse(false);
+            }
+            return mapNominatimAddress(item, { lat, lng });
         });
         return res.status(200).json({ result });
     } catch (err) {

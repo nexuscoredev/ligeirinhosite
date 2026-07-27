@@ -78,6 +78,7 @@
             city: '',
             state: '',
             stateCode: '',
+            postcode: '',
             reference: '',
             lat: DEFAULT_CENTER.lat,
             lng: DEFAULT_CENTER.lng,
@@ -168,7 +169,7 @@
 </button>
 </header>
 <div class="lig-addr__confirm-scroll">
-<p class="lig-addr__lead">Esse é o endereço do local indicado no mapa. Você pode editar o número e o complemento, se necessário.</p>
+<p class="lig-addr__lead">Esse é o endereço aproximado do local no mapa. Confira e ajuste o <strong>número</strong> se precisar — o valor que você confirmar será o salvo na entrega.</p>
 <label class="lig-addr__label" for="lig-addr-street">Rua</label>
 <input id="lig-addr-street" class="lig-addr__input" type="text" autocomplete="address-line1">
 <div class="lig-addr__row">
@@ -236,11 +237,24 @@
         el.textContent = msg || '';
     };
 
-    const applyPlace = (place) => {
+    const applyPlace = (place, { fromReverse = false } = {}) => {
+        const incomingNumber = String(place?.number ?? '').trim();
+        let number = draft.number || '';
+        if (fromReverse) {
+            /* Localização aproximada do pin: usa o número do reverse (ou limpa se não houver). */
+            number = incomingNumber;
+        } else if (incomingNumber) {
+            number = incomingNumber;
+        } else {
+            /* Novo local da busca sem número: não herda número de outro endereço. */
+            number = '';
+        }
+
         draft = {
             ...draft,
             street: place.street || draft.street,
-            number: place.number || draft.number,
+            number,
+            noNumber: false,
             neighborhood: place.neighborhood || draft.neighborhood,
             city: place.city || draft.city,
             state: place.state || draft.state,
@@ -248,6 +262,7 @@
             lat: Number.isFinite(place.lat) ? place.lat : draft.lat,
             lng: Number.isFinite(place.lng) ? place.lng : draft.lng,
             label: place.label || draft.label,
+            postcode: place.postcode || draft.postcode || '',
         };
     };
 
@@ -329,7 +344,7 @@
             const res = await fetch(`/api/geo/reverse?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`);
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.result) return;
-            applyPlace({ ...data.result, lat, lng });
+            applyPlace({ ...data.result, lat, lng }, { fromReverse: true });
         } catch {
             /* keep draft coords */
         }
@@ -439,11 +454,22 @@
     };
 
     const finalizeSave = () => {
+        readConfirmForm();
+        const number = draft.noNumber ? '' : String(draft.number || '').trim();
+        draft.number = number;
+        if (!draft.street || !draft.city || (!draft.noNumber && !number)) {
+            syncSaveEnabled();
+            return;
+        }
         const address = formatAddressLine(draft);
         const payload = {
             deliveryType: 'entrega',
             address,
-            addressParts: { ...draft },
+            addressParts: {
+                ...draft,
+                number,
+                noNumber: Boolean(draft.noNumber),
+            },
         };
         window.LigeirinhoCart?.saveCheckout?.(payload);
         window.LigeirinhoCart?.saveAddressToHistory?.({ address, addressParts: payload.addressParts });
