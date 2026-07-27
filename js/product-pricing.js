@@ -481,7 +481,7 @@
             unitPrice,
             packagePrice,
             tierLabel,
-            detail: tierLabel,
+            detail: 'Venda por unidade',
             unitSuffix: 'por unidade',
         };
     };

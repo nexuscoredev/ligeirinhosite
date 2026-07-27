@@ -3981,6 +3981,11 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     box-shadow: var(--lig-tier-active-shadow);
 }
 
+.totem-product .ze-price-tier--solo {
+    cursor: default;
+    pointer-events: none;
+}
+
 .totem-product .ze-price-tier--promo:not(.ze-price-tier--active) {
     border-color: rgba(212, 168, 26, 0.55);
     background: linear-gradient(165deg, rgba(255, 248, 214, 0.95) 0%, rgba(253, 224, 71, 0.28) 100%);

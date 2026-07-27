@@ -1690,6 +1690,11 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     box-shadow: var(--lig-tier-active-shadow);
 }
 
+.ze-price-tier--solo {
+    cursor: default;
+    pointer-events: none;
+}
+
 [data-theme='dark'] .ze-price-tiers {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.08);

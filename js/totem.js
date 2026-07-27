@@ -829,7 +829,8 @@ ${qtyLine}`;
             pricing.getAvailableTiers(group) ||
             []
         ).filter((tier) => !window.LigeirinhoTotemStoreAdmin?.isTierHidden?.(group, tier));
-        if (tiers.length <= 1) return '';
+        if (!tiers.length) return '';
+        const solo = tiers.length === 1;
         const buttons = tiers
             .map((tier) => {
                 const active = tier === activeTier;
@@ -844,10 +845,13 @@ ${qtyLine}`;
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
                     : '';
+                if (solo) {
+                    return `<span class="ze-price-tier ze-price-tier--active ze-price-tier--solo" aria-current="true">${esc(label)}</span>`;
+                }
                 return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(label)}${offer?.discountPct > 0 ? ` em promoção -${offer.discountPct}%` : offer?.promoId ? ' em promoção' : ''}">${esc(label)}${promoMark}</button>`;
             })
             .join('');
-        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Escolher embalagem">${buttons}</div></div>`;
+        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="${solo ? 'Embalagem' : 'Escolher embalagem'}">${buttons}</div></div>`;
     };
 
     const priceBlockHtml = (variant, opts = {}) => {
@@ -864,9 +868,8 @@ ${qtyLine}`;
                 : catalogPrice;
         const showOld = originalPrice > packPrice;
         const units = Math.max(1, Number(variant.packSize) || 1);
-        const unitPrice =
-            units > 1 ? Math.round((packPrice / units) * 100) / 100 : null;
-        const showUnitBreakdown = units > 1 && unitPrice != null;
+        const unitPrice = Math.round((packPrice / units) * 100) / 100;
+        const showUnitBreakdown = units > 1;
         const packLabel =
             meta.tierLabel ||
             (variant.tier === 'pallet' ? 'Pallet' : variant.tier === 'caixa' ? 'Caixa' : 'Unidade');
@@ -876,10 +879,18 @@ ${qtyLine}`;
         const oldHtml = showOld
             ? `<span class="totem-product__price-old">${formatPrice(originalPrice)}</span>`
             : '';
+        const detailText =
+            units > 1 && meta.detail
+                ? meta.detail
+                : variant.tier === 'unidade' || units === 1
+                  ? 'Venda por unidade'
+                  : meta.detail || '';
 
-        const detailHtml = `<p class="totem-price-card__detail">${units > 1 && meta.detail ? esc(meta.detail) : ''}</p>`;
+        const detailHtml = `<p class="totem-price-card__detail">${detailText ? esc(detailText) : ''}</p>`;
         const unitHtml = `<p class="totem-price-card__unit">${
-            showUnitBreakdown ? `${formatPrice(unitPrice)}<span> / un</span>` : ''
+            showUnitBreakdown
+                ? `${formatPrice(unitPrice)}<span> / un</span>`
+                : `${formatPrice(packPrice)}<span> / un</span>`
         }</p>`;
 
         return `<div class="totem-price-card ze-price-block totem-product__price-block${opts.promoId ? ' totem-product__price-block--promo' : ''}" data-price-display>
@@ -1008,8 +1019,8 @@ ${unitHtml}
         }
 
         const packTag = card.querySelector('.totem-product__pack-tag');
-        const hasTierSelector = card.querySelectorAll('.ze-price-tier').length > 1;
-        if (hasTierSelector) {
+        const hasTierSlot = card.querySelectorAll('.ze-price-tier').length > 0;
+        if (hasTierSlot) {
             packTag?.remove();
         } else if (packTag && variant) {
             const label = packLabelForTier(tier);
@@ -2957,7 +2968,6 @@ ${offer?.originalPrice > (offer?.promoPrice ?? product.price) ? `<span class="to
         const mediaHtml = `<div class="totem-product__media">
 ${promoTag}
 ${payTag}
-${variant && !tiersHtml ? mediaPackTagHtml(variant, tier) : ''}
 ${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
 </div>`;
