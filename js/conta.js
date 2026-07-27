@@ -693,7 +693,7 @@ ${esc(cat.label)}
     const renderAjuda = () => {
         const body = `<div class="conta-sub-body conta-help">
 <a class="conta-help-wa" href="${esc(WHATSAPP_URL)}" target="_blank" rel="noopener noreferrer">
-<span class="conta-help-wa__icon" aria-hidden="true"><span class="material-symbols-outlined">chat</span></span>
+<span class="conta-help-wa__icon" aria-hidden="true"><img src="img/icon-whatsapp.svg" alt="" width="22" height="22" decoding="async"></span>
 <span class="conta-help-wa__body">
 <span class="conta-help-wa__title">Falar no WhatsApp</span>
 <span class="conta-help-wa__sub">(11) 97092-4909</span>

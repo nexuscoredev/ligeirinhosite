@@ -297,7 +297,7 @@ ${navMobileLinksHtml}
 <span class="lig-install-trigger-label">Baixar app</span>
 </button>
 </nav>
-<a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-[#25D366]/50 bg-[#25D366]/10 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-[#25D366]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">
+<a class="font-nav mx-4 mb-4 flex min-h-[48px] items-center justify-center gap-2 rounded-lg border border-surface-variant/50 bg-surface-variant/20 px-4 py-3 text-[15px] font-semibold text-on-surface hover:bg-surface-variant/35 focus:outline-none focus-visible:ring-2 focus-visible:ring-vibrant-yellow" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">
 <img alt="" src="${brandIcons.whatsapp}" class="h-5 w-5 shrink-0 object-contain" width="20" height="20" decoding="async">
                 WhatsApp
             </a>

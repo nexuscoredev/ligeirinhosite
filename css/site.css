@@ -5131,6 +5131,12 @@ html.lig-story-open {
     font-size: 1.35rem;
 }
 
+.conta-help-wa__icon img {
+    width: 1.35rem;
+    height: 1.35rem;
+    display: block;
+}
+
 .conta-help-wa__body {
     display: flex;
     flex-direction: column;
