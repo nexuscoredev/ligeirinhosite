@@ -12,17 +12,34 @@
 
 <link rel="manifest" href="manifest.webmanifest">
 
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#F7D53C">
 
 <meta name="apple-mobile-web-app-title" content="Ligeirinho Parceiros">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="preload" href="img/ligeirinhologo.png" as="image">
 
 <script src="js/theme.js"></script>
 
 <link rel="stylesheet" href="css/site.css">
 
+<style id="lig-splash-critical">
+#lig-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#F7D53C;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);transition:opacity .45s ease,visibility .45s ease}
+#lig-splash.lig-splash--out{opacity:0;visibility:hidden;pointer-events:none}
+.lig-splash__glow{position:absolute;width:min(78vw,22rem);height:min(78vw,22rem);border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.45) 0%,rgba(255,255,255,.08) 48%,transparent 72%);pointer-events:none}
+.lig-splash__content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1.1rem;text-align:center;animation:ligSplashIn .7s cubic-bezier(.22,1,.36,1) both}
+.lig-splash__logo{width:min(52vw,11.5rem);height:min(52vw,11.5rem);object-fit:contain;filter:drop-shadow(0 .65rem 1.4rem rgba(0,0,0,.18));animation:ligSplashLogo .9s cubic-bezier(.22,1,.36,1) both}
+.lig-splash__brand{display:flex;align-items:baseline;justify-content:center;gap:.4rem;margin:0;line-height:1}
+.lig-splash__name{font-family:'Plus Jakarta Sans','Hanken Grotesk',system-ui,sans-serif;font-weight:800;font-size:clamp(1.65rem,6.5vw,2.15rem);letter-spacing:-.04em;color:#1a1a1a}
+.lig-splash__app{font-family:Caveat,cursive;font-weight:700;font-size:clamp(1.9rem,7.5vw,2.55rem);color:#1a1a1a;transform:translateY(.06em) rotate(-2.5deg);transform-origin:left bottom}
+@keyframes ligSplashIn{from{opacity:0;transform:translateY(.6rem)}to{opacity:1;transform:none}}
+@keyframes ligSplashLogo{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+</style>
+
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 
@@ -64,6 +81,37 @@
 </head>
 
 <body data-page="login" class="lig-login-page font-body-md antialiased">
+
+<div id="lig-splash" class="lig-splash" role="status" aria-live="polite" aria-label="Carregando Ligeirinho Parceiros">
+<div class="lig-splash__glow" aria-hidden="true"></div>
+<div class="lig-splash__content">
+<img class="lig-splash__logo" src="img/ligeirinhologo.png" alt="" width="220" height="220" decoding="async" fetchpriority="high">
+<p class="lig-splash__brand"><span class="lig-splash__name">Ligeirinho</span><span class="lig-splash__app">Parceiros</span></p>
+</div>
+</div>
+<script>
+(function () {
+    var el = document.getElementById('lig-splash');
+    if (!el) return;
+    var minMs = 1300;
+    var started = Date.now();
+    var done = false;
+    function hide() {
+        if (done) return;
+        done = true;
+        var wait = Math.max(0, minMs - (Date.now() - started));
+        window.setTimeout(function () {
+            el.classList.add('lig-splash--out');
+            window.setTimeout(function () {
+                if (el && el.parentNode) el.parentNode.removeChild(el);
+            }, 480);
+        }, wait);
+    }
+    if (document.readyState === 'complete') hide();
+    else window.addEventListener('load', hide, { once: true });
+    window.setTimeout(hide, 3200);
+})();
+</script>
 
 <div data-lig-theme-mount class="lig-login-theme" role="group" aria-label="Tema do app"></div>
 
