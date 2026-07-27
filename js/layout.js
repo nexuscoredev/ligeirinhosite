@@ -230,7 +230,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
 </div>
 <form id="ze-search-form" class="ze-search-bar" role="search" action="pedidos.html" method="get">
 <span class="ze-search-bar__icon material-symbols-outlined" aria-hidden="true">search</span>
-<input type="search" name="q" id="ze-search-input" placeholder="${searchPlaceholder}" autocomplete="off" aria-label="Buscar produtos">
+<input type="text" name="q" id="ze-search-input" placeholder="${searchPlaceholder}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search" aria-label="Buscar produtos">
 </form>
 </div>`
             : '';
@@ -724,13 +724,24 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
 
         let liveSearchTimer = null;
         const dispatchCatalogSearch = (raw) => {
-            const q = String(raw ?? searchInput?.value ?? '').trim();
+            const q = String(raw ?? searchInput?.value ?? '');
             window.dispatchEvent(new CustomEvent('ligeirinho-catalog-search', { detail: { q } }));
         };
         const goCatalogSearch = (raw) => {
             const q = String(raw ?? '').trim();
             window.location.href = q ? `pedidos.html?q=${encodeURIComponent(q)}` : 'pedidos.html';
         };
+
+        const bindSearchInputKeys = (inputEl) => {
+            if (!inputEl || inputEl.dataset.zeSearchKeysBound === '1') return;
+            inputEl.dataset.zeSearchKeysBound = '1';
+            inputEl.addEventListener('keydown', (e) => {
+                if (e.key !== ' ' && e.code !== 'Space') return;
+                e.stopPropagation();
+            });
+        };
+
+        bindSearchInputKeys(searchInput);
 
         if (searchForm && page === 'pedidos') {
             searchForm.addEventListener('submit', (e) => {

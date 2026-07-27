@@ -322,15 +322,21 @@
         console.warn('[pedidos] bindCatalogGrid', err);
     }
 
+    const normalizeSearchQuery = (raw) =>
+        String(raw ?? '')
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .trim();
+
     const applySearchQuery = (raw, { updateUrl = false } = {}) => {
-        const value = String(raw || '').trim();
-        searchQuery = value.toLowerCase();
+        const normalized = normalizeSearchQuery(raw);
+        searchQuery = normalized;
         cachedQueryKey = '';
         cachedQueryInfo = null;
 
         if (updateUrl) {
             const url = new URL(window.location.href);
-            if (value) url.searchParams.set('q', value);
+            if (normalized) url.searchParams.set('q', normalized);
             else url.searchParams.delete('q');
             const next = `${url.pathname}${url.search}${url.hash}`;
             if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== next) {
@@ -358,6 +364,10 @@
         document.addEventListener('keydown', (e) => {
             const input = e.target;
             if (!(input instanceof HTMLInputElement) || input.id !== 'ze-search-input') return;
+            if (e.key === ' ' || e.code === 'Space') {
+                e.stopPropagation();
+                return;
+            }
             if (e.key !== 'Enter') return;
             e.preventDefault();
             if (searchTimer) clearTimeout(searchTimer);
@@ -367,11 +377,9 @@
 
     bindSearchInput();
     window.addEventListener('ligeirinho-catalog-search', (event) => {
-        const q = event.detail?.q ?? searchInput()?.value ?? '';
-        const input = searchInput();
-        if (input && input.value !== q) input.value = q;
+        const raw = event.detail?.q ?? searchInput()?.value ?? '';
         if (searchTimer) clearTimeout(searchTimer);
-        applySearchQuery(q, { updateUrl: true });
+        applySearchQuery(raw, { updateUrl: true });
     });
 
     sortSelects.forEach((select) => {
@@ -401,10 +409,10 @@
             bindSearchInput();
             const input = searchInput();
             if (searchParam) {
-                searchQuery = searchParam.toLowerCase();
                 if (input) input.value = searchParam;
-            } else if (input?.value?.trim()) {
-                searchQuery = input.value.trim().toLowerCase();
+                applySearchQuery(searchParam, { updateUrl: false });
+            } else if (input?.value) {
+                applySearchQuery(input.value, { updateUrl: false });
             }
 
             renderFilters();
