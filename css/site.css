@@ -8791,7 +8791,36 @@ body.lig-login-page {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 0 0 1em;
+    padding: 0 0 0.75em;
+}
+
+body[data-login-mode='choose'] .lig-login-hero {
+    padding-bottom: 0.5em;
+}
+
+body[data-login-mode='choose'] .lig-login-logo-wrap {
+    margin-bottom: 0.75em;
+}
+
+body[data-login-mode='choose'] .lig-login-logo {
+    width: clamp(6.5rem, 18dvh, 9.5rem);
+    height: clamp(6.5rem, 18dvh, 9.5rem);
+}
+
+body[data-login-mode='signin'] .lig-login-hero,
+body[data-login-mode='signup'] .lig-login-hero {
+    padding-bottom: 0.5em;
+}
+
+body[data-login-mode='signin'] .lig-login-logo-wrap,
+body[data-login-mode='signup'] .lig-login-logo-wrap {
+    margin-bottom: 0.75em;
+}
+
+body[data-login-mode='signin'] .lig-login-logo,
+body[data-login-mode='signup'] .lig-login-logo {
+    width: clamp(6.5rem, 18dvh, 9.5rem);
+    height: clamp(6.5rem, 18dvh, 9.5rem);
 }
 
 .lig-login-logo-wrap {
@@ -8875,19 +8904,308 @@ body.lig-login-page {
     display: flex;
 }
 
+.lig-login-choose {
+    gap: 0;
+}
+
+.lig-login-choose__stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.lig-login-choice {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.875rem;
+    border: 1px solid transparent;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+}
+
+.lig-login-choice:active {
+    transform: scale(0.985);
+}
+
+.lig-login-choice--primary {
+    border-color: rgba(247, 213, 60, 0.45);
+    background: linear-gradient(135deg, #f9e066 0%, var(--lig-yellow) 52%, #e8c028 100%);
+    color: #1a1400;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.35) inset,
+        0 8px 20px rgba(247, 213, 60, 0.22);
+}
+
+.lig-login-choice--primary:hover {
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.4) inset,
+        0 10px 24px rgba(247, 213, 60, 0.28);
+}
+
+.lig-login-choice--secondary {
+    border-color: var(--lig-border);
+    background: color-mix(in srgb, var(--lig-surface-alt) 88%, transparent);
+    color: var(--lig-text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.lig-login-choice--secondary:hover {
+    border-color: rgba(247, 213, 60, 0.35);
+    background: var(--lig-yellow-light);
+}
+
+.lig-login-choice__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-radius: 0.625rem;
+    flex-shrink: 0;
+}
+
+.lig-login-choice--primary .lig-login-choice__icon {
+    background: rgba(255, 255, 255, 0.28);
+    color: #1a1400;
+}
+
+.lig-login-choice--secondary .lig-login-choice__icon {
+    background: var(--lig-surface);
+    border: 1px solid var(--lig-border);
+    color: var(--lig-yellow-text);
+}
+
+.lig-login-choice__icon .material-symbols-outlined {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.lig-login-choice__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.lig-login-choice__body strong {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.lig-login-choice__hint {
+    font-size: 0.6875rem;
+    line-height: 1.25;
+    font-weight: 500;
+    opacity: 0.72;
+}
+
+.lig-login-choice--primary .lig-login-choice__hint {
+    color: rgba(26, 20, 0, 0.72);
+}
+
+.lig-login-choice--secondary .lig-login-choice__hint {
+    color: var(--lig-text-muted);
+}
+
+.lig-login-choice__chevron {
+    font-size: 1.125rem;
+    opacity: 0.55;
+    flex-shrink: 0;
+}
+
+.lig-login-choice--primary .lig-login-choice__chevron {
+    color: #1a1400;
+}
+
+[data-theme='dark'] .lig-login-choice--secondary {
+    background: color-mix(in srgb, var(--lig-surface-alt) 70%, transparent);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] .lig-login-choice--secondary {
+        background: color-mix(in srgb, var(--lig-surface-alt) 70%, transparent);
+    }
+}
+
 .lig-login-mode-back {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
     align-self: flex-start;
-    margin: 0 0 0.25rem;
-    padding: 0.25rem 0.375rem 0.25rem 0;
+    margin: 0;
+    padding: 0.125rem 0.375rem 0.125rem 0;
     border: none;
     background: transparent;
     color: var(--lig-text-muted);
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
+}
+
+.lig-login-signin,
+.lig-login-signup {
+    gap: 0.5rem;
+}
+
+.lig-login-flow-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--lig-border);
+    background: color-mix(in srgb, var(--lig-surface-alt) 92%, transparent);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 8px 28px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='dark'] .lig-login-flow-card {
+    background: color-mix(in srgb, var(--lig-surface-alt) 75%, transparent);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] .lig-login-flow-card {
+        background: color-mix(in srgb, var(--lig-surface-alt) 75%, transparent);
+    }
+}
+
+.lig-login-oauth-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.lig-login-oauth-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    width: 100%;
+    min-height: 2.625rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+        border-color 0.18s ease,
+        background 0.18s ease,
+        transform 0.15s ease;
+}
+
+.lig-login-oauth-btn:hover {
+    border-color: rgba(247, 213, 60, 0.35);
+    background: var(--lig-yellow-light);
+}
+
+.lig-login-oauth-btn:active {
+    transform: scale(0.985);
+}
+
+.lig-login-oauth-btn__icon {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    font-size: 1.125rem;
+    line-height: 1;
+}
+
+.lig-login-oauth-btn__label {
+    flex: 0 1 auto;
+}
+
+.lig-login-oauth-btn--google.lig-login-google-btn--disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.lig-login-flow-card .lig-login-divider {
+    margin: 0;
+}
+
+.lig-login-hub {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: left;
+}
+
+.lig-login-setup__input--flat {
+    border: 1px solid var(--lig-border) !important;
+    border-radius: 0.75rem !important;
+    background: var(--lig-surface) !important;
+    background-color: var(--lig-surface) !important;
+    box-shadow: none !important;
+    min-height: 2.625rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.9375rem;
+}
+
+.lig-login-setup__input--flat:focus {
+    outline: none;
+    border-color: rgba(247, 213, 60, 0.55) !important;
+    box-shadow: 0 0 0 2px rgba(247, 213, 60, 0.22) !important;
+}
+
+.lig-login-setup__save--flat {
+    margin-top: 0.125rem;
+    min-height: 2.625rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #f9e066 0%, var(--lig-yellow) 52%, #e8c028 100%);
+    color: #1a1400;
+    font-size: 0.9375rem;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.35) inset,
+        0 6px 16px rgba(247, 213, 60, 0.2);
+}
+
+.lig-login-setup__save--flat:hover {
+    filter: none;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.4) inset,
+        0 8px 20px rgba(247, 213, 60, 0.26);
+}
+
+#login-mode-signup .lig-login-flow-card .lig-signup-progress {
+    margin-bottom: 0;
+}
+
+#login-mode-signup .lig-signup-ask {
+    margin: 0 0 0.625rem;
+    font-size: 0.9375rem;
+}
+
+#login-mode-signup .lig-login-setup__input--flat {
+    margin-bottom: 0.625rem;
 }
 
 .lig-login-mode-back:hover {
@@ -8954,7 +9272,8 @@ body.lig-login-page {
 }
 
 .lig-login-google-btn:hover,
-.lig-login-phone-btn:hover {
+.lig-login-phone-btn:hover,
+.lig-login-oauth-btn:hover {
     border-color: rgba(247, 213, 60, 0.35);
     background: var(--lig-yellow-light);
 }
@@ -9020,7 +9339,8 @@ body.lig-login-page {
 }
 
 .lig-login-google-btn:active,
-.lig-login-phone-btn:active {
+.lig-login-phone-btn:active,
+.lig-login-oauth-btn:active {
     transform: scale(0.96);
 }
 
@@ -13358,23 +13678,6 @@ html.lig-addr-open body {
     font-size: 0.8125rem;
     line-height: 1.4;
     color: var(--lig-text-muted);
-}
-
-.lig-signup-promo {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    margin: 1rem 0 0;
-    padding: 0.65rem 0.85rem;
-    border-radius: 999px;
-    background: rgba(16, 185, 129, 0.12);
-    color: #065f46;
-    font-size: 0.8125rem;
-    font-weight: 700;
-}
-
-.lig-signup-promo .material-symbols-outlined {
-    color: #059669;
 }
 
 .lig-login-phone__title {

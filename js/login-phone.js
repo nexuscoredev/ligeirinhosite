@@ -8,7 +8,6 @@
     const phoneToggle = document.getElementById('login-phone-toggle');
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
-    const birthInput = document.getElementById('login-phone-birth');
     const submitBtn = document.getElementById('login-phone-submit');
     const statusEl = document.getElementById('login-phone-status');
     const params = new URLSearchParams(window.location.search);
@@ -24,27 +23,6 @@
         statusEl.classList.toggle('lig-login-status--ok', !isError && Boolean(msg));
     };
 
-    const maskBirth = (raw) => {
-        const digits = String(raw || '')
-            .replace(/\D/g, '')
-            .slice(0, 8);
-        if (digits.length <= 2) return digits;
-        if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-        return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-    };
-
-    const isValidBirth = (value) => {
-        const m = String(value || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-        if (!m) return false;
-        const day = Number(m[1]);
-        const month = Number(m[2]);
-        const year = Number(m[3]);
-        if (month < 1 || month > 12 || day < 1 || day > 31) return false;
-        if (year < 1920 || year > new Date().getFullYear() - 16) return false;
-        const dt = new Date(year, month - 1, day);
-        return dt.getFullYear() === year && dt.getMonth() === month - 1 && dt.getDate() === day;
-    };
-
     const showStep = (index) => {
         step = index;
         signupPanel?.querySelectorAll('[data-signup-step]').forEach((el) => {
@@ -56,7 +34,6 @@
         setStatus('');
         window.setTimeout(() => {
             if (index === 0) nameInput?.focus();
-            else if (index === 1) birthInput?.focus();
             else phoneInput?.focus();
         }, 60);
     };
@@ -68,39 +45,23 @@
     };
 
     const goNext = () => {
-        if (step === 0) {
-            const name = phoneAuth.normalizeName(nameInput?.value || '');
-            if (!phoneAuth.isValidName(name)) {
-                setStatus('Informe nome e sobrenome.', true);
-                nameInput?.focus();
-                return;
-            }
-            showStep(1);
+        if (step !== 0) return;
+        const name = phoneAuth.normalizeName(nameInput?.value || '');
+        if (!phoneAuth.isValidName(name)) {
+            setStatus('Informe nome e sobrenome.', true);
+            nameInput?.focus();
             return;
         }
-        if (step === 1) {
-            if (!isValidBirth(birthInput?.value || '')) {
-                setStatus('Informe uma data válida (DD/MM/AAAA). É preciso ter 16 anos ou mais.', true);
-                birthInput?.focus();
-                return;
-            }
-            showStep(2);
-        }
+        showStep(1);
     };
 
     const submit = async () => {
         const phone = phoneAuth.normalizePhoneBR(phoneInput?.value || '');
         const name = phoneAuth.normalizeName(nameInput?.value || '');
-        const birthDate = (birthInput?.value || '').trim();
 
         if (!phoneAuth.isValidName(name)) {
             showStep(0);
             setStatus('Informe nome e sobrenome.', true);
-            return;
-        }
-        if (!isValidBirth(birthDate)) {
-            showStep(1);
-            setStatus('Informe uma data válida (DD/MM/AAAA).', true);
             return;
         }
         if (!phone) {
@@ -108,8 +69,6 @@
             phoneInput?.focus();
             return;
         }
-
-        window.LigeirinhoCart?.savePrefs?.({ birthDate });
 
         submitBtn && (submitBtn.disabled = true);
         setStatus('Criando conta…', false);
@@ -153,20 +112,9 @@
         phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
     });
 
-    birthInput?.addEventListener('input', () => {
-        if (!birthInput) return;
-        birthInput.value = maskBirth(birthInput.value);
-    });
-
     submitBtn?.addEventListener('click', submit);
 
     nameInput?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            goNext();
-        }
-    });
-    birthInput?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             goNext();
