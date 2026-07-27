@@ -812,6 +812,18 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         });
     };
 
+    const accountNavSelector = 'a[href="conta.html"], a[href="/conta"]';
+
+    const applyEmptyAccountNav = async () => {
+        if (!window.LigeirinhoAuth?.isLoggedIn?.()) return;
+        const has = await window.LigeirinhoOrdersAccess?.fetchHasOrders?.().catch(() => null);
+        if (has) return;
+        document.querySelectorAll(accountNavSelector).forEach((link) => {
+            if (link.dataset.contaForce === '1') return;
+            link.href = 'meus-pedidos.html';
+        });
+    };
+
     const bindAccountNavRouting = () => {
         if (document.documentElement.dataset.ligAccountNavBound === '1') return;
         document.documentElement.dataset.ligAccountNavBound = '1';
@@ -819,12 +831,13 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         document.addEventListener(
             'click',
             (event) => {
-                const link = event.target.closest('a[href="conta.html"]');
+                const link = event.target.closest(accountNavSelector);
                 if (!link || link.dataset.contaForce === '1') return;
                 if (!window.LigeirinhoAuth?.isLoggedIn?.()) return;
+                if (link.getAttribute('href') === 'meus-pedidos.html') return;
 
                 event.preventDefault();
-                void window.LigeirinhoOrdersAccess?.hasOrders?.().then((has) => {
+                void window.LigeirinhoOrdersAccess?.fetchHasOrders?.().then((has) => {
                     window.location.href = has ? 'conta.html' : 'meus-pedidos.html';
                 });
             },
@@ -872,7 +885,14 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         syncTabBadge();
         syncBottomNavActive();
 
-        ensureScript('js/orders-access.js').then(() => bindAccountNavRouting());
+        ensureScript('js/orders-access.js').then(() => {
+            bindAccountNavRouting();
+            void applyEmptyAccountNav();
+        });
+
+        window.addEventListener('ligeirinho-auth-changed', () => {
+            void applyEmptyAccountNav();
+        });
 
         window.setTimeout(() => {
             window.LigeirinhoCatalogLoader?.load?.();

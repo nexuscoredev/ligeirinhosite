@@ -135,8 +135,8 @@
         const dest = safeNextUrl(nextUrl, role, activeSession);
         if (auth.isTotemRole(role)) return dest;
         if (!isContaDestination(dest) || dest.includes('#')) return dest;
-        const has = await window.LigeirinhoOrdersAccess?.hasOrders?.().catch(() => null);
-        if (has === false) return 'meus-pedidos.html';
+        const has = await window.LigeirinhoOrdersAccess?.fetchHasOrders?.().catch(() => null);
+        if (!has) return 'meus-pedidos.html';
         return dest;
     };
 

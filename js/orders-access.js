@@ -1,7 +1,7 @@
 (function () {
     const auth = window.LigeirinhoAuth;
     const cart = window.LigeirinhoCart;
-    const CACHE_KEY = 'lig-has-orders-v1';
+    const CACHE_KEY = 'lig-has-orders-v2';
     const CACHE_TTL_MS = 5 * 60 * 1000;
 
     const readCache = () => {
@@ -74,12 +74,6 @@
         const s = session();
         if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) return false;
 
-        const lastLocal = cart?.loadLastOrder?.();
-        if (lastLocal?.orderId || lastLocal?.items?.length) {
-            writeCache(true);
-            return true;
-        }
-
         try {
             const headers = await accountHeaders();
             if (s?.sub) headers['X-Auth-Sub'] = s.sub;
@@ -93,6 +87,20 @@
             }
         } catch {
             /* ignore */
+        }
+
+        const lastLocal = cart?.loadLastOrder?.();
+        if (lastLocal?.orderId) {
+            try {
+                const res = await fetch(`/api/orders/get?id=${encodeURIComponent(lastLocal.orderId)}`);
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.order) {
+                    writeCache(true);
+                    return true;
+                }
+            } catch {
+                /* ignore */
+            }
         }
 
         writeCache(false);
@@ -116,6 +124,14 @@
         hasOrders,
         fetchHasOrders,
         clearCache,
+        redirectContaIfEmpty: async () => {
+            const s = session();
+            if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) return false;
+            const has = await fetchHasOrders().catch(() => null);
+            if (has) return false;
+            window.location.replace('meus-pedidos.html');
+            return true;
+        },
     };
 
     window.addEventListener('ligeirinho-auth-changed', clearCache);

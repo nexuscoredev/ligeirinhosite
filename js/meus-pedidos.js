@@ -573,7 +573,7 @@ ${withFilters ? filtersHtml() : ''}
             console.warn('[meus-pedidos]', err?.message || err);
         }
 
-        if (!apiLoaded && lastLocal?.orderId) {
+        if (!orders.length && lastLocal?.orderId && !apiLoaded) {
             try {
                 const res = await fetch(`/api/orders/get?id=${encodeURIComponent(lastLocal.orderId)}`);
                 const data = await res.json();
@@ -581,10 +581,6 @@ ${withFilters ? filtersHtml() : ''}
             } catch {
                 /* fallback local */
             }
-        }
-
-        if (!orders.length && lastLocal?.items?.length) {
-            orders = [orderFromLocal(lastLocal)];
         }
 
         STATE.orders = orders;

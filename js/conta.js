@@ -873,15 +873,7 @@ ${
         if (new URLSearchParams(window.location.search).get('conta') === '1') return false;
         if (currentView() !== 'menu') return false;
 
-        const s = session();
-        if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) return false;
-
-        const has = await window.LigeirinhoOrdersAccess?.hasOrders?.().catch(() => null);
-        if (has === false) {
-            window.location.replace('meus-pedidos.html');
-            return true;
-        }
-        return false;
+        return Boolean(await window.LigeirinhoOrdersAccess?.redirectContaIfEmpty?.());
     };
 
     const boot = async () => {
