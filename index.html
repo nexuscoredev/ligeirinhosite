@@ -98,6 +98,7 @@ html.lig-splash-done .lig-login-main,html.lig-splash-done .lig-login-theme{visib
       'js/auth-config-loader.js',
       'js/phone-auth.js',
       'js/layout.js',
+      'js/login-mode.js',
       'js/login-hub.js',
       'js/login.js',
       'js/login-phone.js'
@@ -184,6 +185,17 @@ html.lig-splash-done .lig-login-main,html.lig-splash-done .lig-login-theme{visib
 </div>
 
 <div class="lig-login-actions">
+
+<div id="login-mode-choose" class="lig-login-mode lig-login-mode--active" aria-label="Escolha como continuar">
+<button type="button" id="login-go-signin" class="lig-login-setup__save">Fazer login</button>
+<button type="button" id="login-go-signup" class="lig-login-signup-btn">Cadastrar</button>
+</div>
+
+<div id="login-mode-signin" class="lig-login-mode" hidden aria-label="Fazer login">
+<button type="button" class="lig-login-mode-back" data-login-mode="choose" aria-label="Voltar">
+<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+<span>Voltar</span>
+</button>
 <div class="lig-login-oauth-row" role="group" aria-label="Entrar com Google ou telefone">
 <div id="login-google-btn" class="lig-login-oauth-icon lig-login-google-btn lig-login-google-proxy" role="button" tabindex="0" aria-label="Continuar com Google">
 <svg class="lig-login-google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
@@ -194,7 +206,7 @@ html.lig-splash-done .lig-login-main,html.lig-splash-done .lig-login-theme{visib
 </svg>
 <div id="google-signin-mount" class="lig-login-google-mount" aria-hidden="true"></div>
 </div>
-<button type="button" id="login-phone-toggle" class="lig-login-oauth-icon lig-login-phone-btn" aria-expanded="false" aria-controls="login-phone-modal" aria-haspopup="dialog" aria-label="Entrar com telefone">
+<button type="button" id="login-phone-toggle" class="lig-login-oauth-icon lig-login-phone-btn" aria-label="Entrar com telefone">
 <span class="material-symbols-outlined lig-login-phone-btn__icon" aria-hidden="true">phone_iphone</span>
 </button>
 </div>
@@ -205,27 +217,15 @@ html.lig-splash-done .lig-login-main,html.lig-splash-done .lig-login-theme{visib
 <input id="login-hub-user" class="lig-login-setup__input" type="text" inputmode="text" autocomplete="username" placeholder="Usuário ou CNPJ" aria-label="Usuário ou CNPJ">
 <input id="login-hub-password" class="lig-login-setup__input" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha">
 <button type="button" id="login-hub-submit" class="lig-login-setup__save">Entrar</button>
-<button type="button" id="login-signup-btn" class="lig-login-signup-btn">Cadastrar</button>
 </section>
-
-<p id="login-status" class="lig-login-status" hidden></p>
+<p class="lig-login-signup-switch">Não tem conta? <button type="button" class="lig-login-setup-link" data-login-mode="signup">Cadastrar</button></p>
 </div>
 
-<p class="lig-login-legal">
-Ao continuar, você concorda com nossos termos de uso e política de privacidade.
-</p>
-</main>
-
-<div id="login-phone-modal" class="lig-login-modal" aria-hidden="true">
-<div class="lig-login-modal__backdrop" data-login-phone-close tabindex="-1" aria-hidden="true"></div>
-<div class="lig-login-modal__dialog lig-login-phone" role="dialog" aria-modal="true" aria-labelledby="login-phone-title">
-<button type="button" class="lig-login-modal__close" data-login-phone-close aria-label="Fechar">
-<span class="material-symbols-outlined" aria-hidden="true">close</span>
-</button>
-<button type="button" class="lig-login-modal__back" id="login-signup-back" hidden aria-label="Voltar">
+<div id="login-mode-signup" class="lig-login-mode" hidden aria-label="Cadastro">
+<button type="button" class="lig-login-mode-back" data-login-mode="choose" aria-label="Voltar">
 <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+<span>Voltar</span>
 </button>
-<h2 id="login-phone-title" class="lig-login-phone__title">Criar conta</h2>
 <div class="lig-signup-progress" aria-hidden="true">
 <span class="lig-signup-progress__bar lig-signup-progress__bar--on" data-signup-bar="0"></span>
 <span class="lig-signup-progress__bar" data-signup-bar="1"></span>
@@ -254,12 +254,20 @@ Ao continuar, você concorda com nossos termos de uso e política de privacidade
 <input id="login-phone-input" class="lig-login-setup__input" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="Celular DDD + número">
 <p class="lig-signup-note">Preencha corretamente. Usamos o WhatsApp para identificar você nos pedidos.</p>
 <p class="lig-signup-promo"><span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>Entrega rápida na primeira compra do parceiro</p>
-<button type="button" id="login-phone-submit" class="lig-login-setup__save">Criar conta</button>
+<button type="button" id="login-phone-submit" class="lig-login-setup__save">Concluir cadastro</button>
 </div>
 
 <p id="login-phone-status" class="lig-login-status" hidden></p>
+<p class="lig-login-signup-switch">Já tem conta? <button type="button" class="lig-login-setup-link" data-login-mode="signin">Fazer login</button></p>
 </div>
+
+<p id="login-status" class="lig-login-status" hidden></p>
 </div>
+
+<p class="lig-login-legal">
+Ao continuar, você concorda com nossos termos de uso e política de privacidade.
+</p>
+</main>
 
 </body>
 </html>

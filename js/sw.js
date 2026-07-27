@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v426';
+const CACHE_NAME = 'ligeirinho-app-v427';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -79,6 +79,7 @@ const APP_SHELL = [
     '/js/conta-cnpj-modal.js',
     '/js/auth-config-loader.js',
     '/js/phone-auth.js',
+    '/js/login-mode.js',
     '/js/login-phone.js',
     '/js/login.js',
     '/js/login-hub.js',

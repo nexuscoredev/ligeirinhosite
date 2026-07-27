@@ -4,21 +4,17 @@
     const routing = window.LigeirinhoAuthRouting;
     if (!auth || !phoneAuth || !routing) return;
 
-    const phoneModal = document.getElementById('login-phone-modal');
+    const signupPanel = document.getElementById('login-mode-signup');
     const phoneToggle = document.getElementById('login-phone-toggle');
-    const signupBtn = document.getElementById('login-signup-btn');
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
     const birthInput = document.getElementById('login-phone-birth');
     const submitBtn = document.getElementById('login-phone-submit');
-    const backBtn = document.getElementById('login-signup-back');
     const statusEl = document.getElementById('login-phone-status');
     const params = new URLSearchParams(window.location.search);
     const nextUrl = params.get('next') || '';
 
     let step = 0;
-
-    const closeTriggers = () => phoneModal?.querySelectorAll('[data-login-phone-close]') || [];
 
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;
@@ -51,13 +47,12 @@
 
     const showStep = (index) => {
         step = index;
-        phoneModal?.querySelectorAll('[data-signup-step]').forEach((el) => {
+        signupPanel?.querySelectorAll('[data-signup-step]').forEach((el) => {
             el.hidden = Number(el.dataset.signupStep) !== index;
         });
-        phoneModal?.querySelectorAll('[data-signup-bar]').forEach((bar) => {
+        signupPanel?.querySelectorAll('[data-signup-bar]').forEach((bar) => {
             bar.classList.toggle('lig-signup-progress__bar--on', Number(bar.dataset.signupBar) <= index);
         });
-        if (backBtn) backBtn.hidden = index === 0;
         setStatus('');
         window.setTimeout(() => {
             if (index === 0) nameInput?.focus();
@@ -66,24 +61,10 @@
         }, 60);
     };
 
-    const openPhoneModal = () => {
-        if (!phoneModal) return;
-        phoneModal.classList.add('lig-login-modal--open');
-        phoneModal.setAttribute('aria-hidden', 'false');
-        document.documentElement.classList.add('lig-login-modal-open');
-        phoneToggle?.setAttribute('aria-expanded', 'true');
+    const resetSignup = () => {
         showStep(0);
-    };
-
-    const closePhoneModal = () => {
-        if (!phoneModal) return;
-        phoneModal.classList.remove('lig-login-modal--open');
-        phoneModal.setAttribute('aria-hidden', 'true');
-        document.documentElement.classList.remove('lig-login-modal-open');
-        phoneToggle?.setAttribute('aria-expanded', 'false');
         setStatus('');
-        showStep(0);
-        phoneToggle?.focus();
+        if (submitBtn) submitBtn.disabled = false;
     };
 
     const goNext = () => {
@@ -135,45 +116,36 @@
 
         try {
             const session = await routing.loginWithProfile({ type: 'phone', phone, name });
-            setStatus('Conta pronta! Redirecionando…', false);
+            setStatus('Conta criada! Redirecionando…', false);
             window.setTimeout(() => routing.redirectAfterLogin(session.role, nextUrl), 400);
         } catch {
             const fallback = auth.saveFromPhoneProfile({ phone, name });
             if (!fallback) {
-                setStatus('Não foi possível entrar. Tente novamente.', true);
+                setStatus('Não foi possível concluir o cadastro. Tente novamente.', true);
                 submitBtn && (submitBtn.disabled = false);
                 return;
             }
-            setStatus('Conta pronta! Redirecionando…', false);
+            setStatus('Conta criada! Redirecionando…', false);
             window.setTimeout(() => routing.redirectAfterLogin('PARCEIRO', nextUrl), 400);
         }
     };
 
-    phoneToggle?.addEventListener('click', openPhoneModal);
-    signupBtn?.addEventListener('click', openPhoneModal);
-
-    closeTriggers().forEach((el) => {
-        el.addEventListener('click', closePhoneModal);
+    phoneToggle?.addEventListener('click', () => {
+        window.LigeirinhoLoginMode?.showMode?.('signup');
     });
 
-    backBtn?.addEventListener('click', () => {
-        if (step > 0) showStep(step - 1);
-    });
-
-    phoneModal?.querySelectorAll('[data-signup-next]').forEach((btn) => {
+    signupPanel?.querySelectorAll('[data-signup-next]').forEach((btn) => {
         btn.addEventListener('click', goNext);
     });
 
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && phoneModal?.classList.contains('lig-login-modal--open')) {
-            e.preventDefault();
-            closePhoneModal();
+    window.addEventListener('lig-login-mode', (event) => {
+        const mode = event.detail?.mode;
+        if (mode === 'signup') {
+            resetSignup();
+            return;
         }
+        if (mode === 'choose') resetSignup();
     });
-
-    if (params.get('metodo') === 'telefone' || params.get('cadastro') === '1') {
-        openPhoneModal();
-    }
 
     phoneInput?.addEventListener('input', () => {
         if (!phoneInput) return;
