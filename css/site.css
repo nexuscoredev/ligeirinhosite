@@ -12167,7 +12167,7 @@ html.lig-promo-notice-open body {
     display: block;
     height: 100%;
     width: var(--order-track-progress, 0%);
-    background: #1a1a1a;
+    background: #16a34a;
     border-radius: inherit;
     transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -12235,8 +12235,8 @@ html.lig-promo-notice-open body {
 }
 
 .order-track__step--done .order-track__step-badge {
-    background: #1a1a1a;
-    border-color: #1a1a1a;
+    background: #16a34a;
+    border-color: #16a34a;
     color: #fff;
 }
 
@@ -12247,32 +12247,38 @@ html.lig-promo-notice-open body {
     box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.5);
 }
 
-.order-track__step--done .order-track__step-label,
-.order-track__step--active .order-track__step-label {
-    color: var(--lig-text);
+.order-track__step--done .order-track__step-label {
+    color: #15803d;
 }
 
 .order-track__step--active .order-track__step-label {
+    color: var(--lig-text);
     font-weight: 800;
 }
 
 [data-theme='dark'] .order-track__step--done .order-track__step-badge,
+html.dark .order-track__step--done .order-track__step-badge {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #052e16;
+}
+
 [data-theme='dark'] .order-track__step--active .order-track__step-badge,
-html.dark .order-track__step--done .order-track__step-badge,
 html.dark .order-track__step--active .order-track__step-badge {
     background: var(--lig-yellow);
     border-color: var(--lig-yellow);
     color: #1a1a1a;
+    box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.28);
 }
 
-[data-theme='dark'] .order-track__step--active .order-track__step-badge,
-html.dark .order-track__step--active .order-track__step-badge {
-    box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.28);
+[data-theme='dark'] .order-track__step--done .order-track__step-label,
+html.dark .order-track__step--done .order-track__step-label {
+    color: #4ade80;
 }
 
 [data-theme='dark'] .order-track__timeline-bar::after,
 html.dark .order-track__timeline-bar::after {
-    background: var(--lig-yellow);
+    background: #22c55e;
 }
 
 .order-track__message {
