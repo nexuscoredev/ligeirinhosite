@@ -601,32 +601,52 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 @media (max-width: 767px) {
     .lig-header-main {
         max-width: 100%;
-        gap: 0.35rem;
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+        gap: 0.3rem;
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
     }
 
-    .lig-header-main .lig-brand {
+    .lig-header-main .lig-brand,
+    .lig-header-main .nav-brand {
         min-width: 0;
         flex: 1 1 auto;
+        flex-shrink: 1;
         overflow: hidden;
+        gap: 0.35rem;
+    }
+
+    .lig-header-main .lig-brand__logo {
+        width: 2rem;
+        height: 2rem;
+        flex-shrink: 0;
     }
 
     .lig-header-main .lig-brand__wordmark {
+        display: inline-flex;
+        align-items: baseline;
         min-width: 0;
-        overflow: hidden;
+        flex-shrink: 1;
+        gap: 0.15rem;
+    }
+
+    .lig-header-main .lig-brand__text {
+        font-size: 1.05rem;
+        flex-shrink: 0;
     }
 
     .lig-header-main .lig-brand__app {
-        display: none;
+        display: inline;
+        font-size: 1.15rem;
+        flex-shrink: 1;
+        min-width: 0;
     }
 
     .lig-header-actions {
         flex: 0 0 auto;
         display: inline-flex;
         align-items: center;
-        gap: 0.25rem !important;
-        padding-left: 0.25rem;
+        gap: 0.2rem !important;
+        padding-left: 0.15rem;
         border-left: none;
         max-width: none;
         overflow: visible;
@@ -637,10 +657,10 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     .lig-header-actions .lig-update-nav-btn,
     .lig-header-actions .lig-install-nav-btn,
     .lig-theme-toggle-mount--header .lig-theme-toggle {
-        width: 2.25rem;
-        height: 2.25rem;
-        min-width: 2.25rem;
-        min-height: 2.25rem;
+        width: 2.125rem;
+        height: 2.125rem;
+        min-width: 2.125rem;
+        min-height: 2.125rem;
     }
 
     .lig-header-actions .lig-notif-bell__icon,
@@ -648,7 +668,7 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     .lig-header-actions .lig-update-nav-btn__icon,
     .lig-header-actions .lig-install-nav-btn .material-symbols-outlined,
     .lig-theme-toggle-mount--header .lig-theme-toggle__icon {
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
 }
 
