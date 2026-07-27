@@ -25,10 +25,23 @@
 
     const orderTotal = (subtotal, fee) => roundMoney(Number(subtotal || 0) + Number(fee || 0));
 
+    const buildDisplayItem = (fee) => {
+        if (!fee || fee <= 0) return null;
+        return {
+            id: 'taxa-entrega-hr',
+            name: 'TAXA DE ENTREGA HR',
+            price: roundMoney(fee),
+            qty: 1,
+            packType: 'unidade',
+            isDeliveryFee: true,
+        };
+    };
+
     window.LigeirinhoDeliveryFee = {
         DEFAULT_FEE,
         resolveFee,
         feeLabel,
         orderTotal,
+        buildDisplayItem,
     };
 })();

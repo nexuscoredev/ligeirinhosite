@@ -13,7 +13,7 @@ import {
     getFinanceSettings,
 } from '../../scripts/supabase-finance.mjs';
 import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
-import { resolveParceirosDeliveryFee } from '../../scripts/lib/delivery-fee.mjs';
+import { resolveParceirosDeliveryFee, prependDeliveryFeeToItems, isDeliveryFeeLineItem } from '../../scripts/lib/delivery-fee.mjs';
 import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
 import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import { registerTotemCustomer } from '../../scripts/lib/totem-customer-register.mjs';
@@ -53,7 +53,8 @@ const normalizeItems = (raw) => {
                         : null,
             };
         })
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter((item) => !isDeliveryFeeLineItem(item));
 };
 
 function addDays(date, days) {
@@ -127,7 +128,8 @@ export default async function handler(req, res) {
             deliveryType,
             hubUserId,
         });
-        const total = roundMoney(subtotal + deliveryFee);
+        const orderItems = prependDeliveryFeeToItems(items, deliveryFee);
+        const total = roundMoney(orderItems.reduce((sum, item) => sum + item.price * item.qty, 0));
         let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
         let paymentSplits = null;
         try {
@@ -239,7 +241,7 @@ export default async function handler(req, res) {
 
         const row = {
             status: 'pending',
-            items,
+            items: orderItems,
             total,
             delivery_fee: deliveryFee,
             delivery_type: deliveryType,

@@ -362,6 +362,7 @@ ${pickerPaymentIds
     };
 
     const productPackDetail = (item) => {
+        if (item?.isDeliveryFee) return 'Taxa de entrega';
         const pack = cartApi.packTypeLabel(item.packType);
         const boxMatch = String(item.name || '').match(/\(Caixa c\/\s*(\d+)\)/i);
         if (boxMatch) return `1 Unidade · Caixa contém ${boxMatch[1]} unidades`;
@@ -435,7 +436,9 @@ ${body}
             : '';
         const payLabel = paymentMethodSelectHtml(checkout, total);
 
-        const productsBody = `<div class="resumo-products-list">${items.map(productLineHtml).join('')}</div>`;
+        const feeDisplayItem = deliveryFee > 0 ? feeApi()?.buildDisplayItem?.(deliveryFee) : null;
+        const listItems = feeDisplayItem ? [feeDisplayItem, ...items] : items;
+        const productsBody = `<div class="resumo-products-list">${listItems.map(productLineHtml).join('')}</div>`;
 
         root.innerHTML = `<div class="resumo-shell">
 ${headerHtml('Resumo do pedido', 'LIGEIRINHO DISTRIBUI')}

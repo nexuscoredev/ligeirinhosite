@@ -3,7 +3,9 @@ import { resolveClienteParceiroForOrder } from './hub-parceiro.mjs';
 import { buildHubProductLookup, fetchHubProdutosForLookup } from './lib/hub-catalog.mjs';
 import {
     DELIVERY_FEE_HUB_PRODUCT_ID,
-    DELIVERY_FEE_PRODUCT_NAME,
+    extractDeliveryFeeFromItems,
+    isDeliveryFeeLineItem,
+    prependDeliveryFeeToItems,
     roundMoney,
 } from './lib/delivery-fee.mjs';
 
@@ -179,9 +181,11 @@ function buildPagamentoSplit(order) {
 }
 
 function orderDeliveryFee(order) {
+    const fromItems = extractDeliveryFeeFromItems(order?.items);
+    if (fromItems != null) return fromItems;
     const direct = Number(order?.delivery_fee);
     if (Number.isFinite(direct) && direct >= 0) return roundMoney(direct);
-    const items = Array.isArray(order?.items) ? order.items : [];
+    const items = Array.isArray(order?.items) ? order.items.filter((item) => !isDeliveryFeeLineItem(item)) : [];
     const subtotal = roundMoney(items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.qty || 0), 0));
     const total = Number(order?.total) || 0;
     const diff = roundMoney(total - subtotal);
@@ -196,33 +200,18 @@ async function fetchDeliveryFeeProduct(hub) {
     return Array.isArray(rows) ? rows[0] ?? null : null;
 }
 
-async function inserirTaxaEntregaNoPedidoHub(hub, pedidoId, fee, porSku) {
-    const amount = roundMoney(fee);
-    if (!amount || amount <= 0) return false;
-
-    let prod = porSku?.get?.(DELIVERY_FEE_HUB_PRODUCT_ID) || null;
-    if (!prod?.id) prod = await fetchDeliveryFeeProduct(hub);
-    if (!prod?.id) {
-        console.warn('hub-parceiro-pedido: produto taxa de entrega não encontrado no Hub');
-        return false;
+async function ensureDeliveryFeeProduct(porSku, hub, items) {
+    if (!items.some(isDeliveryFeeLineItem)) return porSku;
+    if (resolveProdutoForItem(porSku, { hubId: DELIVERY_FEE_HUB_PRODUCT_ID, sku: '1045' })?.id) {
+        return porSku;
     }
-
-    const cat = prod.categorias_produto;
-    const catOrdem = (Array.isArray(cat) ? cat[0] : cat)?.ordem_separacao ?? 999;
-    await hubRest(hub, 'pedido_itens', {
-        method: 'POST',
-        body: [
-            {
-                pedido_id: pedidoId,
-                produto_id: prod.id,
-                nome_snapshot: String(prod.nome || DELIVERY_FEE_PRODUCT_NAME).slice(0, 200),
-                categoria_ordem: catOrdem,
-                qty_pedida: 1,
-                preco_unitario: amount,
-            },
-        ],
-    });
-    return true;
+    const prod = await fetchDeliveryFeeProduct(hub);
+    if (!prod?.id) return porSku;
+    porSku.set(String(prod.id), prod);
+    if (prod.sku) porSku.set(String(prod.sku).trim(), prod);
+    if (prod.ean) porSku.set(String(prod.ean).trim(), prod);
+    porSku.set(DELIVERY_FEE_HUB_PRODUCT_ID, prod);
+    return porSku;
 }
 
 function formatDeliveryDate(value) {
@@ -310,24 +299,22 @@ function buildLinhasInsert(pedidoId, items, porSku) {
 }
 
 async function inserirItensNoPedidoHub(hub, pedidoId, order) {
-    const items = Array.isArray(order.items) ? order.items : [];
-    if (!items.length && !orderDeliveryFee(order)) return false;
-
-    const porSku = await resolverProdutosHub(hub, items);
-    const linhasInsert = buildLinhasInsert(pedidoId, items, porSku);
-    if (linhasInsert.length) {
-        await hubRest(hub, 'pedido_itens', {
-            method: 'POST',
-            body: linhasInsert,
-        });
-    }
-
+    let items = Array.isArray(order.items) ? order.items : [];
     const fee = orderDeliveryFee(order);
-    if (fee > 0) {
-        await inserirTaxaEntregaNoPedidoHub(hub, pedidoId, fee, porSku);
+    if (fee > 0 && !items.some(isDeliveryFeeLineItem)) {
+        items = prependDeliveryFeeToItems(items, fee);
     }
 
-    if (!linhasInsert.length && fee <= 0) return false;
+    if (!items.length) return false;
+
+    const porSku = await ensureDeliveryFeeProduct(await resolverProdutosHub(hub, items), hub, items);
+    const linhasInsert = buildLinhasInsert(pedidoId, items, porSku);
+    if (!linhasInsert.length) return false;
+
+    await hubRest(hub, 'pedido_itens', {
+        method: 'POST',
+        body: linhasInsert,
+    });
 
     await fetch(`${hub.url}/rest/v1/rpc/recalcular_totais_pedido`, {
         method: 'POST',
