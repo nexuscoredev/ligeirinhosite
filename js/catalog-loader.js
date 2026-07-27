@@ -131,6 +131,11 @@
             try {
                 const res = await fetch(fetchUrl, fetchOpts);
                 if (endpoint.personalized && res.status === 204) {
+                    window.LigeirinhoAuth?.patchSession?.({
+                        usesPersonalPriceTable: false,
+                        tabelaPrecoId: '',
+                        tabelaPreco: 'padrao',
+                    });
                     return load({ ...options, force, apiUrl: API_URL });
                 }
                 if (endpoint.personalized && res.status === 401) {
@@ -145,12 +150,9 @@
                         lastScope = scope;
                         writeStorageCache(data, scope);
                         const authSession = window.LigeirinhoAuth?.loadSession?.();
-                        if (
-                            endpoint.personalized &&
-                            authSession &&
-                            authSession.tabelaPrecoId !== data.priceTableId
-                        ) {
+                        if (endpoint.personalized && authSession) {
                             window.LigeirinhoAuth?.patchSession?.({
+                                usesPersonalPriceTable: true,
                                 tabelaPrecoId: data.priceTableId || '',
                                 tabelaPreco: data.priceTableCodigo || '',
                             });

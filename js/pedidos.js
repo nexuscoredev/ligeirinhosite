@@ -116,6 +116,10 @@
     const promoLoader = promoCatalog?.createHubPromoLoader?.('/api/promocoes');
 
     const reloadPromoOffers = async (force = false) => {
+        if (window.LigeirinhoAuth?.usesPersonalPriceTable?.()) {
+            promoOffers = { byCartKey: {}, byItemKey: {} };
+            return;
+        }
         if (!promoLoader || !promoCatalog || !promoCards || !displayItems.length) return;
         const promos = await promoLoader.load(force);
         const prepared = promoCards.preparePromoGroups(promos, displayItems, promoCatalog);

@@ -63,6 +63,7 @@
             clienteId: user.clienteId || '',
             tabelaPrecoId: user.tabelaPrecoId || '',
             tabelaPreco: user.tabelaPreco || '',
+            usesPersonalPriceTable: Boolean(user.usesPersonalPriceTable),
             paymentMethods: user.paymentMethods || [],
             deliveryDateOptions: user.deliveryDateOptions || [],
             datasEntrega: user.datasEntrega || [],
@@ -367,6 +368,7 @@
             clienteId: profile.clienteId || '',
             tabelaPrecoId: profile.tabelaPrecoId || '',
             tabelaPreco: profile.tabelaPreco || '',
+            usesPersonalPriceTable: Boolean(profile.usesPersonalPriceTable),
             paymentMethods: profile.paymentMethods || [],
             deliveryDateOptions: profile.deliveryDateOptions || [],
             datasEntrega: profile.datasEntrega || [],
@@ -387,9 +389,12 @@
 
     const usesPersonalPriceTable = (session) => {
         if (!session) session = loadSession();
-        if (session?.tabelaPrecoId) return true;
+        if (session?.usesPersonalPriceTable != null) return Boolean(session.usesPersonalPriceTable);
         const codigo = String(session?.tabelaPreco || '').trim().toLowerCase();
-        return Boolean(codigo && codigo !== 'padrao');
+        if (!codigo || codigo === 'padrao' || codigo === 'tabela padrao' || codigo === 'tabela padrão') {
+            return false;
+        }
+        return true;
     };
 
     const buildAccountHeaders = async () => {

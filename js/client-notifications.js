@@ -158,7 +158,10 @@
         if (store.seeded) return;
         const dismissed = loadDismissed();
         const now = new Date().toISOString();
-        SEED.forEach((item) => {
+        const seedItems = window.LigeirinhoAuth?.usesPersonalPriceTable?.()
+            ? SEED.filter((item) => item.id !== 'seed-ofertas')
+            : SEED;
+        seedItems.forEach((item) => {
             if (dismissed.has(item.id)) return;
             if (store.items.some((n) => n.id === item.id)) return;
             store.items.push({

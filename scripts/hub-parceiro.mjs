@@ -462,12 +462,19 @@ export async function buildParceiroExtrasFromPessoa(config, pessoa) {
             : await fetchClienteTaxaEntrega(config, pessoa);
 
     const cliente = clienteParceirosFromPessoa(pessoa);
+    const priceMeta = cliente?.id
+        ? await resolveClientePriceTableMeta(config, cliente.id, {
+              tabelaPrecoId: cliente.tabela_preco_id || null,
+              tabelaPrecoCodigo: cliente.tabela_preco || null,
+          })
+        : null;
 
     return {
         pessoaId: pessoa.id,
         clienteId: cliente?.id || null,
-        tabelaPrecoId: cliente?.tabela_preco_id || null,
-        tabelaPreco: cliente?.tabela_preco || null,
+        tabelaPrecoId: priceMeta?.tabelaPrecoId || null,
+        tabelaPreco: priceMeta?.tabelaPrecoCodigo || cliente?.tabela_preco || null,
+        usesPersonalPriceTable: Boolean(priceMeta?.usesPersonalPriceTable),
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
         cnpjDigits,
         condicaoPagamento: clienteFields.condicaoPagamento,
@@ -662,12 +669,19 @@ export async function buildParceiroExtras(config, usuario) {
             : await fetchClienteTaxaEntrega(config, pessoa);
 
     const cliente = clienteParceirosFromPessoa(pessoa);
+    const priceMeta = cliente?.id
+        ? await resolveClientePriceTableMeta(config, cliente.id, {
+              tabelaPrecoId: cliente.tabela_preco_id || null,
+              tabelaPrecoCodigo: cliente.tabela_preco || null,
+          })
+        : null;
 
     return {
         pessoaId: pessoa.id,
         clienteId: cliente?.id || null,
-        tabelaPrecoId: cliente?.tabela_preco_id || null,
-        tabelaPreco: cliente?.tabela_preco || null,
+        tabelaPrecoId: priceMeta?.tabelaPrecoId || null,
+        tabelaPreco: priceMeta?.tabelaPrecoCodigo || cliente?.tabela_preco || null,
+        usesPersonalPriceTable: Boolean(priceMeta?.usesPersonalPriceTable),
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
         cnpjDigits,
         condicaoPagamento: clienteFields.condicaoPagamento,
@@ -683,6 +697,80 @@ export async function buildParceiroExtras(config, usuario) {
     };
 }
 
+const TABELA_PRECO_META_SELECT = 'id,codigo,padrao,ativo';
+
+async function fetchTabelaPrecoMetaById(config, tabelaPrecoId) {
+    if (!tabelaPrecoId) return null;
+    const rows = await hubRest(
+        config,
+        `tabelas_preco?select=${TABELA_PRECO_META_SELECT}&id=eq.${encodeURIComponent(tabelaPrecoId)}&ativo=eq.true&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] : null;
+}
+
+async function fetchTabelaPrecoMetaByCodigo(config, codigo) {
+    const code = String(codigo || '').trim().toUpperCase();
+    if (!code || code === 'PADRAO') return null;
+    const rows = await hubRest(
+        config,
+        `tabelas_preco?select=${TABELA_PRECO_META_SELECT}&codigo=eq.${encodeURIComponent(code)}&ativo=eq.true&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] : null;
+}
+
+/** Indica se a linha/código legado aponta para a tabela PADRAO do Hub. */
+export function tabelaPrecoMetaEhPadrao(row, codigoLegado) {
+    if (row?.padrao === true) return true;
+    const codigo = String(row?.codigo || codigoLegado || '')
+        .trim()
+        .toUpperCase();
+    if (!codigo || codigo === 'PADRAO') return true;
+    const legado = String(codigoLegado || '')
+        .trim()
+        .toLowerCase();
+    if (legado === 'padrao' || legado === 'tabela padrao' || legado === 'tabela padrão') return true;
+    return false;
+}
+
+async function resolveClientePriceTableMeta(config, clienteId, initialMeta = {}) {
+    let tabelaPrecoId = initialMeta.tabelaPrecoId || null;
+    let tabelaPrecoCodigo = initialMeta.tabelaPrecoCodigo || null;
+
+    if (!tabelaPrecoId && !tabelaPrecoCodigo) {
+        const rows = await hubRest(
+            config,
+            `clientes?select=id,tabela_preco_id,tabela_preco&id=eq.${encodeURIComponent(clienteId)}&limit=1`,
+        );
+        const meta = Array.isArray(rows) ? rows[0] : null;
+        tabelaPrecoId = meta?.tabela_preco_id || null;
+        tabelaPrecoCodigo = meta?.tabela_preco || null;
+    }
+
+    let tabelaRow = null;
+    if (tabelaPrecoId) {
+        tabelaRow = await fetchTabelaPrecoMetaById(config, tabelaPrecoId);
+    }
+    if (!tabelaRow && tabelaPrecoCodigo) {
+        tabelaRow = await fetchTabelaPrecoMetaByCodigo(config, tabelaPrecoCodigo);
+    }
+
+    if (tabelaPrecoMetaEhPadrao(tabelaRow, tabelaPrecoCodigo)) {
+        return {
+            clienteId,
+            tabelaPrecoId: null,
+            tabelaPrecoCodigo: 'padrao',
+            usesPersonalPriceTable: false,
+        };
+    }
+
+    return {
+        clienteId,
+        tabelaPrecoId: tabelaRow?.id || tabelaPrecoId || null,
+        tabelaPrecoCodigo: tabelaRow?.codigo || tabelaPrecoCodigo || null,
+        usesPersonalPriceTable: true,
+    };
+}
+
 /** Tabela de preço vinculada ao cliente Parceiros no Hub (null = PADRAO). */
 export async function resolveClientePriceTable(config, usuario) {
     if (!config?.serviceKey || !usuario?.id) return null;
@@ -690,36 +778,22 @@ export async function resolveClientePriceTable(config, usuario) {
     const cliente = clienteParceirosFromPessoa(pessoa);
     if (!cliente?.id) return null;
 
-    let tabelaPrecoId = cliente.tabela_preco_id || null;
-    let tabelaPrecoCodigo = cliente.tabela_preco || null;
-
-    if (!tabelaPrecoId && !tabelaPrecoCodigo) {
-        const rows = await hubRest(
-            config,
-            `clientes?select=id,tabela_preco_id,tabela_preco&id=eq.${encodeURIComponent(cliente.id)}&limit=1`,
-        );
-        const meta = Array.isArray(rows) ? rows[0] : null;
-        tabelaPrecoId = meta?.tabela_preco_id || null;
-        tabelaPrecoCodigo = meta?.tabela_preco || null;
-    }
-
-    const codigo = String(tabelaPrecoCodigo || '').trim().toLowerCase();
-    if (!tabelaPrecoId && (!codigo || codigo === 'padrao')) {
-        return { clienteId: cliente.id, tabelaPrecoId: null, tabelaPrecoCodigo: 'padrao' };
-    }
-
-    return {
-        clienteId: cliente.id,
-        tabelaPrecoId,
-        tabelaPrecoCodigo: tabelaPrecoCodigo || null,
-    };
+    return resolveClientePriceTableMeta(config, cliente.id, {
+        tabelaPrecoId: cliente.tabela_preco_id || null,
+        tabelaPrecoCodigo: cliente.tabela_preco || null,
+    });
 }
 
 export function clienteUsesPersonalPriceTable(meta) {
     if (!meta) return false;
-    if (meta.tabelaPrecoId) return true;
-    const codigo = String(meta.tabelaPrecoCodigo || meta.tabelaPreco || '').trim().toLowerCase();
-    return Boolean(codigo && codigo !== 'padrao');
+    if (meta.usesPersonalPriceTable != null) return Boolean(meta.usesPersonalPriceTable);
+    const codigo = String(meta.tabelaPrecoCodigo || meta.tabelaPreco || '')
+        .trim()
+        .toLowerCase();
+    if (!codigo || codigo === 'padrao' || codigo === 'tabela padrao' || codigo === 'tabela padrão') {
+        return false;
+    }
+    return true;
 }
 
 export async function updateUsuarioFields(config, userId, patch) {

@@ -130,11 +130,16 @@
         return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}" data-nav-id="${item.id}"${active ? ' aria-current="page"' : ''}${item.id === 'meus-pedidos' ? ' aria-label="Pedidos"' : ''}>${label}</a>`;
     };
 
-    const appNavItems = [
+    const session = window.LigeirinhoAuth?.loadSession?.();
+    const hidePromocoes = window.LigeirinhoAuth?.usesPersonalPriceTable?.(session);
+    const withoutPromoNav = (items) =>
+        hidePromocoes ? items.filter((item) => item.id !== 'ofertas') : items;
+
+    const appNavItems = withoutPromoNav([
         { id: 'ofertas', href: 'ofertas.html', label: 'Promoções', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
         { id: 'meus-pedidos', href: 'meus-pedidos.html', label: 'Pedidos', icon: 'inventory_2' },
-    ];
+    ]);
 
     const institutionalNavItems = [
         { id: 'quemsomos', href: 'quemsomos.html', label: 'Quem Somos', navLabel: 'Sobre', icon: 'storefront' },
@@ -147,7 +152,6 @@
         ...institutionalNavItems,
     ];
 
-    const session = window.LigeirinhoAuth?.loadSession?.();
     const financeRole = String(session?.role || '').toUpperCase();
     const operatorNav =
         financeRole === 'ADMIN' || financeRole === 'OPERADOR'
@@ -304,17 +308,21 @@ ${navMobileLinksHtml}
 </div>
 </div>`;
 
-    const bottomTabItems = [
+    const bottomTabItems = withoutPromoNav([
         { id: 'inicio', href: 'inicio.html', label: 'Início', icon: 'home' },
         { id: 'ofertas', href: 'ofertas.html', label: 'Promoções', icon: 'sell' },
         { id: 'pedidos', href: 'pedidos.html', label: 'Catálogo', icon: 'grid_view' },
         { id: 'meus-pedidos', href: 'meus-pedidos.html', label: 'Pedidos', icon: 'inventory_2' },
         { id: 'caminhao', href: 'caminhao.html', label: 'Caminhão', icon: 'local_shipping' },
         { id: 'conta', href: accountHref, label: 'Conta', icon: 'person' },
-    ];
+    ]);
+    const bottomNavGridClass =
+        bottomTabItems.length === 5
+            ? 'grid grid-cols-5 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--5'
+            : 'grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6';
 
     const bottomNavHtml = `<nav id="app-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 md:hidden" aria-label="Navegação do app">
-<div class="grid grid-cols-6 max-w-container-max mx-auto lig-bottom-nav-grid lig-bottom-nav-grid--6">
+<div class="${bottomNavGridClass}">
 ${bottomTabItems
     .map((item) => {
         const isActive = isNavItemActive(item);
@@ -352,7 +360,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <h4 class="lig-footer-title">Navegação</h4>
 <nav class="lig-footer-nav" aria-label="Links do site">
 <a class="lig-footer-link" href="inicio.html">Início</a>
-<a class="lig-footer-link" href="ofertas.html">Promoções</a>
+${hidePromocoes ? '' : '<a class="lig-footer-link" href="ofertas.html">Promoções</a>'}
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
 <a class="lig-footer-link" href="meus-pedidos.html" data-nav-id="meus-pedidos" aria-label="Pedidos">Pedidos</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>
@@ -1130,4 +1138,13 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             window.LigeirinhoMotion?.refresh?.();
         });
     }
+
+    const syncPromoNavVisibility = () => {
+        const hide = window.LigeirinhoAuth?.usesPersonalPriceTable?.();
+        document.querySelectorAll('[data-nav-id="ofertas"], a.lig-footer-link[href="ofertas.html"]').forEach((el) => {
+            el.hidden = Boolean(hide);
+        });
+    };
+    window.addEventListener('ligeirinho-auth-changed', syncPromoNavVisibility);
+    syncPromoNavVisibility();
 })();

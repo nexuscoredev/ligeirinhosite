@@ -28,6 +28,10 @@
     const promoLoader = promoCatalog?.createHubPromoLoader?.('/api/promocoes');
 
     const reloadPromoOffers = async (force = false) => {
+        if (window.LigeirinhoAuth?.usesPersonalPriceTable?.()) {
+            promoOffers = { byCartKey: {}, byItemKey: {} };
+            return;
+        }
         if (!promoLoader || !promoCatalog || !promoCards || !displayItemsCache.length) return;
         const promos = await promoLoader.load(force);
         const prepared = promoCards.preparePromoGroups(promos, displayItemsCache, promoCatalog);
@@ -178,7 +182,9 @@
 
     const quickChipsHtml = () => {
         const chips = [
-            { href: 'ofertas.html', icon: 'local_offer', label: 'Promoções' },
+            ...(window.LigeirinhoAuth?.usesPersonalPriceTable?.()
+                ? []
+                : [{ href: 'ofertas.html', icon: 'local_offer', label: 'Promoções' }]),
             { href: 'pedidos.html', icon: 'inventory_2', label: 'Catálogo' },
             { href: 'conta.html#ajuda', icon: 'headset_mic', label: 'Ajuda' },
         ];

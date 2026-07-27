@@ -2,6 +2,11 @@
     const root = document.getElementById('ofertas-app');
     if (!root) return;
 
+    if (window.LigeirinhoAuth?.usesPersonalPriceTable?.()) {
+        window.location.replace('pedidos.html');
+        return;
+    }
+
     const cartApi = window.LigeirinhoCart;
     const catalog = window.LigeirinhoCatalog;
     const pricing = window.LigeirinhoPricing;
