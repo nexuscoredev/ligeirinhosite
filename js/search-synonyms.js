@@ -19,9 +19,9 @@
         'red bull': ['redbull', 'energetico'],
         refrigerante: ['refri', 'soda'],
         refri: ['refrigerante', 'soda'],
-        coca: ['cocacola', 'coca cola', 'cola'],
+        coca: ['cocacola', 'coca cola'],
         cola: ['coca', 'cocacola', 'coca cola'],
-        cocacola: ['coca', 'coca cola', 'cola'],
+        cocacola: ['coca', 'coca cola'],
         pepsi: ['refrigerante', 'refri'],
         guarana: ['guaraná', 'refrigerante'],
         guaraná: ['guarana', 'refrigerante'],
@@ -90,6 +90,35 @@
         return [...variants].filter(Boolean);
     };
 
+    const tokenize = (text) =>
+        String(text || '')
+            .split(/[^a-z0-9]+/)
+            .filter(Boolean);
+
+    /**
+     * Evita falso positivo de substring curta (ex.: "cola" dentro de "chocolate").
+     * Tokens curtos (< 5) só batem como palavra inteira ou prefixo de token (coca → cocacola).
+     */
+    const variantMatchesHaystack = (haystack, variant) => {
+        const compactVariant = String(variant || '').replace(/\s+/g, '');
+        if (!compactVariant) return false;
+
+        if (String(variant).includes(' ')) {
+            return haystack.base.includes(variant) || haystack.compact.includes(compactVariant);
+        }
+
+        if (compactVariant.length >= 5) {
+            return haystack.base.includes(variant) || haystack.compact.includes(compactVariant);
+        }
+
+        const tokens = tokenize(haystack.base);
+        if (tokens.some((token) => token === compactVariant || token.startsWith(compactVariant))) {
+            return true;
+        }
+        // Marca colada sem espaços (ex.: haystack compact "cocacola")
+        return haystack.compact === compactVariant || haystack.compact.startsWith(compactVariant);
+    };
+
     /** Unifica volumes no texto: "2 L" / "2l" → "2l" (mesmo padrão do Hub). */
     const normalizeVolumeTokens = (text) =>
         normalizeText(text)
@@ -107,11 +136,7 @@
 
     const wordMatchesHaystack = (haystack, word) => {
         if (!word) return true;
-        const variants = expandWordVariants(word);
-        return variants.some((variant) => {
-            const compactVariant = variant.replace(/\s+/g, '');
-            return haystack.base.includes(variant) || haystack.compact.includes(compactVariant);
-        });
+        return expandWordVariants(word).some((variant) => variantMatchesHaystack(haystack, variant));
     };
 
     const volumeMatchesHaystack = (haystack, targetMl) => {
@@ -165,10 +190,12 @@
 
         const phraseCompact = queryInfo.phrase.replace(/\s+/g, '');
 
-        if (phraseCompact.length >= 4) {
+        if (phraseCompact.length >= 5) {
             if (haystack.base.includes(queryInfo.phrase) || haystack.compact.includes(phraseCompact)) {
                 return true;
             }
+        } else if (phraseCompact.length >= 2 && variantMatchesHaystack(haystack, queryInfo.phrase)) {
+            return true;
         }
 
         if (queryInfo.words.length) {
@@ -190,17 +217,19 @@
         let score = 0;
         const phraseCompact = queryInfo.phrase.replace(/\s+/g, '');
 
-        if (phraseCompact.length >= 4) {
+        if (phraseCompact.length >= 2 && variantMatchesHaystack(haystack, queryInfo.phrase)) {
             if (haystack.compact === phraseCompact) score += 120;
             else if (haystack.compact.startsWith(phraseCompact)) score += 90;
-            else if (haystack.compact.includes(phraseCompact)) score += 70;
+            else if (phraseCompact.length >= 5 && haystack.compact.includes(phraseCompact)) score += 70;
             else if (haystack.base.includes(queryInfo.phrase)) score += 55;
+            else score += 40;
         }
 
         queryInfo.words.forEach((word, index) => {
             if (!wordMatchesHaystack(haystack, word)) return;
             score += 18 - Math.min(index, 6);
-            if (haystack.base.startsWith(word)) score += 8;
+            const tokens = tokenize(haystack.base);
+            if (tokens.some((token) => token === word || token.startsWith(word))) score += 8;
         });
 
         queryInfo.volumes.forEach((ml) => {
