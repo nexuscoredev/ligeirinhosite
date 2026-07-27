@@ -8,7 +8,6 @@
     };
 
     const DISTRIBUIDORA_CNPJ = '45028186000125';
-    const DISTRIBUIDORA_PHONE = '11970924909';
 
     const DELIVERY_FEE_CART_KEY = 'taxa-entrega-hr';
     const DELIVERY_FEE_SKU = '1045';
@@ -276,17 +275,7 @@ window.addEventListener('load', function () {
 
     const isDistribuidoraAccount = (session) => {
         if (!session) return false;
-        const phone = normalizePhone(session.phone);
-        if (phone !== DISTRIBUIDORA_PHONE) return false;
-
-        const cnpj = digits(session.cnpj || session.login);
-        if (cnpj === DISTRIBUIDORA_CNPJ) return true;
-
-        const name = String(session.name || session.razaoSocial || '')
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase();
-        return name.includes('ligeirinho distribuidora');
+        return digits(session.cnpj || session.login) === DISTRIBUIDORA_CNPJ;
     };
 
     const printOrderDav = async (orderId, session) => {
