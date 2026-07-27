@@ -18,6 +18,7 @@
     "migrate:totem-payment-splits": "node scripts/apply-totem-payment-splits-rpc-migration.mjs",
     "migrate:hub-auth": "node scripts/apply-hub-auth-migration.mjs",
     "migrate:all": "node scripts/apply-pending-migrations.mjs",
+    "migrate:push": "node scripts/apply-push-migration.mjs",
     "migrate:check": "node scripts/check-migrations.mjs",
     "verify:prod": "node scripts/verify-production.mjs",
     "totem": "echo \"Abra http://localhost:5173/totem.html após login Hub com cargo Totem\"",
@@ -29,6 +30,7 @@
     "vite": "^6.3.5"
   },
   "dependencies": {
+    "web-push": "^3.6.7",
     "ws": "^8.21.1"
   }
 }

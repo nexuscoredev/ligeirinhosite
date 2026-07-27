@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v445';
+const CACHE_NAME = 'ligeirinho-app-v446';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -110,6 +110,7 @@ const APP_SHELL = [
     '/js/totem-activity.js',
     '/js/totem-pwa-update.js',
     '/js/pwa-update.js',
+    '/js/push-subscribe.js',
     '/js/order-status.js',
     '/js/payment-methods.js',
     '/css/totem.css',
@@ -320,5 +321,54 @@ self.addEventListener('fetch', (event) => {
                 throw new Error('offline');
             }
         })()
+    );
+});
+
+self.addEventListener('push', (event) => {
+    let data = {};
+    try {
+        data = event.data ? event.data.json() : {};
+    } catch {
+        data = { body: event.data?.text?.() || '' };
+    }
+    const title = data.title || 'Ligeirinho Parceiros';
+    const options = {
+        body: data.body || 'Seu pedido foi atualizado.',
+        icon: '/img/app-icon-light-192.png',
+        badge: '/img/app-icon-light-192.png',
+        tag: data.tag || 'order-status',
+        renotify: true,
+        data: {
+            url: data.url || '/meus-pedidos',
+            orderId: data.orderId || null,
+        },
+    };
+    event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const target = event.notification?.data?.url || '/meus-pedidos';
+    event.waitUntil(
+        (async () => {
+            const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+            for (const client of all) {
+                if ('focus' in client) {
+                    await client.focus();
+                    if ('navigate' in client) {
+                        try {
+                            await client.navigate(target);
+                            return;
+                        } catch {
+                            /* fall through */
+                        }
+                    }
+                    return;
+                }
+            }
+            if (self.clients.openWindow) {
+                await self.clients.openWindow(target);
+            }
+        })(),
     );
 });

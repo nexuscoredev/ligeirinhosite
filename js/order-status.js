@@ -6,6 +6,7 @@
     const orderId = params.get('order');
     let pollTimer = null;
     let summaryExpanded = false;
+    let lastTrackKey = '';
     const auth = window.LigeirinhoAuth;
 
     const formatPrice = (value) =>
@@ -131,11 +132,17 @@ ${steps
 </div>`;
     };
 
+    const trackKey = (tracking) =>
+        `${Number(tracking?.step) || 0}:${String(tracking?.hubStatus || '').toLowerCase()}:${tracking?.cancelled ? '1' : '0'}`;
+
     const notifyBannerHtml = () => {
-        if (!('Notification' in window) || Notification.permission !== 'default') return '';
+        const pushApi = window.LigeirinhoPush;
+        if (!pushApi?.supported?.()) return '';
+        if (pushApi.permission() === 'granted') return '';
+        if (pushApi.permission() === 'denied') return '';
         return `<div class="order-track__notify" id="order-track-notify">
-<p>Ative as notificações para receber atualizações do pedido.</p>
-<button type="button" class="order-track__notify-btn" id="order-track-notify-btn">Habilitar</button>
+<p>Ative as notificações para saber quando o pedido for aceito, sair para entrega ou for entregue.</p>
+<button type="button" class="order-track__notify-btn" id="order-track-notify-btn">Habilitar alertas</button>
 <button type="button" class="order-track__notify-close" id="order-track-notify-close" aria-label="Fechar">×</button>
 </div>`;
     };
@@ -281,12 +288,26 @@ ${
         });
 
         root.querySelector('#order-track-notify-btn')?.addEventListener('click', async () => {
-            try {
-                await Notification.requestPermission();
-            } catch {
-                /* ignore */
+            const btn = root.querySelector('#order-track-notify-btn');
+            const prev = btn?.textContent;
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Ativando…';
             }
-            root.querySelector('#order-track-notify')?.remove();
+            try {
+                if (window.LigeirinhoPush?.enableOrderStatusPush) {
+                    await window.LigeirinhoPush.enableOrderStatusPush({ orderId: order.id });
+                } else {
+                    await Notification.requestPermission();
+                }
+                root.querySelector('#order-track-notify')?.remove();
+            } catch (err) {
+                window.alert(err?.message || 'Não foi possível ativar as notificações.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = prev || 'Habilitar alertas';
+                }
+            }
         });
         root.querySelector('#order-track-notify-close')?.addEventListener('click', () => {
             root.querySelector('#order-track-notify')?.remove();
@@ -342,6 +363,7 @@ ${
         }
         try {
             const data = await loadOrder();
+            lastTrackKey = trackKey(data.tracking);
             render(data.order, data.tracking);
             if (data.order.status === 'paid') {
                 window.LigeirinhoClientNotifications?.push?.({
@@ -357,6 +379,14 @@ ${
                 pollTimer = window.setInterval(async () => {
                     try {
                         const fresh = await loadOrder();
+                        const nextKey = trackKey(fresh.tracking);
+                        if (lastTrackKey && nextKey !== lastTrackKey) {
+                            void window.LigeirinhoPush?.showLocalOrderStatus?.(
+                                fresh.tracking,
+                                fresh.order,
+                            );
+                        }
+                        lastTrackKey = nextKey;
                         render(fresh.order, fresh.tracking);
                         if ((fresh.tracking?.step || 0) >= 4 || fresh.tracking?.cancelled) {
                             window.clearInterval(pollTimer);
