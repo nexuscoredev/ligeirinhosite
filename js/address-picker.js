@@ -1,6 +1,7 @@
 (function () {
     /** Fluxo de endereço estilo app de delivery: busca → mapa → confirmar. */
     const DEFAULT_CENTER = { lat: -23.6515, lng: -46.7612 }; // Campo Limpo / região Ligeirinho
+    const LOCATION_MISMATCH_METERS = 250;
     const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
     const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 
@@ -30,6 +31,30 @@
             .join(' · ');
         return [street, tail].filter(Boolean).join(' — ');
     };
+
+    const haversineMeters = (lat1, lng1, lat2, lng2) => {
+        const R = 6371000;
+        const toRad = (deg) => (deg * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const getCurrentPosition = () =>
+        new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('unavailable'));
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                reject,
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+            );
+        });
 
     let root = null;
     let view = 'search';
@@ -105,6 +130,7 @@
 </button>
 </div>
 <div class="lig-addr__divider" aria-hidden="true"></div>
+<div id="lig-addr-history" class="lig-addr__history" hidden></div>
 <div id="lig-addr-results" class="lig-addr__results" role="listbox" aria-label="Sugestões de endereço"></div>
 <p id="lig-addr-search-status" class="lig-addr__hint" hidden></p>
 </div>
@@ -171,6 +197,19 @@
 <button type="button" class="lig-addr__confirm-btn" data-addr-save>Continuar</button>
 <p class="lig-addr__change">O endereço não está correto? <button type="button" data-addr-back="map">Alterar local no mapa</button></p>
 </div>
+</div>
+
+<div class="lig-addr__loc-dialog" data-addr-loc-dialog hidden>
+<div class="lig-addr__loc-backdrop" data-addr-loc-dismiss tabindex="-1" aria-hidden="true"></div>
+<div class="lig-addr__loc-sheet" role="alertdialog" aria-labelledby="lig-addr-loc-title" aria-describedby="lig-addr-loc-desc">
+<span class="material-symbols-outlined lig-addr__loc-icon" aria-hidden="true">location_off</span>
+<h2 id="lig-addr-loc-title" class="lig-addr__loc-title">Você não está neste endereço</h2>
+<p id="lig-addr-loc-desc" class="lig-addr__loc-desc">De acordo com a sua localização você não está nesse endereço. Gostaria de alterar o endereço de entrega ou prosseguir?</p>
+<div class="lig-addr__loc-actions">
+<button type="button" class="lig-addr__loc-btn lig-addr__loc-btn--ghost" data-addr-loc-change>Alterar endereço</button>
+<button type="button" class="lig-addr__loc-btn" data-addr-loc-proceed>Prosseguir</button>
+</div>
+</div>
 </div>`;
         return el;
     };
@@ -214,7 +253,9 @@
 
     const renderResults = (results) => {
         const box = root.querySelector('#lig-addr-results');
+        const historyBox = root.querySelector('#lig-addr-history');
         if (!box) return;
+        if (historyBox) historyBox.hidden = true;
         if (!results.length) {
             box.innerHTML = '<p class="lig-addr__empty">Nenhum endereço encontrado. Tente rua e bairro.</p>';
             return;
@@ -234,6 +275,37 @@
                 if (!place) return;
                 applyPlace(place);
                 setView('map');
+            });
+        });
+    };
+
+    const renderAddressHistory = () => {
+        const box = root.querySelector('#lig-addr-history');
+        const resultsBox = root.querySelector('#lig-addr-results');
+        if (!box) return;
+        const history = window.LigeirinhoCart?.loadAddressHistory?.() || [];
+        if (!history.length) {
+            box.innerHTML = '';
+            box.hidden = true;
+            return;
+        }
+        if (resultsBox) resultsBox.innerHTML = '';
+        box.hidden = false;
+        box.innerHTML = `<p class="lig-addr__history-title">Endereços recentes</p>${history
+            .map(
+                (item) =>
+                    `<button type="button" class="lig-addr__result lig-addr__history-item" data-addr-history="${esc(item.id)}">
+<span class="material-symbols-outlined" aria-hidden="true">history</span>
+<span>${esc(item.address)}</span>
+</button>`,
+            )
+            .join('')}`;
+        box.querySelectorAll('[data-addr-history]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const item = history.find((entry) => entry.id === btn.dataset.addrHistory);
+                if (!item) return;
+                draft = { ...emptyDraft(), ...item.addressParts };
+                setView('confirm');
             });
         });
     };
@@ -348,12 +420,25 @@
         if (btn) btn.disabled = !ok;
     };
 
-    const saveAndClose = () => {
-        readConfirmForm();
-        if (!draft.street || !draft.city || (!draft.noNumber && !draft.number)) {
-            syncSaveEnabled();
-            return;
+    const checkLocationMismatch = async () => {
+        if (!Number.isFinite(draft.lat) || !Number.isFinite(draft.lng)) return false;
+        try {
+            const pos = await getCurrentPosition();
+            return haversineMeters(pos.lat, pos.lng, draft.lat, draft.lng) > LOCATION_MISMATCH_METERS;
+        } catch {
+            return false;
         }
+    };
+
+    const hideLocationMismatchDialog = () => {
+        root.querySelector('[data-addr-loc-dialog]')?.setAttribute('hidden', '');
+    };
+
+    const showLocationMismatchDialog = () => {
+        root.querySelector('[data-addr-loc-dialog]')?.removeAttribute('hidden');
+    };
+
+    const finalizeSave = () => {
         const address = formatAddressLine(draft);
         const payload = {
             deliveryType: 'entrega',
@@ -361,9 +446,27 @@
             addressParts: { ...draft },
         };
         window.LigeirinhoCart?.saveCheckout?.(payload);
+        window.LigeirinhoCart?.saveAddressToHistory?.({ address, addressParts: payload.addressParts });
         onConfirmCb?.(payload);
         onDismissCb = null;
         close();
+    };
+
+    const saveAndClose = async () => {
+        readConfirmForm();
+        if (!draft.street || !draft.city || (!draft.noNumber && !draft.number)) {
+            syncSaveEnabled();
+            return;
+        }
+        const saveBtn = root.querySelector('[data-addr-save]');
+        if (saveBtn) saveBtn.disabled = true;
+        const mismatch = await checkLocationMismatch();
+        if (saveBtn) saveBtn.disabled = false;
+        if (mismatch) {
+            showLocationMismatchDialog();
+            return;
+        }
+        finalizeSave();
     };
 
     const bind = () => {
@@ -373,7 +476,20 @@
         });
         root.querySelectorAll('[data-addr-geo]').forEach((btn) => btn.addEventListener('click', useGeolocation));
         root.querySelector('[data-addr-to-confirm]')?.addEventListener('click', () => setView('confirm'));
-        root.querySelector('[data-addr-save]')?.addEventListener('click', saveAndClose);
+        root.querySelector('[data-addr-save]')?.addEventListener('click', () => {
+            void saveAndClose();
+        });
+        root.querySelector('[data-addr-loc-change]')?.addEventListener('click', () => {
+            hideLocationMismatchDialog();
+            setView('search');
+            renderAddressHistory();
+            window.setTimeout(() => root.querySelector('#lig-addr-q')?.focus(), 80);
+        });
+        root.querySelector('[data-addr-loc-proceed]')?.addEventListener('click', () => {
+            hideLocationMismatchDialog();
+            finalizeSave();
+        });
+        root.querySelector('[data-addr-loc-dismiss]')?.addEventListener('click', hideLocationMismatchDialog);
 
         const q = root.querySelector('#lig-addr-q');
         q?.addEventListener('input', () => {
@@ -381,7 +497,7 @@
             if (searchTimer) clearTimeout(searchTimer);
             if (value.length < 3) {
                 setSearchStatus('');
-                root.querySelector('#lig-addr-results').innerHTML = '';
+                renderAddressHistory();
                 return;
             }
             searchTimer = window.setTimeout(() => searchAddress(value), 320);
@@ -426,12 +542,25 @@
         const start = opts.view || (draft.street ? 'confirm' : 'search');
         setView(start);
         if (start === 'search') {
-            window.setTimeout(() => root.querySelector('#lig-addr-q')?.focus(), 80);
+            const qInput = root.querySelector('#lig-addr-q');
+            if (qInput) qInput.value = '';
+            root.querySelector('#lig-addr-results').innerHTML = '';
+            setSearchStatus('');
+            renderAddressHistory();
+            window.setTimeout(() => qInput?.focus(), 80);
+        }
+        const checkoutAddress = checkout.address?.trim();
+        if (checkoutAddress && checkout.addressParts) {
+            window.LigeirinhoCart?.saveAddressToHistory?.({
+                address: checkoutAddress,
+                addressParts: checkout.addressParts,
+            });
         }
     };
 
     const close = () => {
         if (!root) return;
+        hideLocationMismatchDialog();
         const dismiss = onDismissCb;
         root.setAttribute('hidden', '');
         document.documentElement.classList.remove('lig-addr-open');

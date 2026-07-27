@@ -3,6 +3,8 @@
     const CHECKOUT_KEY = 'ligeirinho-checkout-v1';
     const LAST_ORDER_KEY = 'ligeirinho-last-order-v1';
     const PREFS_KEY = 'ligeirinho-prefs-v1';
+    const ADDRESS_HISTORY_KEY = 'ligeirinho-address-history-v1';
+    const ADDRESS_HISTORY_MAX = 8;
 
     let cartCache = null;
     let persistTimer = null;
@@ -211,6 +213,58 @@
         window.dispatchEvent(new CustomEvent('ligeirinho-prefs-changed'));
     };
 
+    const addressHistoryId = (parts, address) => {
+        const base = [parts?.street, parts?.number, parts?.city, parts?.stateCode]
+            .filter(Boolean)
+            .join('|')
+            .toLowerCase()
+            .trim();
+        if (base) return base;
+        const lat = Number(parts?.lat);
+        const lng = Number(parts?.lng);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) return `${lat.toFixed(5)},${lng.toFixed(5)}`;
+        return String(address || '').trim().toLowerCase();
+    };
+
+    const loadAddressHistory = () => {
+        try {
+            const list = JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const saveAddressToHistory = (entry) => {
+        const address = String(entry?.address || '').trim();
+        const addressParts = entry?.addressParts;
+        if (!address || !addressParts) return;
+        const id = addressHistoryId(addressParts, address);
+        if (!id) return;
+        const history = loadAddressHistory().filter((item) => item.id !== id);
+        history.unshift({
+            id,
+            address,
+            addressParts: { ...addressParts },
+            usedAt: Date.now(),
+        });
+        try {
+            localStorage.setItem(ADDRESS_HISTORY_KEY, JSON.stringify(history.slice(0, ADDRESS_HISTORY_MAX)));
+        } catch {
+            /* quota / private mode */
+        }
+    };
+
+    const removeAddressFromHistory = (id) => {
+        if (!id) return;
+        const history = loadAddressHistory().filter((item) => item.id !== id);
+        try {
+            localStorage.setItem(ADDRESS_HISTORY_KEY, JSON.stringify(history));
+        } catch {
+            /* ignore */
+        }
+    };
+
     const TOTEM_CHECKOUT_DEFAULTS = {
         deliveryType: 'retirada',
         address: '',
@@ -240,6 +294,10 @@
         CHECKOUT_KEY,
         LAST_ORDER_KEY,
         PREFS_KEY,
+        ADDRESS_HISTORY_KEY,
+        loadAddressHistory,
+        saveAddressToHistory,
+        removeAddressFromHistory,
         loadCart,
         saveCart,
         loadCheckout,

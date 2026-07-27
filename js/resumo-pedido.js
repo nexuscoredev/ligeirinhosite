@@ -666,6 +666,12 @@ ${headerHtml(title)}
             if (!res.ok) throw new Error(data.error || 'Não foi possível criar o pedido.');
 
             cartApi.saveLastOrder(cart, checkout, data.orderId);
+            if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {
+                cartApi.saveAddressToHistory?.({
+                    address: checkout.address,
+                    addressParts: checkout.addressParts || {},
+                });
+            }
             cartApi.saveCart({});
             window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(data.orderId)}`;
         } catch (err) {
