@@ -244,7 +244,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
 ${desktopNavHtml}
-<div class="lig-header-actions flex items-center gap-0.5 shrink-0">
+<div class="lig-header-actions flex items-center shrink-0">
 <a href="${accountHref}" class="${accountLinkClass} hidden md:inline-flex" aria-current="${accountActive ? 'page' : 'false'}">
 <span class="material-symbols-outlined lig-nav-account__icon" aria-hidden="true">person</span>
 <span class="lig-nav-account__label">Minha conta</span>
