@@ -8533,7 +8533,7 @@ html {
     }
 }
 
-/* ?? Splash de abertura (login / PWA) ?? */
+/* ?? Splash de abertura (estilo Zé Delivery) ?? */
 .lig-splash {
     position: fixed;
     inset: 0;
@@ -8542,83 +8542,99 @@ html {
     align-items: center;
     justify-content: center;
     background: #F7D53C;
+    isolation: isolate;
+    contain: strict;
     padding:
         env(safe-area-inset-top)
         env(safe-area-inset-right)
         env(safe-area-inset-bottom)
         env(safe-area-inset-left);
-    transition: opacity 0.45s ease, visibility 0.45s ease;
+    opacity: 1;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .lig-splash.lig-splash--out {
     opacity: 0;
-    visibility: hidden;
     pointer-events: none;
 }
 
-.lig-splash__glow {
-    position: absolute;
-    width: min(78vw, 22rem);
-    height: min(78vw, 22rem);
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.08) 48%, transparent 72%);
-    pointer-events: none;
-    animation: ligSplashGlow 2.4s ease-in-out infinite alternate;
-}
-
-.lig-splash__content {
+.lig-splash__stage {
     position: relative;
-    z-index: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1.1rem;
-    text-align: center;
+    justify-content: center;
+    width: min(58vw, 13rem);
+    height: min(58vw, 13rem);
+    will-change: transform;
+    transform: translate3d(0, 0, 0) scale(0.78);
+    opacity: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.lig-splash--play .lig-splash__stage {
+    animation: ligSplashZoom 2.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.lig-splash--out .lig-splash__stage {
+    animation: none;
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.28);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .lig-splash__logo {
-    width: min(52vw, 11.5rem);
-    height: min(52vw, 11.5rem);
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 0.65rem 1.4rem rgba(0, 0, 0, 0.18));
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
-.lig-splash__brand {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0.4rem;
-    margin: 0;
-    line-height: 1;
+@keyframes ligSplashZoom {
+    0% {
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(0.72);
+    }
+    14% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(0.86);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1.18);
+    }
 }
 
-.lig-splash__name {
-    font-family: 'Plus Jakarta Sans', 'Hanken Grotesk', system-ui, sans-serif;
-    font-weight: 800;
-    font-size: clamp(1.65rem, 6.5vw, 2.15rem);
-    letter-spacing: -0.04em;
-    color: #1a1a1a;
+html.lig-splash-active .lig-login-main,
+html.lig-splash-active .lig-login-theme {
+    opacity: 0;
+    pointer-events: none;
 }
 
-.lig-splash__app {
-    font-family: Caveat, cursive;
-    font-weight: 700;
-    font-size: clamp(1.9rem, 7.5vw, 2.55rem);
-    color: #1a1a1a;
-    transform: translateY(0.06em) rotate(-2.5deg);
-    transform-origin: left bottom;
-}
-
-@keyframes ligSplashGlow {
-    from { transform: scale(0.96); opacity: 0.85; }
-    to { transform: scale(1.06); opacity: 1; }
+html.lig-splash-done .lig-login-main,
+html.lig-splash-done .lig-login-theme {
+    opacity: 1;
+    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .lig-splash__glow,
-    .lig-splash__content,
-    .lig-splash__logo {
+    .lig-splash__stage,
+    .lig-splash--play .lig-splash__stage,
+    .lig-splash--out .lig-splash__stage {
         animation: none !important;
+        transition: none !important;
+        opacity: 1;
+        transform: none;
+    }
+
+    html.lig-splash-done .lig-login-main,
+    html.lig-splash-done .lig-login-theme {
+        transition: none;
     }
 }
 

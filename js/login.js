@@ -107,7 +107,16 @@
 
     if (auth.isLoggedIn()) {
         const session = auth.loadSession();
-        redirect(session?.role || 'PARCEIRO');
+        const go = () => redirect(session?.role || 'PARCEIRO');
+        if (
+            document.getElementById('lig-splash') &&
+            !document.documentElement.classList.contains('lig-splash-done')
+        ) {
+            window.addEventListener('lig-splash-done', go, { once: true });
+            window.setTimeout(go, 3600);
+            return;
+        }
+        go();
         return;
     }
 
