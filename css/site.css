@@ -785,7 +785,8 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 
     .lig-sync-nav-btn,
     .lig-update-nav-btn,
-    .lig-install-nav-btn {
+    .lig-install-nav-btn,
+    .lig-theme-toggle-mount--header .lig-theme-toggle {
         width: 2.5rem;
         height: 2.5rem;
         min-width: 40px;
@@ -7987,8 +7988,54 @@ html.parceiros-detail-open body {
     line-height: 1;
 }
 
+/* No header: mesmo compasso dos botões refresh / compartilhar / instalar */
 .lig-theme-toggle-mount--header {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    line-height: 0;
+}
+
+.lig-theme-toggle-mount--header .lig-theme-toggle {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-yellow-text);
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.lig-theme-toggle-mount--header .lig-theme-toggle__icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    display: block;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.lig-theme-toggle-mount--header .lig-theme-toggle:hover {
+    border-color: rgba(247, 213, 60, 0.45);
+    background: var(--lig-yellow-light);
+    color: var(--lig-yellow-text);
+}
+
+.lig-header-actions {
+    overflow: visible;
+}
+
+@media (max-width: 767px) {
+    .lig-header-universal .lig-header-main {
+        padding-right: max(var(--lig-gutter-x), 0.75rem);
+    }
+
+    .lig-header-actions {
+        gap: 0.35rem;
+        padding-left: 0.35rem;
+        margin-right: 0;
+    }
 }
 
 .lig-theme-segment {
@@ -12467,15 +12514,25 @@ html.dark #app-bottom-nav {
 }
 
 html.dark .lig-header-actions .material-symbols-outlined,
-html.dark .lig-theme-toggle,
 html.dark .lig-install-nav-btn,
-html.dark .lig-header-cart {
+html.dark .lig-header-cart,
+html.dark .lig-sync-nav-btn {
+    color: var(--lig-yellow-text);
+}
+
+html.dark .lig-theme-toggle {
     color: var(--lig-text-muted);
 }
 
+html.dark .lig-theme-toggle-mount--header .lig-theme-toggle {
+    color: var(--lig-yellow-text);
+}
+
 html.dark .lig-theme-toggle:hover,
+html.dark .lig-theme-toggle-mount--header .lig-theme-toggle:hover,
 html.dark .lig-install-nav-btn:hover,
-html.dark .lig-header-cart:hover {
+html.dark .lig-header-cart:hover,
+html.dark .lig-sync-nav-btn:hover {
     color: var(--lig-yellow-text);
 }
 
