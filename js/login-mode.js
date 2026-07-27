@@ -10,7 +10,7 @@
     const copy = {
         choose: {
             title: 'Entre ou crie sua conta!',
-            sub: 'Pedidos em caixa e pallet para o seu negócio',
+            sub: '',
         },
         signin: {
             title: 'Fazer login',
@@ -35,7 +35,10 @@
         });
         const text = copy[next] || copy.choose;
         if (heroTitle) heroTitle.textContent = text.title;
-        if (heroSub) heroSub.textContent = text.sub;
+        if (heroSub) {
+            heroSub.textContent = text.sub || '';
+            heroSub.hidden = !text.sub;
+        }
         document.body.dataset.loginMode = next;
         window.dispatchEvent(new CustomEvent('lig-login-mode', { detail: { mode: next } }));
     };
