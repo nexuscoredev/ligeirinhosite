@@ -684,6 +684,13 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     flex-shrink: 0;
 }
 
+@media (max-width: 767px) {
+    .lig-header-main .nav-brand,
+    .lig-header-main .lig-brand {
+        flex-shrink: 1;
+    }
+}
+
 .lig-desktop-nav {
     flex: 0 1 auto;
     justify-content: center;
