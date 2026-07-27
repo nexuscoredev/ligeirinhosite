@@ -1,9 +1,14 @@
 (function () {
     const LG_QUERY = '(min-width: 1024px)';
-    const PAY_BTN_LABEL = 'Escolher data de entrega';
+    const payBtnLabelFor = (checkout) => {
+        const co = checkout || window.LigeirinhoCart?.loadCheckout?.() || {};
+        return co.deliveryType === 'retirada' ? 'Escolher data de retirada' : 'Escolher data de entrega';
+    };
+
+    const payBtnInnerHtml = (checkout) =>
+        `<span class="material-symbols-outlined lig-cart-continue-btn__icon" aria-hidden="true">calendar_month</span><span>${payBtnLabelFor(checkout)}</span>`;
+
     let cartRenderTimer = null;
-    const payBtnInnerHtml = () =>
-        `<span class="material-symbols-outlined lig-cart-continue-btn__icon" aria-hidden="true">calendar_month</span><span>${PAY_BTN_LABEL}</span>`;
 
     const setPayButtonContent = (btn, mode = 'default') => {
         if (!btn) return;
@@ -13,7 +18,9 @@
             return;
         }
         btn.classList.remove('lig-cart-continue-btn--loading');
+        const label = payBtnLabelFor();
         btn.innerHTML = payBtnInnerHtml();
+        btn.setAttribute('aria-label', label);
     };
 
     const cartShellHtml = `
@@ -60,7 +67,7 @@
 <span class="lig-cart-footer__label">Total</span>
 <span id="cart-total" class="lig-cart-footer__value">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn" class="lig-cart-continue-btn w-full py-3 rounded-full transition-colors flex items-center justify-center pointer-events-none opacity-50" disabled aria-disabled="true" aria-label="${PAY_BTN_LABEL}">
+<button type="button" id="cart-pay-btn" class="lig-cart-continue-btn w-full py-3 rounded-full transition-colors flex items-center justify-center pointer-events-none opacity-50" disabled aria-disabled="true" aria-label="${payBtnLabelFor()}">
 ${payBtnInnerHtml()}
 </button>
 </div>
@@ -108,7 +115,7 @@ ${payBtnInnerHtml()}
 <span class="lig-cart-footer__label">Total</span>
 <span id="cart-total-mobile" class="lig-cart-footer__value">R$ 0,00</span>
 </div>
-<button type="button" id="cart-pay-btn-mobile" class="lig-cart-continue-btn w-full py-3 rounded-full flex items-center justify-center pointer-events-none opacity-50" disabled aria-label="${PAY_BTN_LABEL}">${payBtnInnerHtml()}</button>
+<button type="button" id="cart-pay-btn-mobile" class="lig-cart-continue-btn w-full py-3 rounded-full flex items-center justify-center pointer-events-none opacity-50" disabled aria-label="${payBtnLabelFor()}">${payBtnInnerHtml()}</button>
 </div>
 </div>
 </div>`;
@@ -346,13 +353,18 @@ ${lineThumbHtml(item)}
 </article>`;
     };
 
-    const summaryHtml = (cart) => {
+    const orderMoneyTotals = (cart) => {
         const checkout = cartApi.loadCheckout();
         const { units, subtotal } = cartApi.cartSummary(cart);
         const feeApi = window.LigeirinhoDeliveryFee;
         const auth = window.LigeirinhoAuth;
         const deliveryFee = feeApi?.resolveFee?.(auth?.loadSession?.(), checkout) ?? 0;
         const total = feeApi?.orderTotal?.(subtotal, deliveryFee) ?? subtotal;
+        return { checkout, units, subtotal, deliveryFee, total };
+    };
+
+    const summaryHtml = (cart) => {
+        const { units, subtotal, deliveryFee, total } = orderMoneyTotals(cart);
         const unitsLabel = units === 1 ? '1 item' : `${units} itens`;
         const feeRow =
             deliveryFee > 0
@@ -363,6 +375,36 @@ ${lineThumbHtml(item)}
 ${feeRow}
 <div class="lig-cart-summary__row lig-cart-summary__row--total"><span>Total</span><strong>${formatPrice(total)}</strong></div>
 </div>`;
+    };
+
+    const refreshTotalsUi = (cart = cartApi.loadCart()) => {
+        const items = cartApi.cartEntries(cart);
+        const { checkout, total } = orderMoneyTotals(cart);
+        const totalLabel = formatPrice(total);
+        const cartTotalEl = document.getElementById('cart-total');
+        const cartTotalMobileEl = document.getElementById('cart-total-mobile');
+        const cartSummaryEl = document.getElementById('cart-summary');
+        if (cartTotalEl) cartTotalEl.textContent = totalLabel;
+        if (cartTotalMobileEl) cartTotalMobileEl.textContent = totalLabel;
+        if (cartSummaryEl) cartSummaryEl.innerHTML = items.length ? summaryHtml(cart) : '';
+
+        document.querySelectorAll('.cart-checkout [data-checkout="notes"]').forEach((el) => {
+            el.placeholder =
+                checkout.deliveryType === 'retirada'
+                    ? 'Observações (opcional)'
+                    : 'Observações para o entregador (opcional)';
+        });
+        document.querySelectorAll('.cart-checkout .lig-cart-checkout__hint').forEach((el) => {
+            el.textContent =
+                checkout.deliveryType === 'retirada'
+                    ? 'Na próxima tela você confirma a data de retirada e a forma de pagamento.'
+                    : 'Na próxima tela você confirma a data de entrega e a forma de pagamento.';
+        });
+
+        ['cart-pay-btn', 'cart-pay-btn-mobile'].forEach((id) => {
+            setPayButtonContent(document.getElementById(id));
+        });
+        setPayButtons(cart);
     };
 
     const updateCheckoutErrors = (cart) => {
@@ -467,7 +509,7 @@ ${feeRow}
                 notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
             });
             renderCheckoutFields();
-            setPayButtons(cartApi.loadCart());
+            refreshTotalsUi(cartApi.loadCart());
         };
 
         let inputSaveTimer = null;
@@ -499,7 +541,6 @@ ${feeRow}
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
         const count = cartApi.cartItemCount(cart);
-        const total = formatPrice(cartApi.cartTotalValue(cart));
         const emptyHtml = cartApi.lastOrderSummary()
             ? `<div class="lig-cart-empty"><p class="lig-cart-empty__text">Seu caminhão está vazio.</p>
 <button type="button" id="cart-reorder-btn" class="lig-cart-empty__btn">Repetir último pedido</button>
@@ -509,20 +550,14 @@ ${feeRow}
 
         const cartItemsEl = document.getElementById('cart-items');
         const cartItemsMobileEl = document.getElementById('cart-items-mobile');
-        const cartTotalEl = document.getElementById('cart-total');
-        const cartTotalMobileEl = document.getElementById('cart-total-mobile');
         const cartCountBadge = document.getElementById('cart-count-badge');
         const cartCountBadgeMobile = document.getElementById('cart-count-badge-mobile');
-        const cartSummaryEl = document.getElementById('cart-summary');
         const continueLink = document.getElementById('cart-continue-link');
         const continueLinkMobile = document.getElementById('cart-continue-link-mobile');
         const clearBtns = document.querySelectorAll('[data-cart-clear]');
 
         if (cartItemsEl) cartItemsEl.innerHTML = listHtml;
         if (cartItemsMobileEl) cartItemsMobileEl.innerHTML = listHtml;
-        if (cartTotalEl) cartTotalEl.textContent = total;
-        if (cartTotalMobileEl) cartTotalMobileEl.textContent = total;
-        if (cartSummaryEl) cartSummaryEl.innerHTML = items.length ? summaryHtml(cart) : '';
         if (continueLink) continueLink.classList.toggle('hidden', !items.length);
         if (continueLinkMobile) continueLinkMobile.classList.toggle('hidden', !items.length);
         clearBtns.forEach((btn) => {
@@ -534,9 +569,9 @@ ${feeRow}
         if (cartCountBadgeMobile) {
             cartCountBadgeMobile.textContent = count === 1 ? '1 item' : `${count} itens`;
         }
-        setPayButtons(cart);
         cartApi.updateNavCartBadge();
         renderCheckoutFields();
+        refreshTotalsUi(cart);
         updateFloatCart(cart);
         resetCartScroll();
     };
@@ -765,7 +800,7 @@ ${feeRow}
         });
         window.addEventListener('ligeirinho-checkout-changed', () => {
             renderCheckoutFields();
-            setPayButtons(cartApi.loadCart());
+            refreshTotalsUi(cartApi.loadCart());
         });
         window.addEventListener('pageshow', () => {
             if (document.body.style.position === 'fixed' && !isCartOpen()) {
@@ -831,7 +866,8 @@ ${feeRow}
         burstConfetti,
         startPayment: startAppPayment,
         payButtonHtml: payBtnInnerHtml,
-        payButtonLabel: PAY_BTN_LABEL,
+        payButtonLabel: payBtnLabelFor(),
+        refreshTotalsUi,
         setPayButtonContent,
         cartLineHtml,
         lineThumbHtml,

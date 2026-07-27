@@ -11,7 +11,8 @@
     };
 
     const resolveFee = (session, checkout) => {
-        if (checkout?.deliveryType === 'retirada') return 0;
+        const type = String(checkout?.deliveryType || '').trim().toLowerCase();
+        if (type === 'retirada' || type === 'pickup') return 0;
         const parsed = parseTaxaEntrega(session?.taxaEntrega);
         if (parsed === 0) return 0;
         if (parsed != null) return parsed;

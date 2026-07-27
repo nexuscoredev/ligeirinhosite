@@ -141,6 +141,8 @@ ${hasDiscount ? `<span class="caminhao-product__was">${formatPrice(listPrice)}</
 
     const checkoutHtml = () => {
         const s = window.LigeirinhoAuth?.loadSession?.();
+        const checkout = cartApi.loadCheckout();
+        const isRetirada = checkout.deliveryType === 'retirada';
         const condicao = s?.condicaoPagamento || '';
         const condicaoBlock = condicao
             ? `<div class="caminhao-checkout__condicao">
@@ -162,8 +164,12 @@ ${condicaoBlock}
 </div>
 <input type="text" data-checkout="address" id="caminhao-address" placeholder="Endereço completo (rua, nº, bairro)" class="caminhao-input" autocomplete="street-address">
 <p class="caminhao-checkout__error hidden" data-checkout-error="address" role="alert"></p>
-<textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="caminhao-input caminhao-input--area"></textarea>
-<p class="caminhao-checkout__hint">Na próxima etapa você escolhe data de entrega e forma de pagamento.</p>
+<textarea data-checkout="notes" placeholder="${isRetirada ? 'Observações (opcional)' : 'Observações para o entregador (opcional)'}" rows="2" class="caminhao-input caminhao-input--area"></textarea>
+<p class="caminhao-checkout__hint">${
+            isRetirada
+                ? 'Na próxima etapa você escolhe data de retirada e forma de pagamento.'
+                : 'Na próxima etapa você escolhe data de entrega e forma de pagamento.'
+        }</p>
 </section>`;
     };
 
@@ -240,8 +246,7 @@ ${
                 condicaoPagamento: s?.condicaoPagamento || cartApi.loadCheckout().condicaoPagamento || '',
                 notes: section?.querySelector('[data-checkout="notes"]')?.value || '',
             });
-            renderCheckoutFields();
-            setPayButton(cartApi.loadCart());
+            /* Totais/taxa atualizam via ligeirinho-checkout-changed → render() */
         };
 
         root.addEventListener('change', (e) => {
@@ -373,8 +378,7 @@ ${items.length ? stickyFooterHtml(cart) : ''}
 
     window.addEventListener('ligeirinho-cart-changed', render);
     window.addEventListener('ligeirinho-checkout-changed', () => {
-        renderCheckoutFields();
-        setPayButton(cartApi.loadCart());
+        render();
     });
 
     render();

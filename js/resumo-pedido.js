@@ -156,10 +156,10 @@
     const feeApi = () => window.LigeirinhoDeliveryFee;
 
     const orderTotals = (cart, checkout) => {
-        const { subtotal } = cartApi.cartSummary(cart);
+        const { units, subtotal } = cartApi.cartSummary(cart);
         const deliveryFee = feeApi()?.resolveFee?.(session(), checkout) ?? 0;
         const total = feeApi()?.orderTotal?.(subtotal, deliveryFee) ?? subtotal;
-        return { subtotal, deliveryFee, total };
+        return { units: Number(units) || 0, subtotal, deliveryFee, total };
     };
 
     const deliveryOptions = () => {
@@ -459,7 +459,7 @@ ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</
 ${cardHtml('Produtos', productsBody, String(units))}
 ${cardHtml(
     'Resumo do pedido',
-    `<div class="resumo-total-row resumo-total-row--final"><span>Subtotal (${units} produtos)</span><strong>${formatPrice(subtotal)}</strong></div>
+    `<div class="resumo-total-row resumo-total-row--final"><span>Subtotal (${units} ${units === 1 ? 'produto' : 'produtos'})</span><strong>${formatPrice(subtotal)}</strong></div>
 <div class="resumo-total-row"><span>Taxa de entrega</span><span class="${deliveryFee > 0 ? '' : 'resumo-free'}">${esc(feeApi()?.feeLabel?.(deliveryFee, formatPrice) || 'Grátis')}</span></div>
 <div class="resumo-total-row resumo-total-row--final"><span>Total</span><strong>${formatPrice(total)}</strong></div>`
 )}
