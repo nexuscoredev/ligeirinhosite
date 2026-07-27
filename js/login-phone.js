@@ -5,7 +5,6 @@
     if (!auth || !phoneAuth || !routing) return;
 
     const signupPanel = document.getElementById('login-mode-signup');
-    const phoneToggle = document.getElementById('login-phone-toggle');
     const phoneInput = document.getElementById('login-phone-input');
     const nameInput = document.getElementById('login-phone-name');
     const submitBtn = document.getElementById('login-phone-submit');
@@ -88,10 +87,6 @@
             window.setTimeout(() => routing.redirectAfterLogin('PARCEIRO', nextUrl), 400);
         }
     };
-
-    phoneToggle?.addEventListener('click', () => {
-        window.LigeirinhoLoginMode?.showMode?.('signup');
-    });
 
     signupPanel?.querySelectorAll('[data-signup-next]').forEach((btn) => {
         btn.addEventListener('click', goNext);
