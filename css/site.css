@@ -9385,14 +9385,13 @@ body[data-login-mode='signup'] .lig-login-title {
     inset: 0;
     z-index: 2;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
     overflow: hidden;
-    opacity: 0;
+    opacity: 0.001;
     cursor: pointer;
     max-width: 100%;
     max-height: 100%;
-    clip-path: inset(0);
 }
 
 .lig-login-google-mount > div {

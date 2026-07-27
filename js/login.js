@@ -68,6 +68,31 @@
     };
 
     const renderGoogleButton = (clientId) => {
+        const syncGoogleMount = () => {
+            if (!googleBtn || !googleMount || googleBtn.classList.contains('lig-login-google-btn--disabled')) {
+                return;
+            }
+            if (!window.google?.accounts?.id) return;
+
+            const width = Math.round(googleBtn.getBoundingClientRect().width);
+            if (width < 120) return;
+
+            googleMount.innerHTML = '';
+            googleMount.removeAttribute('aria-hidden');
+
+            window.google.accounts.id.renderButton(googleMount, {
+                type: 'standard',
+                theme: 'outline',
+                size: 'large',
+                text: 'continue_with',
+                shape: 'pill',
+                width,
+                locale: 'pt-BR',
+            });
+
+            googleBtn.classList.add('lig-login-google-btn--ready');
+        };
+
         const boot = () => {
             if (!window.google?.accounts?.id) {
                 window.setTimeout(boot, 200);
@@ -88,18 +113,13 @@
                 use_fedcm_for_prompt: false,
             });
 
-            googleMount.innerHTML = '';
-            googleMount.removeAttribute('aria-hidden');
-
-            window.google.accounts.id.renderButton(googleMount, {
-                type: 'icon',
-                theme: 'outline',
-                size: 'large',
-                shape: 'circle',
-                locale: 'pt-BR',
+            syncGoogleMount();
+            window.addEventListener('resize', syncGoogleMount);
+            window.addEventListener('lig-login-mode', (event) => {
+                if (event.detail?.mode === 'signin') {
+                    window.setTimeout(syncGoogleMount, 80);
+                }
             });
-
-            googleBtn?.classList.add('lig-login-google-btn--ready');
         };
 
         boot();
