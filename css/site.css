@@ -8533,7 +8533,7 @@ html {
     }
 }
 
-/* ?? Splash de abertura (estilo Zé Delivery) ?? */
+/* Splash: regras leves (animação roda via WAAPI no index — não redeclarar animation aqui) */
 .lig-splash {
     position: fixed;
     inset: 0;
@@ -8548,7 +8548,7 @@ html {
         env(safe-area-inset-bottom)
         env(safe-area-inset-left);
     opacity: 1;
-    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.52s cubic-bezier(0.22, 1, 0.36, 1);
     transform: translateZ(0);
 }
 
@@ -8558,22 +8558,14 @@ html {
 }
 
 .lig-splash__stage {
-    width: min(48vw, 11.5rem);
-    height: min(48vw, 11.5rem);
+    width: min(40vw, 9.5rem);
+    height: min(40vw, 9.5rem);
     display: flex;
     align-items: center;
     justify-content: center;
     will-change: transform;
-    transform: translate3d(0, 0, 0) scale(0.4);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    animation: ligSplashZoom 2.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-.lig-splash.lig-splash--out .lig-splash__stage {
-    animation: none;
-    transform: translate3d(0, 0, 0) scale(2.15);
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .lig-splash__logo {
@@ -8586,39 +8578,18 @@ html {
     -webkit-user-drag: none;
 }
 
-@keyframes ligSplashZoom {
-    0% {
-        transform: translate3d(0, 0, 0) scale(0.38);
-    }
-    100% {
-        transform: translate3d(0, 0, 0) scale(1.62);
-    }
-}
-
 html.lig-splash-active .lig-login-main,
-html.lig-splash-active .lig-login-theme {
-    opacity: 0;
+html.lig-splash-active .lig-login-theme,
+html.lig-splash-active #login-phone-modal {
+    visibility: hidden;
     pointer-events: none;
 }
 
 html.lig-splash-done .lig-login-main,
 html.lig-splash-done .lig-login-theme {
+    visibility: visible;
     opacity: 1;
-    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .lig-splash__stage,
-    .lig-splash.lig-splash--out .lig-splash__stage {
-        animation: none !important;
-        transition: none !important;
-        transform: none;
-    }
-
-    html.lig-splash-done .lig-login-main,
-    html.lig-splash-done .lig-login-theme {
-        transition: none;
-    }
+    transition: opacity 0.35s ease;
 }
 
 /* ?? Login (estilo Z? Delivery) ?? */

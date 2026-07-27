@@ -113,7 +113,7 @@
             !document.documentElement.classList.contains('lig-splash-done')
         ) {
             window.addEventListener('lig-splash-done', go, { once: true });
-            window.setTimeout(go, 4200);
+            window.setTimeout(go, 4800);
             return;
         }
         go();

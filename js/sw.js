@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v413';
+const CACHE_NAME = 'ligeirinho-app-v414';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -119,6 +119,7 @@ const APP_SHELL = [
     '/data/precos-embalagem.json',
     '/data/imagem-embalagem.json',
     '/img/ligeirinhologo.png',
+    '/img/ligeirinhologo-splash.webp',
     '/img/app-icon-light-192.png',
     '/img/app-icon-light-512.png',
     '/img/app-icon-light-512-maskable.png',

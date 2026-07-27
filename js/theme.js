@@ -17,6 +17,14 @@
 
     const updateMetaThemeColor = (effective) => {
         /* Mesma cor do chrome (header/nav) — evita faixa entre status bar e app. */
+        /* Durante a intro amarela, não trocar para branco/preto (causa tranco visual). */
+        if (document.documentElement.classList.contains('lig-splash-active')) {
+            document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+                meta.content = '#F7D53C';
+            });
+            document.documentElement.style.setProperty('--lig-chrome', '#F7D53C');
+            return;
+        }
         const color = effective === 'dark' ? '#0d0d0d' : '#ffffff';
         document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
             meta.content = color;

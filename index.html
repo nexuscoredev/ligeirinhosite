@@ -1,148 +1,189 @@
-<!DOCTYPE html><html lang="pt-BR" class="lig-splash-active"><head>
-
+<!DOCTYPE html>
+<html lang="pt-BR" class="lig-splash-active">
+<head>
 <meta charset="utf-8">
-
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
-
 <title>Entrar - Ligeirinho Parceiros</title>
-
 <link rel="icon" href="img/app-icon-light-192.png" type="image/png">
-
 <link rel="apple-touch-icon" href="img/app-icon-light-512.png">
-
 <link rel="manifest" href="manifest.webmanifest">
-
 <meta name="theme-color" content="#F7D53C">
-
 <meta name="apple-mobile-web-app-title" content="Ligeirinho Parceiros">
-
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<link rel="preload" href="img/ligeirinhologo.png" as="image">
-
+<link rel="preload" href="img/ligeirinhologo-splash.webp" as="image" type="image/webp">
 <style id="lig-splash-critical">
 html,body{background:#F7D53C;margin:0}
-html.lig-splash-active,html.lig-splash-active body{background:#F7D53C!important;overflow:hidden}
-html.lig-splash-active .lig-login-main,html.lig-splash-active .lig-login-theme{opacity:0!important;pointer-events:none!important}
-#lig-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#F7D53C;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:1;transition:opacity .5s cubic-bezier(.22,1,.36,1);-webkit-transform:translateZ(0);transform:translateZ(0)}
+html.lig-splash-active,html.lig-splash-active body{background:#F7D53C!important;overflow:hidden!important}
+html.lig-splash-active .lig-login-main,
+html.lig-splash-active .lig-login-theme,
+html.lig-splash-active #login-phone-modal{visibility:hidden!important;pointer-events:none!important}
+#lig-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#F7D53C;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:1;transition:opacity .52s cubic-bezier(.22,1,.36,1);transform:translateZ(0);-webkit-transform:translateZ(0)}
 #lig-splash.lig-splash--out{opacity:0;pointer-events:none}
-.lig-splash__stage{width:min(48vw,11.5rem);height:min(48vw,11.5rem);display:flex;align-items:center;justify-content:center;will-change:transform;transform:translate3d(0,0,0) scale(.4);-webkit-backface-visibility:hidden;backface-visibility:hidden;animation:ligSplashZoom 2.35s cubic-bezier(.2,.8,.2,1) forwards}
-#lig-splash.lig-splash--out .lig-splash__stage{animation:none;transform:translate3d(0,0,0) scale(2.15);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.lig-splash__stage{width:min(40vw,9.5rem);height:min(40vw,9.5rem);display:flex;align-items:center;justify-content:center;will-change:transform;transform:translate3d(0,0,0) scale(.42);-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.lig-splash__stage picture{display:block;width:100%;height:100%}
 .lig-splash__logo{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}
-@keyframes ligSplashZoom{
-0%{transform:translate3d(0,0,0) scale(.38)}
-100%{transform:translate3d(0,0,0) scale(1.62)}
-}
+html.lig-splash-done .lig-login-main,html.lig-splash-done .lig-login-theme{visibility:visible;opacity:1;transition:opacity .35s ease}
 @media (prefers-reduced-motion:reduce){
-.lig-splash__stage,#lig-splash.lig-splash--out .lig-splash__stage{animation:none!important;transition:none!important;transform:none}
+.lig-splash__stage{transform:none!important}
 }
 </style>
-
-<script src="js/theme.js"></script>
-
-<link rel="stylesheet" href="css/site.css">
-
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Hanken+Grotesk:wght@600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-
-<script id="tailwind-config">
-
-        tailwind.config = {
-
-            theme: {
-
-                extend: {
-
-                    colors: {
-
-                        "vibrant-yellow": "#F7D53C",
-                        "vibrant-orange": "#F7D53C",
-
-                        "deep-black": "#1a1a1a"
-
-                    },
-
-                    fontFamily: {
-
-                        "body-md": ["Inter"],
-
-                        "headline-md": ["Hanken Grotesk"]
-
-                    }
-
-                }
-
-            }
-
-        }
-
-    </script>
-
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
 </head>
-
 <body data-page="login" class="lig-login-page font-body-md antialiased">
 
 <div id="lig-splash" class="lig-splash" role="status" aria-live="polite" aria-label="Abrindo Ligeirinho Parceiros">
 <div class="lig-splash__stage">
+<picture>
+<source srcset="img/ligeirinhologo-splash.webp" type="image/webp">
 <img class="lig-splash__logo" src="img/ligeirinhologo.png" alt="" width="256" height="256" decoding="async" fetchpriority="high">
+</picture>
 </div>
 </div>
+
 <script>
 (function () {
   var el = document.getElementById('lig-splash');
-  if (!el) {
-    document.documentElement.classList.add('lig-splash-done');
-    document.documentElement.classList.remove('lig-splash-active');
-    window.dispatchEvent(new Event('lig-splash-done'));
-    return;
-  }
+  var stage = el && el.querySelector('.lig-splash__stage');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var introMs = reduce ? 280 : 2350;
-  var fadeMs = reduce ? 160 : 500;
+  var INTRO_MS = reduce ? 260 : 2700;
+  var FADE_MS = reduce ? 140 : 520;
+  var END_SCALE = 2.9;
+  var EXIT_SCALE = 3.75;
   var done = false;
+  var zoomAnim = null;
+  var bootStarted = false;
+
+  function addStylesheet(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  }
+
+  function addScript(src, attrs) {
+    var s = document.createElement('script');
+    s.src = src;
+    if (attrs) Object.keys(attrs).forEach(function (k) { s.setAttribute(k, attrs[k]); });
+    document.head.appendChild(s);
+    return s;
+  }
+
+  /* Carrega CSS/tema cedo, mas DEPOIS do 1º frame da intro — evita travar o zoom. */
+  function warmShell() {
+    if (bootStarted) return;
+    bootStarted = true;
+    addScript('js/theme.js');
+    addStylesheet('css/site.css');
+    addStylesheet('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+    addStylesheet('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+  }
+
+  function bootApp() {
+    if (window.__ligLoginBooted) return;
+    window.__ligLoginBooted = true;
+    warmShell();
+
+    var cfg = document.createElement('script');
+    cfg.id = 'tailwind-config';
+    cfg.textContent = 'tailwind.config={theme:{extend:{colors:{"vibrant-yellow":"#F7D53C","vibrant-orange":"#F7D53C","deep-black":"#1a1a1a"},fontFamily:{"body-md":["Inter"],"headline-md":["Hanken Grotesk"]}}}}';
+    document.head.appendChild(cfg);
+    addScript('https://cdn.tailwindcss.com?plugins=forms,container-queries');
+    addScript('https://accounts.google.com/gsi/client', { async: '', defer: '' });
+
+    var files = [
+      'js/site-config.js',
+      'js/app.js',
+      'js/theme-ui.js',
+      'js/auth-store.js',
+      'js/auth-routing.js',
+      'js/auth-config-loader.js',
+      'js/phone-auth.js',
+      'js/layout.js',
+      'js/login-hub.js',
+      'js/login.js',
+      'js/login-phone.js'
+    ];
+    var i = 0;
+    function next() {
+      if (i >= files.length) return;
+      var s = document.createElement('script');
+      s.src = files[i++];
+      s.onload = next;
+      s.onerror = next;
+      document.body.appendChild(s);
+    }
+    next();
+  }
+
   function cleanup() {
     if (el && el.parentNode) el.parentNode.removeChild(el);
     document.documentElement.classList.remove('lig-splash-active');
     document.documentElement.classList.add('lig-splash-done');
+    try {
+      if (window.LigeirinhoTheme && window.LigeirinhoTheme.getEffective) {
+        var color = window.LigeirinhoTheme.getEffective() === 'dark' ? '#0d0d0d' : '#ffffff';
+        document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.content = color; });
+      }
+    } catch (e) { /* ignore */ }
     window.dispatchEvent(new Event('lig-splash-done'));
+    bootApp();
   }
+
   function finish() {
     if (done) return;
     done = true;
+    if (zoomAnim) {
+      try { zoomAnim.cancel(); } catch (e) { /* ignore */ }
+    }
+    if (stage && stage.animate && !reduce) {
+      var from = 'translate3d(0,0,0) scale(' + END_SCALE + ')';
+      try {
+        var cs = window.getComputedStyle(stage).transform;
+        if (cs && cs !== 'none') from = cs;
+      } catch (e) { /* ignore */ }
+      stage.animate(
+        [{ transform: from }, { transform: 'translate3d(0,0,0) scale(' + EXIT_SCALE + ')' }],
+        { duration: FADE_MS, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards' }
+      );
+    }
     el.classList.add('lig-splash--out');
-    window.setTimeout(cleanup, fadeMs + 30);
+    window.setTimeout(cleanup, FADE_MS + 40);
   }
-  window.setTimeout(finish, introMs);
-  window.setTimeout(finish, introMs + 1500);
+
+  if (stage && stage.animate && !reduce) {
+    zoomAnim = stage.animate(
+      [
+        { transform: 'translate3d(0,0,0) scale(0.42)' },
+        { transform: 'translate3d(0,0,0) scale(' + END_SCALE + ')' }
+      ],
+      {
+        duration: INTRO_MS,
+        easing: 'cubic-bezier(0.22, 0.12, 0.18, 1)',
+        fill: 'forwards'
+      }
+    );
+  } else if (stage) {
+    stage.style.transform = 'translate3d(0,0,0) scale(1.35)';
+  }
+
+  window.setTimeout(warmShell, 220);
+  window.setTimeout(finish, INTRO_MS);
+  window.setTimeout(finish, INTRO_MS + 1600);
 })();
 </script>
 
 <div data-lig-theme-mount class="lig-login-theme" role="group" aria-label="Tema do app"></div>
 
 <main class="lig-login-main">
-
 <div class="lig-login-hero">
-
 <div class="lig-login-logo-wrap">
-
 <img class="lig-login-logo" src="img/ligeirinhologo.png" alt="Ligeirinho" width="220" height="220" decoding="async">
-
 <span class="lig-login-wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
-
 </div>
-
 <h1 class="lig-login-title">Entre ou crie sua conta!</h1>
 <p class="lig-login-sub">Pedidos em caixa e pallet para o seu negócio</p>
-
 </div>
 
 <div class="lig-login-actions">
-
 <div class="lig-login-oauth-row" role="group" aria-label="Entrar com Google ou telefone">
 <div id="login-google-btn" class="lig-login-oauth-icon lig-login-google-btn lig-login-google-proxy" role="button" tabindex="0" aria-label="Continuar com Google">
 <svg class="lig-login-google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
@@ -167,15 +208,11 @@ html.lig-splash-active .lig-login-main,html.lig-splash-active .lig-login-theme{o
 </section>
 
 <p id="login-status" class="lig-login-status" hidden></p>
-
 </div>
 
 <p class="lig-login-legal">
-
 Ao continuar, você concorda com nossos termos de uso e política de privacidade.
-
 </p>
-
 </main>
 
 <div id="login-phone-modal" class="lig-login-modal" aria-hidden="true">
@@ -223,25 +260,5 @@ Ao continuar, você concorda com nossos termos de uso e política de privacidade
 </div>
 </div>
 
-<script src="js/site-config.js"></script>
-<script src="js/app.js"></script>
-
-<script src="js/theme-ui.js"></script>
-
-<script src="js/auth-store.js"></script>
-
-<script src="js/auth-routing.js"></script>
-
-<script src="js/auth-config-loader.js"></script>
-
-<script src="js/phone-auth.js"></script>
-
-<script src="js/layout.js"></script>
-
-<script src="js/login-hub.js"></script>
-
-<script src="js/login.js"></script>
-
-<script src="js/login-phone.js"></script>
-
-</body></html>
+</body>
+</html>
