@@ -49,6 +49,8 @@ html.totem-kiosk[data-theme='light'] {
 html.totem-kiosk {
     --totem-zoom: 1;
     zoom: 1;
+    --totem-edge-x: max(1rem, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    --totem-edge-y: max(0.75rem, env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px));
 }
 
 html.totem-kiosk,
@@ -6025,11 +6027,11 @@ body.totem-kiosk .totem-success-icon .material-symbols-outlined {
     }
 }
 
-/* Monitores totem grandes — leve redução para caber mais conteúdo */
+/* Monitores totem grandes — sem zoom (zoom no Chrome corta bordas no kiosk). */
 @media (min-width: 1100px) and (min-height: 700px) {
     html.totem-kiosk {
-        --totem-zoom: 0.88;
-        zoom: var(--totem-zoom);
+        --totem-zoom: 1;
+        zoom: 1;
     }
 }
 
@@ -6485,16 +6487,43 @@ html.totem--tablet.totem--portrait .totem-pay-methods {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Safe areas */
+/* Safe areas + folga de borda do monitor (evita corte no bezel do kiosk) */
 .totem-header {
     padding-top: calc(clamp(0.55rem, 1.25dvh, 0.8rem) + env(safe-area-inset-top, 0px));
-    padding-left: calc(clamp(0.85rem, 2vw, 1.35rem) + env(safe-area-inset-left, 0px));
-    padding-right: calc(clamp(0.85rem, 2vw, 1.35rem) + env(safe-area-inset-right, 0px));
+    padding-left: calc(clamp(0.85rem, 2vw, 1.35rem) + var(--totem-edge-x, 0px));
+    padding-right: calc(clamp(0.85rem, 2vw, 1.35rem) + var(--totem-edge-x, 0px));
+}
+
+html.totem--kiosk .totem-products,
+html.totem--tablet .totem-products {
+    padding-left: calc(0.85rem + var(--totem-edge-x, 0px));
+    padding-right: calc(0.85rem + var(--totem-edge-x, 0px));
+    box-sizing: border-box;
+}
+
+html.totem--kiosk .totem-catalog-toolbar,
+html.totem--tablet .totem-catalog-toolbar {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+    min-width: 0;
+}
+
+html.totem--landscape .totem-cart-sheet {
+    width: min(28rem, calc(100vw - (2 * var(--totem-edge-x, 1rem))));
+    box-sizing: border-box;
+}
+
+html.totem--kiosk .totem-float-cart,
+html.totem--tablet .totem-float-cart {
+    left: max(0.75rem, var(--totem-edge-x, 0px));
+    right: max(0.75rem, var(--totem-edge-x, 0px));
 }
 
 @media (max-height: 720px) and (min-width: 1100px) {
     html.totem-kiosk {
-        --totem-zoom: 0.82;
+        --totem-zoom: 1;
+        zoom: 1;
     }
 
     .totem-app {
@@ -7374,7 +7403,8 @@ button.totem-detail__qty-value.totem-qty-edit:active {
 
 @media (max-height: 720px) {
     html.totem-kiosk {
-        --totem-zoom: 0.8;
+        --totem-zoom: 1;
+        zoom: 1;
     }
 
     .totem-app {
