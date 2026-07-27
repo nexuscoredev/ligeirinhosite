@@ -162,7 +162,14 @@ ${condicaoBlock}
 <input type="radio" name="caminhao-delivery" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
-<input type="text" data-checkout="address" id="caminhao-address" placeholder="Endereço completo (rua, nº, bairro)" class="caminhao-input" autocomplete="street-address">
+<div class="lig-address-field${isRetirada ? ' hidden' : ''}" data-address-field>
+<button type="button" class="lig-address-field__btn" data-address-open aria-label="Informar endereço de entrega">
+<span class="material-symbols-outlined lig-address-field__icon" aria-hidden="true">location_on</span>
+<span class="lig-address-field__text${checkout.address?.trim() ? '' : ' lig-address-field__text--placeholder'}" data-address-label>${esc(checkout.address?.trim() || 'Informar endereço de entrega')}</span>
+<span class="material-symbols-outlined lig-address-field__chev" aria-hidden="true">chevron_right</span>
+</button>
+<input type="hidden" data-checkout="address" id="caminhao-address" value="${esc(checkout.address || '')}" autocomplete="street-address">
+</div>
 <p class="caminhao-checkout__error hidden" data-checkout-error="address" role="alert"></p>
 <textarea data-checkout="notes" placeholder="${isRetirada ? 'Observações (opcional)' : 'Observações para o entregador (opcional)'}" rows="2" class="caminhao-input caminhao-input--area"></textarea>
 <p class="caminhao-checkout__hint">${
@@ -215,17 +222,33 @@ ${
 
     const renderCheckoutFields = () => {
         const checkout = cartApi.loadCheckout();
+        const isRetirada = checkout.deliveryType === 'retirada';
+        const address = String(checkout.address || '').trim();
         root.querySelectorAll('.cart-checkout').forEach((section) => {
             section.querySelectorAll('[data-checkout="deliveryType"]').forEach((input) => {
                 input.checked = input.value === checkout.deliveryType;
                 input.closest('.caminhao-delivery-opt')?.classList.toggle('caminhao-delivery-opt--active', input.checked);
             });
-            const addressEl = section.querySelector('[data-checkout="address"]');
+            section.classList.toggle('cart-checkout--retirada', isRetirada);
+            section.querySelectorAll('[data-address-field]').forEach((field) => {
+                field.classList.toggle('hidden', isRetirada);
+                const label = field.querySelector('[data-address-label]');
+                const btn = field.querySelector('[data-address-open]');
+                if (label) {
+                    label.textContent = address || 'Informar endereço de entrega';
+                    label.classList.toggle('lig-address-field__text--placeholder', !address);
+                }
+                if (btn) {
+                    btn.setAttribute(
+                        'aria-label',
+                        address ? `Endereço: ${address}. Toque para alterar.` : 'Informar endereço de entrega',
+                    );
+                }
+            });
+            section.querySelectorAll('[data-checkout="address"]').forEach((addressEl) => {
+                addressEl.value = address;
+            });
             const notesEl = section.querySelector('[data-checkout="notes"]');
-            if (addressEl) {
-                addressEl.value = checkout.address || '';
-                addressEl.classList.toggle('hidden', checkout.deliveryType === 'retirada');
-            }
             if (notesEl) notesEl.value = checkout.notes || '';
         });
     };
@@ -255,12 +278,11 @@ ${
         root.addEventListener('input', (e) => {
             if (e.target.matches('[data-checkout="notes"]')) onCheckoutChange();
         });
-        root.addEventListener('focusin', (e) => {
-            if (e.target.matches('[data-checkout="address"]')) {
-                e.preventDefault();
-                e.target.blur();
-                openAddressPicker();
-            }
+        root.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-address-open]');
+            if (!btn || !root.contains(btn)) return;
+            e.preventDefault();
+            openAddressPicker();
         });
     };
 

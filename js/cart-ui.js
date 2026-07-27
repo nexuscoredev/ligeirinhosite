@@ -55,7 +55,14 @@
 <input type="radio" name="cart-delivery-panel" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
-<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
+<div class="lig-address-field" data-address-field>
+<button type="button" class="lig-address-field__btn" data-address-open aria-label="Informar endereço de entrega">
+<span class="material-symbols-outlined lig-address-field__icon" aria-hidden="true">location_on</span>
+<span class="lig-address-field__text lig-address-field__text--placeholder" data-address-label>Informar endereço de entrega</span>
+<span class="material-symbols-outlined lig-address-field__chev" aria-hidden="true">chevron_right</span>
+</button>
+<input type="hidden" data-checkout="address" value="" autocomplete="street-address">
+</div>
 <p class="lig-cart-checkout__error hidden" data-checkout-error="address" role="alert"></p>
 <textarea data-checkout="notes" placeholder="Observações para o entregador (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
 <p class="lig-cart-checkout__hint">Na próxima tela você confirma a data de entrega e a forma de pagamento.</p>
@@ -105,7 +112,14 @@ ${payBtnInnerHtml()}
 <input type="radio" name="cart-delivery-mobile" value="retirada" class="sr-only" data-checkout="deliveryType"> Retirada
 </label>
 </div>
-<input type="text" data-checkout="address" placeholder="Endereço completo (rua, nº, bairro)" class="lig-cart-input" autocomplete="street-address">
+<div class="lig-address-field" data-address-field>
+<button type="button" class="lig-address-field__btn" data-address-open aria-label="Informar endereço de entrega">
+<span class="material-symbols-outlined lig-address-field__icon" aria-hidden="true">location_on</span>
+<span class="lig-address-field__text lig-address-field__text--placeholder" data-address-label>Informar endereço de entrega</span>
+<span class="material-symbols-outlined lig-address-field__chev" aria-hidden="true">chevron_right</span>
+</button>
+<input type="hidden" data-checkout="address" value="" autocomplete="street-address">
+</div>
 <textarea data-checkout="notes" placeholder="Observações (opcional)" rows="2" class="lig-cart-input lig-cart-input--area"></textarea>
 <p class="lig-cart-checkout__hint">Na próxima tela você confirma a data de entrega e a forma de pagamento.</p>
 </div>
@@ -416,6 +430,9 @@ ${feeRow}
             el.textContent = message;
             el.classList.toggle('hidden', !message);
         });
+        document.querySelectorAll('[data-address-open]').forEach((btn) => {
+            btn.classList.toggle('lig-address-field__btn--error', Boolean(message));
+        });
         document.querySelectorAll('[data-checkout="address"]').forEach((el) => {
             el.classList.toggle('lig-cart-input--error', Boolean(message));
             el.classList.toggle('caminhao-input--error', Boolean(message));
@@ -465,7 +482,7 @@ ${feeRow}
 
         const visible = count > 0 && !isCartOpen() && document.body.dataset.page !== 'caminhao';
         floatEl.classList.toggle('ze-float-cart--visible', visible);
-        document.documentElement.classList.toggle('lig-has-float-cart', count > 0);
+        document.documentElement.classList.toggle('lig-has-float-cart', visible);
     };
 
     const setPayButtons = (cart) => {
@@ -481,19 +498,39 @@ ${feeRow}
         });
     };
 
+    const syncAddressFieldUi = (section, checkout) => {
+        const isRetirada = checkout.deliveryType === 'retirada';
+        const address = String(checkout.address || '').trim();
+        section.querySelectorAll('[data-address-field]').forEach((field) => {
+            field.classList.toggle('hidden', isRetirada);
+            const label = field.querySelector('[data-address-label]');
+            const btn = field.querySelector('[data-address-open]');
+            if (label) {
+                label.textContent = address || 'Informar endereço de entrega';
+                label.classList.toggle('lig-address-field__text--placeholder', !address);
+            }
+            if (btn) {
+                btn.setAttribute(
+                    'aria-label',
+                    address ? `Endereço: ${address}. Toque para alterar.` : 'Informar endereço de entrega',
+                );
+            }
+        });
+        section.querySelectorAll('[data-checkout="address"]').forEach((addressEl) => {
+            addressEl.value = address;
+            addressEl.classList.toggle('hidden', isRetirada);
+        });
+        section.classList.toggle('cart-checkout--retirada', isRetirada);
+    };
+
     const renderCheckoutFields = () => {
         const checkout = cartApi.loadCheckout();
         document.querySelectorAll('.cart-checkout').forEach((section) => {
             section.querySelectorAll('[data-checkout="deliveryType"]').forEach((input) => {
                 input.checked = input.value === checkout.deliveryType;
             });
-            const addressEl = section.querySelector('[data-checkout="address"]');
+            syncAddressFieldUi(section, checkout);
             const notesEl = section.querySelector('[data-checkout="notes"]');
-            if (addressEl) {
-                addressEl.value = checkout.address || '';
-                addressEl.closest('.cart-checkout')?.classList.toggle('cart-checkout--retirada', checkout.deliveryType === 'retirada');
-                addressEl.classList.toggle('hidden', checkout.deliveryType === 'retirada');
-            }
             if (notesEl) notesEl.value = checkout.notes || '';
         });
     };
@@ -522,11 +559,17 @@ ${feeRow}
             field.addEventListener('change', () => {
                 saveFromSection(field.closest('.cart-checkout'));
             });
-            if (field.tagName === 'TEXTAREA' || field.tagName === 'INPUT') {
+            if (field.tagName === 'TEXTAREA' || (field.tagName === 'INPUT' && field.type !== 'hidden')) {
                 field.addEventListener('input', () => {
                     scheduleInputSave(field.closest('.cart-checkout'));
                 });
             }
+        });
+        document.querySelectorAll('[data-address-open]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                openDeliveryAddress();
+            });
         });
     };
 
@@ -717,9 +760,9 @@ ${feeRow}
             resetCartScroll();
             if (options.focusAddress) {
                 window.requestAnimationFrame(() => {
-                    const addressEl = panel.querySelector('[data-checkout="address"]');
-                    addressEl?.focus?.();
-                    addressEl?.scrollIntoView?.({ block: 'nearest' });
+                    const addressBtn = panel.querySelector('[data-address-open]');
+                    addressBtn?.scrollIntoView?.({ block: 'nearest' });
+                    openDeliveryAddress();
                 });
             }
         } else {
