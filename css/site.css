@@ -6729,6 +6729,7 @@ body[data-page='meus-pedidos'] .meus-pedidos-page {
 
 .ze-price-tiers-slot--spacer,
 .totem-promo-unit-toggle--spacer {
+    height: 2.15rem;
     min-height: 2.15rem;
     margin: 0;
     visibility: hidden;

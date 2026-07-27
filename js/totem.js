@@ -823,14 +823,17 @@ ${qtyLine}`;
     };
 
     const priceTiersHtml = (group, activeTier) => {
-        if (!group) return '';
+        if (!group) {
+            return '<div class="ze-price-tiers-slot ze-price-tiers-slot--spacer" aria-hidden="true"></div>';
+        }
         const tiers = (
             pricing.getTotemAvailableTiers?.(group) ||
             pricing.getAvailableTiers(group) ||
             []
         ).filter((tier) => !window.LigeirinhoTotemStoreAdmin?.isTierHidden?.(group, tier));
-        if (!tiers.length) return '';
-        const solo = tiers.length === 1;
+        if (tiers.length <= 1) {
+            return '<div class="ze-price-tiers-slot ze-price-tiers-slot--spacer" aria-hidden="true"></div>';
+        }
         const buttons = tiers
             .map((tier) => {
                 const active = tier === activeTier;
@@ -845,13 +848,10 @@ ${qtyLine}`;
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
                     : '';
-                if (solo) {
-                    return `<span class="ze-price-tier ze-price-tier--active ze-price-tier--solo" aria-current="true">${esc(label)}</span>`;
-                }
                 return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(label)}${offer?.discountPct > 0 ? ` em promoção -${offer.discountPct}%` : offer?.promoId ? ' em promoção' : ''}">${esc(label)}${promoMark}</button>`;
             })
             .join('');
-        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="${solo ? 'Embalagem' : 'Escolher embalagem'}">${buttons}</div></div>`;
+        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Escolher embalagem">${buttons}</div></div>`;
     };
 
     const priceBlockHtml = (variant, opts = {}) => {
@@ -1019,15 +1019,7 @@ ${unitHtml}
         }
 
         const packTag = card.querySelector('.totem-product__pack-tag');
-        const hasTierSlot = card.querySelectorAll('.ze-price-tier').length > 0;
-        if (hasTierSlot) {
-            packTag?.remove();
-        } else if (packTag && variant) {
-            const label = packLabelForTier(tier);
-            const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
-            if (labelEl) labelEl.textContent = label;
-            packTag.setAttribute('aria-label', `Embalagem ${label}`);
-        }
+        packTag?.remove();
 
         const minus = card.querySelector('.totem-minus');
         const plus = card.querySelector('.totem-plus');
@@ -2974,8 +2966,8 @@ ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material
         const bodyHtml = `<div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
 <div class="totem-product__pricing">
-${tiersHtml}
 ${catalogView !== 'list' ? `<div class="totem-product__meta">${priceHtml}${adminHideBtnHtml(itemKey, cartKey, tier)}</div>` : ''}
+${tiersHtml}
 </div>
 ${catalogView !== 'list' ? qtyHtml : ''}
 </div>`;

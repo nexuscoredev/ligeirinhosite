@@ -54,11 +54,14 @@
         `<span class="totem-product__pay-tag" aria-label="Pagamento apenas Pix ou Dinheiro"><img src="img/tag-pix-dinheiro.png?v=transparent" alt="" aria-hidden="true"></span>`;
 
     const priceTiersHtml = (group, activeTier, pricing, promoOffers, itemKey) => {
-        if (!group || !pricing) return '';
+        if (!group || !pricing) {
+            return '<div class="ze-price-tiers-slot ze-price-tiers-slot--spacer" aria-hidden="true"></div>';
+        }
         const tiers = pricing.getTotemAvailableTiers?.(group) || pricing.getAvailableTiers(group) || [];
-        if (!tiers.length) return '';
+        if (tiers.length <= 1) {
+            return '<div class="ze-price-tiers-slot ze-price-tiers-slot--spacer" aria-hidden="true"></div>';
+        }
         const promoCatalog = window.LigeirinhoPromoCatalog;
-        const solo = tiers.length === 1;
 
         const buttons = tiers
             .map((tier) => {
@@ -74,14 +77,11 @@
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
                     : '';
-                if (solo) {
-                    return `<span class="ze-price-tier ze-price-tier--active ze-price-tier--solo" aria-current="true">${esc(label)}</span>`;
-                }
                 return `<button type="button" class="ze-price-tier${active ? ' ze-price-tier--active' : ''}${promoClass}" data-price-tier="${esc(tier)}" aria-pressed="${active ? 'true' : 'false'}" aria-label="${esc(label)}">${esc(label)}${promoMark}</button>`;
             })
             .join('');
 
-        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="${solo ? 'Embalagem' : 'Escolher embalagem'}">${buttons}</div></div>`;
+        return `<div class="ze-price-tiers-slot"><div class="ze-price-tiers" role="group" aria-label="Escolher embalagem">${buttons}</div></div>`;
     };
 
     const priceBlockHtml = (variant, pricing, formatPrice, opts = {}) => {
@@ -189,8 +189,8 @@ ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material
 <div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
 <div class="totem-product__pricing">
-${tiersHtml}
 <div class="totem-product__meta">${priceHtml}</div>
+${tiersHtml}
 </div>
 <div class="totem-product__qty">
 <button type="button" class="totem-qty-btn totem-minus" data-cart-key="${esc(cartKey)}" aria-label="Diminuir" ${qty ? '' : 'disabled'}>−</button>
@@ -277,17 +277,7 @@ ${tiersHtml}
         }
 
         const packTag = card.querySelector('.totem-product__pack-tag');
-        const hasTierSlot = Boolean(tiersRoot?.querySelector('.ze-price-tier'));
-        if (hasTierSlot) {
-            packTag?.remove();
-        } else if (variant && media && !packTag) {
-            media.insertAdjacentHTML('beforeend', mediaPackTagHtml(variant, tier));
-        } else if (packTag && variant) {
-            const label = packLabelForTier(tier);
-            const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
-            if (labelEl) labelEl.textContent = label;
-            packTag.setAttribute('aria-label', `Embalagem ${label}`);
-        }
+        packTag?.remove();
 
         const priceOpts = {
             hidePackLabel: true,
