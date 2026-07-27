@@ -214,6 +214,22 @@ ${statusGlyphHtml(status.icon)}
 
     const filtersActive = () => Boolean(STATE.q.trim() || STATE.status !== 'all' || STATE.date);
 
+    const emptyOrdersHtml = ({ filtered = false } = {}) => {
+        const title = filtered ? 'Nenhum pedido encontrado' : 'Você ainda não fez pedidos';
+        const sub = filtered
+            ? 'Ajuste a busca, o status ou a data e tente de novo.'
+            : 'Faça seu primeiro pedido pelo catálogo.';
+        const action = filtered
+            ? `<button type="button" class="conta-btn conta-btn--outline meus-pedidos-empty__btn" id="meus-pedidos-clear-empty">Limpar filtros</button>`
+            : `<a href="pedidos.html" class="conta-btn conta-btn--primary meus-pedidos-empty__btn">Ver catálogo</a>`;
+        return `<div class="conta-empty meus-pedidos-empty" role="status">
+<span class="material-symbols-outlined conta-empty__icon">${filtered ? 'filter_alt_off' : 'inventory_2'}</span>
+<p class="conta-empty__title">${esc(title)}</p>
+<p class="conta-empty__sub">${esc(sub)}</p>
+${action}
+</div>`;
+    };
+
     const filterOrders = (orders) => {
         const q = STATE.q.trim().toLowerCase().replace(/[^a-z0-9]/gi, '');
         return orders.filter((order) => {
@@ -324,24 +340,6 @@ ${
 </article>`;
     };
 
-    const orderFromLocal = (last) => {
-        const checkout = last.checkout || {};
-        const total = last.items.reduce((sum, item) => sum + (item.price ?? 0) * item.qty, 0);
-        return {
-            id: last.orderId || '',
-            status: 'pending',
-            channel: 'parceiros',
-            total,
-            items: last.items,
-            deliveryType: checkout.deliveryType,
-            deliveryDate: checkout.deliveryDate,
-            address: checkout.address,
-            paymentMethod: checkout.paymentMethod || checkout.payment,
-            createdAt: last.savedAt ? new Date(last.savedAt).toISOString() : null,
-            savedAt: last.savedAt,
-        };
-    };
-
     const cancelOrder = async (orderId, button) => {
         const shortId = String(orderId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
         const ok = window.confirm(
@@ -432,20 +430,7 @@ ${
         syncClearButton();
 
         if (!filtered.length) {
-            mount.innerHTML = `<div class="conta-empty">
-<span class="material-symbols-outlined conta-empty__icon">filter_alt_off</span>
-<p class="conta-empty__title">Nenhum pedido encontrado</p>
-<p class="conta-empty__sub">${
-                filtersActive()
-                    ? 'Ajuste a busca, o status ou a data e tente de novo.'
-                    : 'Você ainda não fez pedidos.'
-            }</p>
-${
-    filtersActive()
-        ? `<button type="button" class="conta-btn conta-btn--outline" id="meus-pedidos-clear-empty">Limpar filtros</button>`
-        : `<a href="pedidos.html" class="conta-btn conta-btn--primary">Ver catálogo</a>`
-}
-</div>`;
+            mount.innerHTML = emptyOrdersHtml({ filtered: filtersActive() || STATE.orders.length > 0 });
             root.querySelector('#meus-pedidos-clear-empty')?.addEventListener('click', () => {
                 clearFilters();
             });
@@ -536,11 +521,11 @@ ${
         root.querySelector('#meus-pedidos-clear')?.addEventListener('click', clearFilters);
     };
 
-    const renderShell = (bodyHtml, { withFilters = false } = {}) => {
-        root.innerHTML = `<div class="meus-pedidos-shell">
+    const renderShell = (bodyHtml, { withFilters = false, empty = false } = {}) => {
+        root.innerHTML = `<div class="meus-pedidos-shell${empty ? ' meus-pedidos-shell--empty' : ''}">
 <header class="meus-pedidos-header">
 <h1 class="meus-pedidos-header__title">Pedidos</h1>
-<p class="meus-pedidos-header__lead">Busque por número, status ou data do pedido.</p>
+<p class="meus-pedidos-header__lead">${empty ? 'Seus pedidos aparecerão aqui.' : 'Busque por número, status ou data do pedido.'}</p>
 </header>
 ${withFilters ? filtersHtml() : ''}
 <div class="meus-pedidos-body" id="meus-pedidos-root">${bodyHtml}</div>
@@ -551,12 +536,12 @@ ${withFilters ? filtersHtml() : ''}
     const loadOrders = async ({ keepFilters = false } = {}) => {
         const s = session();
         if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) {
-            renderShell(`<div class="conta-empty">
+            renderShell(`<div class="conta-empty meus-pedidos-empty">
 <span class="material-symbols-outlined conta-empty__icon">person</span>
 <p class="conta-empty__title">Entre para ver seus pedidos</p>
 <p class="conta-empty__sub">Faça login para acompanhar status e histórico.</p>
-<a href="${LOGIN('meus-pedidos.html')}" class="conta-btn conta-btn--primary">Entrar</a>
-</div>`);
+<a href="${LOGIN('meus-pedidos.html')}" class="conta-btn conta-btn--primary meus-pedidos-empty__btn">Entrar</a>
+</div>`, { empty: true });
             return;
         }
 
@@ -570,7 +555,6 @@ ${withFilters ? filtersHtml() : ''}
 
         const lastLocal = cart?.loadLastOrder?.();
         let orders = [];
-        let apiLoaded = false;
 
         try {
             const headers = await accountHeaders();
@@ -580,7 +564,6 @@ ${withFilters ? filtersHtml() : ''}
             const data = await res.json().catch(() => ({}));
             if (res.ok && Array.isArray(data.orders)) {
                 orders = data.orders;
-                apiLoaded = true;
             } else if (!res.ok) {
                 console.warn('[meus-pedidos]', data.error || res.status);
             }
@@ -588,27 +571,12 @@ ${withFilters ? filtersHtml() : ''}
             console.warn('[meus-pedidos]', err?.message || err);
         }
 
-        if (!orders.length && lastLocal?.orderId && !apiLoaded) {
-            try {
-                const res = await fetch(`/api/orders/get?id=${encodeURIComponent(lastLocal.orderId)}`);
-                const data = await res.json();
-                if (res.ok && data.order) orders = [data.order];
-            } catch {
-                /* fallback local */
-            }
-        }
-
         STATE.orders = orders;
         STATE.reorderId = lastLocal?.orderId || orders[0]?.id || '';
         if (!STATE.expandedId && orders[0]?.id) STATE.expandedId = orders[0].id;
 
         if (!orders.length) {
-            renderShell(`<div class="conta-empty">
-<span class="material-symbols-outlined conta-empty__icon">inventory_2</span>
-<p class="conta-empty__title">Você ainda não fez pedidos</p>
-<p class="conta-empty__sub">Faça seu primeiro pedido pelo catálogo.</p>
-<a href="pedidos.html" class="conta-btn conta-btn--primary">Ver catálogo</a>
-</div>`);
+            renderShell(emptyOrdersHtml(), { withFilters: false, empty: true });
             return;
         }
 
