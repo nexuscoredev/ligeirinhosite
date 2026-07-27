@@ -7,7 +7,7 @@
     const sync = async (options = {}) => {
         if (busy) return { ok: false, busy: true };
         if (!window.LigeirinhoCatalogLoader?.load) {
-            return { ok: false, error: 'Catálogo indisponível nesta página.' };
+            return { ok: false, unavailable: true, error: 'Catálogo indisponível nesta página.' };
         }
 
         busy = true;

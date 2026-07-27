@@ -189,7 +189,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
         .join('\n');
 
     const showAppChrome = page === 'inicio' || page === 'pedidos';
-    const showCatalogSync = true;
+    const showCatalogSync = page === 'inicio' || page === 'pedidos' || page === 'ofertas' || page === 'quemsomos';
     const searchPlaceholder =
         page === 'pedidos' ? 'Buscar produtos…' : page === 'inicio' ? 'O que você procura?' : 'Buscar…';
 
@@ -253,9 +253,9 @@ ${desktopNavHtml}
 <button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
 <span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
 </button>
-<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
+${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
 <span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
-</button>
+</button>` : ''}
 <button type="button" data-install-trigger class="lig-install-nav-btn" aria-label="Baixar app" title="Baixar app">
 <span class="material-symbols-outlined lig-install-trigger-icon" aria-hidden="true">download</span>
 </button>
@@ -1028,6 +1028,10 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         const syncBtn = document.getElementById('lig-catalog-sync-btn');
         if (!syncBtn || syncBtn.dataset.bound === '1') return;
         if (!window.LigeirinhoCatalogSync?.sync) return;
+        if (!window.LigeirinhoCatalogLoader?.load) {
+            syncBtn.hidden = true;
+            return;
+        }
         syncBtn.dataset.bound = '1';
         syncBtn.addEventListener('click', async () => {
             if (window.LigeirinhoCatalogSync.isBusy?.()) return;
@@ -1055,8 +1059,8 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
                         ? `Catálogo do Hub (${hubAt})${promoLabel}.`
                         : 'Catálogo sincronizado com o Hub.',
                 );
-            } else if (!result?.busy) {
-                window.alert('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
+            } else if (!result?.busy && !result?.unavailable) {
+                showCatalogSyncToast('Não foi possível sincronizar. Verifique a conexão e tente novamente.');
             }
         });
     };
