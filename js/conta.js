@@ -864,20 +864,7 @@ ${
         });
     };
 
-    let emptyAccountChecked = false;
-
-    const maybeRedirectEmptyAccount = async () => {
-        if (emptyAccountChecked) return false;
-        emptyAccountChecked = true;
-
-        if (new URLSearchParams(window.location.search).get('conta') === '1') return false;
-        if (currentView() !== 'menu') return false;
-
-        return Boolean(await window.LigeirinhoOrdersAccess?.redirectContaIfEmpty?.());
-    };
-
     const boot = async () => {
-        if (await maybeRedirectEmptyAccount()) return;
         render();
     };
 

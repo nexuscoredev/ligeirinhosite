@@ -124,14 +124,7 @@
         hasOrders,
         fetchHasOrders,
         clearCache,
-        redirectContaIfEmpty: async () => {
-            const s = session();
-            if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) return false;
-            const has = await fetchHasOrders().catch(() => null);
-            if (has) return false;
-            window.location.replace('meus-pedidos.html');
-            return true;
-        },
+        redirectContaIfEmpty: async () => false,
     };
 
     window.addEventListener('ligeirinho-auth-changed', clearCache);

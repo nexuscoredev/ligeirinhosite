@@ -867,35 +867,11 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         );
     };
 
-    const applyEmptyAccountNav = async () => {
-        if (!window.LigeirinhoAuth?.isLoggedIn?.()) return;
-        const has = await window.LigeirinhoOrdersAccess?.fetchHasOrders?.().catch(() => null);
-        if (has) return;
+    const restoreAccountNavLinks = () => {
         document.querySelectorAll(accountNavSelector).forEach((link) => {
             if (link.dataset.contaForce === '1') return;
-            link.href = 'meus-pedidos.html';
+            link.href = accountHref;
         });
-    };
-
-    const bindAccountNavRouting = () => {
-        if (document.documentElement.dataset.ligAccountNavBound === '1') return;
-        document.documentElement.dataset.ligAccountNavBound = '1';
-
-        document.addEventListener(
-            'click',
-            (event) => {
-                const link = event.target.closest(accountNavSelector);
-                if (!link || link.dataset.contaForce === '1') return;
-                if (!window.LigeirinhoAuth?.isLoggedIn?.()) return;
-                if (link.getAttribute('href') === 'meus-pedidos.html') return;
-
-                event.preventDefault();
-                void window.LigeirinhoOrdersAccess?.fetchHasOrders?.().then((has) => {
-                    window.location.href = has ? 'conta.html' : 'meus-pedidos.html';
-                });
-            },
-            true,
-        );
     };
 
     const bindBottomNav = () => {
@@ -941,13 +917,12 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         ensureScript('js/orders-access.js').then(() => {
             syncPedidosNavLinks();
             bindPedidosNavRouting();
-            bindAccountNavRouting();
-            void applyEmptyAccountNav();
+            restoreAccountNavLinks();
         });
 
         window.addEventListener('ligeirinho-auth-changed', () => {
             syncPedidosNavLinks();
-            void applyEmptyAccountNav();
+            restoreAccountNavLinks();
         });
 
         window.setTimeout(() => {

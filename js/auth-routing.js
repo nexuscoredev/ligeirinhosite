@@ -124,20 +124,9 @@
         return { session, mustChangePassword: Boolean(data.profile?.mustChangePassword) };
     };
 
-    const isContaDestination = (url) => {
-        if (!url) return false;
-        const base = url.split('#')[0].split('?')[0];
-        return base === 'conta.html' || base.endsWith('/conta');
-    };
-
     const resolveLoginDestination = async (role, nextUrl, session) => {
         const activeSession = session || auth.loadSession();
-        const dest = safeNextUrl(nextUrl, role, activeSession);
-        if (auth.isTotemRole(role)) return dest;
-        if (!isContaDestination(dest) || dest.includes('#')) return dest;
-        const has = await window.LigeirinhoOrdersAccess?.fetchHasOrders?.().catch(() => null);
-        if (!has) return 'meus-pedidos.html';
-        return dest;
+        return safeNextUrl(nextUrl, role, activeSession);
     };
 
     const redirectAfterLogin = (role, nextUrl, session) => {
