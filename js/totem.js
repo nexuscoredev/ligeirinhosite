@@ -92,8 +92,8 @@
     const cartTotalEl = document.getElementById('totem-cart-total');
     const cartCountEl = document.getElementById('totem-cart-count');
     const checkoutBtn = document.getElementById('totem-checkout-btn');
-    const clearCartBtn = document.getElementById('totem-cart-clear-btn');
-    const clearCartModal = document.getElementById('totem-clear-cart-modal');
+    let clearCartBtn = document.getElementById('totem-cart-clear-btn');
+    let clearCartModal = document.getElementById('totem-clear-cart-modal');
     const categoriesEl = document.getElementById('totem-categories');
     const categoriesBtn = document.getElementById('totem-categories-btn');
     const categoriesBtnLabel = document.getElementById('totem-categories-btn-label');
@@ -3799,7 +3799,57 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         window.location.href = '/';
     };
 
+    const ensureClearCartUi = () => {
+        if (!clearCartBtn) {
+            const closeBtn = document.getElementById('totem-cart-close');
+            const head = closeBtn?.closest('.totem-cart-sheet__head');
+            if (head && closeBtn) {
+                let actions = head.querySelector('.totem-cart-sheet__head-actions');
+                if (!actions) {
+                    actions = document.createElement('div');
+                    actions.className = 'totem-cart-sheet__head-actions';
+                    closeBtn.replaceWith(actions);
+                    actions.appendChild(closeBtn);
+                }
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'totem-cart-clear-btn';
+                btn.id = 'totem-cart-clear-btn';
+                btn.hidden = true;
+                btn.innerHTML =
+                    '<span class="material-symbols-outlined" aria-hidden="true">delete_sweep</span><span>Limpar</span>';
+                actions.insertBefore(btn, closeBtn);
+                clearCartBtn = btn;
+            }
+        }
+
+        if (!clearCartModal) {
+            const modal = document.createElement('div');
+            modal.id = 'totem-clear-cart-modal';
+            modal.className = 'totem-deactivate-modal';
+            modal.setAttribute('aria-hidden', 'true');
+            modal.innerHTML = `
+<div class="totem-deactivate-modal__backdrop" id="totem-clear-cart-backdrop" aria-hidden="true"></div>
+<div class="totem-deactivate-modal__sheet" role="dialog" aria-modal="true" aria-labelledby="totem-clear-cart-title">
+<header class="totem-deactivate-modal__head">
+<h2 id="totem-clear-cart-title" class="totem-deactivate-modal__title">Limpar carrinho?</h2>
+<button type="button" class="totem-deactivate-modal__close" id="totem-clear-cart-close" aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
+</button>
+</header>
+<p class="totem-deactivate-modal__lead">Você deseja limpar o carrinho?</p>
+<div class="totem-deactivate-modal__actions">
+<button type="button" class="totem-deactivate-modal__confirm" id="totem-clear-cart-yes">Sim, limpar</button>
+<button type="button" class="totem-deactivate-modal__cancel" id="totem-clear-cart-no">Cancelar</button>
+</div>
+</div>`;
+            document.body.appendChild(modal);
+            clearCartModal = modal;
+        }
+    };
+
     const bindEvents = () => {
+        ensureClearCartUi();
         startBtn?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
             setView('customer');
@@ -4347,7 +4397,16 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         updateShoppingChrome();
         bindEvents();
         suppressGhostClicks(280);
-        window.LigeirinhoTotemPwaUpdate?.onStatusChange?.(() => updateShoppingChrome());
+        window.LigeirinhoTotemPwaUpdate?.onStatusChange?.((detail) => {
+            updateShoppingChrome();
+            if (
+                detail?.pendente &&
+                views.welcome?.classList.contains('totem-view--active') &&
+                !idlePaused
+            ) {
+                void window.LigeirinhoTotemPwaUpdate.aplicar();
+            }
+        });
         window.addEventListener('lig-totem-pwa', () => updateShoppingChrome());
         renderCart();
         await window.LigeirinhoTotemPromos?.init?.({
