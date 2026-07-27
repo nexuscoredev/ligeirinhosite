@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="pt-BR"><head>
+<!DOCTYPE html><html lang="pt-BR" class="lig-splash-active"><head>
 
 <meta charset="utf-8">
 
@@ -20,23 +20,27 @@
 
 <link rel="preload" href="img/ligeirinhologo.png" as="image">
 
+<style id="lig-splash-critical">
+html,body{background:#F7D53C;margin:0}
+html.lig-splash-active,html.lig-splash-active body{background:#F7D53C!important;overflow:hidden}
+html.lig-splash-active .lig-login-main,html.lig-splash-active .lig-login-theme{opacity:0!important;pointer-events:none!important}
+#lig-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#F7D53C;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:1;transition:opacity .5s cubic-bezier(.22,1,.36,1);-webkit-transform:translateZ(0);transform:translateZ(0)}
+#lig-splash.lig-splash--out{opacity:0;pointer-events:none}
+.lig-splash__stage{width:min(48vw,11.5rem);height:min(48vw,11.5rem);display:flex;align-items:center;justify-content:center;will-change:transform;transform:translate3d(0,0,0) scale(.4);-webkit-backface-visibility:hidden;backface-visibility:hidden;animation:ligSplashZoom 2.35s cubic-bezier(.2,.8,.2,1) forwards}
+#lig-splash.lig-splash--out .lig-splash__stage{animation:none;transform:translate3d(0,0,0) scale(2.15);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.lig-splash__logo{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}
+@keyframes ligSplashZoom{
+0%{transform:translate3d(0,0,0) scale(.38)}
+100%{transform:translate3d(0,0,0) scale(1.62)}
+}
+@media (prefers-reduced-motion:reduce){
+.lig-splash__stage,#lig-splash.lig-splash--out .lig-splash__stage{animation:none!important;transition:none!important;transform:none}
+}
+</style>
+
 <script src="js/theme.js"></script>
 
 <link rel="stylesheet" href="css/site.css">
-
-<style id="lig-splash-critical">
-html,body{background:#F7D53C}
-html.lig-splash-active,html.lig-splash-active body{background:#F7D53C!important;overflow:hidden}
-html.lig-splash-active .lig-login-main,html.lig-splash-active .lig-login-theme{opacity:0!important;pointer-events:none!important}
-#lig-splash{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#F7D53C;isolation:isolate;contain:strict;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);opacity:1;transition:opacity .55s cubic-bezier(.22,1,.36,1);-webkit-backface-visibility:hidden;backface-visibility:hidden}
-#lig-splash.lig-splash--out{opacity:0;pointer-events:none}
-.lig-splash__stage{position:relative;display:flex;align-items:center;justify-content:center;width:min(58vw,13rem);height:min(58vw,13rem);will-change:transform;transform:translate3d(0,0,0) scale(.78);opacity:0;-webkit-backface-visibility:hidden;backface-visibility:hidden}
-.lig-splash--play .lig-splash__stage{animation:ligSplashZoom 2.05s cubic-bezier(.22,1,.36,1) forwards}
-.lig-splash--out .lig-splash__stage{animation:none;transform:translate3d(0,0,0) scale(1.28);opacity:1;transition:transform .55s cubic-bezier(.22,1,.36,1)}
-.lig-splash__logo{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}
-@keyframes ligSplashZoom{0%{opacity:0;transform:translate3d(0,0,0) scale(.72)}14%{opacity:1;transform:translate3d(0,0,0) scale(.86)}100%{opacity:1;transform:translate3d(0,0,0) scale(1.18)}}
-@media (prefers-reduced-motion:reduce){.lig-splash__stage,.lig-splash--play .lig-splash__stage,.lig-splash--out .lig-splash__stage{animation:none!important;transition:none!important;opacity:1;transform:none}}
-</style>
 
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
@@ -85,10 +89,38 @@ html.lig-splash-active .lig-login-main,html.lig-splash-active .lig-login-theme{o
 
 <div id="lig-splash" class="lig-splash" role="status" aria-live="polite" aria-label="Abrindo Ligeirinho Parceiros">
 <div class="lig-splash__stage">
-<img class="lig-splash__logo" src="img/ligeirinhologo.png" alt="" width="256" height="256" decoding="sync" fetchpriority="high">
+<img class="lig-splash__logo" src="img/ligeirinhologo.png" alt="" width="256" height="256" decoding="async" fetchpriority="high">
 </div>
 </div>
-<script src="js/splash.js"></script>
+<script>
+(function () {
+  var el = document.getElementById('lig-splash');
+  if (!el) {
+    document.documentElement.classList.add('lig-splash-done');
+    document.documentElement.classList.remove('lig-splash-active');
+    window.dispatchEvent(new Event('lig-splash-done'));
+    return;
+  }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var introMs = reduce ? 280 : 2350;
+  var fadeMs = reduce ? 160 : 500;
+  var done = false;
+  function cleanup() {
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    document.documentElement.classList.remove('lig-splash-active');
+    document.documentElement.classList.add('lig-splash-done');
+    window.dispatchEvent(new Event('lig-splash-done'));
+  }
+  function finish() {
+    if (done) return;
+    done = true;
+    el.classList.add('lig-splash--out');
+    window.setTimeout(cleanup, fadeMs + 30);
+  }
+  window.setTimeout(finish, introMs);
+  window.setTimeout(finish, introMs + 1500);
+})();
+</script>
 
 <div data-lig-theme-mount class="lig-login-theme" role="group" aria-label="Tema do app"></div>
 

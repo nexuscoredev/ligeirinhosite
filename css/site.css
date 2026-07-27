@@ -8542,17 +8542,14 @@ html {
     align-items: center;
     justify-content: center;
     background: #F7D53C;
-    isolation: isolate;
-    contain: strict;
     padding:
         env(safe-area-inset-top)
         env(safe-area-inset-right)
         env(safe-area-inset-bottom)
         env(safe-area-inset-left);
     opacity: 1;
-    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateZ(0);
 }
 
 .lig-splash.lig-splash--out {
@@ -8561,28 +8558,22 @@ html {
 }
 
 .lig-splash__stage {
-    position: relative;
+    width: min(48vw, 11.5rem);
+    height: min(48vw, 11.5rem);
     display: flex;
     align-items: center;
     justify-content: center;
-    width: min(58vw, 13rem);
-    height: min(58vw, 13rem);
     will-change: transform;
-    transform: translate3d(0, 0, 0) scale(0.78);
-    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.4);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    animation: ligSplashZoom 2.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.lig-splash--play .lig-splash__stage {
-    animation: ligSplashZoom 2.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.lig-splash--out .lig-splash__stage {
+.lig-splash.lig-splash--out .lig-splash__stage {
     animation: none;
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1.28);
-    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translate3d(0, 0, 0) scale(2.15);
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .lig-splash__logo {
@@ -8597,16 +8588,10 @@ html {
 
 @keyframes ligSplashZoom {
     0% {
-        opacity: 0;
-        transform: translate3d(0, 0, 0) scale(0.72);
-    }
-    14% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(0.86);
+        transform: translate3d(0, 0, 0) scale(0.38);
     }
     100% {
-        opacity: 1;
-        transform: translate3d(0, 0, 0) scale(1.18);
+        transform: translate3d(0, 0, 0) scale(1.62);
     }
 }
 
@@ -8619,16 +8604,14 @@ html.lig-splash-active .lig-login-theme {
 html.lig-splash-done .lig-login-main,
 html.lig-splash-done .lig-login-theme {
     opacity: 1;
-    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
     .lig-splash__stage,
-    .lig-splash--play .lig-splash__stage,
-    .lig-splash--out .lig-splash__stage {
+    .lig-splash.lig-splash--out .lig-splash__stage {
         animation: none !important;
         transition: none !important;
-        opacity: 1;
         transform: none;
     }
 
