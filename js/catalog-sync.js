@@ -21,22 +21,26 @@
             window.LigeirinhoCatalogLoader.clear?.();
             if (window.__ligPackConfig) window.__ligPackConfig = null;
             if (window.__ligTierImages) window.__ligTierImages = null;
-            const catalogData = await window.LigeirinhoCatalogLoader.load({ force: true, apiUrl });
-            if (!catalogData?.categories?.length) {
-                throw new Error('Catálogo vazio ou indisponível.');
+            try {
+                sessionStorage.removeItem('ligeirinho-pack-config-v1');
+                sessionStorage.removeItem('ligeirinho-tier-images-v1');
+            } catch {
+                /* ignore */
             }
 
-            await Promise.all([
+            const promoLoaderFactory = window.LigeirinhoPromoCatalog?.createHubPromoLoader;
+            const promoLoader = promoLoaderFactory ? promoLoaderFactory(promoApiUrl) : null;
+            promoLoader?.clear?.();
+
+            const [catalogData, , , promoData] = await Promise.all([
+                window.LigeirinhoCatalogLoader.load({ force: true, apiUrl }),
                 window.LigeirinhoPricing?.loadPackConfig?.() ?? Promise.resolve(),
                 window.LigeirinhoPricing?.loadTierImages?.() ?? Promise.resolve(),
+                promoLoader ? promoLoader.load(true) : Promise.resolve(null),
             ]);
 
-            let promoData = null;
-            const promoLoaderFactory = window.LigeirinhoPromoCatalog?.createHubPromoLoader;
-            if (promoLoaderFactory) {
-                const promoLoader = promoLoaderFactory(promoApiUrl);
-                promoLoader.clear?.();
-                promoData = await promoLoader.load(true);
+            if (!catalogData?.categories?.length) {
+                throw new Error('Catálogo vazio ou indisponível.');
             }
 
             window.dispatchEvent(

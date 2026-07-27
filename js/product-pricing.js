@@ -532,21 +532,61 @@
         parsePack,
         loadPackConfig: () => {
             if (window.__ligPackConfig) return Promise.resolve(window.__ligPackConfig);
+            try {
+                const raw = sessionStorage.getItem('ligeirinho-pack-config-v1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed?.data && Date.now() - (parsed.savedAt || 0) < 30 * 60 * 1000) {
+                        window.__ligPackConfig = parsed.data;
+                        return Promise.resolve(parsed.data);
+                    }
+                }
+            } catch {
+                /* ignore */
+            }
             return fetch('data/precos-embalagem.json')
                 .then((r) => (r.ok ? r.json() : {}))
                 .catch(() => ({}))
                 .then((cfg) => {
                     window.__ligPackConfig = cfg;
+                    try {
+                        sessionStorage.setItem(
+                            'ligeirinho-pack-config-v1',
+                            JSON.stringify({ savedAt: Date.now(), data: cfg }),
+                        );
+                    } catch {
+                        /* ignore */
+                    }
                     return cfg;
                 });
         },
         loadTierImages: () => {
             if (window.__ligTierImages) return Promise.resolve(window.__ligTierImages);
+            try {
+                const raw = sessionStorage.getItem('ligeirinho-tier-images-v1');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed?.data && Date.now() - (parsed.savedAt || 0) < 30 * 60 * 1000) {
+                        window.__ligTierImages = parsed.data;
+                        return Promise.resolve(parsed.data);
+                    }
+                }
+            } catch {
+                /* ignore */
+            }
             return fetch('data/imagem-embalagem.json')
                 .then((r) => (r.ok ? r.json() : {}))
                 .catch(() => ({}))
                 .then((cfg) => {
                     window.__ligTierImages = cfg;
+                    try {
+                        sessionStorage.setItem(
+                            'ligeirinho-tier-images-v1',
+                            JSON.stringify({ savedAt: Date.now(), data: cfg }),
+                        );
+                    } catch {
+                        /* ignore */
+                    }
                     return cfg;
                 });
         },

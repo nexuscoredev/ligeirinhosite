@@ -327,13 +327,16 @@ ${sectionOrder()
         pricing.loadTierImages(),
         window.LigeirinhoHomeStories?.loadConfig?.() ?? Promise.resolve({ stories: [] }),
     ])
-        .then(async ([catalogJson, , , storiesCfg]) => {
+        .then(([catalogJson, , , storiesCfg]) => {
             homeStoriesConfig = storiesCfg?.stories ? storiesCfg : { stories: [] };
             const groups = pricing.buildGroups(catalogJson);
             const displayItems = pricing.getDisplayProducts(catalogJson, groups);
             displayItemsCache = displayItems;
-            await reloadPromoOffers(false);
+            /* Pinta a home na hora; promoções entram em seguida sem bloquear. */
             renderHome(catalogJson, displayItems, groups);
+            return reloadPromoOffers(false).then(() => {
+                renderHome(catalogJson, displayItemsCache, groups);
+            });
         })
         .catch(() => {
             root.innerHTML =

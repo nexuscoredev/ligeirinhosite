@@ -381,9 +381,12 @@
         });
     });
 
-    window.LigeirinhoCatalogLoader.load()
-        .then((data) => Promise.all([pricing.loadPackConfig(), pricing.loadTierImages()]).then(() => data))
-        .then(async (data) => {
+    Promise.all([
+        window.LigeirinhoCatalogLoader.load(),
+        pricing.loadPackConfig(),
+        pricing.loadTierImages(),
+    ])
+        .then(async ([data]) => {
             catalogData = data;
             const groups = pricing.buildGroups(data);
             window.__ligProductGroups = groups;

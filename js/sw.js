@@ -1,52 +1,10 @@
-const CACHE_NAME = 'ligeirinho-app-v408';
+const CACHE_NAME = 'ligeirinho-app-v409';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
-const NETWORK_FIRST_JS = new Set([
-    '/js/mkt-promo-images.js',
-    '/js/layout.js',
-    '/js/mobile-scroll.js',
-    '/js/catalog-loader.js',
-    '/js/catalog-sync.js',
-    '/js/conta.js',
-    '/js/profile-avatar.js',
-    '/js/home-stories.js',
-    '/js/home.js',
-    '/js/catalog-utils.js',
-    '/js/cart-ui.js',
-    '/js/ofertas.js',
-    '/js/promo-entry-notice.js',
-    '/js/meus-pedidos.js',
-    '/js/pedidos.js',
-    '/js/parceiros-product-cards.js',
-    '/js/parceiros-promo-cards.js',
-    '/js/parceiros-product-detail.js',
-    '/js/product-pricing.js',
-    '/js/order-status.js',
-    '/js/cpf.js',
-    '/js/cnpj.js',
-    '/js/promo-catalog-match.js',
-    '/js/pwa-update.js',
-    '/js/resumo-pedido.js',
-    '/js/caminhao.js',
-    '/js/address-picker.js',
-    '/js/delivery-schedule.js',
-    '/js/data-entrega.js',
-    '/js/resumo.js',
-    '/js/metodo-pagamento.js',
-    '/js/payment-methods.js',
-    '/js/payment-splits.js',
-    '/js/onboarding.js',
-    '/js/login-phone.js',
-    '/js/theme.js',
-    '/js/app.js',
-]);
-
+/* Só estes ficam network-first — o resto do shell usa cache + revalidação em background. */
 const NETWORK_FIRST_STATIC = new Set([
-    ...NETWORK_FIRST_JS,
-    '/css/site.css',
-    '/css/totem.css',
-    '/css/theme-forms.css',
+    '/js/pwa-update.js',
     '/manifest.webmanifest',
 ]);
 
@@ -73,6 +31,7 @@ const APP_SHELL = [
     '/versao',
     '/manifest.webmanifest',
     '/css/site.css',
+    '/css/totem.css',
     '/css/theme-forms.css',
     '/img/tag-pix-dinheiro.png',
     '/img/tag-promocao.png',
@@ -237,6 +196,13 @@ function isMktStorageRequest(url) {
     );
 }
 
+const matchCache = (request, urlHint) =>
+    caches.match(request, { ignoreSearch: true }).then(async (hit) => {
+        if (hit) return hit;
+        if (urlHint) return caches.match(urlHint, { ignoreSearch: true });
+        return null;
+    });
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     if (request.method !== 'GET') return;
@@ -280,9 +246,20 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         (async () => {
             const cached =
-                (await caches.match(request)) ||
-                (canonicalUrl ? await caches.match(canonicalUrl) : null) ||
+                (await matchCache(request, canonicalUrl)) ||
                 (isNavigate ? await caches.match('/') : null);
+
+            const revalidate = (req) =>
+                fetch(req)
+                    .then((response) => {
+                        if (response.ok) {
+                            return caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(req, response.clone());
+                            });
+                        }
+                        return undefined;
+                    })
+                    .catch(() => undefined);
 
             if (isStaticAsset(url.pathname)) {
                 if (NETWORK_FIRST_STATIC.has(url.pathname)) {
@@ -300,19 +277,15 @@ self.addEventListener('fetch', (event) => {
                 }
 
                 if (cached) {
-                    const revalidate = fetch(canonicalUrl || request)
-                        .then((response) => {
-                            if (response.ok) {
-                                return caches.open(CACHE_NAME).then((cache) => {
-                                    cache.put(canonicalUrl || request, response.clone());
-                                });
-                            }
-                            return undefined;
-                        })
-                        .catch(() => undefined);
-                    event.waitUntil(revalidate);
+                    event.waitUntil(revalidate(canonicalUrl || request));
                     return cached;
                 }
+            }
+
+            /* Navegação: responde do cache na hora e atualiza em background (troca de tela instantânea). */
+            if (isNavigate && cached) {
+                event.waitUntil(revalidate(canonicalUrl || request));
+                return cached;
             }
 
             try {

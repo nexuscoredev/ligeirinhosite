@@ -812,9 +812,43 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             badge.classList.toggle('hidden', navBadge.classList.contains('hidden'));
         };
 
+        const warmPrefetch = new Set();
+        const prefetchHref = (href) => {
+            if (!href || href.startsWith('http') || href.startsWith('#') || warmPrefetch.has(href)) return;
+            warmPrefetch.add(href);
+            try {
+                const link = document.createElement('link');
+                link.rel = 'prefetch';
+                link.href = href;
+                link.as = 'document';
+                document.head.appendChild(link);
+            } catch {
+                /* ignore */
+            }
+            window.LigeirinhoCatalogLoader?.load?.();
+        };
+
+        const nav = document.getElementById('app-bottom-nav');
+        nav?.querySelectorAll('a[href]')?.forEach((anchor) => {
+            const href = anchor.getAttribute('href');
+            const warm = () => prefetchHref(href);
+            anchor.addEventListener('pointerdown', warm, { passive: true });
+            anchor.addEventListener('mouseenter', warm, { passive: true });
+            anchor.addEventListener('touchstart', warm, { passive: true });
+        });
+
         window.addEventListener('ligeirinho-cart-changed', syncTabBadge);
         syncTabBadge();
         syncBottomNavActive();
+
+        window.setTimeout(() => {
+            window.LigeirinhoCatalogLoader?.load?.();
+            try {
+                window.LigeirinhoPromoCatalog?.createHubPromoLoader?.('/api/promocoes')?.load?.(false);
+            } catch {
+                /* ignore */
+            }
+        }, 500);
     };
 
     const ensureScript = (src) =>

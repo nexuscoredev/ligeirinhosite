@@ -1,5 +1,5 @@
 (function () {
-    const CACHE_MS = 120_000;
+    const CACHE_MS = 5 * 60 * 1000;
 
     const MARCADOR_EMBALAGEM_NOME = /\s+(PCT|PCTO|CX|PC|FARDO|FD|PACK|PACOTE|PL)\b/i;
     const SUFIXO_C_BARRA = /\s+C\/\s*\d+.*$/i;
