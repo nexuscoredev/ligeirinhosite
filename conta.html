@@ -10,9 +10,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ligeirinho Parceiros">
 <script>
-if ((location.hash || '').replace(/^#/, '').toLowerCase() === 'pedidos') {
-    location.replace('meus-pedidos.html');
-}
+(function () {
+    var hash = (location.hash || '').replace(/^#/, '').toLowerCase();
+    if (hash === 'pedidos') {
+        location.replace('meus-pedidos.html' + location.search);
+    }
+})();
 </script>
 <script src="js/theme.js"></script>
 <link rel="stylesheet" href="css/site.css">
@@ -25,6 +28,12 @@ if ((location.hash || '').replace(/^#/, '').toLowerCase() === 'pedidos') {
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 </head>
 <body data-page="conta" class="font-body-md antialiased min-h-screen flex flex-col">
+<script>
+if (document.body.dataset.page !== 'meus-pedidos') {
+    var h = (location.hash || '').replace(/^#/, '').toLowerCase();
+    if (h === 'pedidos') location.replace('meus-pedidos.html' + location.search);
+}
+</script>
 <div id="site-nav"></div>
 <main id="lig-page-main" class="flex-grow flex flex-col">
 <div id="conta-app" class="conta-page" role="main"></div>

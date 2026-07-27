@@ -127,7 +127,7 @@
     const renderDesktopNavLink = (item) => {
         const active = isNavItemActive(item);
         const label = item.navLabel || item.label;
-        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}"${active ? ' aria-current="page"' : ''}>${label}</a>`;
+        return `<a class="lig-desktop-nav__link${active ? ' lig-desktop-nav__link--active' : ''}" href="${item.href}" data-nav-id="${item.id}"${active ? ' aria-current="page"' : ''}${item.id === 'meus-pedidos' ? ' aria-label="Pedidos"' : ''}>${label}</a>`;
     };
 
     const appNavItems = [
@@ -184,7 +184,7 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
     const navMobileLinksHtml = navItems
         .map(
             (item) =>
-                `<a class="${isNavItemActive(item) ? navMobileActive : navMobileLink}" href="${item.href}">${item.label}</a>`
+                `<a class="${isNavItemActive(item) ? navMobileActive : navMobileLink}" href="${item.href}" data-nav-id="${item.id}"${item.id === 'meus-pedidos' ? ' aria-label="Pedidos"' : ''}>${item.label}</a>`
         )
         .join('\n');
 
@@ -319,7 +319,7 @@ ${bottomTabItems
     .map((item) => {
         const isActive = isNavItemActive(item);
         const activeClass = isActive ? 'app-tab-active text-vibrant-yellow' : 'text-[var(--lig-text-subtle)]';
-        return `<a href="${item.href}" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow"${item.id === 'caminhao' ? ' id="app-tab-cart"' : ''} ${isActive ? 'aria-current="page"' : ''}${item.id === 'conta' ? ' aria-label="Minha conta"' : ''}${item.id === 'caminhao' ? ' aria-label="Caminhão"' : ''}>
+        return `<a href="${item.href}" data-nav-id="${item.id}" class="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] ${activeClass} transition-colors hover:text-vibrant-yellow"${item.id === 'caminhao' ? ' id="app-tab-cart"' : ''} ${isActive ? 'aria-current="page"' : ''}${item.id === 'conta' ? ' aria-label="Minha conta"' : ''}${item.id === 'caminhao' ? ' aria-label="Caminhão"' : ''}${item.id === 'meus-pedidos' ? ' aria-label="Pedidos"' : ''}>
 <span class="material-symbols-outlined text-[24px]">${item.icon}</span>
 ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.5 right-[calc(50%-22px)] bg-vibrant-yellow text-deep-black text-[9px] font-bold min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center hidden">0</span>' : ''}
 <span class="text-[10px] font-semibold">${item.label}</span>
@@ -354,7 +354,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <a class="lig-footer-link" href="inicio.html">Início</a>
 <a class="lig-footer-link" href="ofertas.html">Promoções</a>
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
-<a class="lig-footer-link" href="meus-pedidos.html">Pedidos</a>
+<a class="lig-footer-link" href="meus-pedidos.html" data-nav-id="meus-pedidos" aria-label="Pedidos">Pedidos</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>
 <a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
@@ -812,7 +812,60 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         });
     };
 
+    const PEDIDOS_HREF = 'meus-pedidos.html';
     const accountNavSelector = 'a[href="conta.html"], a[href="/conta"]';
+
+    const isContaHref = (href) => {
+        if (!href) return false;
+        const base = href.split('#')[0].split('?')[0];
+        return base === 'conta.html' || base.endsWith('/conta');
+    };
+
+    const syncPedidosNavLinks = () => {
+        document.querySelectorAll('[data-nav-id="meus-pedidos"]').forEach((link) => {
+            link.href = PEDIDOS_HREF;
+        });
+        document.querySelectorAll('a[href="conta.html#pedidos"], a[href="/conta#pedidos"]').forEach((link) => {
+            link.href = PEDIDOS_HREF;
+        });
+        document.querySelectorAll(
+            '#app-bottom-nav a, .lig-desktop-nav__link, #nav-mobile-menu a, .lig-footer-link',
+        ).forEach((link) => {
+            const label = (link.getAttribute('aria-label') || link.textContent || '')
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (label !== 'Pedidos') return;
+            const href = link.getAttribute('href') || '';
+            if (href.includes('meus-pedidos')) return;
+            if (isContaHref(href) || href.includes('conta#pedidos')) {
+                link.href = PEDIDOS_HREF;
+            }
+        });
+    };
+
+    const bindPedidosNavRouting = () => {
+        if (document.documentElement.dataset.ligPedidosNavBound === '1') return;
+        document.documentElement.dataset.ligPedidosNavBound = '1';
+
+        document.addEventListener(
+            'click',
+            (event) => {
+                const link = event.target.closest('a[href]');
+                if (!link) return;
+                const navId = link.dataset.navId || '';
+                const label = (link.getAttribute('aria-label') || link.textContent || '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                const href = link.getAttribute('href') || '';
+                const isPedidosNav = navId === 'meus-pedidos' || label === 'Pedidos';
+                if (!isPedidosNav) return;
+                if (href.includes('meus-pedidos')) return;
+                event.preventDefault();
+                window.location.href = PEDIDOS_HREF;
+            },
+            true,
+        );
+    };
 
     const applyEmptyAccountNav = async () => {
         if (!window.LigeirinhoAuth?.isLoggedIn?.()) return;
@@ -886,11 +939,14 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         syncBottomNavActive();
 
         ensureScript('js/orders-access.js').then(() => {
+            syncPedidosNavLinks();
+            bindPedidosNavRouting();
             bindAccountNavRouting();
             void applyEmptyAccountNav();
         });
 
         window.addEventListener('ligeirinho-auth-changed', () => {
+            syncPedidosNavLinks();
             void applyEmptyAccountNav();
         });
 
@@ -939,6 +995,8 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         bindMobileMenu();
         resetPageLocks();
         bindBottomNav();
+        syncPedidosNavLinks();
+        bindPedidosNavRouting();
         bindHeaderOffset();
         bindAppChrome();
         initHeaderExtras();

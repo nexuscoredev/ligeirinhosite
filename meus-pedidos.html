@@ -20,6 +20,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 </head>
 <body data-page="meus-pedidos" class="font-body-md antialiased min-h-screen flex flex-col meus-pedidos-body">
+<script>
+if (document.body.dataset.page !== 'meus-pedidos') {
+    location.replace('meus-pedidos.html' + location.search);
+}
+</script>
 <div id="site-nav"></div>
 <main id="lig-page-main" class="flex-grow flex flex-col">
 <div id="meus-pedidos-app" class="meus-pedidos-page" role="main"></div>

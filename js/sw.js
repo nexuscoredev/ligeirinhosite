@@ -1,12 +1,18 @@
-const CACHE_NAME = 'ligeirinho-app-v446';
+const CACHE_NAME = 'ligeirinho-app-v447';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
 /* Só estes ficam network-first — o resto do shell usa cache + revalidação em background. */
 const NETWORK_FIRST_STATIC = new Set([
     '/js/pwa-update.js',
+    '/js/layout.js',
+    '/js/orders-access.js',
+    '/js/meus-pedidos.js',
+    '/js/conta.js',
     '/manifest.webmanifest',
 ]);
+
+const NETWORK_FIRST_NAV = new Set(['/meus-pedidos', '/conta']);
 
 const APP_SHELL = [
     '/',
@@ -281,6 +287,20 @@ self.addEventListener('fetch', (event) => {
                 if (cached) {
                     event.waitUntil(revalidate(canonicalUrl || request));
                     return cached;
+                }
+            }
+
+            /* Navegação: pedidos/conta sempre tentam rede primeiro (evita cache antigo apontando Pedidos → Conta). */
+            if (isNavigate && NETWORK_FIRST_NAV.has(canonicalPath)) {
+                try {
+                    const response = await fetch(canonicalUrl || request);
+                    if (response.ok) {
+                        const cache = await caches.open(CACHE_NAME);
+                        cache.put(canonicalUrl || request, response.clone());
+                        return response;
+                    }
+                } catch {
+                    /* fallback cache abaixo */
                 }
             }
 
