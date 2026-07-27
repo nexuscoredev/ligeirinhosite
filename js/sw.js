@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v440';
+const CACHE_NAME = 'ligeirinho-app-v441';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -84,6 +84,7 @@ const APP_SHELL = [
     '/js/login.js',
     '/js/login-hub.js',
     '/js/auth-routing.js',
+    '/js/orders-access.js',
     '/js/splash.js',
     '/js/payment-providers.js',
     '/js/payment.js',

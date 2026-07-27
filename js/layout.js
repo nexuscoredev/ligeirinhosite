@@ -812,6 +812,26 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         });
     };
 
+    const bindAccountNavRouting = () => {
+        if (document.documentElement.dataset.ligAccountNavBound === '1') return;
+        document.documentElement.dataset.ligAccountNavBound = '1';
+
+        document.addEventListener(
+            'click',
+            (event) => {
+                const link = event.target.closest('a[href="conta.html"]');
+                if (!link || link.dataset.contaForce === '1') return;
+                if (!window.LigeirinhoAuth?.isLoggedIn?.()) return;
+
+                event.preventDefault();
+                void window.LigeirinhoOrdersAccess?.hasOrders?.().then((has) => {
+                    window.location.href = has ? 'conta.html' : 'meus-pedidos.html';
+                });
+            },
+            true,
+        );
+    };
+
     const bindBottomNav = () => {
         document.documentElement.classList.add('lig-app-mode');
 
@@ -851,6 +871,8 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         window.addEventListener('ligeirinho-cart-changed', syncTabBadge);
         syncTabBadge();
         syncBottomNavActive();
+
+        ensureScript('js/orders-access.js').then(() => bindAccountNavRouting());
 
         window.setTimeout(() => {
             window.LigeirinhoCatalogLoader?.load?.();

@@ -22,7 +22,7 @@
     };
 
     const redirect = (role) => {
-        routing.redirectAfterLogin(role, nextUrl);
+        routing.redirectAfterLogin(role, nextUrl, auth.loadSession());
     };
 
     const handleCredential = async (response) => {

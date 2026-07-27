@@ -62,7 +62,7 @@
                 cnpj,
             });
             setStatus('Conta criada! Redirecionando…', false);
-            window.setTimeout(() => routing.redirectAfterLogin(session.role, nextUrl), 400);
+            window.setTimeout(() => routing.redirectAfterLogin(session.role, nextUrl, session), 400);
         } catch {
             const fallback = auth.saveFromPhoneProfile({ phone, name: company, cnpj });
             if (!fallback) {
@@ -71,7 +71,7 @@
                 return;
             }
             setStatus('Conta criada! Redirecionando…', false);
-            window.setTimeout(() => routing.redirectAfterLogin('PARCEIRO', nextUrl), 400);
+            window.setTimeout(() => routing.redirectAfterLogin('PARCEIRO', nextUrl, fallback), 400);
         }
     };
 

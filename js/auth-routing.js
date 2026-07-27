@@ -124,8 +124,26 @@
         return { session, mustChangePassword: Boolean(data.profile?.mustChangePassword) };
     };
 
+    const isContaDestination = (url) => {
+        if (!url) return false;
+        const base = url.split('#')[0].split('?')[0];
+        return base === 'conta.html' || base.endsWith('/conta');
+    };
+
+    const resolveLoginDestination = async (role, nextUrl, session) => {
+        const activeSession = session || auth.loadSession();
+        const dest = safeNextUrl(nextUrl, role, activeSession);
+        if (auth.isTotemRole(role)) return dest;
+        if (!isContaDestination(dest) || dest.includes('#')) return dest;
+        const has = await window.LigeirinhoOrdersAccess?.hasOrders?.().catch(() => null);
+        if (has === false) return 'meus-pedidos.html';
+        return dest;
+    };
+
     const redirectAfterLogin = (role, nextUrl, session) => {
-        window.location.href = safeNextUrl(nextUrl, role, session);
+        void resolveLoginDestination(role, nextUrl, session).then((href) => {
+            window.location.href = href;
+        });
     };
 
     window.LigeirinhoAuthRouting = {

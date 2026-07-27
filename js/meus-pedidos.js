@@ -400,7 +400,7 @@ ${
 <p class="conta-empty__sub">${
                 filtersActive()
                     ? 'Ajuste a busca, o status ou a data e tente de novo.'
-                    : 'Faça seu primeiro pedido pelo catálogo.'
+                    : 'Você ainda não fez pedidos.'
             }</p>
 ${
     filtersActive()
@@ -571,7 +571,7 @@ ${withFilters ? filtersHtml() : ''}
         if (!orders.length) {
             renderShell(`<div class="conta-empty">
 <span class="material-symbols-outlined conta-empty__icon">inventory_2</span>
-<p class="conta-empty__title">Nenhum pedido recente</p>
+<p class="conta-empty__title">Você ainda não fez pedidos</p>
 <p class="conta-empty__sub">Faça seu primeiro pedido pelo catálogo.</p>
 <a href="pedidos.html" class="conta-btn conta-btn--primary">Ver catálogo</a>
 </div>`);
