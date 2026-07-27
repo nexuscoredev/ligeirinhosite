@@ -57,9 +57,28 @@
     };
 
     const accountHasCnpj = (s) => {
-        const fromLogin = String(s?.login || '').replace(/\D/g, '');
+        const fromLogin = String(profileCnpjRaw(s) || s?.login || '').replace(/\D/g, '');
         return fromLogin.length === 14;
     };
+
+    const normalizePhoneDigits = (value) => {
+        const raw = String(value || '').replace(/\D/g, '');
+        return raw.startsWith('55') && raw.length >= 12 ? raw.slice(2) : raw;
+    };
+
+    const isLigeirinhoDistribuidora = (s) => {
+        if (window.LigeirinhoOrderDavPrint?.isDistribuidoraAccount?.(s)) return true;
+        if (!s) return false;
+        if (normalizePhoneDigits(s.phone) !== '11970924909') return false;
+        const name = String(s.name || s.razaoSocial || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+        return name.includes('ligeirinho distribuidora');
+    };
+
+    const profileCnpjRaw = (s) =>
+        isLigeirinhoDistribuidora(s) ? '45028186000125' : s?.cnpj || s?.login || '';
 
     const formatRole = (role) => {
         const r = String(role || '').toUpperCase();
@@ -361,7 +380,7 @@ ${logoutBtn}
             {
                 label: 'CNPJ',
                 value: hasCnpj
-                    ? formatCnpjDisplay(s?.cnpj || s?.login)
+                    ? formatCnpjDisplay(profileCnpjRaw(s))
                     : '—',
                 nav: '',
                 action: canRegisterCnpj ? 'cnpj-modal' : '',

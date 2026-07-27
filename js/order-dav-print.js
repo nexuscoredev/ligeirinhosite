@@ -98,17 +98,20 @@
     };
 
     const resolveDestinatario = (order, session) => {
-        const name =
-            String(order?.customerName || '').trim() ||
-            String(session?.razaoSocial || '').trim() ||
-            String(session?.name || '').trim() ||
-            '—';
-        const cnpj =
-            formatCnpj(session?.cnpj || session?.login) ||
-            (order?.customerCpf ? formatCnpj(order.customerCpf) : '');
+        const isDistribuidora = isDistribuidoraAccount(session);
+        const name = isDistribuidora
+            ? 'LIGEIRINHO DISTRIBUIDORA'
+            : String(order?.customerName || '').trim() ||
+              String(session?.razaoSocial || '').trim() ||
+              String(session?.name || '').trim() ||
+              '—';
+        const cnpj = isDistribuidora
+            ? formatCnpj(DISTRIBUIDORA_CNPJ)
+            : formatCnpj(session?.cnpj || session?.login) ||
+              (order?.customerCpf ? formatCnpj(order.customerCpf) : '');
         const phone = formatPhoneDisplay(order?.customerPhone || session?.phone);
         const address = String(order?.address || '').trim();
-        return { name: name.toUpperCase(), cnpj, phone, address };
+        return { name: String(name).toUpperCase(), cnpj, phone, address };
     };
 
     const buildLineRows = (items) => {
@@ -273,9 +276,17 @@ window.addEventListener('load', function () {
 
     const isDistribuidoraAccount = (session) => {
         if (!session) return false;
-        const cnpj = digits(session.cnpj || session.login);
         const phone = normalizePhone(session.phone);
-        return cnpj === DISTRIBUIDORA_CNPJ && phone === DISTRIBUIDORA_PHONE;
+        if (phone !== DISTRIBUIDORA_PHONE) return false;
+
+        const cnpj = digits(session.cnpj || session.login);
+        if (cnpj === DISTRIBUIDORA_CNPJ) return true;
+
+        const name = String(session.name || session.razaoSocial || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+        return name.includes('ligeirinho distribuidora');
     };
 
     const printOrderDav = async (orderId, session) => {
