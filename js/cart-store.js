@@ -289,6 +289,43 @@
         });
     };
 
+    const repriceFromCatalog = (catalogData) => {
+        const pricing = window.LigeirinhoPricing;
+        if (!pricing?.buildGroups || !pricing?.getVariant) return false;
+        const cart = loadCart();
+        const entries = cartEntries(cart);
+        if (!entries.length || !catalogData?.categories?.length) return false;
+
+        const groups = pricing.buildGroups(catalogData);
+        let changed = false;
+        for (const item of entries) {
+            if (item.promoId || item.isPromo) continue;
+            let group = null;
+            for (const g of groups.values()) {
+                for (const tier of ['unidade', 'caixa', 'pallet']) {
+                    if (g.variants?.[tier]?.id === item.id) {
+                        group = g;
+                        break;
+                    }
+                }
+                if (group) break;
+            }
+            if (!group) continue;
+            const tier = item.packType || pricing.getDefaultTier?.(group) || 'caixa';
+            const variant = pricing.getVariant(group, tier);
+            const nextPrice = Number(variant?.price);
+            if (!Number.isFinite(nextPrice) || nextPrice <= 0) continue;
+            if (Math.abs(nextPrice - Number(item.price || 0)) < 0.005) continue;
+            item.price = nextPrice;
+            changed = true;
+        }
+        if (changed) {
+            saveCart(cart);
+            window.dispatchEvent(new CustomEvent('ligeirinho-cart-changed'));
+        }
+        return changed;
+    };
+
     window.LigeirinhoCart = {
         CART_KEY,
         CHECKOUT_KEY,
@@ -318,6 +355,7 @@
         lineSubtotal,
         itemMetaText,
         updateNavCartBadge,
+        repriceFromCatalog,
         clearTotemSession,
         TOTEM_CHECKOUT_DEFAULTS,
     };

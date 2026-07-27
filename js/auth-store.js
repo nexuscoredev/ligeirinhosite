@@ -60,6 +60,9 @@
             condicaoPagamento: user.condicaoPagamento || '',
             parcelasVencimento: user.parcelasVencimento || '',
             pessoaId: user.pessoaId || '',
+            clienteId: user.clienteId || '',
+            tabelaPrecoId: user.tabelaPrecoId || '',
+            tabelaPreco: user.tabelaPreco || '',
             paymentMethods: user.paymentMethods || [],
             deliveryDateOptions: user.deliveryDateOptions || [],
             datasEntrega: user.datasEntrega || [],
@@ -361,6 +364,9 @@
             condicaoPagamento: profile.condicaoPagamento || '',
             parcelasVencimento: profile.parcelasVencimento || '',
             pessoaId: profile.pessoaId || '',
+            clienteId: profile.clienteId || '',
+            tabelaPrecoId: profile.tabelaPrecoId || '',
+            tabelaPreco: profile.tabelaPreco || '',
             paymentMethods: profile.paymentMethods || [],
             deliveryDateOptions: profile.deliveryDateOptions || [],
             datasEntrega: profile.datasEntrega || [],
@@ -378,6 +384,49 @@
     };
 
     const needsPasswordChange = (session) => Boolean(session?.mustChangePassword);
+
+    const usesPersonalPriceTable = (session) => {
+        if (!session) session = loadSession();
+        if (session?.tabelaPrecoId) return true;
+        const codigo = String(session?.tabelaPreco || '').trim().toLowerCase();
+        return Boolean(codigo && codigo !== 'padrao');
+    };
+
+    const buildAccountHeaders = async () => {
+        const headers = {};
+        const hubToken = await getHubAccessToken();
+        if (hubToken) {
+            headers.Authorization = `Bearer ${hubToken}`;
+            return headers;
+        }
+
+        let accountToken = getAccountSessionToken();
+        if (!accountToken) {
+            accountToken = await ensureAccountSession();
+        }
+        if (accountToken) {
+            headers['X-Account-Session'] = accountToken;
+            return headers;
+        }
+
+        const googleCred = getGoogleCredential();
+        if (googleCred) {
+            headers['X-Google-Credential'] = googleCred;
+            const s = loadSession();
+            if (s?.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+
+        const s = loadSession();
+        if (s?.provider === 'google' && s?.email) {
+            headers['X-Auth-Provider'] = 'google';
+            headers['X-Account-Email'] = s.email;
+            if (s.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+
+        return null;
+    };
 
     window.LigeirinhoAuth = {
         AUTH_KEY,
@@ -402,6 +451,8 @@
         applyProfile,
         patchSession,
         needsPasswordChange,
+        usesPersonalPriceTable,
+        buildAccountHeaders,
         saveFromGoogleCredential,
         saveFromAppleAuthorization,
         saveFromPhoneProfile,

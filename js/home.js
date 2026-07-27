@@ -345,6 +345,19 @@ ${sectionOrder()
         });
 
     window.addEventListener('ligeirinho-cart-changed', scheduleRefreshSteppers);
+    window.addEventListener('ligeirinho-auth-changed', () => {
+        window.LigeirinhoCatalogLoader?.clear?.();
+        const reload = window.LigeirinhoCatalogSync?.sync
+            ? window.LigeirinhoCatalogSync.sync()
+            : window.LigeirinhoCatalogLoader.load({ force: true }).then((data) => {
+                  if (data?.categories?.length) {
+                      window.dispatchEvent(
+                          new CustomEvent('ligeirinho-catalog-synced', { detail: { catalogData: data } }),
+                      );
+                  }
+              });
+        Promise.resolve(reload).catch(() => {});
+    });
     window.addEventListener('ligeirinho-prefs-changed', () => {
         if (catalogData) {
             const groups = window.__ligProductGroups || pricing.buildGroups(catalogData);

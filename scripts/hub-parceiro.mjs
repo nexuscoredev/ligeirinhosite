@@ -9,10 +9,10 @@ import {
 import { fetchClienteTaxaEntrega } from './lib/delivery-fee.mjs';
 
 const CLIENTE_PARCEIROS_SELECT =
-    'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids';
+    'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids,tabela_preco_id,tabela_preco,taxa_entrega';
 
 const PESSOA_CLIENTE_LOOKUP_SELECT =
-    'id,nome,nome_fantasia,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
+    `id,nome,nome_fantasia,cpf_cnpj_digits,email,telefone,clientes(${CLIENTE_PARCEIROS_SELECT})`;
 
 export function normalizeDocDigits(value) {
     return String(value || '').replace(/\D/g, '');
@@ -461,8 +461,13 @@ export async function buildParceiroExtrasFromPessoa(config, pessoa) {
             ? clienteFields.taxaEntrega
             : await fetchClienteTaxaEntrega(config, pessoa);
 
+    const cliente = clienteParceirosFromPessoa(pessoa);
+
     return {
         pessoaId: pessoa.id,
+        clienteId: cliente?.id || null,
+        tabelaPrecoId: cliente?.tabela_preco_id || null,
+        tabelaPreco: cliente?.tabela_preco || null,
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
         cnpjDigits,
         condicaoPagamento: clienteFields.condicaoPagamento,
@@ -656,8 +661,13 @@ export async function buildParceiroExtras(config, usuario) {
             ? clienteFields.taxaEntrega
             : await fetchClienteTaxaEntrega(config, pessoa);
 
+    const cliente = clienteParceirosFromPessoa(pessoa);
+
     return {
         pessoaId: pessoa.id,
+        clienteId: cliente?.id || null,
+        tabelaPrecoId: cliente?.tabela_preco_id || null,
+        tabelaPreco: cliente?.tabela_preco || null,
         cnpj: pessoa.cpf_cnpj || formatCnpj(cnpjDigits),
         cnpjDigits,
         condicaoPagamento: clienteFields.condicaoPagamento,
@@ -671,6 +681,45 @@ export async function buildParceiroExtras(config, usuario) {
         deliveryDateOptions: deliveryDateOptions(datasEntrega),
         razaoSocial: pessoa.nome_fantasia || pessoa.nome || '',
     };
+}
+
+/** Tabela de preço vinculada ao cliente Parceiros no Hub (null = PADRAO). */
+export async function resolveClientePriceTable(config, usuario) {
+    if (!config?.serviceKey || !usuario?.id) return null;
+    const pessoa = await findPessoaForUsuario(config, usuario);
+    const cliente = clienteParceirosFromPessoa(pessoa);
+    if (!cliente?.id) return null;
+
+    let tabelaPrecoId = cliente.tabela_preco_id || null;
+    let tabelaPrecoCodigo = cliente.tabela_preco || null;
+
+    if (!tabelaPrecoId && !tabelaPrecoCodigo) {
+        const rows = await hubRest(
+            config,
+            `clientes?select=id,tabela_preco_id,tabela_preco&id=eq.${encodeURIComponent(cliente.id)}&limit=1`,
+        );
+        const meta = Array.isArray(rows) ? rows[0] : null;
+        tabelaPrecoId = meta?.tabela_preco_id || null;
+        tabelaPrecoCodigo = meta?.tabela_preco || null;
+    }
+
+    const codigo = String(tabelaPrecoCodigo || '').trim().toLowerCase();
+    if (!tabelaPrecoId && (!codigo || codigo === 'padrao')) {
+        return { clienteId: cliente.id, tabelaPrecoId: null, tabelaPrecoCodigo: 'padrao' };
+    }
+
+    return {
+        clienteId: cliente.id,
+        tabelaPrecoId,
+        tabelaPrecoCodigo: tabelaPrecoCodigo || null,
+    };
+}
+
+export function clienteUsesPersonalPriceTable(meta) {
+    if (!meta) return false;
+    if (meta.tabelaPrecoId) return true;
+    const codigo = String(meta.tabelaPrecoCodigo || meta.tabelaPreco || '').trim().toLowerCase();
+    return Boolean(codigo && codigo !== 'padrao');
 }
 
 export async function updateUsuarioFields(config, userId, patch) {

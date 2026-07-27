@@ -11,7 +11,11 @@
         }
 
         busy = true;
-        const apiUrl = String(options.apiUrl || '/api/catalog');
+        const endpoint = window.LigeirinhoCatalogLoader?.resolveEndpoint?.() || {
+            url: '/api/catalog',
+            personalized: false,
+        };
+        const apiUrl = String(options.apiUrl || endpoint.url);
         const promoApiUrl = String(options.promoApiUrl || '/api/promocoes');
 
         window.dispatchEvent(new CustomEvent(START_EVENT, { detail: { apiUrl, promoApiUrl } }));
@@ -48,6 +52,8 @@
                     detail: { catalogData, promoData, apiUrl, promoApiUrl },
                 }),
             );
+
+            window.LigeirinhoCart?.repriceFromCatalog?.(catalogData);
 
             return { ok: true, catalogData, promoData };
         } catch (err) {

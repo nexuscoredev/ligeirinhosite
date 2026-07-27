@@ -1,5 +1,6 @@
 (function () {
     const API_URL = '/api/catalog';
+    const API_ME_URL = '/api/catalog/me';
     const FALLBACK_URL = '/data/catalogo.json';
     const CLIENT_TTL_MS = 5 * 60 * 1000;
     const STORAGE_KEY = 'ligeirinho-catalog-cache-v2';
@@ -7,15 +8,42 @@
     let cache = null;
     let cacheAt = 0;
     let inflight = null;
-    let lastApiUrl = API_URL;
+    let lastScope = 'public';
 
-    const readStorageCache = (apiUrl) => {
+    const buildScope = (personalized, data) => {
+        if (!personalized) return 'public';
+        const tableKey = data?.priceTableId || data?.priceTableCodigo || 'custom';
+        const auth = window.LigeirinhoAuth;
+        const session = auth?.loadSession?.();
+        const userKey = session?.hubUserId || session?.sub || 'user';
+        return `me:${userKey}:${tableKey}`;
+    };
+
+    const resolveEndpoint = (options = {}) => {
+        if (options.apiUrl) {
+            return {
+                url: options.apiUrl,
+                personalized: options.apiUrl.includes('/catalog/me'),
+            };
+        }
+        const auth = window.LigeirinhoAuth;
+        const session = auth?.loadSession?.();
+        if (
+            auth?.isLoggedIn?.() &&
+            (session?.hubUserId || session?.provider === 'hub' || session?.provider === 'google')
+        ) {
+            return { url: API_ME_URL, personalized: true };
+        }
+        return { url: API_URL, personalized: false };
+    };
+
+    const readStorageCache = (scope) => {
         try {
             const raw = sessionStorage.getItem(STORAGE_KEY);
             if (!raw) return null;
             const parsed = JSON.parse(raw);
             if (!parsed?.data?.categories?.length) return null;
-            if (parsed.apiUrl && parsed.apiUrl !== apiUrl) return null;
+            if (parsed.scope !== scope) return null;
             if (Date.now() - parsed.savedAt > CLIENT_TTL_MS) return null;
             return parsed.data;
         } catch {
@@ -23,16 +51,16 @@
         }
     };
 
-    const writeStorageCache = (data, apiUrl) => {
+    const writeStorageCache = (data, scope) => {
         try {
             sessionStorage.setItem(
                 STORAGE_KEY,
                 JSON.stringify({
                     savedAt: Date.now(),
                     exportedAt: data?.exportedAt || '',
-                    apiUrl,
+                    scope,
                     data,
-                })
+                }),
             );
         } catch {
             /* quota or private mode */
@@ -45,44 +73,88 @@
         return `${apiUrl}${sep}sync=${Date.now()}`;
     };
 
+    const buildFetchOptions = async (personalized, force) => {
+        const opts = {
+            credentials: 'same-origin',
+            cache: force ? 'no-store' : 'default',
+            headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : {},
+        };
+        if (personalized) {
+            const authHeaders = await window.LigeirinhoAuth?.buildAccountHeaders?.();
+            if (authHeaders) {
+                opts.headers = { ...opts.headers, ...authHeaders };
+            }
+        }
+        return opts;
+    };
+
+    const loadPublicFallback = async (apiUrl, scope) => {
+        const fallback = await fetch(FALLBACK_URL, { credentials: 'same-origin', cache: 'no-store' });
+        if (!fallback.ok) throw new Error('Catálogo indisponível');
+        const data = await fallback.json();
+        cache = data;
+        cacheAt = Date.now();
+        lastScope = scope;
+        writeStorageCache(data, scope);
+        return data;
+    };
+
     const load = async (options = {}) => {
         const force = Boolean(options.force);
-        const apiUrl = String(options.apiUrl || API_URL);
+        const endpoint = resolveEndpoint(options);
+        const apiUrl = endpoint.url;
+        let scope = endpoint.personalized ? 'me-pending' : 'public';
         const now = Date.now();
 
-        if (!force && cache && lastApiUrl === apiUrl && now - cacheAt < CLIENT_TTL_MS) {
+        if (!force && cache && lastScope === scope && scope !== 'me-pending' && now - cacheAt < CLIENT_TTL_MS) {
             return cache;
         }
 
-        if (!force && inflight && lastApiUrl === apiUrl) {
+        if (!force && inflight && lastScope === scope) {
             return inflight;
         }
 
-        if (!force) {
-            const stored = readStorageCache(apiUrl);
+        if (!force && scope === 'public') {
+            const stored = readStorageCache('public');
             if (stored) {
                 cache = stored;
                 cacheAt = Date.now();
-                lastApiUrl = apiUrl;
+                lastScope = 'public';
                 return stored;
             }
         }
 
-        lastApiUrl = apiUrl;
+        lastScope = scope;
         inflight = (async () => {
             const fetchUrl = buildFetchUrl(apiUrl, force);
+            const fetchOpts = await buildFetchOptions(endpoint.personalized, force);
             try {
-                const res = await fetch(fetchUrl, {
-                    credentials: 'same-origin',
-                    cache: force ? 'no-store' : 'default',
-                    headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : undefined,
-                });
+                const res = await fetch(fetchUrl, fetchOpts);
+                if (endpoint.personalized && res.status === 204) {
+                    return load({ ...options, force, apiUrl: API_URL });
+                }
+                if (endpoint.personalized && res.status === 401) {
+                    return load({ ...options, force, apiUrl: API_URL });
+                }
                 if (res.ok) {
                     const data = await res.json();
                     if (data?.categories?.length) {
+                        scope = buildScope(endpoint.personalized, data);
                         cache = data;
                         cacheAt = Date.now();
-                        writeStorageCache(data, apiUrl);
+                        lastScope = scope;
+                        writeStorageCache(data, scope);
+                        const authSession = window.LigeirinhoAuth?.loadSession?.();
+                        if (
+                            endpoint.personalized &&
+                            authSession &&
+                            authSession.tabelaPrecoId !== data.priceTableId
+                        ) {
+                            window.LigeirinhoAuth?.patchSession?.({
+                                tabelaPrecoId: data.priceTableId || '',
+                                tabelaPreco: data.priceTableCodigo || '',
+                            });
+                        }
                         return data;
                     }
                     if (force) {
@@ -99,13 +171,11 @@
                 /* offline ou servidor estático local */
             }
 
-            const fallback = await fetch(FALLBACK_URL, { credentials: 'same-origin', cache: 'no-store' });
-            if (!fallback.ok) throw new Error('Catálogo indisponível');
-            const data = await fallback.json();
-            cache = data;
-            cacheAt = Date.now();
-            writeStorageCache(data, apiUrl);
-            return data;
+            if (endpoint.personalized && apiUrl !== API_URL) {
+                return load({ ...options, force, apiUrl: API_URL });
+            }
+
+            return loadPublicFallback(apiUrl, scope);
         })();
 
         try {
@@ -119,7 +189,7 @@
         cache = null;
         cacheAt = 0;
         inflight = null;
-        lastApiUrl = API_URL;
+        lastScope = 'public';
         try {
             sessionStorage.removeItem(STORAGE_KEY);
         } catch {
@@ -127,5 +197,7 @@
         }
     };
 
-    window.LigeirinhoCatalogLoader = { load, clear };
+    window.addEventListener('ligeirinho-auth-changed', clear);
+
+    window.LigeirinhoCatalogLoader = { load, clear, resolveEndpoint };
 })();

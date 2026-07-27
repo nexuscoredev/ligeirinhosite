@@ -437,6 +437,20 @@
 
     window.addEventListener('ligeirinho-cart-changed', scheduleRefreshCards);
 
+    window.addEventListener('ligeirinho-auth-changed', () => {
+        window.LigeirinhoCatalogLoader?.clear?.();
+        const reload = window.LigeirinhoCatalogSync?.sync
+            ? window.LigeirinhoCatalogSync.sync()
+            : window.LigeirinhoCatalogLoader.load({ force: true }).then((data) => {
+                  if (data?.categories?.length) {
+                      window.dispatchEvent(
+                          new CustomEvent('ligeirinho-catalog-synced', { detail: { catalogData: data } }),
+                      );
+                  }
+              });
+        Promise.resolve(reload).catch(() => {});
+    });
+
     window.addEventListener('ligeirinho-catalog-synced', async (event) => {
         const data = event.detail?.catalogData;
         if (!data) return;

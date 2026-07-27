@@ -183,11 +183,13 @@ export function resolveCatalogPrice(produto, priceMap, tabelaPadrao) {
     return Number.isFinite(precoBaseEmb) ? precoBaseEmb : 0;
 }
 
+const TABELA_PRECO_SELECT = 'id,codigo,padrao,ativo,aplicacao,modo,percentual';
+
 async function fetchTabelaPrecoPadrao(hub) {
     let tabelas = await fetchAll(
         hub,
         'tabelas_preco',
-        'id,codigo,padrao,ativo,aplicacao,modo,percentual',
+        TABELA_PRECO_SELECT,
         '&ativo=eq.true&padrao=eq.true',
         'codigo.asc',
     );
@@ -195,12 +197,51 @@ async function fetchTabelaPrecoPadrao(hub) {
         tabelas = await fetchAll(
             hub,
             'tabelas_preco',
-            'id,codigo,padrao,ativo,aplicacao,modo,percentual',
+            TABELA_PRECO_SELECT,
             '&ativo=eq.true&codigo=eq.PADRAO',
             'codigo.asc',
         );
     }
     return tabelas[0] || null;
+}
+
+async function fetchTabelaPrecoById(hub, tabelaId) {
+    if (!tabelaId) return null;
+    const rows = await fetchAll(
+        hub,
+        'tabelas_preco',
+        TABELA_PRECO_SELECT,
+        `&id=eq.${encodeURIComponent(tabelaId)}&ativo=eq.true`,
+        'codigo.asc',
+    );
+    return rows[0] || null;
+}
+
+async function fetchTabelaPrecoByCodigo(hub, codigo) {
+    const code = String(codigo || '').trim();
+    if (!code) return null;
+    const rows = await fetchAll(
+        hub,
+        'tabelas_preco',
+        TABELA_PRECO_SELECT,
+        `&codigo=eq.${encodeURIComponent(code.toUpperCase())}&ativo=eq.true`,
+        'codigo.asc',
+    );
+    return rows[0] || null;
+}
+
+/** Resolve tabela ativa: cliente (id/código) ou PADRAO. */
+export async function resolveActivePriceTable(hub, { tabelaPrecoId, tabelaPrecoCodigo, tabelaPadrao }) {
+    if (tabelaPrecoId) {
+        const byId = await fetchTabelaPrecoById(hub, tabelaPrecoId);
+        if (byId) return byId;
+    }
+    const codigo = String(tabelaPrecoCodigo || '').trim();
+    if (codigo && codigo.toLowerCase() !== 'padrao') {
+        const byCodigo = await fetchTabelaPrecoByCodigo(hub, codigo);
+        if (byCodigo) return byCodigo;
+    }
+    return tabelaPadrao || null;
 }
 
 async function fetchTabelaPrecoItensMap(hub, tabelaId) {
@@ -451,20 +492,40 @@ export async function fetchHubCatalogData(config, options = {}) {
         throw new Error('Nenhum produto retornado do Hub.');
     }
 
+    const tabelaPreco = await resolveActivePriceTable(hub, {
+        tabelaPrecoId: options.tabelaPrecoId,
+        tabelaPrecoCodigo: options.tabelaPrecoCodigo,
+        tabelaPadrao,
+    });
+
     let priceMap = null;
-    if (tabelaPadrao?.id && tabelaPadrao.aplicacao !== 'todos_produtos') {
-        priceMap = await fetchTabelaPrecoItensMap(hub, tabelaPadrao.id);
+    if (tabelaPreco?.id && tabelaPreco.aplicacao !== 'todos_produtos') {
+        priceMap = await fetchTabelaPrecoItensMap(hub, tabelaPreco.id);
     }
 
-    return { categorias, produtos, tabelaPadrao, priceMap };
+    return {
+        categorias,
+        produtos,
+        tabelaPadrao: tabelaPreco,
+        priceMap,
+        priceTableId: tabelaPreco?.id || null,
+        priceTableCodigo: tabelaPreco?.codigo || null,
+    };
 }
 
 export async function fetchCatalogFromHub(env = process.env, options = {}) {
     const config = hubConfig(env);
-    const { categorias, produtos, tabelaPadrao, priceMap } = await fetchHubCatalogData(config, options);
-    return buildCatalog(produtos, categorias, {
+    const { categorias, produtos, tabelaPadrao, priceMap, priceTableId, priceTableCodigo } =
+        await fetchHubCatalogData(config, options);
+    const catalog = buildCatalog(produtos, categorias, {
         ...options,
         tabelaPadrao,
         priceMap,
     });
+    return {
+        ...catalog,
+        priceTableId: priceTableId || tabelaPadrao?.id || null,
+        priceTableCodigo: priceTableCodigo || tabelaPadrao?.codigo || null,
+        personalized: Boolean(options.personalized),
+    };
 }
