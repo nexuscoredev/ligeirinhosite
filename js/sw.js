@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v444';
+const CACHE_NAME = 'ligeirinho-app-v445';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -246,9 +246,9 @@ self.addEventListener('fetch', (event) => {
 
     event.respondWith(
         (async () => {
-            const cached =
-                (await matchCache(request, canonicalUrl)) ||
-                (isNavigate ? await caches.match('/') : null);
+            /* Nunca use "/" (login/splash) como fallback de outras rotas — isso fazia o app
+               voltar do nada para o zoom do logo no meio do uso. */
+            const cached = await matchCache(request, canonicalUrl);
 
             const revalidate = (req) =>
                 fetch(req)
@@ -301,8 +301,21 @@ self.addEventListener('fetch', (event) => {
             } catch {
                 if (cached) return cached;
                 if (isNavigate) {
-                    const fallback = (await caches.match('/')) || (await caches.match('/index.html'));
-                    if (fallback) return fallback;
+                    const path = canonicalPath || url.pathname;
+                    const isLoginPath =
+                        path === '/' || path === '/index' || path === '/login';
+                    /* Offline: home do app — não a tela de splash/login. */
+                    const offlineHome =
+                        (await caches.match('/inicio')) ||
+                        (await caches.match('/inicio.html'));
+                    if (!isLoginPath && offlineHome) return offlineHome;
+                    if (isLoginPath) {
+                        const login =
+                            (await caches.match('/')) ||
+                            (await caches.match('/index.html')) ||
+                            (await caches.match('/login'));
+                        if (login) return login;
+                    }
                 }
                 throw new Error('offline');
             }

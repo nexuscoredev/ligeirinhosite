@@ -41,6 +41,32 @@ html.lig-splash-done .lig-login-main,html.lig-splash-done .lig-login-theme{visib
 
 <script>
 (function () {
+  /* Se já está logado e veio de outra tela do app, não roda o splash —
+     evita “voltar do nada” pro zoom do logo no meio do uso. */
+  try {
+    var session = JSON.parse(localStorage.getItem('ligeirinho-auth-v1') || 'null');
+    var fromApp = false;
+    try {
+      fromApp = Boolean(document.referrer) && new URL(document.referrer).origin === location.origin;
+    } catch (e) { /* ignore */ }
+    if (session && session.sub && fromApp) {
+      var params = new URLSearchParams(location.search);
+      var next = params.get('next') || '';
+      var role = String(session.role || '').toUpperCase();
+      var isTotem = role === 'TOTEM' || role === 'TOTEM_DEVICE';
+      var dest = isTotem ? 'totem.html' : 'inicio.html';
+      if (session.mustChangePassword) {
+        dest = 'conta.html#senha';
+      } else if (next && next.indexOf('://') === -1 && next.indexOf('//') !== 0) {
+        if (isTotem && next.indexOf('totem') === -1) dest = 'totem.html';
+        else if (!isTotem && next.indexOf('totem') !== -1) dest = 'inicio.html';
+        else dest = next;
+      }
+      location.replace(dest);
+      return;
+    }
+  } catch (e) { /* ignore */ }
+
   var el = document.getElementById('lig-splash');
   var stage = el && el.querySelector('.lig-splash__stage');
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

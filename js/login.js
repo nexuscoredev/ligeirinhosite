@@ -128,12 +128,13 @@
     if (auth.isLoggedIn()) {
         const session = auth.loadSession();
         const go = () => redirect(session?.role || 'PARCEIRO');
+        /* Splash só na abertura “fria” do app. Se a intro já acabou (ou sumiu), sai na hora. */
         if (
             document.getElementById('lig-splash') &&
             !document.documentElement.classList.contains('lig-splash-done')
         ) {
             window.addEventListener('lig-splash-done', go, { once: true });
-            window.setTimeout(go, 4800);
+            window.setTimeout(go, 3200);
             return;
         }
         go();

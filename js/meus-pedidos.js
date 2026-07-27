@@ -16,13 +16,26 @@
     };
 
     const STATUS_OPTIONS = [
-        { value: 'all', label: 'Todos os status', icon: 'list_alt', tone: 'muted' },
-        { value: 'pending', label: 'Aguardando confirmação', icon: 'hourglass_top', tone: 'wait' },
-        { value: 'pending_payment', label: 'Aguardando pagamento', icon: 'payments', tone: 'info' },
-        { value: 'progress', label: 'Em andamento', icon: 'local_shipping', tone: 'progress' },
-        { value: 'paid', label: 'Confirmado', icon: 'check_circle', tone: 'ok' },
+        { value: 'all', label: 'Todos', icon: 'list', tone: 'muted' },
+        { value: 'pending', label: 'Aguardando', icon: 'wait', tone: 'wait' },
+        { value: 'pending_payment', label: 'Pagamento', icon: 'pay', tone: 'info' },
+        { value: 'progress', label: 'Em andamento', icon: 'truck', tone: 'progress' },
+        { value: 'paid', label: 'Confirmado', icon: 'check', tone: 'ok' },
         { value: 'cancelled', label: 'Cancelado', icon: 'cancel', tone: 'danger' },
     ];
+
+    const STATUS_GLYPHS = {
+        list: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>',
+        wait: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2H7zm1 3h8l1 2v2.2c0 1.6-.7 3-1.9 4L12 17l-3.1-2.8A5.2 5.2 0 0 1 7 10.2V8l1-2zm2 3v1.2c0 .7.3 1.4.8 1.8L12 13.5l1.2-1.5c.5-.4.8-1.1.8-1.8V9H10zm-1 11h6v2H9z"/></svg>',
+        pay: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5zm2 1.5v2h14V8zm0 5v4.5c0 .3.2.5.5.5h13c.3 0 .5-.2.5-.5V13z"/></svg>',
+        truck: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 7h-2V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h.2a2.5 2.5 0 0 0 4.6 0h4.4a2.5 2.5 0 0 0 4.6 0H20a2 2 0 0 0 2-2v-4a4 4 0 0 0-4-4ZM6.5 17a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 6.5 17ZM4 13V5h10v8Zm11.5 4a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Zm4.5-2h-2v-4h2a2 2 0 0 1 2 2Z"/></svg>',
+        check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2.2-2.2a1 1 0 0 1 1.4-1.4l1.5 1.49 4.3-4.29a1 1 0 0 1 1.4 1.4Z"/></svg>',
+        cancel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm3.5 12.1a1 1 0 0 1-1.4 1.4L12 13.4l-2.1 2.1a1 1 0 0 1-1.4-1.4l2.1-2.1-2.1-2.1a1 1 0 0 1 1.4-1.4l2.1 2.1 2.1-2.1a1 1 0 0 1 1.4 1.4L13.4 12Z"/></svg>',
+        help: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 15a1.25 1.25 0 1 1 1.25-1.25A1.25 1.25 0 0 1 12 17Zm1.6-5.35-.45.3A1.6 1.6 0 0 0 12.4 13.5v.2a.8.8 0 0 1-1.6 0v-.35a2.2 2.2 0 0 1 1.05-1.85l.55-.35A1.2 1.2 0 1 0 11.2 9a.8.8 0 0 1-1.6 0 2.8 2.8 0 1 1 4 2.65Z"/></svg>',
+    };
+
+    const statusGlyphHtml = (iconKey) =>
+        `<span class="conta-order-detail__badge-glyph">${STATUS_GLYPHS[iconKey] || STATUS_GLYPHS.help}</span>`;
 
     const esc = (v) =>
         String(v ?? '')
@@ -118,7 +131,7 @@
     const orderStatusMeta = (order) => {
         if (!order) return { key: 'all', label: '—', tone: 'muted', icon: 'help' };
         if (order.status === 'paid') {
-            return { key: 'paid', label: 'Confirmado', tone: 'ok', icon: 'check_circle' };
+            return { key: 'paid', label: 'Confirmado', tone: 'ok', icon: 'check' };
         }
         if (order.status === 'cancelled') {
             return { key: 'cancelled', label: 'Cancelado', tone: 'danger', icon: 'cancel' };
@@ -127,26 +140,30 @@
             return {
                 key: 'pending_payment',
                 label: 'Aguardando pagamento',
+                shortLabel: 'Pagamento',
                 tone: 'info',
-                icon: 'payments',
+                icon: 'pay',
             };
         }
         if ((order.channel || 'parceiros') === 'parceiros' && order.status === 'pending') {
             return {
                 key: 'pending',
                 label: 'Aguardando confirmação',
+                shortLabel: 'Aguardando',
                 tone: 'wait',
-                icon: 'hourglass_top',
+                icon: 'wait',
             };
         }
-        return { key: 'progress', label: 'Em andamento', tone: 'progress', icon: 'local_shipping' };
+        return { key: 'progress', label: 'Em andamento', tone: 'progress', icon: 'truck' };
     };
 
-    const statusBadgeHtml = (status) =>
-        `<span class="conta-order-detail__badge conta-order-detail__badge--${esc(status.tone)}">
-<span class="material-symbols-outlined" aria-hidden="true">${esc(status.icon || 'info')}</span>
-<span class="conta-order-detail__badge-label">${esc(status.label)}</span>
+    const statusBadgeHtml = (status) => {
+        const label = status.shortLabel || status.label;
+        return `<span class="conta-order-detail__badge conta-order-detail__badge--${esc(status.tone)}" title="${esc(status.label)}">
+${statusGlyphHtml(status.icon)}
+<span class="conta-order-detail__badge-label">${esc(label)}</span>
 </span>`;
+    };
 
     const canCancelOrder = (order) =>
         Boolean(
@@ -227,7 +244,7 @@
 <input type="search" id="meus-pedidos-q" value="${esc(STATE.q)}" placeholder="Nº do pedido" autocomplete="off" inputmode="search" aria-label="Buscar por número do pedido">
 </label>
 <label class="meus-pedidos-filters__field meus-pedidos-filters__field--status meus-pedidos-filters__field--tone-${esc(selectedStatus.tone)}">
-<span class="material-symbols-outlined meus-pedidos-filters__status-icon" aria-hidden="true">${esc(selectedStatus.icon)}</span>
+<span class="meus-pedidos-filters__status-glyph" aria-hidden="true">${STATUS_GLYPHS[selectedStatus.icon] || STATUS_GLYPHS.list}</span>
 <span class="sr-only">Status</span>
 <select id="meus-pedidos-status" aria-label="Filtrar por status">${statusOpts}</select>
 </label>
@@ -257,16 +274,14 @@ ${
 
         return `<article class="conta-order-detail${expanded ? ' conta-order-detail--open' : ''}" data-order-id="${esc(order.id || '')}">
 <button type="button" class="conta-order-detail__summary" data-meus-pedidos-toggle="${esc(order.id || '')}" aria-expanded="${expanded ? 'true' : 'false'}">
-<div class="conta-order-detail__head">
-<div class="conta-order-detail__head-main">
+<div class="conta-order-detail__topline">
 <p class="conta-order-detail__code">Pedido <code>${esc(shortId)}</code></p>
-<p class="conta-order-detail__date">${esc(formatDateTime(createdAt))}</p>
-</div>
 ${statusBadgeHtml(status)}
 </div>
+<p class="conta-order-detail__date">${esc(formatDateTime(createdAt))}</p>
 <div class="conta-order-detail__summary-meta">
-<span>${itemCount} ${itemCount === 1 ? 'item' : 'itens'} · ${esc(deliveryLabel)}</span>
-<strong>${formatPrice(order.total)}</strong>
+<span class="conta-order-detail__meta-copy">${itemCount} ${itemCount === 1 ? 'item' : 'itens'} · ${esc(deliveryLabel)}</span>
+<strong class="conta-order-detail__meta-total">${formatPrice(order.total)}</strong>
 <span class="material-symbols-outlined conta-order-detail__chev" aria-hidden="true">${expanded ? 'expand_less' : 'expand_more'}</span>
 </div>
 </button>
@@ -290,7 +305,7 @@ ${
 }
 ${
     order.id
-        ? `<a href="pedido-confirmado.html?order=${encodeURIComponent(order.id)}" class="conta-btn conta-btn--outline">Ver confirmação</a>`
+        ? `<a href="pedido-confirmado.html?order=${encodeURIComponent(order.id)}" class="conta-btn conta-btn--outline">Acompanhar pedido</a>`
         : ''
 }
 ${
