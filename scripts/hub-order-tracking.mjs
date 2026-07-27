@@ -81,8 +81,8 @@ export function buildOrderTracking(order, hubPedido = null) {
                 : 'Seu pedido saiu para entrega.';
     } else if (PREP_STATUSES.has(hubStatus)) {
         step = 2;
-        stepLabel = 'Em preparação';
-        message = 'Seu pedido foi aceito e está em preparação no depósito.';
+        stepLabel = 'Em separação';
+        message = 'Seu pedido foi aceito e está em separação no depósito.';
     } else if (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus) {
         step = 1;
         stepLabel = 'Aguardando confirmação';
@@ -90,7 +90,7 @@ export function buildOrderTracking(order, hubPedido = null) {
     } else if (order?.status === 'paid') {
         step = 2;
         stepLabel = 'Confirmado';
-        message = 'Pagamento confirmado. Em breve iniciamos a preparação.';
+        message = 'Pagamento confirmado. Em breve iniciamos a separação.';
     }
 
     if (!cancelled && order?.status === 'pending_payment') {
@@ -102,7 +102,7 @@ export function buildOrderTracking(order, hubPedido = null) {
     const headerTitleByStep = [
         'Aguardando pagamento',
         'Aguardando confirmação',
-        'Em preparação',
+        'Em separação',
         'Saiu para entrega',
         'Pedido entregue',
     ];
@@ -122,11 +122,11 @@ export function buildOrderTracking(order, hubPedido = null) {
             order?.status === 'pending' &&
             (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus),
         steps: [
-            { id: 'sent', icon: 'send', label: 'Enviado' },
-            { id: 'accept', icon: 'task_alt', label: 'Aceite' },
-            { id: 'prep', icon: 'package_2', label: 'Preparação' },
+            { id: 'sent', icon: 'outbox', label: 'Enviado' },
+            { id: 'accept', icon: 'verified', label: 'Aceite' },
+            { id: 'prep', icon: 'inventory_2', label: 'Separação' },
             { id: 'route', icon: 'local_shipping', label: 'Rota' },
-            { id: 'done', icon: 'home', label: 'Entregue' },
+            { id: 'done', icon: 'home_pin', label: 'Entregue' },
         ],
     };
 }
