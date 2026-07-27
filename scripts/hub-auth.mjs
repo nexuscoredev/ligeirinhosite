@@ -287,9 +287,10 @@ export async function resolveProfileByEmail(config, email, extras = {}) {
     );
 }
 
-export async function resolveProfileByPhone(config, phone, name) {
+export async function resolveProfileByPhone(config, phone, name, extras = {}) {
     const normalizedPhone = String(phone || '').trim();
     const authName = String(name || '').trim();
+    const cnpj = String(extras.cnpj || '').replace(/\D/g, '').slice(0, 14);
     const provider = 'phone';
     const contact = await resolveParceiroHubContact(config, { phone: normalizedPhone });
 
@@ -301,6 +302,8 @@ export async function resolveProfileByPhone(config, phone, name) {
             phone: normalizedPhone,
             role: 'PARCEIRO',
             provider,
+            cnpj,
+            razaoSocial: authName,
         };
     }
 

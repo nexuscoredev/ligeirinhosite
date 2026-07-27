@@ -4,15 +4,14 @@
     const routing = window.LigeirinhoAuthRouting;
     if (!auth || !phoneAuth || !routing) return;
 
-    const signupPanel = document.getElementById('login-mode-signup');
-    const phoneInput = document.getElementById('login-phone-input');
-    const nameInput = document.getElementById('login-phone-name');
+    const signupForm = document.getElementById('login-signup-form');
+    const companyInput = document.getElementById('signup-company');
+    const cnpjInput = document.getElementById('signup-cnpj');
+    const phoneInput = document.getElementById('signup-phone');
     const submitBtn = document.getElementById('login-phone-submit');
     const statusEl = document.getElementById('login-phone-status');
     const params = new URLSearchParams(window.location.search);
     const nextUrl = params.get('next') || '';
-
-    let step = 0;
 
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;
@@ -22,49 +21,32 @@
         statusEl.classList.toggle('lig-login-status--ok', !isError && Boolean(msg));
     };
 
-    const showStep = (index) => {
-        step = index;
-        signupPanel?.querySelectorAll('[data-signup-step]').forEach((el) => {
-            el.hidden = Number(el.dataset.signupStep) !== index;
-        });
-        signupPanel?.querySelectorAll('[data-signup-bar]').forEach((bar) => {
-            bar.classList.toggle('lig-signup-progress__bar--on', Number(bar.dataset.signupBar) <= index);
-        });
-        setStatus('');
-        window.setTimeout(() => {
-            if (index === 0) nameInput?.focus();
-            else phoneInput?.focus();
-        }, 60);
-    };
-
     const resetSignup = () => {
-        showStep(0);
+        signupForm?.reset();
         setStatus('');
         if (submitBtn) submitBtn.disabled = false;
+        window.setTimeout(() => companyInput?.focus(), 60);
     };
 
-    const goNext = () => {
-        if (step !== 0) return;
-        const name = phoneAuth.normalizeName(nameInput?.value || '');
-        if (!phoneAuth.isValidName(name)) {
-            setStatus('Informe nome e sobrenome.', true);
-            nameInput?.focus();
+    const submit = async (event) => {
+        event?.preventDefault();
+
+        const company = phoneAuth.normalizeCompanyName(companyInput?.value || '');
+        const cnpj = phoneAuth.normalizeCnpj(cnpjInput?.value || '');
+        const phone = phoneAuth.normalizePhoneBR(phoneInput?.value || '');
+
+        if (!phoneAuth.isValidCompanyName(company)) {
+            setStatus('Informe o nome da empresa.', true);
+            companyInput?.focus();
             return;
         }
-        showStep(1);
-    };
-
-    const submit = async () => {
-        const phone = phoneAuth.normalizePhoneBR(phoneInput?.value || '');
-        const name = phoneAuth.normalizeName(nameInput?.value || '');
-
-        if (!phoneAuth.isValidName(name)) {
-            showStep(0);
-            setStatus('Informe nome e sobrenome.', true);
+        if (!phoneAuth.isValidCnpj(cnpj)) {
+            setStatus('Informe um CNPJ válido com 14 dígitos.', true);
+            cnpjInput?.focus();
             return;
         }
         if (!phone) {
-            setStatus('Informe um celular válido com DDD, ex.: (11) 97092-4909.', true);
+            setStatus('Informe um WhatsApp válido com DDD, ex.: (11) 97092-4909.', true);
             phoneInput?.focus();
             return;
         }
@@ -73,11 +55,16 @@
         setStatus('Criando conta…', false);
 
         try {
-            const session = await routing.loginWithProfile({ type: 'phone', phone, name });
+            const { session } = await routing.loginWithProfile({
+                type: 'phone',
+                phone,
+                name: company,
+                cnpj,
+            });
             setStatus('Conta criada! Redirecionando…', false);
             window.setTimeout(() => routing.redirectAfterLogin(session.role, nextUrl), 400);
         } catch {
-            const fallback = auth.saveFromPhoneProfile({ phone, name });
+            const fallback = auth.saveFromPhoneProfile({ phone, name: company, cnpj });
             if (!fallback) {
                 setStatus('Não foi possível concluir o cadastro. Tente novamente.', true);
                 submitBtn && (submitBtn.disabled = false);
@@ -88,10 +75,6 @@
         }
     };
 
-    signupPanel?.querySelectorAll('[data-signup-next]').forEach((btn) => {
-        btn.addEventListener('click', goNext);
-    });
-
     window.addEventListener('lig-login-mode', (event) => {
         const mode = event.detail?.mode;
         if (mode === 'signup') {
@@ -101,21 +84,16 @@
         if (mode === 'choose') resetSignup();
     });
 
+    cnpjInput?.addEventListener('input', () => {
+        if (!cnpjInput) return;
+        cnpjInput.value = phoneAuth.maskCnpjInput(cnpjInput.value);
+    });
+
     phoneInput?.addEventListener('input', () => {
         if (!phoneInput) return;
         phoneInput.value = phoneAuth.maskPhoneInput(phoneInput.value);
         phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
     });
 
-    submitBtn?.addEventListener('click', submit);
-
-    nameInput?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            goNext();
-        }
-    });
-    phoneInput?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') submit();
-    });
+    signupForm?.addEventListener('submit', submit);
 })();

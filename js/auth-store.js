@@ -113,9 +113,10 @@
         });
     };
 
-    const saveFromPhoneProfile = ({ phone, name }) => {
+    const saveFromPhoneProfile = ({ phone, name, cnpj }) => {
         const normalizedPhone = String(phone || '').trim();
         const normalizedName = String(name || '').trim().replace(/\s+/g, ' ');
+        const normalizedCnpj = String(cnpj || '').replace(/\D/g, '').slice(0, 14);
         if (!normalizedPhone || normalizedName.length < 2) return null;
 
         return saveSession({
@@ -125,6 +126,8 @@
             phone: normalizedPhone,
             picture: '',
             provider: 'phone',
+            cnpj: normalizedCnpj,
+            razaoSocial: normalizedName,
         });
     };
 

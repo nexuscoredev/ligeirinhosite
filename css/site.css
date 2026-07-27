@@ -8801,7 +8801,8 @@ body[data-login-mode='choose'] .lig-login-hero {
 }
 
 body[data-login-mode='choose'] .lig-login-logo-wrap {
-    margin-bottom: 0.5em;
+    margin-bottom: 1.35em;
+    gap: 0.15em;
 }
 
 body[data-login-mode='choose'] .lig-login-logo {
@@ -8840,8 +8841,8 @@ body[data-login-mode='signup'] .lig-login-title {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5em;
-    margin-bottom: 1em;
+    gap: 0.15em;
+    margin-bottom: 1.35em;
 }
 
 .lig-login-logo {
@@ -8886,6 +8887,7 @@ body[data-login-mode='signup'] .lig-login-title {
     font-size: 0.8125em;
     font-weight: 500;
     letter-spacing: 0.02em;
+    margin-top: 0.125em;
     margin-bottom: 0.375em;
     color: var(--lig-text-muted);
     text-transform: uppercase;
@@ -9113,14 +9115,13 @@ body[data-login-mode='signup'] .lig-login-title {
 
 .lig-login-oauth-btn {
     position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr;
+    display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
     width: 100%;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.875rem;
-    border-radius: 0.75rem;
+    min-height: 2.875rem;
+    padding: 0.625rem 1rem;
+    border-radius: 9999px;
     border: 1px solid var(--lig-border);
     background: var(--lig-surface);
     color: var(--lig-text);
@@ -9129,7 +9130,6 @@ body[data-login-mode='signup'] .lig-login-title {
     font-weight: 600;
     line-height: 1.2;
     cursor: pointer;
-    text-align: left;
     transition:
         border-color 0.18s ease,
         background 0.18s ease,
@@ -9139,34 +9139,46 @@ body[data-login-mode='signup'] .lig-login-title {
 
 .lig-login-oauth-btn--google {
     background: #fff;
-    border-color: rgba(0, 0, 0, 0.08);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    border-color: #dadce0;
+    color: #3c4043;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    box-shadow: none;
 }
 
 [data-theme='dark'] .lig-login-oauth-btn--google {
-    background: color-mix(in srgb, var(--lig-surface) 88%, #fff);
-    border-color: var(--lig-border);
+    background: #fff;
+    border-color: #dadce0;
+    color: #3c4043;
 }
 
-.lig-login-oauth-btn__brand {
+.lig-login-oauth-btn__content {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.5rem;
-    background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    flex-shrink: 0;
+    gap: 0.625rem;
+    pointer-events: none;
 }
 
 .lig-login-oauth-btn--google .lig-login-google-icon {
     width: 1.125rem;
     height: 1.125rem;
+    flex-shrink: 0;
 }
 
 .lig-login-oauth-btn__label {
-    min-width: 0;
+    white-space: nowrap;
+}
+
+.lig-login-oauth-btn--google:hover {
+    border-color: #d2d4d7;
+    background: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.1);
+}
+
+.lig-login-oauth-btn--google:active {
+    background: #f1f3f4;
+    transform: scale(0.99);
 }
 
 .lig-login-divider--compact {
@@ -9175,12 +9187,12 @@ body[data-login-mode='signup'] .lig-login-title {
     letter-spacing: 0.08em;
 }
 
-.lig-login-oauth-btn:hover {
+.lig-login-oauth-btn:not(.lig-login-oauth-btn--google):hover {
     border-color: rgba(247, 213, 60, 0.35);
     background: var(--lig-yellow-light);
 }
 
-.lig-login-oauth-btn:active {
+.lig-login-oauth-btn:not(.lig-login-oauth-btn--google):active {
     transform: scale(0.985);
 }
 
@@ -9257,6 +9269,33 @@ body[data-login-mode='signup'] .lig-login-title {
     margin-bottom: 0;
 }
 
+.lig-login-signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    width: 100%;
+}
+
+.lig-signup-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.lig-signup-field__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--lig-text-muted);
+}
+
+#login-mode-signup .lig-login-setup__input--flat {
+    margin-bottom: 0;
+}
+
+#login-mode-signup .lig-login-setup__save--flat {
+    margin-top: 0.375rem;
+}
+
 #login-mode-signup .lig-signup-ask {
     margin: 0 0 0.625rem;
     font-size: 0.9375rem;
@@ -9330,8 +9369,7 @@ body[data-login-mode='signup'] .lig-login-title {
 }
 
 .lig-login-google-btn:hover,
-.lig-login-phone-btn:hover,
-.lig-login-oauth-btn:hover {
+.lig-login-phone-btn:hover {
     border-color: rgba(247, 213, 60, 0.35);
     background: var(--lig-yellow-light);
 }
@@ -9339,7 +9377,6 @@ body[data-login-mode='signup'] .lig-login-title {
 .lig-login-google-proxy {
     position: relative;
     overflow: hidden;
-    padding: 0;
     isolation: isolate;
 }
 

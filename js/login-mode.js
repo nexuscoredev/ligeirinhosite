@@ -18,7 +18,7 @@
         },
         signup: {
             title: 'Cadastro',
-            sub: 'Preencha seus dados para criar sua conta',
+            sub: 'Dados da sua empresa',
         },
     };
 

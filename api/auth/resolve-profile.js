@@ -130,10 +130,14 @@ export default async function handler(req, res) {
         if (type === 'phone') {
             const phone = String(body.phone || '').trim();
             const name = String(body.name || '').trim();
+            const cnpj = String(body.cnpj || '').replace(/\D/g, '').slice(0, 14);
             if (!phone || name.length < 2) {
-                return res.status(400).json({ error: 'Telefone e nome são obrigatórios.' });
+                return res.status(400).json({ error: 'WhatsApp e nome da empresa são obrigatórios.' });
             }
-            const profile = await resolveProfileByPhone(hub, phone, name);
+            if (cnpj.length !== 14) {
+                return res.status(400).json({ error: 'Informe um CNPJ válido.' });
+            }
+            const profile = await resolveProfileByPhone(hub, phone, name, { cnpj });
             return res.status(200).json({ profile: publicProfile(profile) });
         }
 
