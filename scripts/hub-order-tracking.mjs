@@ -122,11 +122,11 @@ export function buildOrderTracking(order, hubPedido = null) {
             order?.status === 'pending' &&
             (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus),
         steps: [
-            { id: 'sent', icon: 'outbox', label: 'Enviado' },
-            { id: 'accept', icon: 'verified', label: 'Aceite' },
-            { id: 'prep', icon: 'inventory_2', label: 'Separação' },
+            { id: 'sent', icon: 'send', label: 'Enviado' },
+            { id: 'accept', icon: 'check_circle', label: 'Aceite' },
+            { id: 'prep', icon: 'package_2', label: 'Separação' },
             { id: 'route', icon: 'local_shipping', label: 'Rota' },
-            { id: 'done', icon: 'home_pin', label: 'Entregue' },
+            { id: 'done', icon: 'home', label: 'Entregue' },
         ],
     };
 }

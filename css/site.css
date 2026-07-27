@@ -12147,18 +12147,19 @@ html.lig-promo-notice-open body {
 .order-track__timeline {
     position: relative;
     margin-bottom: 1rem;
-    padding: 0.15rem 0 0.25rem;
+    padding: 0.2rem 0 0.15rem;
 }
 
 .order-track__timeline-bar {
     position: absolute;
-    top: 1.2rem;
-    left: 10%;
-    right: 10%;
-    height: 3px;
-    background: color-mix(in srgb, var(--lig-border) 85%, transparent);
+    top: 1.25rem;
+    left: calc(10% + 0.15rem);
+    right: calc(10% + 0.15rem);
+    height: 2px;
+    background: color-mix(in srgb, var(--lig-border) 90%, transparent);
     border-radius: 999px;
     overflow: hidden;
+    z-index: 0;
 }
 
 .order-track__timeline-bar::after {
@@ -12166,7 +12167,7 @@ html.lig-promo-notice-open body {
     display: block;
     height: 100%;
     width: var(--order-track-progress, 0%);
-    background: linear-gradient(90deg, #1a1a1a 0%, #333 100%);
+    background: #1a1a1a;
     border-radius: inherit;
     transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -12177,7 +12178,7 @@ html.lig-promo-notice-open body {
     padding: 0;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.15rem;
+    gap: 0.2rem;
     position: relative;
     z-index: 1;
 }
@@ -12186,80 +12187,94 @@ html.lig-promo-notice-open body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     text-align: center;
     min-width: 0;
 }
 
-.order-track__step-icon {
-    width: 2.4rem;
-    height: 2.4rem;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    line-height: 1;
+.order-track__step-badge {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
     background: var(--lig-surface);
     border: 2px solid var(--lig-border);
     color: var(--lig-text-muted);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
     transition:
         background 0.25s ease,
         border-color 0.25s ease,
         color 0.25s ease,
-        box-shadow 0.25s ease,
-        transform 0.25s ease;
+        box-shadow 0.25s ease;
+}
+
+.order-track__step-glyph {
+    display: block;
+    width: 1.2rem;
+    height: 1.2rem;
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+    text-align: center;
+    overflow: hidden;
+    speak: never;
+    font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+    /* Material Symbols costuma “subir” no círculo — correção óptica */
+    transform: translateY(0.06em);
 }
 
 .order-track__step-label {
-    font-size: 0.6rem;
+    font-size: 0.625rem;
     font-weight: 700;
     letter-spacing: 0.01em;
     color: var(--lig-text-muted);
-    line-height: 1.15;
+    line-height: 1.2;
     max-width: 100%;
-    padding: 0 0.1rem;
-    overflow-wrap: anywhere;
+    padding: 0 0.05rem;
 }
 
-.order-track__step--done .order-track__step-icon {
+.order-track__step--done .order-track__step-badge {
     background: #1a1a1a;
     border-color: #1a1a1a;
     color: #fff;
-    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }
 
-.order-track__step--active .order-track__step-icon {
+.order-track__step--done .order-track__step-glyph {
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+}
+
+.order-track__step--active .order-track__step-badge {
     background: #1a1a1a;
     border-color: #1a1a1a;
     color: #fff;
-    box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.45);
-    transform: scale(1.06);
-    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+    box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.5);
 }
 
-.order-track__step--done .order-track__step-label {
+.order-track__step--active .order-track__step-glyph {
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 20;
+}
+
+.order-track__step--done .order-track__step-label,
+.order-track__step--active .order-track__step-label {
     color: var(--lig-text);
 }
 
 .order-track__step--active .order-track__step-label {
-    color: var(--lig-text);
     font-weight: 800;
 }
 
-[data-theme='dark'] .order-track__step--done .order-track__step-icon,
-[data-theme='dark'] .order-track__step--active .order-track__step-icon,
-html.dark .order-track__step--done .order-track__step-icon,
-html.dark .order-track__step--active .order-track__step-icon {
+[data-theme='dark'] .order-track__step--done .order-track__step-badge,
+[data-theme='dark'] .order-track__step--active .order-track__step-badge,
+html.dark .order-track__step--done .order-track__step-badge,
+html.dark .order-track__step--active .order-track__step-badge {
     background: var(--lig-yellow);
     border-color: var(--lig-yellow);
     color: #1a1a1a;
 }
 
-[data-theme='dark'] .order-track__step--active .order-track__step-icon,
-html.dark .order-track__step--active .order-track__step-icon {
+[data-theme='dark'] .order-track__step--active .order-track__step-badge,
+html.dark .order-track__step--active .order-track__step-badge {
     box-shadow: 0 0 0 3px rgba(247, 213, 60, 0.28);
 }
 

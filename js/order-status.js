@@ -109,7 +109,9 @@ ${steps
     .map((step, index) => {
         const state = index < active ? 'done' : index === active ? 'active' : 'pending';
         return `<li class="order-track__step order-track__step--${state}">
-<span class="material-symbols-outlined order-track__step-icon" aria-hidden="true">${esc(step.icon)}</span>
+<span class="order-track__step-badge" aria-hidden="true">
+<span class="material-symbols-outlined order-track__step-glyph">${esc(step.icon)}</span>
+</span>
 <span class="order-track__step-label">${esc(step.label)}</span>
 </li>`;
     })
