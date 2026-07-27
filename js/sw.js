@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-const CACHE_NAME = 'ligeirinho-app-v464';
-=======
-const CACHE_NAME = 'ligeirinho-app-v462';
->>>>>>> 7601d68 (feat(precos): aplica tabela de preco do cliente no catalogo Parceiros)
+const CACHE_NAME = 'ligeirinho-app-v465';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
