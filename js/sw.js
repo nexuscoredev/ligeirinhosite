@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v465';
+const CACHE_NAME = 'ligeirinho-app-v466';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -11,6 +11,9 @@ const NETWORK_FIRST_STATIC = new Set([
     '/js/conta.js',
     '/js/totem.js',
     '/js/totem-pwa-update.js',
+    '/js/product-pricing.js',
+    '/js/catalog-loader.js',
+    '/js/totem-store-admin.js',
     '/css/totem.css',
     '/manifest.webmanifest',
 ]);

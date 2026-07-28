@@ -836,16 +836,23 @@ ${qtyLine}`;
         if (tiers.length <= 1) {
             return '<div class="ze-price-tiers-slot ze-price-tiers-slot--spacer" aria-hidden="true"></div>';
         }
+        const shortLabel = (tier) => {
+            if (tier === 'unidade') return 'UN';
+            if (tier === 'caixa') return 'CX';
+            if (tier === 'pallet') return 'PL';
+            return (
+                pricing.TIER_SHORT?.[tier]?.toUpperCase()?.replace(/\.$/, '') ||
+                pricing.TIER_LABELS?.[tier]?.toUpperCase() ||
+                String(tier).toUpperCase()
+            );
+        };
         const buttons = tiers
             .map((tier) => {
                 const active = tier === activeTier;
                 const variant = pricing.getVariant(group, tier);
                 const cartKey = variant ? catalog.cartKeyFor(variant) : '';
                 const offer = resolvePromoOffer(cartKey, group.key, tier);
-                const label =
-                    pricing.TIER_SHORT?.[tier]?.toUpperCase() ||
-                    pricing.TIER_LABELS?.[tier]?.toUpperCase() ||
-                    String(tier).toUpperCase();
+                const label = shortLabel(tier);
                 const promoClass = offer?.promoId ? ' ze-price-tier--promo' : '';
                 const promoMark = offer?.promoId
                     ? `<span class="ze-price-tier__promo">${offer.discountPct > 0 ? `-${offer.discountPct}%` : 'PROMO'}</span>`
@@ -1023,6 +1030,23 @@ ${unitHtml}
         const packTag = card.querySelector('.totem-product__pack-tag');
         packTag?.remove();
 
+        const expectedTiers = (
+            pricing.getTotemAvailableTiers?.(group) ||
+            pricing.getAvailableTiers(group) ||
+            []
+        ).filter((entry) => !window.LigeirinhoTotemStoreAdmin?.isTierHidden?.(group, entry));
+        const tierSlot = card.querySelector('.ze-price-tiers-slot');
+        const tierBtns = card.querySelectorAll('.ze-price-tier[data-price-tier]');
+        const domTiers = [...tierBtns].map((btn) => btn.dataset.priceTier).filter(Boolean);
+        const tiersMismatch =
+            expectedTiers.length !== domTiers.length ||
+            expectedTiers.some((entry) => !domTiers.includes(entry));
+        const spacerExpected = expectedTiers.length <= 1;
+        const spacerActual = Boolean(tierSlot?.classList.contains('ze-price-tiers-slot--spacer'));
+        if (tierSlot && (tiersMismatch || spacerExpected !== spacerActual)) {
+            tierSlot.outerHTML = priceTiersHtml(group, tier);
+        }
+
         const minus = card.querySelector('.totem-minus');
         const plus = card.querySelector('.totem-plus');
         const qtyEl = card.querySelector('.totem-qty-value');
@@ -1036,7 +1060,7 @@ ${unitHtml}
         }
         if (qtyEl) qtyEl.textContent = String(qty);
 
-        card.querySelectorAll('.ze-price-tier').forEach((btn) => {
+        card.querySelectorAll('.ze-price-tier[data-price-tier]').forEach((btn) => {
             const btnTier = btn.dataset.priceTier;
             const isActive = btnTier === tier;
             const btnVariant = pricing.getVariant(group, btnTier);

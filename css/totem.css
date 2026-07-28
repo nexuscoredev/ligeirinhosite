@@ -3387,7 +3387,8 @@ body.totem-keyboard-customer .totem-vk__row--actions {
 }
 
 html.totem--kiosk.totem--landscape .totem-grid--grid-s {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    /* 8 colunas deixava o card estreito demais e o UN sumia no seletor UN/CX */
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 0.55rem;
 }
 
@@ -3903,7 +3904,7 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
     min-width: 0;
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
     box-sizing: border-box;
 }
 
@@ -3946,27 +3947,34 @@ html.totem--kiosk.totem--landscape :is(.totem-grid--grid-s, .totem-grid--grid-m,
 
 .totem-product .ze-price-tiers {
     display: flex;
+    align-items: stretch;
+    flex-wrap: nowrap;
     gap: 0.15rem;
     width: 100%;
+    height: auto;
+    min-height: 1.85rem;
     padding: 0.15rem;
     border-radius: 999px;
     background: var(--lig-tier-track-bg, #ececec);
     border: 1px solid var(--lig-tier-track-border, rgba(20, 18, 15, 0.08));
     box-sizing: border-box;
+    overflow: visible;
 }
 
 .totem-product .ze-price-tier {
-    flex: 1;
-    min-width: 0;
-    min-height: 1.95rem;
-    padding: 0.35rem 0.4rem;
-    gap: 0.28rem;
+    flex: 1 1 0;
+    min-width: 2.1rem;
+    min-height: 1.85rem;
+    height: auto;
+    padding: 0.3rem 0.28rem;
+    gap: 0.2rem;
     font-size: 0.58rem;
     font-weight: 800;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     line-height: 1;
     white-space: nowrap;
+    overflow: visible;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -6417,7 +6425,7 @@ html.totem--kiosk.totem--landscape .totem-products {
 }
 
 html.totem--tablet.totem--landscape .totem-grid--grid-s {
-    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
     gap: 0.55rem;
 }
 
@@ -6429,6 +6437,26 @@ html.totem--tablet.totem--landscape .totem-grid--grid-m {
 html.totem--tablet.totem--landscape .totem-grid--grid-l {
     grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
     gap: 0.85rem;
+}
+
+/* Grid compacto: seletor UN/CX precisa caber sem cortar a UN */
+:is(.totem-grid--grid-s, .totem-grid--grid-m) .totem-product .ze-price-tier {
+    min-width: 2rem;
+    font-size: 0.55rem;
+    padding: 0.28rem 0.18rem;
+    letter-spacing: 0.01em;
+}
+
+.totem-product__pricing {
+    overflow: visible;
+}
+
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product {
+    overflow: visible;
+}
+
+:is(.totem-grid--grid-s, .totem-grid--grid-m, .totem-grid--grid-l) .totem-product__media {
+    overflow: hidden;
 }
 
 /* Carrinho lateral em landscape (tablet/phone) */

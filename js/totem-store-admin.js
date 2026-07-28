@@ -32,7 +32,7 @@
 
     const isTotemAdmin = () => Boolean(deps.session?.()?.totemAdmin);
 
-    const pricing = () => deps.pricing || window.LigeirinhoProductPricing;
+    const pricing = () => deps.pricing || window.LigeirinhoPricing;
     const catalog = () => deps.catalog || window.LigeirinhoCatalog;
 
     const getHiddenIds = () => Array.from(storeHiddenIds);
@@ -371,7 +371,8 @@
         closeDeactivateModal();
         bindEvents();
         updateAdminChrome();
-        if (isTotemAdmin()) await loadHidden();
+        // Ocultos da loja precisam valer para qualquer sessão do totem (não só admin).
+        await loadHidden();
     };
 
     window.LigeirinhoTotemStoreAdmin = {

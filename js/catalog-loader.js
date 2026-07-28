@@ -3,20 +3,26 @@
     const API_ME_URL = '/api/catalog/me';
     const FALLBACK_URL = '/data/catalogo.json';
     const CLIENT_TTL_MS = 5 * 60 * 1000;
-    const STORAGE_KEY = 'ligeirinho-catalog-cache-v2';
+    const STORAGE_KEY = 'ligeirinho-catalog-cache-v3';
 
     let cache = null;
     let cacheAt = 0;
     let inflight = null;
     let lastScope = 'public';
 
-    const buildScope = (personalized, data) => {
-        if (!personalized) return 'public';
+    const apiScopePart = (apiUrl = '') =>
+        String(apiUrl || '')
+            .replace(/\?.*$/, '')
+            .replace(/\/+$/, '') || 'default';
+
+    const buildScope = (personalized, data, apiUrl = '') => {
+        const apiPart = apiScopePart(apiUrl);
+        if (!personalized) return `public:${apiPart}`;
         const tableKey = data?.priceTableId || data?.priceTableCodigo || 'custom';
         const auth = window.LigeirinhoAuth;
         const session = auth?.loadSession?.();
         const userKey = session?.hubUserId || session?.sub || 'user';
-        return `me:${userKey}:${tableKey}`;
+        return `me:${userKey}:${tableKey}:${apiPart}`;
     };
 
     const resolveEndpoint = (options = {}) => {
@@ -103,7 +109,8 @@
         const force = Boolean(options.force);
         const endpoint = resolveEndpoint(options);
         const apiUrl = endpoint.url;
-        let scope = endpoint.personalized ? 'me-pending' : 'public';
+        const publicScope = `public:${apiScopePart(apiUrl)}`;
+        let scope = endpoint.personalized ? 'me-pending' : publicScope;
         const now = Date.now();
 
         if (!force && cache && lastScope === scope && scope !== 'me-pending' && now - cacheAt < CLIENT_TTL_MS) {
@@ -114,12 +121,12 @@
             return inflight;
         }
 
-        if (!force && scope === 'public') {
-            const stored = readStorageCache('public');
+        if (!force && !endpoint.personalized) {
+            const stored = readStorageCache(publicScope);
             if (stored) {
                 cache = stored;
                 cacheAt = Date.now();
-                lastScope = 'public';
+                lastScope = publicScope;
                 return stored;
             }
         }
@@ -144,7 +151,7 @@
                 if (res.ok) {
                     const data = await res.json();
                     if (data?.categories?.length) {
-                        scope = buildScope(endpoint.personalized, data);
+                        scope = buildScope(endpoint.personalized, data, apiUrl);
                         cache = data;
                         cacheAt = Date.now();
                         lastScope = scope;
@@ -177,7 +184,7 @@
                 return load({ ...options, force, apiUrl: API_URL });
             }
 
-            return loadPublicFallback(apiUrl, scope);
+            return loadPublicFallback(apiUrl, publicScope);
         })();
 
         try {

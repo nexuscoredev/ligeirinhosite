@@ -603,14 +603,14 @@
                 productCount += (cat.products || []).length;
             });
             const cacheKey = `${stamp}|${productCount}`;
-            if (
+            const cached = window.__ligProductGroups;
+            const cachedOk =
                 cacheKey &&
                 cacheKey === window.__ligProductGroupsKey &&
-                Array.isArray(window.__ligProductGroups) &&
-                window.__ligProductGroups.length
-            ) {
-                return window.__ligProductGroups;
-            }
+                cached &&
+                typeof cached.get === 'function' &&
+                (typeof cached.size === 'number' ? cached.size > 0 : true);
+            if (cachedOk) return cached;
             const groups = buildGroups(catalogData);
             window.__ligProductGroups = groups;
             window.__ligProductGroupsKey = cacheKey;
