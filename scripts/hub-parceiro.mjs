@@ -3,6 +3,7 @@ import { hubConfig } from './hub-auth.mjs';
 import {
     clienteParceirosFromPessoa,
     deliveryDateOptions,
+    isDistribuidoraCnpj,
     resolveParceiroClienteFields,
     rotuloDiasEntrega,
 } from './parceiro-delivery.mjs';
@@ -485,7 +486,9 @@ export async function buildParceiroExtrasFromPessoa(config, pessoa) {
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
         paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
-        deliveryDateOptions: deliveryDateOptions(datasEntrega),
+        deliveryDateOptions: deliveryDateOptions(datasEntrega, {
+            allowSameDay: isDistribuidoraCnpj(cnpjDigits),
+        }),
         razaoSocial: pessoa.nome_fantasia || pessoa.nome || '',
     };
 }
@@ -707,7 +710,9 @@ export async function buildParceiroExtras(config, usuario) {
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
         paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
-        deliveryDateOptions: deliveryDateOptions(datasEntrega),
+        deliveryDateOptions: deliveryDateOptions(datasEntrega, {
+            allowSameDay: isDistribuidoraCnpj(cnpjDigits),
+        }),
         razaoSocial: pessoa.nome_fantasia || pessoa.nome || '',
     };
 }

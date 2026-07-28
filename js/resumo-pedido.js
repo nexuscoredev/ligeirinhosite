@@ -162,13 +162,19 @@
         return { units: Number(units) || 0, subtotal, deliveryFee, total };
     };
 
+    const deliveryDateOpts = () => {
+        const s = session();
+        const cnpj = String(s?.cnpj || s?.login || '').replace(/\D/g, '');
+        return { allowSameDay: deliveryApi?.isDistribuidoraCnpj?.(cnpj) ?? false };
+    };
+
     const deliveryOptions = () => {
         const dias = session()?.datasEntrega || [];
         const checkout = loadCheckoutState();
         const fee = feeApi()?.resolveFee?.(session(), checkout) ?? 0;
         const priceLabel = feeApi()?.feeLabel?.(fee, formatPrice) ?? 'Grátis';
         const base =
-            deliveryApi?.deliveryDateOptions?.(dias) ||
+            deliveryApi?.deliveryDateOptions?.(dias, deliveryDateOpts()) ||
             [];
         return base.map((opt) => ({ ...opt, priceLabel }));
     };
@@ -177,7 +183,8 @@
         const checkout = cartApi.loadCheckout();
         if (!checkout.deliveryDate) return;
         const dias = session()?.datasEntrega || [];
-        if (deliveryApi?.isDeliveryDateAllowed && !deliveryApi.isDeliveryDateAllowed(checkout.deliveryDate, dias)) {
+        const opts = deliveryDateOpts();
+        if (deliveryApi?.isDeliveryDateAllowed && !deliveryApi.isDeliveryDateAllowed(checkout.deliveryDate, dias, opts)) {
             cartApi.saveCheckout({ deliveryDate: '' });
         }
     };
