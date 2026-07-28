@@ -46,6 +46,8 @@ const PREP_STATUSES = new Set([
     'separando',
     'aceito',
     'em_preparacao',
+    /* Aceite no Hub (Validar pedido Parceiros) — antes da fila de separação. */
+    'em_andamento',
 ]);
 
 const DONE_STATUSES = new Set(['entregue', 'concluido', 'finalizado', 'entrega_concluida']);
@@ -79,6 +81,10 @@ export function buildOrderTracking(order, hubPedido = null) {
             hubStatus === 'proximo_entrega'
                 ? 'Seu pedido é o próximo a ser entregue!'
                 : 'Seu pedido saiu para entrega.';
+    } else if (hubStatus === 'em_andamento') {
+        step = 2;
+        stepLabel = 'Aceito';
+        message = 'Seu pedido foi aceito e já está em andamento no Ligeirinho.';
     } else if (PREP_STATUSES.has(hubStatus)) {
         step = 2;
         stepLabel = 'Em separação';
@@ -113,7 +119,11 @@ export function buildOrderTracking(order, hubPedido = null) {
         hubPedidoId: hubPedido?.id ?? order?.hubPedidoId ?? null,
         step,
         stepLabel,
-        headerTitle: cancelled ? 'Pedido cancelado' : headerTitleByStep[step] || stepLabel,
+        headerTitle: cancelled
+            ? 'Pedido cancelado'
+            : hubStatus === 'em_andamento'
+              ? 'Pedido aceito'
+              : headerTitleByStep[step] || stepLabel,
         message,
         cancelled,
         canCancel:
