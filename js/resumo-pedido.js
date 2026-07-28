@@ -512,25 +512,26 @@ ${cardHtml(
                 pickerDateError = '';
                 pickerDateInitialized = true;
             }
-            const shortWeekday = (w) => {
-                const s = String(w || '').trim();
-                if (!s) return '';
-                return s.length > 3 ? `${s.slice(0, 3)}.` : s;
+            const formatDateLabel = (iso, fallback) => {
+                const [y, m, d] = String(iso || '').split('-').map(Number);
+                if (!y || !m || !d) return fallback || '';
+                const date = new Date(y, m - 1, d, 12);
+                return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
             };
             const isFreeLabel = (label) => /^gr[aá]tis$/i.test(String(label || '').trim());
-            const showFeeColumn = options.some((opt) => !isFreeLabel(opt.priceLabel));
             const dateRows = options
                 .map(
                     (opt) => {
                         const feeFree = isFreeLabel(opt.priceLabel);
                         const active = pickerSelectedDate === opt.value;
+                        const feeLabel = opt.priceLabel || 'Grátis';
                         return `<button type="button" class="resumo-date-row${active ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${active ? 'true' : 'false'}">
 <span class="resumo-date-row__radio" aria-hidden="true"></span>
 <span class="resumo-date-row__copy">
-<strong class="resumo-date-row__date">${esc(opt.label)}</strong>
-<span class="resumo-date-row__weekday">${esc(shortWeekday(opt.weekday))}</span>
+<strong class="resumo-date-row__date">${esc(formatDateLabel(opt.value, opt.label))}</strong>
+<span class="resumo-date-row__weekday">${esc(opt.weekday)}</span>
 </span>
-${showFeeColumn ? `<span class="resumo-date-row__fee${feeFree ? ' resumo-date-row__fee--free' : ''}">${esc(opt.priceLabel)}</span>` : ''}
+<span class="resumo-date-row__fee${feeFree ? ' resumo-date-row__fee--free' : ''}">${esc(feeLabel)}</span>
 </button>`;
                     },
                 )
