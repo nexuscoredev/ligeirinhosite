@@ -12324,8 +12324,10 @@ html.lig-promo-notice-open body {
     display: grid;
     gap: 0.5rem;
     width: 100%;
+    padding: 0.125rem 0.25rem;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
 }
@@ -12343,11 +12345,11 @@ html.lig-promo-notice-open body {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    width: 100%;
-    max-width: 26rem;
+    width: min(100%, 26rem);
     margin: 0 auto;
     flex: 1;
     min-height: 0;
+    box-sizing: border-box;
 }
 
 .resumo-date-panel .resumo-date-confirm {
@@ -12355,6 +12357,7 @@ html.lig-promo-notice-open body {
     justify-content: space-between;
     min-height: 3rem;
     padding: 0.65rem 0.75rem 0.65rem 1rem;
+    box-sizing: border-box;
 }
 
 .resumo-date-row {
@@ -12372,10 +12375,9 @@ html.lig-promo-notice-open body {
     cursor: pointer;
     transition:
         border-color 0.15s ease,
-        background 0.15s ease,
-        box-shadow 0.15s ease;
+        background 0.15s ease;
     position: relative;
-    box-shadow: var(--lig-shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
+    box-sizing: border-box;
 }
 
 .resumo-date-row:last-child {
@@ -12387,10 +12389,15 @@ html.lig-promo-notice-open body {
     background: var(--lig-yellow-light);
 }
 
-.resumo-date-row--active {
+.resumo-date-row--active:hover {
     border-color: #1a1a1a;
+    border-width: 2px;
+}
+
+.resumo-date-row--active {
+    border: 2px solid #1a1a1a;
     background: rgba(247, 213, 60, 0.16);
-    box-shadow: 0 0 0 1px #1a1a1a;
+    padding: calc(0.8rem - 1px) calc(1rem - 1px);
 }
 
 .resumo-date-row--active::before {
@@ -12589,6 +12596,7 @@ html.lig-promo-notice-open body {
 
 .resumo-content--picker-date {
     align-items: center;
+    padding-inline: max(1.25rem, env(safe-area-inset-left, 0px)) max(1.25rem, env(safe-area-inset-right, 0px));
 }
 
 .resumo-content--picker-date .resumo-picker-lead {
@@ -12596,6 +12604,7 @@ html.lig-promo-notice-open body {
     max-width: 26rem;
     margin: 0 auto;
     text-align: center;
+    padding-inline: 0.25rem;
 }
 
 .resumo-picker-stack--date {
@@ -12603,6 +12612,7 @@ html.lig-promo-notice-open body {
     width: 100%;
     flex: 1;
     min-height: 0;
+    overflow: visible;
 }
 
 .resumo-picker-stack--date .resumo-date-list {
