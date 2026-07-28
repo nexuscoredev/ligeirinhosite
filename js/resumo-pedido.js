@@ -527,11 +527,13 @@ ${cardHtml(
                         const feeLabel = opt.priceLabel || 'Grátis';
                         return `<button type="button" class="resumo-date-row${active ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${active ? 'true' : 'false'}">
 <span class="resumo-date-row__radio" aria-hidden="true"></span>
+<span class="resumo-date-row__main">
 <span class="resumo-date-row__copy">
 <strong class="resumo-date-row__date">${esc(formatDateLabel(opt.value, opt.label))}</strong>
 <span class="resumo-date-row__weekday">${esc(opt.weekday)}</span>
 </span>
 <span class="resumo-date-row__fee${feeFree ? ' resumo-date-row__fee--free' : ''}">${esc(feeLabel)}</span>
+</span>
 </button>`;
                     },
                 )

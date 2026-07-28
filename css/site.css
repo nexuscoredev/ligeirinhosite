@@ -12323,6 +12323,8 @@ html.lig-promo-notice-open body {
 .resumo-date-list {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 21rem;
     border: 1px solid var(--lig-border);
     border-radius: 0.875rem;
     background: var(--lig-surface);
@@ -12345,7 +12347,7 @@ html.lig-promo-notice-open body {
 .resumo-date-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.625rem;
     width: 100%;
     min-height: 3.25rem;
     padding: 0.75rem 0.875rem;
@@ -12397,8 +12399,16 @@ html.lig-promo-notice-open body {
     box-shadow: inset 0 0 0 2px var(--lig-yellow);
 }
 
+.resumo-date-row__main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
 .resumo-date-row__copy {
-    flex: 1;
+    flex: 0 1 auto;
     min-width: 0;
     display: flex;
     flex-direction: column;
