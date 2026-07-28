@@ -34,16 +34,27 @@
 
     const currentPage = () => document.body?.dataset?.page || '';
 
+    const CHECKOUT_FLOW_PAGES = new Set([
+        'caminhao',
+        'resumo-pedido',
+        'data-entrega',
+        'resumo',
+        'metodo-pagamento',
+        'pagamento',
+        'pedido',
+    ]);
+
     const guardPageAccess = () => {
         const page = currentPage();
         const session = auth.loadSession();
 
-        if (session?.mustChangePassword && auth.getHubAccessToken) {
+        if (session?.mustChangePassword) {
             const hash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
             const onPasswordScreen =
                 page === 'conta' && (hash === 'senha' || hash.startsWith('senha'));
             const onLogin = page === 'login';
-            if (!onPasswordScreen && !onLogin) {
+            const onCheckoutFlow = CHECKOUT_FLOW_PAGES.has(page);
+            if (!onPasswordScreen && !onLogin && !onCheckoutFlow) {
                 window.location.replace(`${PASSWORD_HOME}?primeiro=1`);
                 return false;
             }
