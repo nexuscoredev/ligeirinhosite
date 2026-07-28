@@ -209,6 +209,9 @@
     let pickerPaymentAmounts = {};
     let pickerPaymentError = '';
     let pickerPaymentInitialized = false;
+    let pickerSelectedDate = '';
+    let pickerDateError = '';
+    let pickerDateInitialized = false;
 
     const splitsApi = () => window.LigeirinhoPaymentSplits;
 
@@ -504,6 +507,11 @@ ${cardHtml(
         let body = '';
         const options = deliveryOptions();
         if (pickerMode === 'date') {
+            if (!pickerDateInitialized) {
+                pickerSelectedDate = checkout.deliveryDate || options[0]?.value || '';
+                pickerDateError = '';
+                pickerDateInitialized = true;
+            }
             const shortWeekday = (w) => {
                 const s = String(w || '').trim();
                 if (!s) return '';
@@ -511,11 +519,12 @@ ${cardHtml(
             };
             const isFreeLabel = (label) => /^gr[aá]tis$/i.test(String(label || '').trim());
             const showFeeColumn = options.some((opt) => !isFreeLabel(opt.priceLabel));
-            body = options
+            const dateRows = options
                 .map(
                     (opt) => {
                         const feeFree = isFreeLabel(opt.priceLabel);
-                        return `<button type="button" class="resumo-date-row${checkout.deliveryDate === opt.value ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${checkout.deliveryDate === opt.value ? 'true' : 'false'}">
+                        const active = pickerSelectedDate === opt.value;
+                        return `<button type="button" class="resumo-date-row${active ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${active ? 'true' : 'false'}">
 <span class="resumo-date-row__radio" aria-hidden="true"></span>
 <span class="resumo-date-row__copy">
 <strong class="resumo-date-row__date">${esc(opt.label)}</strong>
@@ -526,6 +535,16 @@ ${showFeeColumn ? `<span class="resumo-date-row__fee${feeFree ? ' resumo-date-ro
                     },
                 )
                 .join('');
+            body = `<div class="resumo-picker-stack">
+<div class="resumo-date-list">${dateRows}</div>
+${pickerDateError ? `<p class="resumo-error resumo-picker-error">${esc(pickerDateError)}</p>` : ''}
+<div class="resumo-picker-stack__footer">
+<button type="button" class="resumo-confirm-btn resumo-date-confirm" id="resumo-date-confirm"${pickerSelectedDate ? '' : ' disabled'}>
+<span>Confirmar data</span>
+<span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>`;
         } else {
             if (!pickerPaymentInitialized) {
                 initPickerPaymentState(checkout, total);
@@ -580,18 +599,36 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
 ${headerHtml(title)}
 <div class="resumo-content resumo-content--picker">
 <p class="resumo-picker-lead">${esc(pickerLead)}</p>
-${pickerMode === 'date' ? `<div class="resumo-date-list">${body}</div>` : body}
+${body}
 </div>
 </div>`;
 
         bindBack('resumo');
         root.querySelectorAll('[data-pick-date]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                cartApi.saveCheckout({ deliveryDate: btn.dataset.pickDate });
-                step = 'picker';
-                pickerMode = 'payment';
-                render();
+                pickerSelectedDate = btn.dataset.pickDate || '';
+                pickerDateError = '';
+                renderPicker();
             });
+        });
+        root.querySelector('#resumo-date-confirm')?.addEventListener('click', () => {
+            if (!pickerSelectedDate) {
+                pickerDateError = 'Selecione uma data de entrega.';
+                renderPicker();
+                return;
+            }
+            if (!options.some((opt) => opt.value === pickerSelectedDate)) {
+                pickerDateError = 'Selecione uma data de entrega válida.';
+                renderPicker();
+                return;
+            }
+            cartApi.saveCheckout({ deliveryDate: pickerSelectedDate });
+            pickerDateError = '';
+            pickerDateInitialized = false;
+            step = 'picker';
+            pickerMode = 'payment';
+            pickerPaymentInitialized = false;
+            render();
         });
         root.querySelectorAll('[data-toggle-payment]').forEach((btn) => {
             btn.addEventListener('click', () => {
@@ -725,6 +762,9 @@ ${pickerMode === 'date' ? `<div class="resumo-date-list">${body}</div>` : body}
                 step = 'resumo';
                 pickerMode = null;
                 pickerPaymentInitialized = false;
+                pickerDateInitialized = false;
+                pickerSelectedDate = '';
+                pickerDateError = '';
                 render();
                 return;
             }

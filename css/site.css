@@ -12571,6 +12571,12 @@ html.lig-promo-notice-open body {
     padding-top: 0.375rem;
 }
 
+.resumo-picker-stack .resumo-date-list {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+}
+
 .resumo-picker-error {
     margin: 0;
     font-size: 0.8125rem;
@@ -12652,7 +12658,8 @@ html.lig-promo-notice-open body {
     display: grid;
 }
 
-.resumo-payment-confirm {
+.resumo-payment-confirm,
+.resumo-date-confirm {
     margin-top: 0;
     width: 100%;
     justify-content: space-between;
