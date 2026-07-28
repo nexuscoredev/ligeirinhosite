@@ -12321,14 +12321,9 @@ html.lig-promo-notice-open body {
 }
 
 .resumo-date-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    gap: 0.5rem;
     width: 100%;
-    max-width: 21rem;
-    border: 1px solid var(--lig-border);
-    border-radius: 0.875rem;
-    background: var(--lig-surface);
-    overflow: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
@@ -12344,44 +12339,62 @@ html.lig-promo-notice-open body {
     border-radius: 999px;
 }
 
+.resumo-date-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.resumo-date-panel .resumo-date-confirm {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: 0.65rem 0.75rem 0.65rem 1rem;
+}
+
 .resumo-date-row {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.75rem;
     width: 100%;
-    min-height: 3.25rem;
-    padding: 0.75rem 0.875rem;
-    border: 0;
-    border-bottom: 1px solid var(--lig-border);
-    background: transparent;
+    min-height: 3.5rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--lig-border);
+    border-radius: 0.875rem;
+    background: var(--lig-surface);
     color: var(--lig-text);
     text-align: left;
     cursor: pointer;
-    transition: background 0.12s ease;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease;
     position: relative;
+    box-shadow: var(--lig-shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
 }
 
 .resumo-date-row:last-child {
-    border-bottom: 0;
+    border-bottom: 1px solid var(--lig-border);
 }
 
 .resumo-date-row:hover {
+    border-color: rgba(0, 0, 0, 0.18);
     background: var(--lig-yellow-light);
 }
 
 .resumo-date-row--active {
-    background: rgba(247, 213, 60, 0.2);
+    border-color: #1a1a1a;
+    background: rgba(247, 213, 60, 0.16);
+    box-shadow: 0 0 0 1px #1a1a1a;
 }
 
 .resumo-date-row--active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: #1a1a1a;
-    border-radius: 0 2px 2px 0;
+    display: none;
 }
 
 .resumo-date-row__radio {
@@ -12402,9 +12415,10 @@ html.lig-promo-notice-open body {
 .resumo-date-row__main {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    gap: 0.75rem;
     min-width: 0;
-    flex: 0 1 auto;
+    flex: 1;
 }
 
 .resumo-date-row__copy {
@@ -12571,6 +12585,29 @@ html.lig-promo-notice-open body {
 
 .resumo-content--picker .resumo-picker-lead {
     flex-shrink: 0;
+}
+
+.resumo-content--picker-date {
+    align-items: center;
+}
+
+.resumo-content--picker-date .resumo-picker-lead {
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.resumo-picker-stack--date {
+    align-items: center;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+}
+
+.resumo-picker-stack--date .resumo-date-list {
+    flex: 1;
+    min-height: 0;
 }
 
 .resumo-picker-stack {

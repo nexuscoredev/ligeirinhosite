@@ -538,10 +538,10 @@ ${cardHtml(
                     },
                 )
                 .join('');
-            body = `<div class="resumo-picker-stack">
+            body = `<div class="resumo-picker-stack resumo-picker-stack--date">
+<div class="resumo-date-panel">
 <div class="resumo-date-list">${dateRows}</div>
 ${pickerDateError ? `<p class="resumo-error resumo-picker-error">${esc(pickerDateError)}</p>` : ''}
-<div class="resumo-picker-stack__footer">
 <button type="button" class="resumo-confirm-btn resumo-date-confirm" id="resumo-date-confirm"${pickerSelectedDate ? '' : ' disabled'}>
 <span>Confirmar data</span>
 <span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
@@ -598,9 +598,9 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
                   })()
                 : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
 
-        root.innerHTML = `<div class="resumo-shell resumo-shell--picker">
+        root.innerHTML = `<div class="resumo-shell resumo-shell--picker${pickerMode === 'date' ? ' resumo-shell--picker-date' : ''}">
 ${headerHtml(title)}
-<div class="resumo-content resumo-content--picker">
+<div class="resumo-content resumo-content--picker${pickerMode === 'date' ? ' resumo-content--picker-date' : ''}">
 <p class="resumo-picker-lead">${esc(pickerLead)}</p>
 ${body}
 </div>
