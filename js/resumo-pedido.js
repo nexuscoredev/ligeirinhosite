@@ -506,9 +506,11 @@ ${cardHtml(
         if (pickerMode === 'date') {
             body = options
                 .map(
-                    (opt) => `<button type="button" class="resumo-option${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
-<span class="resumo-option__date">${esc(opt.label)}</span>
+                    (opt) => `<button type="button" class="resumo-option resumo-option--date${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
+<span class="resumo-option__date-body">
+<strong class="resumo-option__date">${esc(opt.label)}</strong>
 <span class="resumo-option__meta">${esc(opt.type)} · ${esc(opt.weekday)}</span>
+</span>
 <span class="resumo-option__price">${esc(opt.priceLabel)}</span>
 </button>`
                 )
@@ -551,8 +553,8 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
                               ? session()?.diasEntregaLabel || ''
                               : '';
                       return diasLabel
-                          ? `Escolha uma data de entrega (${diasLabel}).`
-                          : 'Escolha a melhor data para receber seu pedido.';
+                          ? `Entrega: ${diasLabel}.`
+                          : 'Escolha a data de entrega.';
                   })()
                 : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
 
@@ -560,7 +562,7 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
 ${headerHtml(title)}
 <div class="resumo-content resumo-content--picker">
 <p class="resumo-picker-lead">${esc(pickerLead)}</p>
-${pickerMode === 'date' ? `<div class="resumo-options">${body}</div>` : body}
+${pickerMode === 'date' ? `<div class="resumo-options resumo-options--dates">${body}</div>` : body}
 </div>
 </div>`;
 
