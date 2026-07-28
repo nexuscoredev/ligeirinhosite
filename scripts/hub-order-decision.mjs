@@ -171,7 +171,7 @@ export async function applyHubOrderDecision(
             {
                 id: order.hub_pedido_id || hubPedidoId || null,
                 numero: hubPedidoNumero ?? null,
-                status: 'em_andamento',
+                status: 'aguardando_separacao',
             };
     } else if (acao === 'recusar') {
         if (order.status !== 'cancelled') {
