@@ -284,16 +284,20 @@
     const pickerPaymentAmountsHtml = (total) => {
         if (pickerPaymentIds.length < 2) return '';
         const api = splitsApi();
-        const sum = api.roundMoney(
-            pickerPaymentIds.reduce((acc, id) => acc + api.parseMoneyInput(pickerPaymentAmounts[id]), 0),
-        );
-        const diff = api.roundMoney(total - sum);
+        const splits = pickerPaymentIds.map((method) => ({
+            method,
+            amount: api.parseMoneyInput(pickerPaymentAmounts[method]),
+        }));
+        const meta = api.formatAmountsSumMeta(splits, total, {
+            labelFn: paymentLabelFor,
+            formatMoney: formatPrice,
+        });
         const sumClass =
-            Math.abs(diff) < 0.01
+            meta.state === 'ok'
                 ? ' resumo-payment-amounts__sum--ok'
-                : diff > 0
-                  ? ' resumo-payment-amounts__sum--low'
-                  : ' resumo-payment-amounts__sum--high';
+                : meta.state === 'high'
+                  ? ' resumo-payment-amounts__sum--high'
+                  : ' resumo-payment-amounts__sum--low';
         return `<div class="resumo-payment-amounts">
 <p class="resumo-payment-amounts__title">Quanto em cada forma?</p>
 ${pickerPaymentIds
@@ -309,7 +313,7 @@ ${pickerPaymentIds
 </label>`;
     })
     .join('')}
-<p class="resumo-payment-amounts__sum${sumClass}">Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}</p>
+<p class="resumo-payment-amounts__sum${sumClass}">${meta.html}</p>
 </div>`;
     };
 
@@ -514,25 +518,29 @@ ${cardHtml(
                 initPickerPaymentState(checkout, total);
                 pickerPaymentInitialized = true;
             }
-            body = `${paymentMethods()
+            body = `<div class="resumo-picker-stack">
+<div class="resumo-picker-stack__methods">${paymentMethods()
                 .map((opt) => {
                     const active = pickerPaymentIds.includes(opt.id);
                     return `<button type="button" class="resumo-option resumo-option--payment resumo-option--multi${active ? ' resumo-option--active' : ''}" data-toggle-payment="${esc(opt.id)}" aria-pressed="${active ? 'true' : 'false'}">
 <span class="material-symbols-outlined resumo-option__check" aria-hidden="true">${active ? 'check_circle' : 'radio_button_unchecked'}</span>
-${paymentMethodIconHtml(opt)}
+<span class="resumo-option__media">${paymentMethodIconHtml(opt)}</span>
 <div class="resumo-option__body">
 <strong>${esc(opt.label)}</strong>
 ${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
 </div>
 </button>`;
                 })
-                .join('')}
+                .join('')}</div>
 ${pickerPaymentAmountsHtml(total)}
-${pickerPaymentError ? `<p class="resumo-error">${esc(pickerPaymentError)}</p>` : ''}
+${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(pickerPaymentError)}</p>` : ''}
+<div class="resumo-picker-stack__footer">
 <button type="button" class="resumo-confirm-btn resumo-payment-confirm" id="resumo-payment-confirm">
 <span>Confirmar pagamento</span>
 <span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
-</button>`;
+</button>
+</div>
+</div>`;
         }
 
         const pickerLead =
@@ -546,13 +554,13 @@ ${pickerPaymentError ? `<p class="resumo-error">${esc(pickerPaymentError)}</p>` 
                           ? `Escolha uma data de entrega (${diasLabel}).`
                           : 'Escolha a melhor data para receber seu pedido.';
                   })()
-                : 'Selecione uma ou mais formas de pagamento. Com mais de uma, informe o valor de cada.';
+                : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
 
-        root.innerHTML = `<div class="resumo-shell">
+        root.innerHTML = `<div class="resumo-shell resumo-shell--picker">
 ${headerHtml(title)}
 <div class="resumo-content resumo-content--picker">
 <p class="resumo-picker-lead">${esc(pickerLead)}</p>
-<div class="resumo-options">${body}</div>
+${pickerMode === 'date' ? `<div class="resumo-options">${body}</div>` : body}
 </div>
 </div>`;
 

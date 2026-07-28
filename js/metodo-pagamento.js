@@ -51,16 +51,20 @@
 
     const amountsHtml = (total) => {
         if (selectedIds.length < 2) return '';
-        const sum = splitsApi.roundMoney(
-            selectedIds.reduce((acc, id) => acc + splitsApi.parseMoneyInput(amountInputs[id]), 0),
-        );
-        const diff = splitsApi.roundMoney(total - sum);
+        const splits = selectedIds.map((method) => ({
+            method,
+            amount: splitsApi.parseMoneyInput(amountInputs[method]),
+        }));
+        const meta = splitsApi.formatAmountsSumMeta(splits, total, {
+            labelFn: paymentLabel,
+            formatMoney: formatPrice,
+        });
         const sumClass =
-            Math.abs(diff) < 0.01
+            meta.state === 'ok'
                 ? ' pay-method-amounts__sum--ok'
-                : diff > 0
-                  ? ' pay-method-amounts__sum--low'
-                  : ' pay-method-amounts__sum--high';
+                : meta.state === 'high'
+                  ? ' pay-method-amounts__sum--high'
+                  : ' pay-method-amounts__sum--low';
         return `<div class="pay-method-amounts">
 <p class="pay-method-amounts__title">Quanto em cada forma?</p>
 ${selectedIds
@@ -74,7 +78,7 @@ ${selectedIds
 </label>`,
     )
     .join('')}
-<p class="pay-method-amounts__sum${sumClass}">Informado: <strong>${formatPrice(sum)}</strong> · Total: <strong>${formatPrice(total)}</strong>${Math.abs(diff) >= 0.01 ? ` · Falta: <strong>${formatPrice(Math.abs(diff))}</strong>` : ''}</p>
+<p class="pay-method-amounts__sum${sumClass}">${meta.html}</p>
 </div>`;
     };
 

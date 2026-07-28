@@ -172,6 +172,59 @@
         return { ok: true, splits: [{ method, amount: roundMoney(total) }] };
     };
 
+    /**
+     * Resumo de valores informados (Falta / Troco / Excedente) — mesma regra do Totem.
+     * Dinheiro pode exceder o necessário (troco); Pix/cartão não podem passar do total.
+     */
+    const formatAmountsSumMeta = (splits, total, { labelFn = (id) => id, formatMoney, cashOnly = false } = {}) => {
+        const fmt =
+            formatMoney ||
+            ((value) =>
+                roundMoney(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        const analysis = analyzeSplits(splits, total);
+        const everyFilled =
+            Array.isArray(splits) &&
+            splits.length >= 2 &&
+            splits.every((entry) => parseMoneyInput(entry?.amount) > 0);
+        const validation = validateSplits(splits, total, labelFn);
+        const ok = everyFilled && validation.ok;
+
+        const falta = analysis.hasCash
+            ? roundMoney(Math.max(0, analysis.neededFromCash - analysis.cashTendered))
+            : roundMoney(Math.max(0, analysis.expected - analysis.tenderedSum));
+
+        let state = 'low';
+        let diffHtml = '';
+
+        if (ok && analysis.troco > 0.009) {
+            state = 'ok';
+            diffHtml = ` · Troco: <strong>${fmt(analysis.troco)}</strong>`;
+        } else if (ok) {
+            state = 'ok';
+        } else if (falta > 0.009) {
+            state = 'low';
+            diffHtml = ` · Falta: <strong>${fmt(falta)}</strong>`;
+        } else if (analysis.nonCashSum > analysis.expected + 0.009) {
+            state = 'high';
+            diffHtml = ` · Excedente: <strong>${fmt(analysis.nonCashSum - analysis.expected)}</strong>`;
+        } else if (!analysis.hasCash && analysis.tenderedSum > analysis.expected + 0.009) {
+            state = 'high';
+            diffHtml = ` · Excedente: <strong>${fmt(analysis.tenderedSum - analysis.expected)}</strong>`;
+        }
+
+        const prefix = cashOnly
+            ? `Em dinheiro: <strong>${fmt(analysis.cashTendered)}</strong> · Total: <strong>${fmt(total)}</strong>`
+            : `Informado: <strong>${fmt(analysis.tenderedSum)}</strong> · Total: <strong>${fmt(total)}</strong>`;
+
+        return {
+            ok,
+            state,
+            analysis,
+            falta,
+            html: `${prefix}${diffHtml}`,
+        };
+    };
+
     const formatSplitSummary = (splits, labelFn, formatMoney) => {
         const normalized = normalizeSplits(splits);
         if (!normalized.length) return '';
@@ -315,6 +368,7 @@
         computeCashChange,
         validateSplits,
         validateCheckoutPayment,
+        formatAmountsSumMeta,
         formatSplitSummary,
         encodeSplitsInNotes,
         parseSplitsFromNotes,
