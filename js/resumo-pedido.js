@@ -509,13 +509,21 @@ ${cardHtml(
                 if (!s) return '';
                 return s.length > 3 ? `${s.slice(0, 3)}.` : s;
             };
+            const isFreeLabel = (label) => /^gr[aá]tis$/i.test(String(label || '').trim());
+            const showFeeColumn = options.some((opt) => !isFreeLabel(opt.priceLabel));
             body = options
                 .map(
-                    (opt) => `<button type="button" class="resumo-date-row${checkout.deliveryDate === opt.value ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${checkout.deliveryDate === opt.value ? 'true' : 'false'}">
+                    (opt) => {
+                        const feeFree = isFreeLabel(opt.priceLabel);
+                        return `<button type="button" class="resumo-date-row${checkout.deliveryDate === opt.value ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${checkout.deliveryDate === opt.value ? 'true' : 'false'}">
 <span class="resumo-date-row__radio" aria-hidden="true"></span>
-<span class="resumo-date-row__label">${esc(opt.label)}<span class="resumo-date-row__meta">${esc(shortWeekday(opt.weekday))}</span></span>
-<span class="resumo-date-row__fee">${esc(opt.priceLabel)}</span>
-</button>`
+<span class="resumo-date-row__copy">
+<strong class="resumo-date-row__date">${esc(opt.label)}</strong>
+<span class="resumo-date-row__weekday">${esc(shortWeekday(opt.weekday))}</span>
+</span>
+${showFeeColumn ? `<span class="resumo-date-row__fee${feeFree ? ' resumo-date-row__fee--free' : ''}">${esc(opt.priceLabel)}</span>` : ''}
+</button>`;
+                    },
                 )
                 .join('');
         } else {
@@ -555,9 +563,16 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
                           session()?.datasEntrega?.length
                               ? session()?.diasEntregaLabel || ''
                               : '';
+                      const isFreeLabel = (label) => /^gr[aá]tis$/i.test(String(label || '').trim());
+                      const allFree = options.length && options.every((o) => isFreeLabel(o.priceLabel));
+                      const feeHint = allFree
+                          ? ' Entrega grátis.'
+                          : options[0]?.priceLabel
+                            ? ` Taxa: ${options[0].priceLabel}.`
+                            : '';
                       return diasLabel
-                          ? `Entrega: ${diasLabel}.`
-                          : 'Escolha a data de entrega.';
+                          ? `Entrega: ${diasLabel}.${feeHint}`
+                          : `Escolha a data de entrega.${feeHint}`;
                   })()
                 : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
 
