@@ -504,14 +504,17 @@ ${cardHtml(
         let body = '';
         const options = deliveryOptions();
         if (pickerMode === 'date') {
+            const shortWeekday = (w) => {
+                const s = String(w || '').trim();
+                if (!s) return '';
+                return s.length > 3 ? `${s.slice(0, 3)}.` : s;
+            };
             body = options
                 .map(
-                    (opt) => `<button type="button" class="resumo-option resumo-option--date${checkout.deliveryDate === opt.value ? ' resumo-option--active' : ''}" data-pick-date="${esc(opt.value)}">
-<span class="resumo-option__date-body">
-<strong class="resumo-option__date">${esc(opt.label)}</strong>
-<span class="resumo-option__meta">${esc(opt.type)} · ${esc(opt.weekday)}</span>
-</span>
-<span class="resumo-option__price">${esc(opt.priceLabel)}</span>
+                    (opt) => `<button type="button" class="resumo-date-row${checkout.deliveryDate === opt.value ? ' resumo-date-row--active' : ''}" data-pick-date="${esc(opt.value)}" aria-pressed="${checkout.deliveryDate === opt.value ? 'true' : 'false'}">
+<span class="resumo-date-row__radio" aria-hidden="true"></span>
+<span class="resumo-date-row__label">${esc(opt.label)}<span class="resumo-date-row__meta">${esc(shortWeekday(opt.weekday))}</span></span>
+<span class="resumo-date-row__fee">${esc(opt.priceLabel)}</span>
 </button>`
                 )
                 .join('');
@@ -562,7 +565,7 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
 ${headerHtml(title)}
 <div class="resumo-content resumo-content--picker">
 <p class="resumo-picker-lead">${esc(pickerLead)}</p>
-${pickerMode === 'date' ? `<div class="resumo-options resumo-options--dates">${body}</div>` : body}
+${pickerMode === 'date' ? `<div class="resumo-date-list">${body}</div>` : body}
 </div>
 </div>`;
 
