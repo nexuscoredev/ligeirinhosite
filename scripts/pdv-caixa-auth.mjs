@@ -8,6 +8,7 @@ const PDV_CARGOS = new Set([
     'ADMIN',
     'GERENTE',
     'CAIXA',
+    'CAIXA (PDV)',
     'OPERADOR',
     'CEO',
 ]);
@@ -21,6 +22,39 @@ function cargoPermitePdv(cargo) {
     if (PDV_CARGOS.has(c)) return true;
     if (c.includes('CAIXA') || c.includes('OPERADOR') || c.includes('ADMIN')) return true;
     return false;
+}
+
+function paginasPermitemPdv(paginas) {
+    if (!Array.isArray(paginas) || !paginas.length) return false;
+    return paginas.some((rota) => {
+        const p = String(rota || '').trim();
+        return p === '/pdv/caixa' || p.startsWith('/pdv/');
+    });
+}
+
+async function usuarioTemAcessoPdvRpc(config, token) {
+    try {
+        const res = await fetch(`${config.url}/rest/v1/rpc/usuario_tem_acesso_pdv`, {
+            method: 'POST',
+            headers: {
+                apikey: config.anonKey,
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: '{}',
+        });
+        if (!res.ok) return false;
+        const ok = await res.json();
+        return ok === true;
+    } catch {
+        return false;
+    }
+}
+
+async function usuarioTemAcessoPdv(config, token, usuario) {
+    if (cargoPermitePdv(usuario?.cargo)) return true;
+    if (paginasPermitemPdv(usuario?.paginas_permitidas)) return true;
+    return usuarioTemAcessoPdvRpc(config, token);
 }
 
 async function requireHubSession(req, env) {
@@ -44,7 +78,7 @@ async function requireHubSession(req, env) {
     if (!usuario?.ativo) {
         return { error: 'Usuário inativo.', status: 403 };
     }
-    if (!cargoPermitePdv(usuario.cargo)) {
+    if (!(await usuarioTemAcessoPdv(config, token, usuario))) {
         return { error: 'Seu perfil não tem acesso ao caixa/PDV.', status: 403 };
     }
 
@@ -71,4 +105,4 @@ export async function requireCaixaAuth(req, env = process.env) {
     return requireHubSession(req, env);
 }
 
-export { cargoPermitePdv, isFinanceRole };
+export { cargoPermitePdv, isFinanceRole, paginasPermitemPdv, usuarioTemAcessoPdv };
