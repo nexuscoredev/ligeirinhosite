@@ -159,6 +159,7 @@
     const asideLinks = () => [
         { nav: '', label: 'Visão geral', icon: 'person' },
         { nav: 'dados', label: 'Dados pessoais', icon: 'badge' },
+        { nav: 'enderecos', label: 'Endereços de entrega', icon: 'location_on' },
         { nav: 'preferencias', label: 'Preferências', icon: 'tune' },
         { nav: 'ajuda', label: 'Ajuda', icon: 'help' },
         { nav: 'ajustes', label: 'Ajustes', icon: 'settings' },
@@ -258,6 +259,12 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
                 icon: 'badge',
                 sub: 'Nome, telefone, e-mail e senha.',
                 nav: 'dados',
+            },
+            {
+                title: 'Endereços de entrega',
+                icon: 'location_on',
+                sub: 'Cadastre e escolha onde receber seus pedidos.',
+                nav: 'enderecos',
             },
             {
                 title: 'Preferências',
@@ -680,6 +687,104 @@ ${esc(cat.label)}
         });
     };
 
+    const openAddressPicker = (onDone) => {
+        const start = () => {
+            window.LigeirinhoAddressPicker?.open?.({
+                onConfirm: () => {
+                    onDone?.();
+                    window.dispatchEvent(new CustomEvent('ligeirinho-checkout-changed'));
+                },
+            });
+        };
+        if (window.LigeirinhoAddressPicker?.open) {
+            start();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = 'js/address-picker.js';
+        script.onload = start;
+        document.body.appendChild(script);
+    };
+
+    const renderEnderecos = () => {
+        const s = session();
+        const checkout = cart?.loadCheckout?.() || {};
+        const currentId = cart?.findSavedAddressId?.(checkout) || '';
+        const addresses = cart?.loadSavedAddresses?.() || [];
+
+        const listHtml = addresses.length
+            ? addresses
+                  .map((item) => {
+                      const active = currentId && item.id === currentId;
+                      return `<div class="conta-address-card${active ? ' conta-address-card--active' : ''}">
+<div class="conta-address-card__main">
+${item.label ? `<p class="conta-address-card__label">${esc(item.label)}</p>` : ''}
+<p class="conta-address-card__line">${esc(item.address)}</p>
+${active ? '<span class="conta-address-card__badge">Em uso</span>' : ''}
+</div>
+<div class="conta-address-card__actions">
+<button type="button" class="conta-address-card__use" data-conta-address-use="${esc(item.id)}"${active ? ' disabled' : ''}>Usar</button>
+<button type="button" class="conta-address-card__remove" data-conta-address-remove="${esc(item.id)}" aria-label="Remover endereço">
+<span class="material-symbols-outlined" aria-hidden="true">delete</span>
+</button>
+</div>
+</div>`;
+                  })
+                  .join('')
+            : `<div class="conta-empty">
+<span class="material-symbols-outlined conta-empty__icon">location_on</span>
+<p class="conta-empty__title">Nenhum endereço cadastrado</p>
+<p class="conta-empty__sub">Adicione o endereço onde você recebe os pedidos.</p>
+</div>`;
+
+        const body = `<div class="conta-sub-body conta-sub-body--addresses">
+${listHtml}
+<button type="button" class="conta-btn conta-btn--primary conta-btn--full" id="conta-add-address"${s?.sub ? '' : ' disabled'}>
+<span class="material-symbols-outlined" aria-hidden="true">add_location_alt</span>
+Adicionar endereço
+</button>
+${
+    !s?.sub
+        ? `<p class="conta-hint conta-hint--center"><a href="${LOGIN('conta.html%23enderecos')}">Entre na conta</a> para salvar endereços neste dispositivo.</p>`
+        : ''
+}
+</div>`;
+        wrapPage('Endereços de entrega', isDesktop() ? '' : '', body, 'enderecos');
+
+        root.querySelector('#conta-add-address')?.addEventListener('click', () => {
+            if (!session()?.sub) return;
+            openAddressPicker(() => renderEnderecos());
+        });
+
+        root.querySelectorAll('[data-conta-address-use]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const item = addresses.find((entry) => entry.id === btn.dataset.contaAddressUse);
+                if (!item) return;
+                cart?.saveCheckout?.({
+                    deliveryType: 'entrega',
+                    address: item.address,
+                    addressParts: item.addressParts,
+                });
+                cart?.saveAddressToList?.({
+                    address: item.address,
+                    addressParts: item.addressParts,
+                    label: item.label,
+                });
+                window.dispatchEvent(new CustomEvent('ligeirinho-checkout-changed'));
+                renderEnderecos();
+            });
+        });
+
+        root.querySelectorAll('[data-conta-address-remove]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.contaAddressRemove;
+                if (!id) return;
+                cart?.removeSavedAddress?.(id);
+                renderEnderecos();
+            });
+        });
+    };
+
     const renderAjuda = () => {
         const body = `<div class="conta-sub-body conta-help">
 <a class="conta-help-wa" href="${esc(WHATSAPP_URL)}" target="_blank" rel="noopener noreferrer">
@@ -806,6 +911,9 @@ ${
             case 'senha':
                 renderSenha();
                 break;
+            case 'enderecos':
+                renderEnderecos();
+                break;
             case 'preferencias':
                 renderPreferencias();
                 break;
@@ -859,6 +967,9 @@ ${
     };
 
     window.addEventListener('hashchange', render);
+    window.addEventListener('ligeirinho-addresses-changed', () => {
+        if (currentView() === 'enderecos') renderEnderecos();
+    });
     window.addEventListener('ligeirinho-auth-changed', render);
     window.addEventListener('ligeirinho-cart-changed', () => {
         if (currentView() === 'menu') render();

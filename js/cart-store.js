@@ -4,7 +4,54 @@
     const LAST_ORDER_KEY = 'ligeirinho-last-order-v1';
     const PREFS_KEY = 'ligeirinho-prefs-v1';
     const ADDRESS_HISTORY_KEY = 'ligeirinho-address-history-v1';
-    const ADDRESS_HISTORY_MAX = 8;
+    const SAVED_ADDRESSES_PREFIX = 'ligeirinho-saved-addresses-v1';
+    const SAVED_ADDRESSES_MAX = 20;
+
+    const getAddressUserKey = () => {
+        try {
+            const s = window.LigeirinhoAuth?.loadSession?.();
+            return String(s?.hubUserId || s?.sub || 'guest').trim() || 'guest';
+        } catch {
+            return 'guest';
+        }
+    };
+
+    const savedAddressesStorageKey = () => `${SAVED_ADDRESSES_PREFIX}:${getAddressUserKey()}`;
+
+    const loadLegacyAddressHistory = () => {
+        try {
+            const list = JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const migrateLegacyAddressHistory = () => {
+        const key = savedAddressesStorageKey();
+        try {
+            if (localStorage.getItem(key)) return;
+        } catch {
+            return;
+        }
+        const legacy = loadLegacyAddressHistory();
+        if (!legacy.length) return;
+        try {
+            localStorage.setItem(
+                key,
+                JSON.stringify(
+                    legacy.map((item) => ({
+                        ...item,
+                        label: String(item.label || '').trim(),
+                        savedAt: item.savedAt || item.usedAt || Date.now(),
+                        usedAt: item.usedAt || Date.now(),
+                    })),
+                ),
+            );
+        } catch {
+            /* quota / private mode */
+        }
+    };
 
     let cartCache = null;
     let persistTimer = null;
@@ -226,43 +273,66 @@
         return String(address || '').trim().toLowerCase();
     };
 
-    const loadAddressHistory = () => {
+    const loadSavedAddresses = () => {
+        migrateLegacyAddressHistory();
         try {
-            const list = JSON.parse(localStorage.getItem(ADDRESS_HISTORY_KEY) || '[]');
+            const list = JSON.parse(localStorage.getItem(savedAddressesStorageKey()) || '[]');
             return Array.isArray(list) ? list : [];
         } catch {
             return [];
         }
     };
 
-    const saveAddressToHistory = (entry) => {
+    const loadAddressHistory = () => loadSavedAddresses();
+
+    const saveAddressToList = (entry, opts = {}) => {
         const address = String(entry?.address || '').trim();
         const addressParts = entry?.addressParts;
         if (!address || !addressParts) return;
         const id = addressHistoryId(addressParts, address);
         if (!id) return;
-        const history = loadAddressHistory().filter((item) => item.id !== id);
+        const label = String(opts.label ?? entry?.label ?? '').trim();
+        const existing = loadSavedAddresses().find((item) => item.id === id);
+        const history = loadSavedAddresses().filter((item) => item.id !== id);
         history.unshift({
             id,
+            label: label || existing?.label || '',
             address,
             addressParts: { ...addressParts },
+            savedAt: existing?.savedAt || Date.now(),
             usedAt: Date.now(),
         });
         try {
-            localStorage.setItem(ADDRESS_HISTORY_KEY, JSON.stringify(history.slice(0, ADDRESS_HISTORY_MAX)));
+            localStorage.setItem(
+                savedAddressesStorageKey(),
+                JSON.stringify(history.slice(0, SAVED_ADDRESSES_MAX)),
+            );
+            window.dispatchEvent(new CustomEvent('ligeirinho-addresses-changed'));
         } catch {
             /* quota / private mode */
         }
     };
 
-    const removeAddressFromHistory = (id) => {
+    const saveAddressToHistory = (entry, opts) => saveAddressToList(entry, opts);
+
+    const removeSavedAddress = (id) => {
         if (!id) return;
-        const history = loadAddressHistory().filter((item) => item.id !== id);
+        const history = loadSavedAddresses().filter((item) => item.id !== id);
         try {
-            localStorage.setItem(ADDRESS_HISTORY_KEY, JSON.stringify(history));
+            localStorage.setItem(savedAddressesStorageKey(), JSON.stringify(history));
+            window.dispatchEvent(new CustomEvent('ligeirinho-addresses-changed'));
         } catch {
             /* ignore */
         }
+    };
+
+    const removeAddressFromHistory = (id) => removeSavedAddress(id);
+
+    const findSavedAddressId = (checkout) => {
+        const address = String(checkout?.address || '').trim();
+        const parts = checkout?.addressParts;
+        if (!address) return '';
+        return addressHistoryId(parts || {}, address);
     };
 
     const TOTEM_CHECKOUT_DEFAULTS = {
@@ -332,9 +402,14 @@
         LAST_ORDER_KEY,
         PREFS_KEY,
         ADDRESS_HISTORY_KEY,
+        SAVED_ADDRESSES_PREFIX,
+        loadSavedAddresses,
         loadAddressHistory,
+        saveAddressToList,
         saveAddressToHistory,
+        removeSavedAddress,
         removeAddressFromHistory,
+        findSavedAddressId,
         loadCart,
         saveCart,
         loadCheckout,

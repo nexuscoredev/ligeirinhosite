@@ -192,6 +192,9 @@
 <input id="lig-addr-city" class="lig-addr__input" type="text" autocomplete="address-level2">
 <label class="lig-addr__label" for="lig-addr-ref">Ponto de referência (opcional)</label>
 <input id="lig-addr-ref" class="lig-addr__input" type="text" placeholder="Ponto de referência (opcional)">
+<label class="lig-addr__label" for="lig-addr-label">Apelido (opcional)</label>
+<input id="lig-addr-label" class="lig-addr__input" type="text" placeholder="Ex.: Loja, Depósito, Filial">
+<label class="lig-addr__check lig-addr__check--save"><input type="checkbox" id="lig-addr-save-list" checked> Salvar na lista de endereços</label>
 <p class="lig-addr__state" id="lig-addr-state-label"></p>
 </div>
 <div class="lig-addr__confirm-foot">
@@ -294,36 +297,69 @@
         });
     };
 
-    const renderAddressHistory = () => {
+    const renderSavedAddresses = () => {
         const box = root.querySelector('#lig-addr-history');
         const resultsBox = root.querySelector('#lig-addr-results');
         if (!box) return;
-        const history = window.LigeirinhoCart?.loadAddressHistory?.() || [];
-        if (!history.length) {
-            box.innerHTML = '';
-            box.hidden = true;
-            return;
-        }
+        const saved = window.LigeirinhoCart?.loadSavedAddresses?.() || [];
         if (resultsBox) resultsBox.innerHTML = '';
         box.hidden = false;
-        box.innerHTML = `<p class="lig-addr__history-title">Endereços recentes</p>${history
-            .map(
-                (item) =>
-                    `<button type="button" class="lig-addr__result lig-addr__history-item" data-addr-history="${esc(item.id)}">
-<span class="material-symbols-outlined" aria-hidden="true">history</span>
-<span>${esc(item.address)}</span>
-</button>`,
-            )
-            .join('')}`;
-        box.querySelectorAll('[data-addr-history]').forEach((btn) => {
+        const itemsHtml = saved.length
+            ? saved
+                  .map((item) => {
+                      const title = item.label ? esc(item.label) : esc(item.address);
+                      const sub = item.label ? `<span class="lig-addr__saved-sub">${esc(item.address)}</span>` : '';
+                      return `<button type="button" class="lig-addr__result lig-addr__history-item lig-addr__saved-item" data-addr-saved="${esc(item.id)}">
+<span class="material-symbols-outlined" aria-hidden="true">location_on</span>
+<span class="lig-addr__saved-copy">${title}${sub}</span>
+</button>`;
+                  })
+                  .join('')
+            : '<p class="lig-addr__empty lig-addr__empty--saved">Nenhum endereço salvo ainda. Busque abaixo ou use sua localização.</p>';
+        box.innerHTML = `<div class="lig-addr__history-head">
+<p class="lig-addr__history-title">Meus endereços</p>
+<button type="button" class="lig-addr__add-btn" data-addr-add-new>
+<span class="material-symbols-outlined" aria-hidden="true">add</span>
+<span>Novo endereço</span>
+</button>
+</div>${itemsHtml}`;
+        box.querySelector('[data-addr-add-new]')?.addEventListener('click', () => {
+            draft = emptyDraft();
+            const qInput = root.querySelector('#lig-addr-q');
+            if (qInput) {
+                qInput.value = '';
+                qInput.focus();
+            }
+            root.querySelector('#lig-addr-results').innerHTML = '';
+            setSearchStatus('');
+        });
+        box.querySelectorAll('[data-addr-saved]').forEach((btn) => {
             btn.addEventListener('click', () => {
-                const item = history.find((entry) => entry.id === btn.dataset.addrHistory);
+                const item = saved.find((entry) => entry.id === btn.dataset.addrSaved);
                 if (!item) return;
-                draft = { ...emptyDraft(), ...item.addressParts };
-                setView('confirm');
+                applySavedAddress(item);
             });
         });
     };
+
+    const applySavedAddress = (item) => {
+        const payload = {
+            deliveryType: 'entrega',
+            address: item.address,
+            addressParts: { ...item.addressParts },
+        };
+        window.LigeirinhoCart?.saveCheckout?.(payload);
+        window.LigeirinhoCart?.saveAddressToList?.({
+            address: item.address,
+            addressParts: item.addressParts,
+            label: item.label,
+        });
+        onConfirmCb?.(payload);
+        onDismissCb = null;
+        close();
+    };
+
+    const renderAddressHistory = () => renderSavedAddresses();
 
     const searchAddress = async (q) => {
         setSearchStatus('Buscando…');
@@ -404,6 +440,9 @@
         root.querySelector('#lig-addr-neigh').value = draft.neighborhood || '';
         root.querySelector('#lig-addr-city').value = draft.city || '';
         root.querySelector('#lig-addr-ref').value = draft.reference || '';
+        root.querySelector('#lig-addr-label').value = draft.label || '';
+        const saveList = root.querySelector('#lig-addr-save-list');
+        if (saveList) saveList.checked = true;
         root.querySelector('#lig-addr-no-num').checked = draft.noNumber;
         root.querySelector('#lig-addr-no-comp').checked = draft.noComplement;
         root.querySelector('#lig-addr-number').disabled = draft.noNumber;
@@ -422,6 +461,7 @@
         draft.neighborhood = root.querySelector('#lig-addr-neigh').value.trim();
         draft.city = root.querySelector('#lig-addr-city').value.trim();
         draft.reference = root.querySelector('#lig-addr-ref').value.trim();
+        draft.label = root.querySelector('#lig-addr-label')?.value.trim() || '';
         draft.stateCode = draft.stateCode || stateCodeFrom(draft);
     };
 
@@ -472,7 +512,13 @@
             },
         };
         window.LigeirinhoCart?.saveCheckout?.(payload);
-        window.LigeirinhoCart?.saveAddressToHistory?.({ address, addressParts: payload.addressParts });
+        const shouldSave = root.querySelector('#lig-addr-save-list')?.checked !== false;
+        if (shouldSave) {
+            window.LigeirinhoCart?.saveAddressToList?.(
+                { address, addressParts: payload.addressParts, label: draft.label },
+                { label: draft.label },
+            );
+        }
         onConfirmCb?.(payload);
         onDismissCb = null;
         close();
@@ -529,7 +575,7 @@
             searchTimer = window.setTimeout(() => searchAddress(value), 320);
         });
 
-        ['#lig-addr-street', '#lig-addr-number', '#lig-addr-comp', '#lig-addr-neigh', '#lig-addr-city', '#lig-addr-ref'].forEach(
+        ['#lig-addr-street', '#lig-addr-number', '#lig-addr-comp', '#lig-addr-neigh', '#lig-addr-city', '#lig-addr-ref', '#lig-addr-label'].forEach(
             (sel) => root.querySelector(sel)?.addEventListener('input', syncSaveEnabled),
         );
         root.querySelector('#lig-addr-no-num')?.addEventListener('change', (e) => {
@@ -577,9 +623,10 @@
         }
         const checkoutAddress = checkout.address?.trim();
         if (checkoutAddress && checkout.addressParts) {
-            window.LigeirinhoCart?.saveAddressToHistory?.({
+            window.LigeirinhoCart?.saveAddressToList?.({
                 address: checkoutAddress,
                 addressParts: checkout.addressParts,
+                label: checkout.addressParts?.label || '',
             });
         }
     };

@@ -745,6 +745,7 @@ ${body}
                 cartApi.saveAddressToHistory?.({
                     address: checkout.address,
                     addressParts: checkout.addressParts || {},
+                    label: checkout.addressParts?.label || '',
                 });
             }
             cartApi.saveCart({});

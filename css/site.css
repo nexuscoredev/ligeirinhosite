@@ -5104,6 +5104,99 @@ html.lig-story-open {
     margin: 0 0 1.25rem;
 }
 
+.conta-sub-body--addresses {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.conta-address-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--lig-border);
+    border-radius: 0.875rem;
+    background: var(--lig-surface);
+}
+
+.conta-address-card--active {
+    border-color: #1a1a1a;
+    background: rgba(247, 213, 60, 0.12);
+}
+
+.conta-address-card__main {
+    min-width: 0;
+    flex: 1;
+}
+
+.conta-address-card__label {
+    margin: 0 0 0.2rem;
+    font-size: 0.875rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.conta-address-card__line {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--lig-text-muted);
+}
+
+.conta-address-card__badge {
+    display: inline-flex;
+    margin-top: 0.45rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--lig-text);
+}
+
+.conta-address-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.conta-address-card__use {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--lig-yellow);
+    color: #1a1a1a;
+    cursor: pointer;
+}
+
+.conta-address-card__use:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.conta-address-card__remove {
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--lig-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.conta-hint--center {
+    text-align: center;
+}
+
 .conta-btn {
     display: inline-flex;
     align-items: center;
@@ -14416,13 +14509,63 @@ html.lig-addr-open body {
     padding: 0.25rem 0 0.5rem;
 }
 
+.lig-addr__history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem 0.35rem;
+}
+
 .lig-addr__history-title {
-    margin: 0.75rem 1rem 0.35rem;
+    margin: 0;
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--lig-text-subtle);
+}
+
+.lig-addr__add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 0;
+    border-radius: 999px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--lig-text);
+    cursor: pointer;
+}
+
+.lig-addr__add-btn .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.lig-addr__saved-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    min-width: 0;
+    text-align: left;
+}
+
+.lig-addr__saved-sub {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--lig-text-muted);
+    line-height: 1.25;
+}
+
+.lig-addr__empty--saved {
+    margin: 0.35rem 1rem 0.5rem;
+}
+
+.lig-addr__check--save {
+    margin-top: 0.35rem;
 }
 
 .lig-addr__history-item .material-symbols-outlined {
