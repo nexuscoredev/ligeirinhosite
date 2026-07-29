@@ -17,12 +17,13 @@
 
     const buildScope = (personalized, data, apiUrl = '') => {
         const apiPart = apiScopePart(apiUrl);
-        if (!personalized) return `public:${apiPart}`;
-        const tableKey = data?.priceTableId || data?.priceTableCodigo || 'custom';
         const auth = window.LigeirinhoAuth;
         const session = auth?.loadSession?.();
+        const distPart = session?.distribuidoraId ? `:dist:${session.distribuidoraId}` : '';
+        if (!personalized) return `public:${apiPart}${distPart}`;
+        const tableKey = data?.priceTableId || data?.priceTableCodigo || 'custom';
         const userKey = session?.hubUserId || session?.sub || 'user';
-        return `me:${userKey}:${tableKey}:${apiPart}`;
+        return `me:${userKey}:${tableKey}:${apiPart}${distPart}`;
     };
 
     const resolveEndpoint = (options = {}) => {
@@ -79,13 +80,15 @@
         return `${apiUrl}${sep}sync=${Date.now()}`;
     };
 
-    const buildFetchOptions = async (personalized, force) => {
+    const needsHubAuth = (apiUrl = '') => /\/api\/totem\//.test(String(apiUrl || ''));
+
+    const buildFetchOptions = async (personalized, force, apiUrl = '') => {
         const opts = {
             credentials: 'same-origin',
             cache: force ? 'no-store' : 'default',
             headers: force ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } : {},
         };
-        if (personalized) {
+        if (personalized || needsHubAuth(apiUrl)) {
             const authHeaders = await window.LigeirinhoAuth?.buildAccountHeaders?.();
             if (authHeaders) {
                 opts.headers = { ...opts.headers, ...authHeaders };
@@ -109,7 +112,9 @@
         const force = Boolean(options.force);
         const endpoint = resolveEndpoint(options);
         const apiUrl = endpoint.url;
-        const publicScope = `public:${apiScopePart(apiUrl)}`;
+        const session = window.LigeirinhoAuth?.loadSession?.();
+        const distPart = session?.distribuidoraId ? `:dist:${session.distribuidoraId}` : '';
+        const publicScope = `public:${apiScopePart(apiUrl)}${distPart}`;
         let scope = endpoint.personalized ? 'me-pending' : publicScope;
         const now = Date.now();
 
@@ -134,7 +139,7 @@
         lastScope = scope;
         inflight = (async () => {
             const fetchUrl = buildFetchUrl(apiUrl, force);
-            const fetchOpts = await buildFetchOptions(endpoint.personalized, force);
+            const fetchOpts = await buildFetchOptions(endpoint.personalized, force, apiUrl);
             try {
                 const res = await fetch(fetchUrl, fetchOpts);
                 if (endpoint.personalized && res.status === 204) {
@@ -150,14 +155,19 @@
                 }
                 if (res.ok) {
                     const data = await res.json();
-                    if (data?.categories?.length) {
+                    const scopedDist =
+                        Boolean(data?.distribuidoraId) ||
+                        Boolean(window.LigeirinhoAuth?.loadSession?.()?.distribuidoraId);
+                    const hasCategories = Boolean(data?.categories?.length);
+                    // Filial nova pode ter catálogo zerado — não cair no JSON legado.
+                    if (hasCategories || (scopedDist && Array.isArray(data?.categories))) {
                         scope = buildScope(endpoint.personalized, data, apiUrl);
                         cache = data;
                         cacheAt = Date.now();
                         lastScope = scope;
                         writeStorageCache(data, scope);
                         const authSession = window.LigeirinhoAuth?.loadSession?.();
-                        if (endpoint.personalized && authSession) {
+                        if (endpoint.personalized && authSession && hasCategories) {
                             window.LigeirinhoAuth?.patchSession?.({
                                 usesPersonalPriceTable: true,
                                 tabelaPrecoId: data.priceTableId || '',
@@ -182,6 +192,23 @@
 
             if (endpoint.personalized && apiUrl !== API_URL) {
                 return load({ ...options, force, apiUrl: API_URL });
+            }
+
+            // Totem autenticado por filial: nunca misturar com data/catalogo.json legado.
+            if (needsHubAuth(apiUrl) && window.LigeirinhoAuth?.loadSession?.()?.distribuidoraId) {
+                const empty = {
+                    categories: [],
+                    totalProducts: 0,
+                    distribuidoraId: window.LigeirinhoAuth.loadSession().distribuidoraId,
+                    storeName: 'Ligeirinho Totem',
+                    syncMode: 'live',
+                    exportedAt: new Date().toISOString(),
+                };
+                scope = buildScope(false, empty, apiUrl);
+                cache = empty;
+                cacheAt = Date.now();
+                lastScope = scope;
+                return empty;
             }
 
             return loadPublicFallback(apiUrl, publicScope);

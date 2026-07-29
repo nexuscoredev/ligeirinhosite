@@ -228,7 +228,7 @@ export async function fetchUsuarioByEmail(config, email) {
 export async function fetchUsuarioById(config, userId, token) {
     const rows = await hubRest(
         config,
-        `usuarios?select=id,email,login,nome,cargo,ativo,telefone,must_change_password,pessoa_id,admin_totem,paginas_permitidas&id=eq.${encodeURIComponent(userId)}&limit=1`,
+        `usuarios?select=id,email,login,nome,cargo,ativo,telefone,must_change_password,pessoa_id,admin_totem,paginas_permitidas,distribuidora_id&id=eq.${encodeURIComponent(userId)}&limit=1`,
         { token: token || config.serviceKey }
     );
     return Array.isArray(rows) ? rows[0] : null;

@@ -342,6 +342,23 @@
         let fetchError = false;
         let inflight = null;
 
+        const writeStorage = (promocoes) => {
+            try {
+                const distId = window.LigeirinhoAuth?.loadSession?.()?.distribuidoraId || '';
+                sessionStorage.setItem(
+                    STORAGE_KEY,
+                    JSON.stringify({
+                        savedAt: Date.now(),
+                        apiUrl,
+                        distribuidoraId: distId,
+                        promocoes,
+                    }),
+                );
+            } catch {
+                /* quota / private mode */
+            }
+        };
+
         const readStorage = () => {
             try {
                 const raw = sessionStorage.getItem(STORAGE_KEY);
@@ -349,25 +366,12 @@
                 const parsed = JSON.parse(raw);
                 if (!Array.isArray(parsed?.promocoes)) return null;
                 if (parsed.apiUrl && parsed.apiUrl !== apiUrl) return null;
+                const distId = window.LigeirinhoAuth?.loadSession?.()?.distribuidoraId || '';
+                if (String(parsed.distribuidoraId || '') !== String(distId || '')) return null;
                 if (Date.now() - (parsed.savedAt || 0) > CACHE_MS) return null;
                 return parsed;
             } catch {
                 return null;
-            }
-        };
-
-        const writeStorage = (promocoes) => {
-            try {
-                sessionStorage.setItem(
-                    STORAGE_KEY,
-                    JSON.stringify({
-                        savedAt: Date.now(),
-                        apiUrl,
-                        promocoes,
-                    }),
-                );
-            } catch {
-                /* quota / private mode */
             }
         };
 
@@ -401,6 +405,13 @@
                     const fetchUrl = force
                         ? `${apiUrl}${apiUrl.includes('?') ? '&' : '?'}sync=${Date.now()}`
                         : apiUrl;
+                    const headers = force
+                        ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' }
+                        : {};
+                    if (/\/api\/totem\//.test(apiUrl)) {
+                        const authHeaders = await window.LigeirinhoAuth?.buildAccountHeaders?.();
+                        if (authHeaders) Object.assign(headers, authHeaders);
+                    }
                     const res = await fetch(fetchUrl, {
                         credentials: 'same-origin',
                         cache: force ? 'no-store' : 'default',
@@ -408,9 +419,7 @@
                             typeof AbortSignal !== 'undefined' && AbortSignal.timeout
                                 ? AbortSignal.timeout(8000)
                                 : undefined,
-                        headers: force
-                            ? { 'Cache-Control': 'no-cache', Pragma: 'no-cache' }
-                            : undefined,
+                        headers: Object.keys(headers).length ? headers : undefined,
                     });
                     if (!res.ok) throw new Error('fetch failed');
                     const data = await res.json();

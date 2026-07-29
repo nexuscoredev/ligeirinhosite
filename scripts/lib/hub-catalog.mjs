@@ -185,12 +185,18 @@ export function resolveCatalogPrice(produto, priceMap, tabelaPadrao) {
 
 const TABELA_PRECO_SELECT = 'id,codigo,padrao,ativo,aplicacao,modo,percentual';
 
-async function fetchTabelaPrecoPadrao(hub) {
+function distribuidoraFilter(distribuidoraId) {
+    const id = String(distribuidoraId || '').trim();
+    return id ? `&distribuidora_id=eq.${encodeURIComponent(id)}` : '';
+}
+
+async function fetchTabelaPrecoPadrao(hub, distribuidoraId = null) {
+    const distFilter = distribuidoraFilter(distribuidoraId);
     let tabelas = await fetchAll(
         hub,
         'tabelas_preco',
         TABELA_PRECO_SELECT,
-        '&ativo=eq.true&padrao=eq.true',
+        `&ativo=eq.true&padrao=eq.true${distFilter}`,
         'codigo.asc',
     );
     if (!tabelas.length) {
@@ -198,7 +204,7 @@ async function fetchTabelaPrecoPadrao(hub) {
             hub,
             'tabelas_preco',
             TABELA_PRECO_SELECT,
-            '&ativo=eq.true&codigo=eq.PADRAO',
+            `&ativo=eq.true&codigo=eq.PADRAO${distFilter}`,
             'codigo.asc',
         );
     }
@@ -474,21 +480,40 @@ export async function fetchHubCatalogData(config, options = {}) {
         token,
     };
 
+    const distribuidoraId = String(options.distribuidoraId || '').trim() || null;
+    const distFilter = distribuidoraFilter(distribuidoraId);
+
     /** Hub: checkbox "Totem | Parceiros" → venda_parceiros (ambos os apps). */
     const channelFilter = '&venda_parceiros=eq.true';
 
     const [categorias, produtos, tabelaPadrao] = await Promise.all([
-        fetchAll(hub, 'categorias_produto', 'slug,nome,ordem_separacao', '', 'ordem_separacao.asc'),
+        fetchAll(
+            hub,
+            'categorias_produto',
+            'slug,nome,ordem_separacao',
+            distFilter,
+            'ordem_separacao.asc',
+        ),
         fetchAll(
             hub,
             'produtos',
             'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,updated_at,categorias_produto(slug,nome)',
-            `&ativo=eq.true&visivel_catalogo=eq.true${channelFilter}`
+            `&ativo=eq.true&visivel_catalogo=eq.true${channelFilter}${distFilter}`,
         ),
-        fetchTabelaPrecoPadrao(hub),
+        fetchTabelaPrecoPadrao(hub, distribuidoraId),
     ]);
 
     if (produtos.length === 0) {
+        if (distribuidoraId) {
+            return {
+                categorias,
+                produtos: [],
+                tabelaPadrao,
+                priceMap: null,
+                priceTableId: tabelaPadrao?.id || null,
+                priceTableCodigo: tabelaPadrao?.codigo || null,
+            };
+        }
         throw new Error('Nenhum produto retornado do Hub.');
     }
 
@@ -527,5 +552,6 @@ export async function fetchCatalogFromHub(env = process.env, options = {}) {
         priceTableId: priceTableId || tabelaPadrao?.id || null,
         priceTableCodigo: priceTableCodigo || tabelaPadrao?.codigo || null,
         personalized: Boolean(options.personalized),
+        distribuidoraId: String(options.distribuidoraId || '').trim() || null,
     };
 }

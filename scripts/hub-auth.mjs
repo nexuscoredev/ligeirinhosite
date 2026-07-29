@@ -90,11 +90,11 @@ async function hubSignIn(config, login, password) {
 
 async function fetchUsuarioByAuthId(config, userId, accessToken) {
     const select =
-        'id,email,nome,cargo,ativo,login,telefone,must_change_password,admin_totem,pessoa_id';
+        'id,email,nome,cargo,ativo,login,telefone,must_change_password,admin_totem,pessoa_id,distribuidora_id';
     const url = `${config.url}/rest/v1/usuarios?select=${encodeURIComponent(select)}&id=eq.${encodeURIComponent(userId)}&limit=1`;
     let res = await fetch(url, { headers: hubHeaders(config.anonKey, accessToken) });
     let rows = await res.json();
-    if (!res.ok && /must_change_password|admin_totem/i.test(rows?.message || '')) {
+    if (!res.ok && /must_change_password|admin_totem|distribuidora_id/i.test(rows?.message || '')) {
         const fallbackUrl = `${config.url}/rest/v1/usuarios?select=id,email,nome,cargo,ativo,login,telefone&id=eq.${encodeURIComponent(userId)}&limit=1`;
         res = await fetch(fallbackUrl, { headers: hubHeaders(config.anonKey, accessToken) });
         rows = await res.json();
@@ -153,6 +153,10 @@ function resolveRoleFromUsuario(usuario) {
 function profileFromUsuario(usuario, extras = {}) {
     if (!usuario?.ativo) return null;
     const role = resolveRoleFromUsuario(usuario);
+    const distribuidoraId = String(
+        usuario.distribuidora_id || extras.distribuidoraId || extras.distribuidora_id || '',
+    ).trim() || null;
+    const { distribuidoraId: _a, distribuidora_id: _b, ...restExtras } = extras;
     return {
         sub: usuario.id,
         email: usuario.email || extras.email || '',
@@ -164,7 +168,8 @@ function profileFromUsuario(usuario, extras = {}) {
         hubUserId: usuario.id,
         mustChangePassword: Boolean(usuario.must_change_password || extras.mustChangePassword),
         totemAdmin: isTotemAdminUsuario(usuario),
-        ...extras,
+        ...restExtras,
+        distribuidoraId,
     };
 }
 

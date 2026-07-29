@@ -89,12 +89,15 @@ function normalizePromoRow(row, meta = null, produto = null, familyId = null) {
     };
 }
 
-async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros') {
+async function fetchPromoCatalogMetaMaps(config, token, canal = 'parceiros', distribuidoraId = null) {
     const url = `${config.url}/rest/v1/rpc/gf_promocao_catalogo`;
+    const body = { p_canal: canal };
+    const distId = String(distribuidoraId || '').trim();
+    if (distId) body.p_distribuidora_id = distId;
     const res = await fetch(url, {
         method: 'POST',
         headers: hubHeaders(config, token),
-        body: JSON.stringify({ p_canal: canal }),
+        body: JSON.stringify(body),
     });
     const text = await res.text();
     if (!res.ok) {
@@ -266,7 +269,10 @@ function resolvePromoMeta(row, maps) {
     return null;
 }
 
-export async function getHubPromocoes(env = process.env, { caixaOnly = false, canal = 'parceiros' } = {}) {
+export async function getHubPromocoes(
+    env = process.env,
+    { caixaOnly = false, canal = 'parceiros', distribuidoraId = null } = {},
+) {
     const config = hubConfig(env);
     const token = config.serviceKey || config.anonKey;
     if (!config.url || !token) {
@@ -276,13 +282,14 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
     const today = todayIsoDate();
     const url = `${config.url}/rest/v1/rpc/rpc_listar_promocoes_vitrine`;
     const catalogCanal = caixaOnly ? 'totem' : canal;
+    const distId = String(distribuidoraId || '').trim() || null;
     const [res, metaMaps] = await Promise.all([
         fetch(url, {
             method: 'POST',
             headers: hubHeaders(config, token),
             body: '{}',
         }),
-        fetchPromoCatalogMetaMaps(config, token, catalogCanal),
+        fetchPromoCatalogMetaMaps(config, token, catalogCanal, distId),
     ]);
     const text = await res.text();
     if (!res.ok) {
@@ -290,7 +297,16 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
     }
 
     const rows = text ? JSON.parse(text) : [];
-    const list = Array.isArray(rows) ? rows : [];
+    let list = Array.isArray(rows) ? rows : [];
+
+    // Isola vitrine por filial: só itens cujo produto está na PROMOCAO da distribuidora.
+    if (distId) {
+        const allowedIds = new Set([...metaMaps.byId.keys()].filter(Boolean));
+        list = list.filter((row) => {
+            const id = String(row.produto_id || '').trim();
+            return id && allowedIds.has(id);
+        });
+    }
 
     const productIds = list
         .map((row) => {
@@ -362,6 +378,10 @@ export async function getHubPromocoes(env = process.env, { caixaOnly = false, ca
     };
 }
 
-export async function getHubPromocoesTotem(env = process.env) {
-    return getHubPromocoes(env, { caixaOnly: false, canal: 'totem' });
+export async function getHubPromocoesTotem(env = process.env, options = {}) {
+    return getHubPromocoes(env, {
+        caixaOnly: false,
+        canal: 'totem',
+        distribuidoraId: options.distribuidoraId || null,
+    });
 }

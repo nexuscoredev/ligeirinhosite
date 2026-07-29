@@ -71,6 +71,7 @@
             taxaEntrega: user.taxaEntrega ?? null,
             razaoSocial: user.razaoSocial || '',
             totemAdmin: Boolean(user.totemAdmin),
+            distribuidoraId: user.distribuidoraId || '',
             loggedInAt: Date.now(),
         };
         localStorage.setItem(AUTH_KEY, JSON.stringify(session));
@@ -376,6 +377,7 @@
             taxaEntrega: profile.taxaEntrega ?? null,
             razaoSocial: profile.razaoSocial || '',
             totemAdmin: Boolean(profile.totemAdmin),
+            distribuidoraId: profile.distribuidoraId || '',
         });
     };
 

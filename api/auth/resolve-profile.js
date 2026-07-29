@@ -47,6 +47,7 @@ function publicProfile(profile) {
         diasEntregaLabel: profile.diasEntregaLabel || '',
         razaoSocial: profile.razaoSocial || '',
         totemAdmin: Boolean(profile.totemAdmin),
+        distribuidoraId: profile.distribuidoraId || null,
     };
 }
 
