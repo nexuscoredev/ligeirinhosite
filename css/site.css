@@ -1056,6 +1056,34 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     white-space: normal;
 }
 
+.ze-location-dropdown__saved {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.ze-location-dropdown__saved[hidden] {
+    display: none !important;
+}
+
+.ze-location-dropdown__section {
+    margin: 0.35rem 0.875rem 0.15rem;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lig-text-subtle);
+}
+
+.ze-location-dropdown__divider {
+    height: 1px;
+    margin: 0.35rem 0.5rem;
+    background: var(--lig-border);
+}
+
+.ze-location-dropdown__item--add .ze-location-dropdown__icon {
+    color: var(--lig-yellow-text);
+}
+
 .ze-fulfillment-bar__icon-wrap {
     display: flex;
     align-items: center;

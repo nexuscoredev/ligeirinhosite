@@ -215,13 +215,14 @@ ${desktopFinanceItems.map(renderDesktopNavLink).join('\n')}
 <span class="material-symbols-outlined ze-fulfillment-bar__chev" aria-hidden="true">expand_more</span>
 </button>
 <div id="ze-location-dropdown" class="ze-location-dropdown hidden" role="menu" aria-label="Forma de recebimento">
-<button type="button" class="ze-location-dropdown__item" role="menuitem" data-fulfillment="entrega">
+<div id="ze-location-saved" class="ze-location-dropdown__saved" hidden></div>
+<button type="button" class="ze-location-dropdown__item ze-location-dropdown__item--add" role="menuitem" data-address-add>
 <span class="material-symbols-outlined ze-location-dropdown__icon" aria-hidden="true">add_location_alt</span>
 <span class="ze-location-dropdown__copy">
-<span class="ze-location-dropdown__title" id="ze-location-opt-entrega-label">Adicionar endereço de entrega</span>
-<span class="ze-location-dropdown__meta hidden" id="ze-location-opt-entrega-meta"></span>
+<span class="ze-location-dropdown__title" id="ze-location-opt-add-label">Adicionar endereço de entrega</span>
 </span>
 </button>
+<div class="ze-location-dropdown__divider" role="separator" aria-hidden="true"></div>
 <button type="button" class="ze-location-dropdown__item" role="menuitem" data-fulfillment="retirada">
 <span class="material-symbols-outlined ze-location-dropdown__icon" aria-hidden="true">storefront</span>
 <span class="ze-location-dropdown__copy">
@@ -604,6 +605,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         };
 
         const openLocationMenu = () => {
+            syncLocation();
             locationDropdown?.classList.remove('hidden');
             locationMenu?.setAttribute('aria-expanded', 'true');
             locationMenu?.classList.add('ze-fulfillment-bar__menu-btn--open');
@@ -614,14 +616,96 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             else closeLocationMenu();
         };
 
-        const openDeliveryAddress = () => {
+        const openDeliveryAddress = (options = {}) => {
             closeLocationMenu();
             if (window.LigeirinhoCartUI?.openDeliveryAddress) {
-                window.LigeirinhoCartUI.openDeliveryAddress();
+                window.LigeirinhoCartUI.openDeliveryAddress(options);
                 return;
             }
             window.LigeirinhoCart?.saveCheckout?.({ deliveryType: 'entrega' });
             window.LigeirinhoCartUI?.open?.({ focusAddress: true });
+        };
+
+        const escHtml = (value) =>
+            String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/"/g, '&quot;');
+
+        const applySavedDeliveryAddress = (item) => {
+            if (!item) return;
+            window.LigeirinhoCart?.saveCheckout?.({
+                deliveryType: 'entrega',
+                address: item.address,
+                addressParts: item.addressParts,
+            });
+            window.LigeirinhoCart?.saveAddressToList?.({
+                address: item.address,
+                addressParts: item.addressParts,
+                label: item.label,
+            });
+            window.dispatchEvent(new CustomEvent('ligeirinho-checkout-changed'));
+            closeLocationMenu();
+            syncLocation();
+        };
+
+        const renderSavedAddressesInDropdown = () => {
+            const savedBox = document.getElementById('ze-location-saved');
+            const addLabel = document.getElementById('ze-location-opt-add-label');
+            if (!savedBox) return;
+
+            const checkout = window.LigeirinhoCart?.loadCheckout?.();
+            const addresses = window.LigeirinhoCart?.loadSavedAddresses?.() || [];
+            const currentId = window.LigeirinhoCart?.findSavedAddressId?.(checkout) || '';
+            const isRetirada = checkout?.deliveryType === 'retirada';
+            const currentAddress = checkout?.address?.trim() || '';
+            const hasCurrentInList = currentId && addresses.some((item) => item.id === currentId);
+
+            let items = [...addresses];
+            if (currentAddress && !hasCurrentInList && !isRetirada) {
+                items = [
+                    {
+                        id: currentId || `current:${currentAddress.toLowerCase()}`,
+                        label: '',
+                        address: currentAddress,
+                        addressParts: checkout?.addressParts || {},
+                    },
+                    ...items,
+                ];
+            }
+
+            if (!items.length) {
+                savedBox.innerHTML = '';
+                savedBox.hidden = true;
+                if (addLabel) addLabel.textContent = 'Adicionar endereço de entrega';
+                return;
+            }
+
+            savedBox.hidden = false;
+            savedBox.innerHTML = `<p class="ze-location-dropdown__section">Meus endereços</p>${items
+                .map((item) => {
+                    const active = !isRetirada && item.id === currentId;
+                    const title = item.label ? escHtml(item.label) : escHtml(item.address);
+                    const meta = item.label ? `<span class="ze-location-dropdown__meta">${escHtml(item.address)}</span>` : '';
+                    return `<button type="button" class="ze-location-dropdown__item${active ? ' ze-location-dropdown__item--active' : ''}" role="menuitem" data-address-pick="${escHtml(item.id)}">
+<span class="material-symbols-outlined ze-location-dropdown__icon" aria-hidden="true">location_on</span>
+<span class="ze-location-dropdown__copy">
+<span class="ze-location-dropdown__title">${title}</span>
+${meta}
+</span>
+</button>`;
+                })
+                .join('')}`;
+
+            savedBox.querySelectorAll('[data-address-pick]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const item = items.find((entry) => entry.id === btn.dataset.addressPick);
+                    applySavedDeliveryAddress(item);
+                });
+            });
+
+            if (addLabel) addLabel.textContent = 'Adicionar outro endereço';
         };
 
         const selectRetirada = () => {
@@ -638,8 +722,6 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             const labelEl = document.getElementById('ze-location-label');
             const metaEl = document.getElementById('ze-location-text');
             const iconEl = document.getElementById('ze-location-icon');
-            const entregaLabel = document.getElementById('ze-location-opt-entrega-label');
-            const entregaMeta = document.getElementById('ze-location-opt-entrega-meta');
             if (!labelEl || !metaEl) return;
 
             const checkout = window.LigeirinhoCart?.loadCheckout?.();
@@ -647,27 +729,11 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             const address = checkout?.address?.trim() || '';
 
             locationDropdown?.querySelectorAll('[data-fulfillment]').forEach((btn) => {
-                const active =
-                    checkout?.deliveryType === 'retirada'
-                        ? btn.dataset.fulfillment === 'retirada'
-                        : btn.dataset.fulfillment === 'entrega';
+                const active = checkout?.deliveryType === 'retirada' && btn.dataset.fulfillment === 'retirada';
                 btn.classList.toggle('ze-location-dropdown__item--active', active);
             });
 
-            if (entregaLabel) {
-                entregaLabel.textContent = address
-                    ? 'Alterar endereço de entrega'
-                    : 'Adicionar endereço de entrega';
-            }
-            if (entregaMeta) {
-                if (address) {
-                    entregaMeta.textContent = address;
-                    entregaMeta.classList.remove('hidden');
-                } else {
-                    entregaMeta.textContent = '';
-                    entregaMeta.classList.add('hidden');
-                }
-            }
+            renderSavedAddressesInDropdown();
 
             if (!checkout) {
                 labelEl.textContent = 'Entrega';
@@ -708,9 +774,9 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             toggleLocationMenu();
         });
 
-        locationDropdown?.querySelector('[data-fulfillment="entrega"]')?.addEventListener('click', (e) => {
+        locationDropdown?.querySelector('[data-address-add]')?.addEventListener('click', (e) => {
             e.stopPropagation();
-            openDeliveryAddress();
+            openDeliveryAddress({ view: 'search' });
         });
 
         locationDropdown?.querySelector('[data-fulfillment="retirada"]')?.addEventListener('click', (e) => {
@@ -727,6 +793,7 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
         });
 
         window.addEventListener('ligeirinho-checkout-changed', syncLocation);
+        window.addEventListener('ligeirinho-addresses-changed', syncLocation);
         syncLocation();
         syncHeaderOffset();
 

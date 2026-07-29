@@ -716,16 +716,17 @@ ${feeRow}
         updateFloatCart(cartApi.loadCart());
     };
 
-    const openDeliveryAddress = () => {
+    const openDeliveryAddress = (options = {}) => {
         const checkout = cartApi.loadCheckout();
         if (checkout.deliveryType !== 'entrega') {
             cartApi.saveCheckout({ deliveryType: 'entrega' });
             renderCheckoutFields();
         }
+        const forceSearch = options.view === 'search' || options.forceSearch;
         const openPicker = () => {
             if (window.LigeirinhoAddressPicker?.open) {
                 window.LigeirinhoAddressPicker.open({
-                    view: checkout.address?.trim() ? 'confirm' : 'search',
+                    view: forceSearch ? 'search' : checkout.address?.trim() ? 'confirm' : 'search',
                     onConfirm: () => render(),
                 });
                 return true;
