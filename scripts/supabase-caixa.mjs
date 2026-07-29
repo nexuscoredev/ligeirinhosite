@@ -1,6 +1,12 @@
 import { fetchOrderById, patchOrder } from './supabase-orders.mjs';
 import { maybeInitSeparation } from './separation-init.mjs';
-import { confirmHubPedidoForTotem } from './hub-totem-pedido.mjs';
+import { hubConfig } from './hub-auth.mjs';
+import {
+    buscarHubPedidoPorParceirosId,
+    confirmHubPedidoForTotem,
+    hubPedidoTotemCancelado,
+    reopenTotemParceirosOrderForCaixa,
+} from './hub-totem-pedido.mjs';
 import { resolveOrderSplits, validatePaymentSplits } from './lib/payment-splits.mjs';
 
 async function sbFetch(url, key, path, options = {}) {
@@ -210,14 +216,22 @@ export async function confirmCaixaPayment(
     orderId,
     { pdvMethod, operator, env, useRpc = false } = {}
 ) {
-    const order = await fetchOrderById(url, key, orderId, { useRpc });
+    let order = await fetchOrderById(url, key, orderId, { useRpc });
     if (!order) {
         const err = new Error('Pedido não encontrado');
         err.status = 404;
         throw err;
     }
     if (order.status === 'paid') {
-        return order;
+        const hub = hubConfig(env);
+        let hubPedido = null;
+        if (hub.serviceKey) {
+            hubPedido = await buscarHubPedidoPorParceirosId(hub, order.id);
+        }
+        if (!hubPedidoTotemCancelado(hubPedido)) {
+            return order;
+        }
+        order = await reopenTotemParceirosOrderForCaixa({ url, key, useRpc }, order);
     }
     if (String(order.channel || '').toLowerCase() !== 'totem') {
         const err = new Error('Pedido não é do totem');

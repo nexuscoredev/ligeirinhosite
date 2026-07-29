@@ -1,5 +1,6 @@
 import { hubConfig } from './hub-auth.mjs';
 import { normalizeTotemPaymentMethod, paymentMethodLabel } from './supabase-caixa.mjs';
+import { patchOrder } from './supabase-orders.mjs';
 import {
     formatTotemCode,
     normalizeTotemCode,
@@ -294,6 +295,28 @@ async function buscarHubPedidoPorParceirosId(config, parceirosOrderId) {
     return Array.isArray(rows) ? rows[0] ?? null : null;
 }
 
+export function hubPedidoTotemCancelado(hubPedido) {
+    return String(hubPedido?.status || '').toLowerCase() === 'cancelado';
+}
+
+/** Após cancelamento no PDV (Notas Emitidas), reabre o pedido Totem no Parceiros para novo pagamento. */
+export async function reopenTotemParceirosOrderForCaixa(db, order) {
+    if (!db?.url || !db?.key || !order?.id) return order;
+    if (String(order.status || '').toLowerCase() !== 'paid') return order;
+
+    const note = '[PDV] Pedido reaberto após cancelamento no caixa.';
+    const prevNotes = String(order.notes || '').trim();
+    const patch = {
+        status: 'pending_payment',
+        financial_status: 'aguardando_caixa',
+        paid_at: null,
+        notes: prevNotes ? `${prevNotes}\n${note}` : note,
+    };
+
+    const updated = await patchOrder(db.url, db.key, order.id, patch, { useRpc: db.useRpc });
+    return updated || { ...order, ...patch };
+}
+
 async function resolverProdutosHub(config, items = []) {
     const skus = [
         ...new Set(
@@ -439,6 +462,14 @@ export function publicTotemLookupView(order, hubPedido = null) {
             : paymentMethodRaw.includes('+')
               ? paymentMethodRaw
               : normalizeTotemPaymentMethod(paymentMethodRaw);
+    const hubCancelado = hubPedidoTotemCancelado(hubPedido);
+    const parceirosPago = String(order.status || '').toLowerCase() === 'paid';
+    const alreadyPaid = parceirosPago && !hubCancelado;
+    const canPay =
+        Boolean(order.payment_method) &&
+        (hubCancelado ||
+            (order.status !== 'paid' &&
+                order.financial_status === 'aguardando_caixa'));
     return {
         orderId: order.id,
         code: formatTotemCode(order.id),
@@ -462,12 +493,10 @@ export function publicTotemLookupView(order, hubPedido = null) {
         status: order.status,
         financialStatus: order.financial_status,
         createdAt: order.created_at,
-        canPay:
-            order.status !== 'paid' &&
-            order.financial_status === 'aguardando_caixa' &&
-            Boolean(order.payment_method),
-        alreadyPaid: order.status === 'paid',
-        hubPedidoNumero: hubPedido?.numero ?? null,
+        canPay,
+        alreadyPaid,
+        reabertoAposCancelamento: hubCancelado,
+        hubPedidoNumero: hubCancelado ? null : (hubPedido?.numero ?? null),
         hubPedidoId: hubPedido?.id ?? null,
     };
 }
@@ -559,13 +588,15 @@ export async function confirmHubPedidoForTotem(order, env = process.env, operato
     }
     if (!pedido?.id) return null;
 
-    if (pedido.pagamento_recebido_em) {
+    const hubCancelado = hubPedidoTotemCancelado(pedido);
+    if (pedido.pagamento_recebido_em && !hubCancelado) {
         return pedido;
     }
 
     const agora = new Date().toISOString();
     const op = String(operator || '').trim().slice(0, 64);
     const nota = op ? `PDV ${op}` : 'PDV';
+    const sufixoReabertura = hubCancelado ? ' · Reaberto após cancelamento PDV' : '';
 
     const rows = await hubRest(hub, `pedidos?id=eq.${encodeURIComponent(pedido.id)}`, {
         method: 'PATCH',
@@ -575,16 +606,24 @@ export async function confirmHubPedidoForTotem(order, env = process.env, operato
             pagamento_recebido_em: agora,
             aceito_em: agora,
             pagamento_split: buildPagamentoSplit(order),
-            observacoes: `${buildObservacoesTotem(order)} · ${nota}`,
+            observacoes: `${buildObservacoesTotem(order)} · ${nota}${sufixoReabertura}`,
+            separador_id: null,
+            separacao_iniciada_em: null,
+            separacao_pausada_em: null,
         },
     });
 
     return Array.isArray(rows) ? rows[0] ?? pedido : pedido;
 }
 
-export async function enrichTotemLookup(order, env = process.env) {
+export { buscarHubPedidoPorParceirosId };
+
+export async function enrichTotemLookup(order, env = process.env, { db = null } = {}) {
     const hub = hubConfig(env);
     if (!hub.serviceKey) return publicTotemLookupView(order, null);
     const hubPedido = await buscarHubPedidoPorParceirosId(hub, order.id);
+    if (hubPedidoTotemCancelado(hubPedido) && String(order.status || '').toLowerCase() === 'paid' && db) {
+        order = await reopenTotemParceirosOrderForCaixa(db, order);
+    }
     return publicTotemLookupView(order, hubPedido);
 }

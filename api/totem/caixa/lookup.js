@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
         const db = dbFromPaymentConfig(cfg);
         const order = await lookupTotemOrderByCode(db.url, db.key, code);
-        const view = await enrichTotemLookup(order, process.env);
+        const view = await enrichTotemLookup(order, process.env, { db });
 
         return res.status(200).json({ order: view });
     } catch (err) {
