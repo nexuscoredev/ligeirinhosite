@@ -22,8 +22,11 @@
         );
 
     const resolveOrderHubUserId = (s) => {
-        const id = String(s?.hubUserId || '').trim();
-        return isHubUserUuid(id) ? id : '';
+        for (const candidate of [s?.hubUserId, s?.sub]) {
+            const id = String(candidate || '').trim();
+            if (isHubUserUuid(id)) return id;
+        }
+        return '';
     };
 
     const loadCheckoutState = () => cartApi.loadCheckout();

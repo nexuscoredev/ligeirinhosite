@@ -595,7 +595,7 @@ ${withFilters ? filtersHtml() : ''}
 
     const loadOrders = async ({ keepFilters = false, silent = false } = {}) => {
         const s = session();
-        if (!s?.sub && !s?.email && !s?.login && !auth?.getAccountSessionToken?.()) {
+        if (!auth?.isLoggedIn?.() && !auth?.getAccountSessionToken?.()) {
             renderShell(`<div class="conta-empty meus-pedidos-empty">
 <span class="material-symbols-outlined conta-empty__icon">person</span>
 <p class="conta-empty__title">Entre para ver seus pedidos</p>

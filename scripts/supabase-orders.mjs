@@ -1,5 +1,6 @@
 import { resolveOrderSplits } from './lib/payment-splits.mjs';
 import { extractCpfFromNotes, isValidCpf, normalizeCpfDigits } from './lib/cpf.mjs';
+import { formatCnpj } from './hub-parceiro.mjs';
 
 function headers(apiKey, extra = {}) {
     return {
@@ -140,7 +141,20 @@ async function fetchOrdersByFilter(supabaseUrl, apiKey, filterParams, { limit = 
     return Array.isArray(data) ? data : [];
 }
 
-/** Lista pedidos Parceiros por contas Hub, e-mail e IDs legados (ex.: sub Google). */
+function normalizeRpcOrderRows(data) {
+    if (Array.isArray(data)) return data;
+    if (typeof data === 'string') {
+        try {
+            const parsed = JSON.parse(data);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+}
+
+/** Lista pedidos Parceiros por contas Hub, e-mail, CNPJ e IDs legados (ex.: sub Google). */
 export async function listParceiroOrders(
     supabaseUrl,
     apiKey,
@@ -163,21 +177,7 @@ export async function listParceiroOrders(
                 .filter(Boolean),
         ),
     ];
-
-    if (useRpc) {
-        const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_list_parceiro_orders`, {
-            method: 'POST',
-            headers: headers(apiKey),
-            body: JSON.stringify({
-                p_hub_user_ids: allHubIds,
-                p_emails: emailList,
-                p_limit: safeLimit,
-                p_channel: channel || 'parceiros',
-            }),
-        });
-        const data = await parseJson(res);
-        return Array.isArray(data) ? data : [];
-    }
+    const cnpj = String(cnpjDigits || '').replace(/\D/g, '');
 
     const seen = new Set();
     const merged = [];
@@ -189,6 +189,38 @@ export async function listParceiroOrders(
             merged.push(row);
         }
     };
+
+    if (useRpc && (allHubIds.length || emailList.length || cnpj.length >= 11)) {
+        const rpcBodies = [
+            {
+                p_hub_user_ids: allHubIds,
+                p_emails: emailList,
+                p_limit: safeLimit,
+                p_channel: channel || 'parceiros',
+                p_cnpj_digits: cnpj.length >= 11 ? cnpj : null,
+            },
+            {
+                p_hub_user_ids: allHubIds,
+                p_emails: emailList,
+                p_limit: safeLimit,
+                p_channel: channel || 'parceiros',
+            },
+        ];
+        for (const body of rpcBodies) {
+            try {
+                const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_list_parceiro_orders`, {
+                    method: 'POST',
+                    headers: headers(apiKey),
+                    body: JSON.stringify(body),
+                });
+                const data = await parseJson(res);
+                addRows(normalizeRpcOrderRows(data));
+                if (merged.length) break;
+            } catch {
+                /* tenta próximo formato de RPC */
+            }
+        }
+    }
 
     if (allHubIds.length) {
         addRows(await listOrdersByHubUserIds(supabaseUrl, apiKey, allHubIds, { limit: safeLimit, channel }));
@@ -205,7 +237,6 @@ export async function listParceiroOrders(
         );
     }
 
-    const cnpj = String(cnpjDigits || '').replace(/\D/g, '');
     if (cnpj.length >= 11) {
         addRows(
             await fetchOrdersByFilter(
@@ -215,6 +246,17 @@ export async function listParceiroOrders(
                 { limit: safeLimit, channel },
             ),
         );
+        const formatted = formatCnpj(cnpj);
+        if (formatted && formatted !== cnpj) {
+            addRows(
+                await fetchOrdersByFilter(
+                    supabaseUrl,
+                    apiKey,
+                    { notes: `ilike.*${formatted.replace(/\//g, '*')}*` },
+                    { limit: safeLimit, channel },
+                ),
+            );
+        }
     }
 
     merged.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));

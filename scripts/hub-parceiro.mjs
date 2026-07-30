@@ -369,6 +369,9 @@ export async function collectParceiroOrderLookup(config, usuario, authExtras = {
     }
 
     const sub = String(authExtras.sub || '').trim();
+    if (sub && isHubUsuarioUuid(sub) && !hubUserIds.includes(sub)) {
+        hubUserIds.push(sub);
+    }
     if (sub && !isHubUsuarioUuid(sub) && !hubUserIds.includes(sub)) {
         legacyHubUserIds.add(sub);
     }

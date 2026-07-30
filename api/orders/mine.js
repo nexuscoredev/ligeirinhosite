@@ -1,5 +1,5 @@
 import { requireAccountSession } from '../account/_require-hub-session.mjs';
-import { collectParceiroOrderLookup } from '../../scripts/hub-parceiro.mjs';
+import { collectParceiroOrderLookup, formatCnpj, isHubUsuarioUuid } from '../../scripts/hub-parceiro.mjs';
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import {
     listParceiroOrders,
@@ -48,8 +48,15 @@ export default async function handler(req, res) {
         ).trim();
         const lookup = await collectParceiroOrderLookup(session.config, session.usuario, {
             email: authEmail,
-            sub: String(req.headers['x-auth-sub'] || req.query.sub || '').trim(),
+            sub: String(req.headers['x-auth-sub'] || req.query.sub || session.userId || '').trim(),
         });
+        if (
+            session.userId &&
+            isHubUsuarioUuid(session.userId) &&
+            !lookup.hubUserIds.includes(session.userId)
+        ) {
+            lookup.hubUserIds.push(session.userId);
+        }
         const rows = await listParceiroOrders(db.url, db.key, lookup, {
             limit,
             channel: 'parceiros',
