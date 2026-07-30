@@ -65,6 +65,7 @@ const APP_SHELL = [
     '/js/theme-ui.js',
     '/js/app.js',
     '/js/install-app.js',
+    '/js/baixar-app.js',
     '/js/client-notifications.js',
     '/js/auth-store.js',
     '/js/delivery-fee.js',
