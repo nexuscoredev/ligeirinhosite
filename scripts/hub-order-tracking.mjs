@@ -98,11 +98,26 @@ const ROUTE_STATUSES = new Set([
     'saiu_entrega',
     'em_entrega',
     'proximo_entrega',
+    'com_ocorrencia',
+]);
+
+/** Separação concluída — aguardando NF / conferência (não voltar ao Aceite). */
+const SEPARATED_STATUSES = new Set(['separado', 'aguardando_emissao_nf']);
+
+const STOCK_ISSUE_STATUSES = new Set(['falta_estoque']);
+
+/** Pronto para retirada/entrega (pós-NF, antes ou na fila de rota). */
+const READY_STATUSES = new Set([
+    'aguardando_retirada',
+    'aguardando_entrega',
+    'aguardando_roteirizacao',
 ]);
 
 const PREP_STATUSES = new Set([
     'aguardando_separacao',
     'em_separacao',
+    'separacao_pausada',
+    'refazer_separacao',
     'separando',
     'aceito',
     'em_preparacao',
@@ -110,15 +125,26 @@ const PREP_STATUSES = new Set([
 
 const ACCEPTED_STATUSES = new Set(['em_andamento']);
 
-const DONE_STATUSES = new Set(['entregue', 'concluido', 'finalizado', 'entrega_concluida']);
+const DONE_STATUSES = new Set([
+    'entregue',
+    'concluido',
+    'finalizado',
+    'entrega_concluida',
+    'retirado',
+]);
 
 const CANCEL_STATUSES = new Set(['cancelado', 'cancelado_cliente', 'cancelled', 'cancelada']);
 
 function resolveTrackingFilterKey(order, { cancelled, step, hubStatus }) {
     if (cancelled) return 'cancelled';
-    if (order?.status === 'pending_payment') return 'pending_payment';
-    if (step >= 4) return 'done';
-    if (step >= 3) return 'route';
+    if (order?.status === 'pending_payment' || hubStatus === 'aguardando_pagamento') {
+        return 'pending_payment';
+    }
+    if (step >= 4 || DONE_STATUSES.has(hubStatus)) return 'done';
+    if (ROUTE_STATUSES.has(hubStatus) || READY_STATUSES.has(hubStatus) || step >= 3) return 'route';
+    if (SEPARATED_STATUSES.has(hubStatus) || STOCK_ISSUE_STATUSES.has(hubStatus)) {
+        return 'separated';
+    }
     if (ACCEPTED_STATUSES.has(hubStatus)) return 'accepted';
     if (PREP_STATUSES.has(hubStatus)) return 'separation';
     if (
@@ -132,12 +158,100 @@ function resolveTrackingFilterKey(order, { cancelled, step, hubStatus }) {
     return 'progress';
 }
 
+function trackingCopyForHubStatus(hubStatus) {
+    if (hubStatus === 'aguardando_emissao_nf') {
+        return {
+            step: 2,
+            stepLabel: 'Separado',
+            headerTitle: 'Pedido separado',
+            message: 'Separação concluída. Estamos emitindo a nota fiscal do seu pedido.',
+        };
+    }
+    if (hubStatus === 'separado') {
+        return {
+            step: 2,
+            stepLabel: 'Separado',
+            headerTitle: 'Pedido separado',
+            message: 'Seu pedido foi separado e segue para a próxima etapa.',
+        };
+    }
+    if (hubStatus === 'falta_estoque') {
+        return {
+            step: 2,
+            stepLabel: 'Ajuste de estoque',
+            headerTitle: 'Pedido com ajuste',
+            message:
+                'Alguns itens ficaram indisponíveis na separação. A loja está ajustando seu pedido.',
+        };
+    }
+    if (hubStatus === 'aguardando_retirada') {
+        return {
+            step: 3,
+            stepLabel: 'Aguardando retirada',
+            headerTitle: 'Pronto para retirada',
+            message: 'Seu pedido está pronto. Você já pode retirar no ponto Ligeirinho.',
+        };
+    }
+    if (hubStatus === 'aguardando_entrega' || hubStatus === 'aguardando_roteirizacao') {
+        return {
+            step: 3,
+            stepLabel: 'Aguardando entrega',
+            headerTitle: 'Pronto para entrega',
+            message: 'Seu pedido está separado e aguarda a saída para entrega.',
+        };
+    }
+    if (hubStatus === 'com_ocorrencia') {
+        return {
+            step: 3,
+            stepLabel: 'Em acompanhamento',
+            headerTitle: 'Pedido em acompanhamento',
+            message: 'Há uma ocorrência no pedido. Estamos resolvendo e já atualizamos você.',
+        };
+    }
+    if (hubStatus === 'retirado') {
+        return {
+            step: 4,
+            stepLabel: 'Retirado',
+            headerTitle: 'Pedido retirado',
+            message: 'Pedido retirado com sucesso. Obrigado pela preferência!',
+        };
+    }
+    if (hubStatus === 'separacao_pausada') {
+        return {
+            step: 2,
+            stepLabel: 'Separação pausada',
+            headerTitle: 'Separação pausada',
+            message: 'A separação do seu pedido foi pausada temporariamente e será retomada em breve.',
+        };
+    }
+    if (hubStatus === 'refazer_separacao') {
+        return {
+            step: 2,
+            stepLabel: 'Em separação',
+            headerTitle: 'Em separação',
+            message: 'Seu pedido voltou para separação para conferência dos itens.',
+        };
+    }
+    if (hubStatus === 'aguardando_separacao') {
+        return {
+            step: 2,
+            stepLabel: 'Aguardando separação',
+            headerTitle: 'Aguardando separação',
+            message: 'Seu pedido foi aceito e entra na fila de separação.',
+        };
+    }
+    return null;
+}
+
 export function buildOrderTracking(order, hubPedido = null) {
     const hubStatus = String(hubPedido?.status || '').toLowerCase();
     let step = 1;
     let stepLabel = 'Aguardando confirmação';
+    let headerTitle = 'Aguardando confirmação';
     let message = 'Seu pedido foi recebido e está aguardando confirmação no Ligeirinho Hub.';
     let cancelled = false;
+
+    const statusCopy = trackingCopyForHubStatus(hubStatus);
 
     if (
         order?.status === 'cancelled' ||
@@ -147,56 +261,68 @@ export function buildOrderTracking(order, hubPedido = null) {
         cancelled = true;
         step = 0;
         stepLabel = 'Pedido cancelado';
+        headerTitle = 'Pedido cancelado';
         message = 'Esta solicitação foi cancelada.';
-    } else if (DONE_STATUSES.has(hubStatus)) {
+    } else if (DONE_STATUSES.has(hubStatus) && hubStatus !== 'retirado') {
         step = 4;
         stepLabel = 'Entrega concluída';
+        headerTitle = 'Pedido entregue';
         message = 'Seu pedido foi entregue. Obrigado pela preferência!';
+    } else if (statusCopy) {
+        step = statusCopy.step;
+        stepLabel = statusCopy.stepLabel;
+        headerTitle = statusCopy.headerTitle;
+        message = statusCopy.message;
     } else if (ROUTE_STATUSES.has(hubStatus)) {
         step = 3;
         stepLabel = 'A caminho';
+        headerTitle = 'Saiu para entrega';
         message =
             hubStatus === 'proximo_entrega'
                 ? 'Seu pedido é o próximo a ser entregue!'
                 : 'Seu pedido saiu para entrega.';
     } else if (ACCEPTED_STATUSES.has(hubStatus)) {
-        step = 2;
+        step = 1;
         stepLabel = 'Aceito';
+        headerTitle = 'Pedido aceito';
         message = 'Seu pedido foi aceito e já está em andamento no Ligeirinho.';
     } else if (PREP_STATUSES.has(hubStatus)) {
         step = 2;
         stepLabel = 'Em separação';
+        headerTitle = 'Em separação';
         message = 'Seu pedido foi aceito e está em separação no depósito.';
     } else if (
         order?.status === 'confirmed' &&
         (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus)
     ) {
-        step = 2;
+        step = 1;
         stepLabel = 'Aceito';
+        headerTitle = 'Pedido aceito';
         message = 'Seu pedido foi aceito e já está em andamento no Ligeirinho.';
     } else if (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus) {
         step = 1;
         stepLabel = 'Aguardando confirmação';
+        headerTitle = 'Aguardando confirmação';
         message = 'Seu pedido foi recebido e está aguardando confirmação no Ligeirinho Hub.';
     } else if (order?.status === 'paid') {
-        step = 2;
+        step = 1;
         stepLabel = 'Confirmado';
+        headerTitle = 'Pedido confirmado';
         message = 'Pagamento confirmado. Em breve iniciamos a separação.';
+    } else {
+        // Status Hub desconhecido: não regredir para Aceite; manter em andamento.
+        step = 2;
+        stepLabel = 'Em andamento';
+        headerTitle = 'Pedido em andamento';
+        message = 'Seu pedido está em andamento no Ligeirinho.';
     }
 
-    if (!cancelled && order?.status === 'pending_payment') {
+    if (!cancelled && (order?.status === 'pending_payment' || hubStatus === 'aguardando_pagamento')) {
         step = 0;
         stepLabel = 'Aguardando pagamento';
+        headerTitle = 'Aguardando pagamento';
         message = 'Assim que o pagamento for confirmado, seguimos com o pedido.';
     }
-
-    const headerTitleByStep = [
-        'Aguardando pagamento',
-        'Aguardando confirmação',
-        'Em separação',
-        'Saiu para entrega',
-        'Pedido entregue',
-    ];
 
     const filterKey = resolveTrackingFilterKey(order, { cancelled, step, hubStatus });
 
@@ -207,11 +333,7 @@ export function buildOrderTracking(order, hubPedido = null) {
         step,
         stepLabel,
         filterKey,
-        headerTitle: cancelled
-            ? 'Pedido cancelado'
-            : ACCEPTED_STATUSES.has(hubStatus)
-              ? 'Pedido aceito'
-              : headerTitleByStep[step] || stepLabel,
+        headerTitle,
         message,
         cancelled,
         canCancel:
