@@ -307,11 +307,17 @@
         const itemsHtml = saved.length
             ? saved
                   .map((item) => {
-                      const title = item.label ? esc(item.label) : esc(item.address);
-                      const sub = item.label ? `<span class="lig-addr__saved-sub">${esc(item.address)}</span>` : '';
+                      const lines =
+                          window.LigeirinhoCart?.addressDisplayLines?.(item) || {
+                              title: item.label || item.address,
+                              meta: item.label ? item.address : '',
+                          };
+                      const sub = lines.meta
+                          ? `<span class="lig-addr__saved-sub">${esc(lines.meta)}</span>`
+                          : '';
                       return `<button type="button" class="lig-addr__result lig-addr__history-item lig-addr__saved-item" data-addr-saved="${esc(item.id)}">
 <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
-<span class="lig-addr__saved-copy">${title}${sub}</span>
+<span class="lig-addr__saved-copy"><span class="lig-addr__saved-title">${esc(lines.title)}</span>${sub}</span>
 </button>`;
                   })
                   .join('')

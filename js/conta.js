@@ -722,10 +722,15 @@ ${esc(cat.label)}
             ? addresses
                   .map((item) => {
                       const active = currentId && item.id === currentId;
+                      const lines =
+                          cart?.addressDisplayLines?.(item) || {
+                              title: item.label || item.address,
+                              meta: item.label ? item.address : '',
+                          };
                       return `<div class="conta-address-card${active ? ' conta-address-card--active' : ''}">
 <div class="conta-address-card__main">
-${item.label ? `<p class="conta-address-card__label">${esc(item.label)}</p>` : ''}
-<p class="conta-address-card__line">${esc(item.address)}</p>
+${lines.meta ? `<p class="conta-address-card__label">${esc(lines.title)}</p>` : ''}
+<p class="conta-address-card__line">${esc(lines.meta || lines.title)}</p>
 ${active ? '<span class="conta-address-card__badge">Em uso</span>' : ''}
 </div>
 <div class="conta-address-card__actions">

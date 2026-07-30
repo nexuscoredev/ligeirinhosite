@@ -335,6 +335,112 @@
         return addressHistoryId(parts || {}, address);
     };
 
+    const ufFromParts = (parts = {}) => {
+        const code = String(parts.stateCode || '').trim();
+        if (code) return code.slice(0, 2).toUpperCase();
+        const map = {
+            'são paulo': 'SP',
+            'sao paulo': 'SP',
+            'rio de janeiro': 'RJ',
+            'minas gerais': 'MG',
+            paraná: 'PR',
+            parana: 'PR',
+            'santa catarina': 'SC',
+            'rio grande do sul': 'RS',
+            bahia: 'BA',
+            goiás: 'GO',
+            goias: 'GO',
+            'distrito federal': 'DF',
+        };
+        return map[String(parts.state || '').trim().toLowerCase()] || '';
+    };
+
+    /** Remove ruído de geocoder (Brasil, região, CEP) de strings longas. */
+    const shortenRawAddress = (raw) => {
+        let s = String(raw || '').trim();
+        if (!s) return '';
+        s = s
+            .replace(/,?\s*Brasil\s*$/i, '')
+            .replace(/,?\s*Região\s+[\wÀ-ú]+(?:\s+[\wÀ-ú]+)*/gi, '')
+            .replace(/,?\s*\d{5}-?\d{3}\b/g, '')
+            .replace(/\s*,\s*,+/g, ',')
+            .replace(/^,\s*|,\s*$/g, '')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+
+        const chunks = s
+            .split(',')
+            .map((part) => part.trim())
+            .filter(Boolean);
+        if (chunks.length < 3) return s;
+
+        const streetIdx = chunks.findIndex((part) =>
+            /^(rua|r\.|av\.?|avenida|estr\.?|estrada|alameda|travessa|rod\.?|rodovia|praça|praca|viela)\b/i.test(
+                part,
+            ),
+        );
+        if (streetIdx >= 0) {
+            const street = chunks[streetIdx];
+            const prev = streetIdx > 0 ? chunks[streetIdx - 1] : '';
+            const number = /^\d+[A-Za-z]?$/.test(prev) ? prev : '';
+            const after = chunks.slice(streetIdx + 1).filter((part) => !/^(brasil)$/i.test(part));
+            const neighborhood = after[0] || '';
+            const city = after[1] || '';
+            let uf = after.find((part) => /^[A-Za-z]{2}$/.test(part)) || '';
+            if (!uf) {
+                const stateName = after[2] || '';
+                uf = ufFromParts({ state: stateName });
+            }
+            return [number ? `${street}, ${number}` : street, neighborhood, city, uf]
+                .filter(Boolean)
+                .join(' - ');
+        }
+
+        return chunks.slice(0, 4).join(' - ');
+    };
+
+    /**
+     * Endereço curto para listas: "Rua X, N - Bairro - Cidade - UF".
+     * Aceita item salvo `{ address, addressParts }` ou só `addressParts`.
+     */
+    const formatShortAddress = (entry) => {
+        const parts = entry?.addressParts && typeof entry.addressParts === 'object'
+            ? entry.addressParts
+            : entry && typeof entry === 'object' && (entry.street || entry.city)
+              ? entry
+              : {};
+        const street = String(parts.street || '').trim();
+        const number = parts.noNumber ? 'S/N' : String(parts.number || '').trim();
+        const streetLine = [street, number].filter(Boolean).join(', ');
+        const uf = ufFromParts(parts);
+        const short = [streetLine, parts.neighborhood, parts.city, uf]
+            .map((part) => String(part || '').trim())
+            .filter(Boolean)
+            .join(' - ');
+        if (short) return short;
+        return shortenRawAddress(entry?.address || '');
+    };
+
+    /** Apelido útil (Loja, Casa) — ignora display_name longo do mapa. */
+    const isAddressNickname = (label, shortAddress = '') => {
+        const text = String(label || '').trim();
+        if (!text) return false;
+        if (text.length > 40) return false;
+        if (/brasil|região sudeste|região nordeste|região|,\s*.+,\s*.+,/i.test(text)) return false;
+        if (shortAddress && text.toLowerCase() === shortAddress.toLowerCase()) return false;
+        return true;
+    };
+
+    /** Linhas para UI de escolha: título + meta opcional. */
+    const addressDisplayLines = (item) => {
+        const short = formatShortAddress(item);
+        const fallback = String(item?.address || '').trim();
+        if (isAddressNickname(item?.label, short)) {
+            return { title: String(item.label).trim(), meta: short || fallback };
+        }
+        return { title: short || fallback, meta: '' };
+    };
+
     const TOTEM_CHECKOUT_DEFAULTS = {
         deliveryType: 'retirada',
         address: '',
@@ -410,6 +516,9 @@
         removeSavedAddress,
         removeAddressFromHistory,
         findSavedAddressId,
+        formatShortAddress,
+        addressDisplayLines,
+        isAddressNickname,
         loadCart,
         saveCart,
         loadCheckout,

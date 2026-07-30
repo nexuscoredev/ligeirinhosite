@@ -686,12 +686,18 @@ ${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
             savedBox.innerHTML = `<p class="ze-location-dropdown__section">Meus endereços</p>${items
                 .map((item) => {
                     const active = !isRetirada && item.id === currentId;
-                    const title = item.label ? escHtml(item.label) : escHtml(item.address);
-                    const meta = item.label ? `<span class="ze-location-dropdown__meta">${escHtml(item.address)}</span>` : '';
+                    const lines =
+                        window.LigeirinhoCart?.addressDisplayLines?.(item) || {
+                            title: item.label || item.address,
+                            meta: item.label ? item.address : '',
+                        };
+                    const meta = lines.meta
+                        ? `<span class="ze-location-dropdown__meta">${escHtml(lines.meta)}</span>`
+                        : '';
                     return `<button type="button" class="ze-location-dropdown__item${active ? ' ze-location-dropdown__item--active' : ''}" role="menuitem" data-address-pick="${escHtml(item.id)}">
 <span class="material-symbols-outlined ze-location-dropdown__icon" aria-hidden="true">location_on</span>
 <span class="ze-location-dropdown__copy">
-<span class="ze-location-dropdown__title">${title}</span>
+<span class="ze-location-dropdown__title">${escHtml(lines.title)}</span>
 ${meta}
 </span>
 </button>`;
@@ -727,7 +733,9 @@ ${meta}
 
             const checkout = window.LigeirinhoCart?.loadCheckout?.();
             const emptyAddress = 'Toque para informar o endereço';
-            const address = checkout?.address?.trim() || '';
+            const addressRaw = checkout?.address?.trim() || '';
+            const address =
+                window.LigeirinhoCart?.formatShortAddress?.(checkout) || addressRaw;
 
             locationDropdown?.querySelectorAll('[data-fulfillment]').forEach((btn) => {
                 const active = checkout?.deliveryType === 'retirada' && btn.dataset.fulfillment === 'retirada';
