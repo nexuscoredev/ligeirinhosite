@@ -54,6 +54,11 @@
       "printerPort": 9100,
       "hiddenCategories": ["insumos"],
       "hiddenProductIds": []
+    },
+    "lgshopping": {
+      "label": "Ligeirinho Shopping",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
     }
   },
   "loginUnitMap": {
@@ -62,6 +67,7 @@
     "Tablet2": "tablet2",
     "tablet2": "tablet2",
     "Tablet3": "tablet3",
-    "tablet3": "tablet3"
+    "TotemLGShopping": "lgshopping",
+    "totemlgshopping": "lgshopping"
   }
 }

@@ -11,9 +11,12 @@
         welcome: document.getElementById('totem-view-welcome'),
         customer: document.getElementById('totem-view-customer'),
         catalog: document.getElementById('totem-view-catalog'),
+        doseWizard: document.getElementById('totem-view-dose-wizard'),
         promos: document.getElementById('totem-view-promos'),
     };
     const startBtn = document.getElementById('totem-start-btn');
+    const doseStartBtn = document.getElementById('totem-dose-start-btn');
+    const doseChipBtn = document.getElementById('totem-dose-chip-btn');
     const customerForm = document.getElementById('totem-customer-form');
     const customerNameInput = document.getElementById('totem-customer-name');
     const customerPhoneInput = document.getElementById('totem-customer-phone');
@@ -204,6 +207,7 @@
     };
     let promosReturnView = 'welcome';
     let customerIdentified = false;
+    let pendingDoseWizard = false;
     let customerSkippedIdentification = false;
     let syncBusy = false;
     let refreshBusy = false;
@@ -1111,6 +1115,30 @@ ${unitHtml}
     };
 
     const session = () => auth.loadSession();
+
+    const isTotemLGShopping = () =>
+        String(session()?.login || '')
+            .trim()
+            .toLowerCase() === 'totemlgshopping';
+
+    const updateLGShoppingUi = () => {
+        const enabled = isTotemLGShopping();
+        if (doseStartBtn) doseStartBtn.hidden = !enabled;
+        if (doseChipBtn) doseChipBtn.hidden = !enabled || !customerIdentified;
+        document.documentElement.classList.toggle('totem--lg-shopping', enabled);
+    };
+
+    const openDoseWizard = () => {
+        if (!isTotemLGShopping()) return;
+        if (!customerIdentified) {
+            pendingDoseWizard = true;
+            setView('customer');
+            startCustomerFlow();
+            bumpIdle();
+            return;
+        }
+        window.LigeirinhoTotemDoseWizard?.open?.();
+    };
 
     const resolveStoreKey = () => {
         const s = session();
@@ -2308,6 +2336,12 @@ ${unitHtml}
         renderCategories();
         renderProducts();
         updateCatalogGreeting();
+        updateLGShoppingUi();
+        if (pendingDoseWizard && isTotemLGShopping()) {
+            pendingDoseWizard = false;
+            window.LigeirinhoTotemDoseWizard?.open?.();
+            return;
+        }
         setView('catalog');
         initSearchKeyboard();
         bumpIdle();
@@ -2444,7 +2478,8 @@ ${unitHtml}
     const updateShoppingChrome = () => {
         const inCatalog = views.catalog?.classList.contains('totem-view--active');
         const inPromos = views.promos?.classList.contains('totem-view--active');
-        const inShopping = inCatalog || inPromos;
+        const inDoseWizard = views.doseWizard?.classList.contains('totem-view--active');
+        const inShopping = inCatalog || inPromos || inDoseWizard;
         const showShoppingActions = Boolean(customerIdentified && inShopping);
         const pendingSystemUpdate = Boolean(window.LigeirinhoTotemPwaUpdate?.isPending?.());
         const showAdminOrders = Boolean(window.LigeirinhoTotemOrdersAdmin?.isTotemAdmin?.());
@@ -2629,7 +2664,7 @@ ${unitHtml}
     };
 
     const setView = (name) => {
-        if ((name === 'catalog' || name === 'promos') && !customerIdentified) {
+        if ((name === 'catalog' || name === 'promos' || name === 'doseWizard') && !customerIdentified) {
             name = 'customer';
         }
         Object.entries(views).forEach(([key, el]) => {
@@ -2650,9 +2685,11 @@ ${unitHtml}
         });
         const inCatalog = name === 'catalog';
         const inPromos = name === 'promos';
-        const inShopping = inCatalog || inPromos;
+        const inDoseWizard = name === 'doseWizard';
+        const inShopping = inCatalog || inPromos || inDoseWizard;
         updateShoppingChrome();
-        totemHeader?.classList.toggle('totem-header--catalog', inCatalog);
+        updateLGShoppingUi();
+        totemHeader?.classList.toggle('totem-header--catalog', inCatalog || inDoseWizard);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
         if (name === 'welcome') hideIdleWarning();
         if (!inCatalog) {
@@ -2681,7 +2718,9 @@ ${unitHtml}
 
     const isInPromos = () => views.promos?.classList.contains('totem-view--active');
 
-    const isInShopping = () => isInCatalog() || isInPromos();
+    const isInDoseWizard = () => views.doseWizard?.classList.contains('totem-view--active');
+
+    const isInShopping = () => isInCatalog() || isInPromos() || isInDoseWizard();
 
     const blocksFloatCart = () =>
         detailPanel?.classList.contains('totem-detail--open') ||
@@ -2765,6 +2804,8 @@ ${unitHtml}
 
     const resetSession = () => {
         customerIdentified = false;
+        pendingDoseWizard = false;
+        window.LigeirinhoTotemDoseWizard?.close?.();
         closeProductDetail();
         closeCart();
         window.LigeirinhoTotemPromos?.closeLightbox?.();
@@ -2835,6 +2876,7 @@ ${unitHtml}
 
     const isIdleBlocked = () => {
         if (views.customer?.classList.contains('totem-view--active')) return true;
+        if (views.doseWizard?.classList.contains('totem-view--active')) return true;
         if (detailPanel?.classList.contains('totem-detail--open')) return true;
         if (detailPanel?.classList.contains('totem-detail--closing')) return true;
         if (isCartOpen()) return true;
@@ -2885,6 +2927,7 @@ ${unitHtml}
                 if (
                     views.catalog?.classList.contains('totem-view--active') ||
                     views.promos?.classList.contains('totem-view--active') ||
+                    views.doseWizard?.classList.contains('totem-view--active') ||
                     views.customer?.classList.contains('totem-view--active')
                 ) {
                     updateIdleCountdown(Math.ceil(cfg.countdownMs / 1000));
@@ -3876,9 +3919,20 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         ensureClearCartUi();
         startBtn?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
+            pendingDoseWizard = false;
             setView('customer');
             startCustomerFlow();
             bumpIdle();
+        });
+
+        doseStartBtn?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            openDoseWizard();
+        });
+
+        doseChipBtn?.addEventListener('click', () => {
+            totemKeyboard?.hide?.();
+            openDoseWizard();
         });
 
         document.querySelectorAll('[data-customer-skip]').forEach((btn) => {
@@ -4420,6 +4474,32 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
         updateShoppingChrome();
         bindEvents();
+        window.LigeirinhoTotemDoseWizard?.init?.({
+            catalog,
+            pricing,
+            formatPrice,
+            esc,
+            getDisplayItems: () => displayItems,
+            isItemHidden: (item) => window.LigeirinhoTotemStoreAdmin?.isItemHidden?.(item),
+            addItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
+            isEnabled: isTotemLGShopping,
+            setView,
+            onOpen: () => {
+                closeProductDetail();
+                closeCart();
+                closeCategoriesModal();
+                bumpIdle();
+            },
+            onClose: () => {
+                setView('catalog');
+                initSearchKeyboard();
+                bumpIdle();
+            },
+            openCart,
+            startCheckout,
+            bumpIdle,
+        });
+        updateLGShoppingUi();
         suppressGhostClicks(280);
         window.LigeirinhoTotemPwaUpdate?.onStatusChange?.((detail) => {
             updateShoppingChrome();

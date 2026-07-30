@@ -13,7 +13,7 @@
 <script src="js/totem-kiosk-guard.js"></script>
 <script>document.documentElement.setAttribute('data-theme', 'light');</script>
 <link rel="stylesheet" href="css/site.css">
-<link rel="stylesheet" href="css/totem.css?v=sw-v466">
+<link rel="stylesheet" href="css/totem.css?v=sw-v488">
 <link rel="stylesheet" href="css/totem-receipt.css">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Hanken+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -72,6 +72,10 @@
 <button type="button" class="totem-btn totem-btn--primary totem-btn--xl totem-welcome__cta" id="totem-start-btn">
 <span>Faça seu pedido</span>
 <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+</button>
+<button type="button" class="totem-btn totem-btn--secondary totem-btn--xl totem-welcome__cta totem-welcome__cta--dose" id="totem-dose-start-btn" hidden>
+<span class="material-symbols-outlined" aria-hidden="true">local_bar</span>
+<span>Crie sua dose!</span>
 </button>
 </div>
 </div>
@@ -273,6 +277,10 @@
 <span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
 </form>
+<button type="button" class="totem-btn totem-btn--dose-chip" id="totem-dose-chip-btn" hidden>
+<span class="material-symbols-outlined" aria-hidden="true">local_bar</span>
+<span>Crie sua dose!</span>
+</button>
 <button type="button" class="totem-categories-btn" id="totem-categories-btn" aria-haspopup="dialog" aria-controls="totem-categories-modal">
 <span class="totem-categories-btn__icon" aria-hidden="true"><span class="material-symbols-outlined totem-categories-btn__glyph">category</span></span>
 <span class="totem-categories-btn__label" id="totem-categories-btn-label">Categorias</span>
@@ -314,6 +322,46 @@
 <p class="totem-empty__title" id="totem-products-empty-title">Nenhum produto nesta categoria</p>
 <p class="totem-empty__lead" id="totem-products-empty-lead">Selecione outra categoria para continuar.</p>
 </div>
+</div>
+</div>
+</section>
+
+<section id="totem-view-dose-wizard" class="totem-view totem-dose-wizard" aria-label="Crie sua dose" hidden>
+<div class="totem-dose-wizard__content">
+<button type="button" class="totem-dose-wizard__back" id="totem-dose-back" aria-label="Voltar ao cardápio">
+<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+<span>Voltar</span>
+</button>
+<ol class="totem-dose-wizard__progress" id="totem-dose-progress" aria-label="Progresso"></ol>
+<div class="totem-dose-wizard__hero">
+<p class="totem-dose-wizard__eyebrow" id="totem-dose-eyebrow">Passo 1 de 5</p>
+<h2 class="totem-dose-wizard__title" id="totem-dose-title">Tamanho</h2>
+<p class="totem-dose-wizard__lead" id="totem-dose-lead">Escolha o copo</p>
+</div>
+<div class="totem-dose-wizard__body" id="totem-dose-step-picker">
+<div class="totem-dose-wizard__grid" id="totem-dose-options" role="list"></div>
+</div>
+<div class="totem-dose-wizard__body totem-dose-wizard__body--review" id="totem-dose-step-review" hidden>
+<ul class="totem-dose-wizard__review" id="totem-dose-review-list"></ul>
+<p class="totem-dose-wizard__total-wrap">
+<span class="totem-dose-wizard__total-label">Total</span>
+<strong class="totem-dose-wizard__total" id="totem-dose-total"></strong>
+</p>
+<div class="totem-dose-wizard__actions">
+<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-dose-add-btn">
+<span class="material-symbols-outlined" aria-hidden="true">add_shopping_cart</span>
+<span>Adicionar ao carrinho</span>
+</button>
+<button type="button" class="totem-btn totem-btn--ghost totem-btn--xl" id="totem-dose-finish-btn" hidden>
+<span class="material-symbols-outlined" aria-hidden="true">payments</span>
+<span>Finalizar pedido</span>
+</button>
+</div>
+</div>
+<div class="totem-dose-wizard__empty" id="totem-dose-empty" hidden>
+<span class="material-symbols-outlined totem-dose-wizard__empty-icon" aria-hidden="true">inventory_2</span>
+<p class="totem-dose-wizard__empty-title">Nenhuma opção disponível</p>
+<p class="totem-dose-wizard__empty-lead" id="totem-dose-empty-lead">Sincronize o catálogo ou escolha outra opção.</p>
 </div>
 </div>
 </section>
@@ -563,7 +611,8 @@
 <script src="js/totem-promos.js?v=no-price-promo-badge"></script>
 <script src="js/totem-store-admin.js?v=sw-v466"></script>
 <script src="js/totem-orders-admin.js"></script>
-<script src="js/totem-pwa-update.js?v=sw-v466"></script>
-<script src="js/totem.js?v=sw-v466"></script>
+<script src="js/totem-pwa-update.js?v=sw-v488"></script>
+<script src="js/totem-dose-wizard.js?v=sw-v488"></script>
+<script src="js/totem.js?v=sw-v488"></script>
 </body>
 </html>

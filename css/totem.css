@@ -7771,3 +7771,357 @@ body.totem-keyboard-payment .totem-pay-summary__scroll {
     border-radius: var(--lig-radius-pill, 999px);
 }
 
+/* Dose wizard — exclusivo TotemLGShopping */
+
+.totem-welcome__cta--dose {
+    width: 100%;
+    margin-top: 0.35rem;
+    gap: 0.55rem;
+}
+
+.totem-btn--secondary {
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--lig-text);
+    border: 1.5px solid rgba(20, 18, 15, 0.1);
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-btn--secondary:hover {
+    border-color: rgba(240, 201, 41, 0.55);
+    background: rgba(255, 255, 255, 1);
+}
+
+.totem-btn--dose-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2.75rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    border: 1.5px solid rgba(240, 201, 41, 0.45);
+    background: linear-gradient(135deg, rgba(255, 248, 220, 0.95), rgba(255, 255, 255, 0.95));
+    color: var(--lig-text);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    box-shadow: var(--lig-shadow-sm);
+    touch-action: manipulation;
+}
+
+.totem-btn--dose-chip .material-symbols-outlined {
+    font-size: 1.15rem;
+    color: var(--lig-yellow-text);
+}
+
+.totem-catalog-toolbar:has(.totem-btn--dose-chip:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.totem-dose-wizard {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+
+.totem-dose-wizard__content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 0.5rem 0.85rem 1.25rem;
+    box-sizing: border-box;
+}
+
+.totem-dose-wizard__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    align-self: flex-start;
+    min-height: 2.5rem;
+    padding: 0.35rem 0.65rem;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--lig-text-muted);
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.totem-dose-wizard__progress {
+    display: flex;
+    gap: 0.35rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+}
+
+.totem-dose-wizard__progress-item {
+    flex: 1 0 auto;
+    min-width: 4.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(20, 18, 15, 0.05);
+    color: var(--lig-text-muted);
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.totem-dose-wizard__progress-item--active {
+    background: rgba(240, 201, 41, 0.22);
+    color: var(--lig-text);
+}
+
+.totem-dose-wizard__progress-item--done {
+    background: rgba(34, 139, 34, 0.12);
+    color: #1f6b1f;
+}
+
+.totem-dose-wizard__hero {
+    text-align: center;
+}
+
+.totem-dose-wizard__eyebrow {
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--lig-text-muted);
+}
+
+.totem-dose-wizard__title {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: clamp(1.5rem, 4dvh, 2rem);
+    line-height: 1.1;
+}
+
+.totem-dose-wizard__lead {
+    margin: 0.35rem 0 0;
+    color: var(--lig-text-muted);
+    font-size: 0.9375rem;
+}
+
+.totem-dose-wizard__body {
+    min-height: 0;
+    flex: 1;
+}
+
+.totem-dose-wizard__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+    gap: 0.65rem;
+}
+
+.totem-dose-wizard__option {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+    min-height: 11rem;
+    padding: 0.65rem;
+    border: 1.5px solid rgba(20, 18, 15, 0.08);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: var(--lig-shadow-sm);
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    position: relative;
+}
+
+.totem-dose-wizard__option--selected {
+    border-color: rgba(240, 201, 41, 0.85);
+    box-shadow: 0 0 0 2px rgba(240, 201, 41, 0.25);
+}
+
+.totem-dose-wizard__option-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: 0.75rem;
+    background: rgba(20, 18, 15, 0.03);
+    overflow: hidden;
+}
+
+.totem-dose-wizard__option-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.totem-dose-wizard__option-media .material-symbols-outlined {
+    font-size: 2rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-dose-wizard__option-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.totem-dose-wizard__option-name {
+    font-size: 0.875rem;
+    line-height: 1.25;
+}
+
+.totem-dose-wizard__option-price {
+    font-size: 0.9375rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-dose-wizard__option-check {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    font-size: 1.25rem;
+    color: #1f8a3b;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.totem-dose-wizard__option--selected .totem-dose-wizard__option-check {
+    opacity: 1;
+}
+
+.totem-dose-wizard__review {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.totem-dose-wizard__review-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(20, 18, 15, 0.06);
+    box-shadow: var(--lig-shadow-sm);
+}
+
+.totem-dose-wizard__review-main {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.totem-dose-wizard__review-thumb {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    border-radius: 0.65rem;
+    background: rgba(20, 18, 15, 0.03);
+}
+
+.totem-dose-wizard__review-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.totem-dose-wizard__review-label {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lig-text-muted);
+}
+
+.totem-dose-wizard__review-value {
+    font-size: 0.9375rem;
+    line-height: 1.25;
+}
+
+.totem-dose-wizard__review-price {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--lig-text-muted);
+}
+
+.totem-dose-wizard__edit {
+    flex: 0 0 auto;
+    width: 2.65rem;
+    height: 2.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 999px;
+    background: rgba(240, 201, 41, 0.18);
+    color: var(--lig-yellow-text);
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.totem-dose-wizard__total-wrap {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0.85rem 0 0;
+    padding: 0.75rem 0.85rem;
+    border-radius: 1rem;
+    background: rgba(20, 18, 15, 0.04);
+}
+
+.totem-dose-wizard__total-label {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--lig-text-muted);
+}
+
+.totem-dose-wizard__total {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.totem-dose-wizard__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-top: 0.85rem;
+}
+
+.totem-dose-wizard__empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--lig-text-muted);
+}
+
+.totem-dose-wizard__empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.45;
+}
+
+.totem-dose-wizard__empty-title {
+    margin: 0.5rem 0 0.25rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.totem-dose-wizard__empty-lead {
+    margin: 0;
+    font-size: 0.9375rem;
+}
+
