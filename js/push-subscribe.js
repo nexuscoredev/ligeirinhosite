@@ -61,11 +61,19 @@
 
     /**
      * Pede permissão, assina Web Push e envia subscription ao backend.
-     * @param {{ orderId?: string }} [opts]
+     * @param {{ orderId?: string, silent?: boolean }} [opts]
      */
     async function enableOrderStatusPush(opts = {}) {
         if (!supported()) {
             throw new Error('Este aparelho não suporta notificações push.');
+        }
+
+        if (Notification.permission === 'denied') {
+            throw new Error('Notificações bloqueadas neste aparelho. Libere nas configurações do navegador.');
+        }
+
+        if (opts.silent && Notification.permission !== 'granted') {
+            return { ok: false, reason: 'needs_permission' };
         }
 
         const permission =
@@ -104,6 +112,15 @@
         return { ok: true, subscription };
     }
 
+    /** Reenvia subscription se a permissão já foi concedida (sem prompt). */
+    async function ensureSubscribed(opts = {}) {
+        try {
+            return await enableOrderStatusPush({ ...opts, silent: true });
+        } catch {
+            return { ok: false };
+        }
+    }
+
     async function showLocalOrderStatus(tracking, order) {
         if (!supported() || Notification.permission !== 'granted') return;
         const shortId = String(order?.id || '')
@@ -119,7 +136,9 @@
             body,
             icon: 'img/app-icon-light-192.png',
             badge: 'img/app-icon-light-192.png',
-            tag: order?.id ? `order-status-${order.id}` : 'order-status',
+            tag: order?.id
+                ? `order-${order.id}-${Date.now()}`
+                : `order-local-${Date.now()}`,
             renotify: true,
             data: {
                 url: order?.id
@@ -135,10 +154,33 @@
         new Notification(`Ligeirinho · ${title}`, opts);
     }
 
+    /** Notificação de sistema (cascata) para itens do hub/app. */
+    async function showSystemNotification({ id, title, body, url }) {
+        if (!supported() || Notification.permission !== 'granted') return false;
+        const reg = await navigator.serviceWorker.getRegistration('/');
+        const opts = {
+            body: body || '',
+            icon: '/img/app-icon-light-192.png',
+            badge: '/img/app-icon-light-192.png',
+            tag: `parceiros-${id || Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            renotify: true,
+            data: { url: url || '/meus-pedidos' },
+        };
+        if (reg?.showNotification) {
+            await reg.showNotification(title || 'Ligeirinho Parceiros', opts);
+            return true;
+        }
+        // eslint-disable-next-line no-new
+        new Notification(title || 'Ligeirinho Parceiros', opts);
+        return true;
+    }
+
     window.LigeirinhoPush = {
         supported,
         enableOrderStatusPush,
+        ensureSubscribed,
         showLocalOrderStatus,
+        showSystemNotification,
         permission: () => (supported() ? Notification.permission : 'unsupported'),
     };
 })();

@@ -55,11 +55,13 @@ export function pushPayloadForTracking(order, tracking) {
     const url = order?.id
         ? `/pedido-confirmado?order=${encodeURIComponent(order.id)}`
         : '/meus-pedidos';
+    const trackKey = trackKeyFromTracking(tracking);
     return {
         title: `Ligeirinho · ${title}`,
         body,
         url,
-        tag: order?.id ? `order-status-${order.id}` : 'order-status',
+        // Tag única por status → notificações em cascata (não substituem a anterior).
+        tag: order?.id ? `order-${order.id}-${trackKey}` : `order-${trackKey}-${Date.now()}`,
         orderId: order?.id || null,
     };
 }

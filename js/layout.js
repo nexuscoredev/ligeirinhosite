@@ -1028,6 +1028,7 @@ ${meta}
         Promise.all([
             ensureScript('js/auth-store.js'),
             ensureScript('js/install-app.js'),
+            ensureScript('js/push-subscribe.js'),
             ensureScript('js/client-notifications.js'),
         ]).then(() => {
             window.LigeirinhoInstall?.init?.();

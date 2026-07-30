@@ -25,6 +25,60 @@
     let mountedHost = null;
     let uiState = null;
     let broadcastsCache = null;
+    /** Timestamp da última sync — só dispara push de sistema para itens novos depois disso. */
+    let lastSyncAt = 0;
+    const PUSHED_KEY = 'ligeirinho-notif-system-pushed-v1';
+
+    const userKey = () => window.LigeirinhoAuth?.loadSession?.()?.sub || 'guest';
+
+    const loadPushedIds = () => {
+        try {
+            const raw = JSON.parse(localStorage.getItem(PUSHED_KEY) || '{}');
+            return new Set(raw[userKey()] || []);
+        } catch {
+            return new Set();
+        }
+    };
+
+    const savePushedIds = (set) => {
+        try {
+            const raw = JSON.parse(localStorage.getItem(PUSHED_KEY) || '{}');
+            const list = [...set].slice(-80);
+            raw[userKey()] = list;
+            localStorage.setItem(PUSHED_KEY, JSON.stringify(raw));
+        } catch {
+            /* ignore */
+        }
+    };
+
+    async function cascadeSystemNotifications(items) {
+        const pushApi = window.LigeirinhoPush;
+        if (!pushApi?.showSystemNotification || pushApi.permission() !== 'granted') return;
+        if (!lastSyncAt) return;
+
+        const pushed = loadPushedIds();
+        const fresh = items.filter((n) => {
+            if (n.readAt || pushed.has(n.id)) return false;
+            if (n.source === 'seed' || n.source === 'broadcast') return false;
+            const created = new Date(n.createdAt).getTime();
+            return Number.isFinite(created) && created > lastSyncAt - 5000;
+        });
+
+        for (const item of fresh.slice(0, 6)) {
+            pushed.add(item.id);
+            try {
+                await pushApi.showSystemNotification({
+                    id: item.id,
+                    title: item.title,
+                    body: item.body,
+                    url: item.href || '/meus-pedidos',
+                });
+            } catch {
+                /* ignore */
+            }
+        }
+        if (fresh.length) savePushedIds(pushed);
+    }
 
     const escapeHtml = (str) =>
         String(str || '')
@@ -32,8 +86,6 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
-
-    const userKey = () => window.LigeirinhoAuth?.loadSession?.()?.sub || 'guest';
 
     const loadDismissed = () => {
         try {
@@ -331,25 +383,57 @@
                             const attrs = item.href
                                 ? ` href="${escapeHtml(item.href)}"`
                                 : ` type="button"`;
-                            return `<${tag} class="lig-notif-item${unreadItem ? ' lig-notif-item--unread' : ''}" data-notif-id="${escapeHtml(item.id)}" data-notif-unread="${unreadItem ? '1' : '0'}" data-notif-hub="${item.hubId || ''}"${attrs}>
+                            const statusTag = unreadItem
+                                ? '<span class="lig-notif-tag lig-notif-tag--unread">Não lido</span>'
+                                : '<span class="lig-notif-tag lig-notif-tag--read">Lido</span>';
+                            return `<${tag} class="lig-notif-item${unreadItem ? ' lig-notif-item--unread' : ' lig-notif-item--read'}" data-notif-id="${escapeHtml(item.id)}" data-notif-unread="${unreadItem ? '1' : '0'}" data-notif-hub="${item.hubId || ''}"${attrs}>
 <div class="lig-notif-item__head"><span class="lig-notif-item__title">${escapeHtml(item.title)}</span><time class="lig-notif-item__time" datetime="${item.createdAt}">${formatDateTime(item.createdAt)}</time></div>
 <p class="lig-notif-item__body">${escapeHtml(item.body)}</p>
-${item.meta ? `<div class="lig-notif-item__meta">${escapeHtml(item.meta)}</div>` : ''}
+<div class="lig-notif-item__foot">${statusTag}${item.meta ? `<span class="lig-notif-item__meta">${escapeHtml(item.meta)}</span>` : ''}</div>
 </${tag}>`;
                         })
                         .join('');
+
+        const pushApi = window.LigeirinhoPush;
+        const pushNeedsEnable =
+            pushApi?.supported?.() &&
+            pushApi.permission() !== 'granted' &&
+            pushApi.permission() !== 'denied';
 
         return `<div class="lig-notif-panel" role="dialog" aria-label="Notificações">
 <div class="lig-notif-panel__head">
 <span class="lig-notif-panel__title">Notificações</span>
 <button type="button" class="lig-notif-mark-all" data-notif-mark-all ${unread === 0 || loading ? 'disabled' : ''}>Marcar todas</button>
 </div>
+${
+    pushNeedsEnable
+        ? `<div class="lig-notif-push-banner">
+<p>Ative alertas no celular para receber avisos na tela de notificações do aparelho.</p>
+<button type="button" class="lig-notif-push-btn" data-notif-enable-push>Ativar alertas</button>
+</div>`
+        : ''
+}
 ${error ? `<p class="lig-notif-error">${escapeHtml(error)}</p>` : ''}
 <div class="lig-notif-list">${listHtml}</div>
 </div>`;
     }
 
     function bindPanel(host, state) {
+        host.querySelector('[data-notif-enable-push]')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            btn.textContent = 'Ativando…';
+            try {
+                await window.LigeirinhoPush.enableOrderStatusPush();
+                render(host, state);
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = 'Ativar alertas';
+                window.alert(err?.message || 'Não foi possível ativar as notificações.');
+            }
+        });
+
         host.querySelector('[data-notif-mark-all]')?.addEventListener('click', async (e) => {
             e.preventDefault();
             markAllLocalRead();
@@ -431,7 +515,10 @@ ${renderPanel(state)}
 
     async function refreshUi() {
         if (!mountedHost || !uiState) return;
-        uiState.items = await mergeNotifications();
+        const items = await mergeNotifications();
+        await cascadeSystemNotifications(items);
+        lastSyncAt = Date.now();
+        uiState.items = items;
         render(mountedHost, uiState);
     }
 
@@ -468,11 +555,16 @@ ${renderPanel(state)}
         window.addEventListener('ligeirinho-notifications-changed', refreshUi);
         window.addEventListener('ligeirinho-auth-changed', () => {
             ensureSeed();
+            void window.LigeirinhoPush?.ensureSubscribed?.();
             void refreshUi();
         });
 
+        // Baseline: não dispara cascata para o histórico já existente.
         uiState.items = await mergeNotifications();
+        lastSyncAt = Date.now();
         render(host, uiState);
+
+        void window.LigeirinhoPush?.ensureSubscribed?.();
 
         pollTimer = setInterval(() => {
             if (document.hidden) return;

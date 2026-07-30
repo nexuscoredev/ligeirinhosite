@@ -12088,7 +12088,71 @@ html.dark .baixar-app__eyebrow {
 }
 
 .lig-notif-item--unread {
-    background: var(--lig-yellow-light);
+    background: rgba(239, 68, 68, 0.08);
+    border-left: 3px solid #ef4444;
+}
+
+.lig-notif-item--read {
+    opacity: 0.92;
+}
+
+.lig-notif-item__foot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+}
+
+.lig-notif-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.lig-notif-tag--unread {
+    background: #ef4444;
+    color: #fff;
+}
+
+.lig-notif-tag--read {
+    background: rgba(107, 114, 128, 0.18);
+    color: var(--lig-text-muted, #6b7280);
+}
+
+.lig-notif-push-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--lig-border);
+    background: rgba(247, 213, 60, 0.12);
+}
+
+.lig-notif-push-banner p {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--lig-text);
+}
+
+.lig-notif-push-btn {
+    align-self: flex-start;
+    min-height: 2rem;
+    padding: 0.35rem 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    background: #f7d53c;
+    color: #0d0d0d;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
 }
 
 .lig-notif-item__head {
@@ -12121,9 +12185,8 @@ html.dark .baixar-app__eyebrow {
 }
 
 .lig-notif-item__meta {
-    margin-top: 0.35rem;
-    font-size: 0.62rem;
-    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
     color: var(--lig-text-muted);
 }
 

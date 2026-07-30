@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v489';
+const CACHE_NAME = 'ligeirinho-app-v491';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -377,8 +377,10 @@ self.addEventListener('push', (event) => {
         body: data.body || 'Seu pedido foi atualizado.',
         icon: '/img/app-icon-light-192.png',
         badge: '/img/app-icon-light-192.png',
-        tag: data.tag || 'order-status',
+        // Cascata: cada push com tag distinta permanece na bandeja do sistema.
+        tag: data.tag || `parceiros-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         renotify: true,
+        requireInteraction: false,
         data: {
             url: data.url || '/meus-pedidos',
             orderId: data.orderId || null,
