@@ -1,6 +1,7 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { slugifyId } from './hub-catalog.mjs';
 import { resolvePromoVitrinePrices } from './hub-promo-precos.mjs';
+import { resolveCatalogDistribuidoraId } from './distribuidora-scope.mjs';
 
 const INDEFINIDO_SKU = 'indefinido';
 
@@ -382,6 +383,6 @@ export async function getHubPromocoesTotem(env = process.env, options = {}) {
     return getHubPromocoes(env, {
         caixaOnly: false,
         canal: 'totem',
-        distribuidoraId: options.distribuidoraId || null,
+        distribuidoraId: resolveCatalogDistribuidoraId(options.distribuidoraId),
     });
 }

@@ -5,6 +5,7 @@ import {
     clienteUsesPersonalPriceTable,
     resolveClientePriceTable,
 } from '../../scripts/hub-parceiro.mjs';
+import { resolveCatalogDistribuidoraId } from '../../scripts/lib/distribuidora-scope.mjs';
 
 const CACHE_SECONDS = Number(process.env.CATALOG_ME_CACHE_SECONDS || 60);
 const MEM_TTL_MS = Number(process.env.CATALOG_ME_MEM_CACHE_MS || 60_000);
@@ -72,6 +73,9 @@ export default async function handler(req, res) {
                 personalized: true,
                 tabelaPrecoId: priceMeta.tabelaPrecoId,
                 tabelaPrecoCodigo: priceMeta.tabelaPrecoCodigo,
+                distribuidoraId: resolveCatalogDistribuidoraId(
+                    session.usuario?.distribuidora_id || session.distribuidoraId,
+                ),
             });
 
         const catalog = sync

@@ -1,9 +1,9 @@
 import { fetchCatalogFromHub } from '../scripts/lib/hub-catalog.mjs';
+import { resolveCatalogDistribuidoraId } from '../scripts/lib/distribuidora-scope.mjs';
 import { getCachedOrCompute, invalidateCache } from '../scripts/lib/server-cache.mjs';
 
 const CACHE_SECONDS = Number(process.env.CATALOG_CACHE_SECONDS || 300);
 const MEM_TTL_MS = Number(process.env.CATALOG_MEM_CACHE_MS || 60_000);
-const CACHE_KEY = 'catalog:parceiros';
 
 function setLiveCacheHeaders(res, req, seconds) {
     if (req.query?.sync != null) {
@@ -17,9 +17,11 @@ function setLiveCacheHeaders(res, req, seconds) {
 }
 
 async function buildCatalog() {
+    const distribuidoraId = resolveCatalogDistribuidoraId(null);
     return fetchCatalogFromHub(process.env, {
         syncMode: 'live',
         channel: 'parceiros',
+        distribuidoraId,
     });
 }
 
@@ -37,12 +39,14 @@ export default async function handler(req, res) {
     }
 
     try {
+        const distribuidoraId = resolveCatalogDistribuidoraId(null);
+        const cacheKey = `catalog:parceiros:${distribuidoraId}`;
         const sync = req.query?.sync != null;
-        if (sync) invalidateCache(CACHE_KEY);
+        if (sync) invalidateCache(cacheKey);
 
         const catalog = sync
             ? await buildCatalog()
-            : await getCachedOrCompute(CACHE_KEY, MEM_TTL_MS, buildCatalog);
+            : await getCachedOrCompute(cacheKey, MEM_TTL_MS, buildCatalog);
 
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         setLiveCacheHeaders(res, req, CACHE_SECONDS);

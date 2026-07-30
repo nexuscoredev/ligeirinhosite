@@ -1,18 +1,18 @@
 import { requireHubSession } from '../../api/hub/_require-hub-session.mjs';
+import { resolveCatalogDistribuidoraId } from './distribuidora-scope.mjs';
 
 /**
  * Resolve distribuidora do Totem a partir do Bearer Hub.
- * Sem token / sessão inválida → null (mantém catálogo legado público).
+ * Sem token / sessão inválida → Distribuidora legada (nunca mistura outras filiais).
  */
 export async function resolveTotemDistribuidoraId(req) {
     const auth = String(req.headers.authorization || '');
-    if (!auth.startsWith('Bearer ')) return null;
+    if (!auth.startsWith('Bearer ')) return resolveCatalogDistribuidoraId(null);
 
     const session = await requireHubSession(req);
-    if (session.error || !session.usuario?.ativo) return null;
+    if (session.error || !session.usuario?.ativo) return resolveCatalogDistribuidoraId(null);
 
-    const id = String(session.usuario.distribuidora_id || '').trim();
-    return id || null;
+    return resolveCatalogDistribuidoraId(session.usuario.distribuidora_id);
 }
 
 export function totemCatalogCacheKey(distribuidoraId) {

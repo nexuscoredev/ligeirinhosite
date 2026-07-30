@@ -3,6 +3,7 @@ import {
     resolveTotemDistribuidoraId,
     totemCatalogCacheKey,
 } from '../../scripts/lib/totem-distribuidora.mjs';
+import { resolveCatalogDistribuidoraId } from '../../scripts/lib/distribuidora-scope.mjs';
 import { getCachedOrCompute, invalidateCache } from '../../scripts/lib/server-cache.mjs';
 
 const CACHE_SECONDS = Number(process.env.TOTEM_CATALOG_CACHE_SECONDS || 180);
@@ -29,7 +30,7 @@ async function buildCatalog(distribuidoraId) {
         syncMode: 'live',
         storeName: 'Ligeirinho Totem',
         channel: 'totem',
-        distribuidoraId: distribuidoraId || null,
+        distribuidoraId: resolveCatalogDistribuidoraId(distribuidoraId),
     });
 }
 
