@@ -58,7 +58,9 @@
     "lgshopping": {
       "label": "Ligeirinho Shopping",
       "hiddenCategories": ["insumos"],
-      "hiddenProductIds": []
+      "hiddenProductIds": [],
+      "doseCategorySlugs": ["dose", "doses"],
+      "doseCategoryOnly": true
     }
   },
   "loginUnitMap": {

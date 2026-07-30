@@ -121,12 +121,17 @@
     const isDoseCategory = (item) => {
         const catId = String(item.categoryId || '').toLowerCase();
         const catName = String(item.categoryName || '').toLowerCase();
-        return /\bdoses?\b/.test(catId) || /\bdoses?\b/.test(catName);
+        const configured = (ctx.getDoseCategorySlugs?.() || []).map((slug) => String(slug || '').toLowerCase()).filter(Boolean);
+        if (configured.length && configured.includes(catId)) return true;
+        if (/^doses?(-|$)/.test(catId)) return true;
+        if (/\bdoses?\b/.test(catName)) return true;
+        return /\bdoses?\b/.test(catId);
     };
 
     const filterDose = (items) => {
         let doses = items.filter((item) => !isItemHidden(item) && isDoseCategory(item));
-        if (!doses.length) {
+        const doseCategoryOnly = Boolean(ctx.doseCategoryOnly?.());
+        if (!doses.length && !doseCategoryOnly) {
             doses = items.filter(
                 (item) =>
                     !isItemHidden(item) &&

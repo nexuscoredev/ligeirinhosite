@@ -1256,6 +1256,8 @@ ${unitHtml}
         refrigerantes: { id: 'refrigerante', name: 'Refrigerante' },
         destilado: { id: 'destilados', name: 'Destilados' },
         destilados: { id: 'destilados', name: 'Destilados' },
+        dose: { id: 'dose', name: 'Dose' },
+        doses: { id: 'dose', name: 'Dose' },
     };
 
     const canonCategoryId = (id) => {
@@ -4498,6 +4500,8 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             openCart,
             startCheckout,
             bumpIdle,
+            getDoseCategorySlugs: () => resolveUnitSettings()?.doseCategorySlugs || ['dose', 'doses'],
+            doseCategoryOnly: () => Boolean(resolveUnitSettings()?.doseCategoryOnly),
         });
         updateLGShoppingUi();
         suppressGhostClicks(280);
