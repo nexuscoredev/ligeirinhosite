@@ -158,6 +158,8 @@ function resolveTrackingFilterKey(order, { cancelled, step, hubStatus, isPickup 
     if (ROUTE_STATUSES.has(hubStatus) || READY_STATUSES.has(hubStatus) || step >= 3) {
         return isPickup ? 'pickup' : 'route';
     }
+    // Retirada: pós-separação já conta como aguardando retirada (sem fila de NF no app).
+    if (isPickup && SEPARATED_STATUSES.has(hubStatus)) return 'pickup';
     if (SEPARATED_STATUSES.has(hubStatus) || STOCK_ISSUE_STATUSES.has(hubStatus)) {
         return 'separated';
     }
@@ -175,12 +177,16 @@ function resolveTrackingFilterKey(order, { cancelled, step, hubStatus, isPickup 
 }
 
 function trackingCopyForHubStatus(hubStatus, { isPickup = false } = {}) {
+    // Parceiros retirada: após separar, já mostra aguardando retirada (sem texto de NF).
+    if (isPickup && SEPARATED_STATUSES.has(hubStatus)) {
+        return pickupReadyCopy();
+    }
     if (hubStatus === 'aguardando_emissao_nf') {
         return {
             step: 2,
             stepLabel: 'Separado',
             headerTitle: 'Pedido separado',
-            message: 'Separação concluída. Estamos emitindo a nota fiscal do seu pedido.',
+            message: 'Separação concluída. Seu pedido segue para a próxima etapa.',
         };
     }
     if (hubStatus === 'separado') {
@@ -188,9 +194,7 @@ function trackingCopyForHubStatus(hubStatus, { isPickup = false } = {}) {
             step: 2,
             stepLabel: 'Separado',
             headerTitle: 'Pedido separado',
-            message: isPickup
-                ? 'Seu pedido foi separado e em breve estará pronto para retirada.'
-                : 'Seu pedido foi separado e segue para a próxima etapa.',
+            message: 'Seu pedido foi separado e segue para a próxima etapa.',
         };
     }
     if (hubStatus === 'falta_estoque') {
