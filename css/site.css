@@ -11595,6 +11595,236 @@ html.lig-promo-notice-open body {
     border: 1px solid var(--lig-border);
     background: var(--lig-surface);
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+    max-height: min(92vh, 40rem);
+    overflow: auto;
+}
+
+.lig-install-modal__qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.85rem 0 0.65rem;
+    padding: 0.85rem;
+    border-radius: 0.65rem;
+    border: 1px solid var(--lig-border);
+    background: #fff;
+}
+
+.lig-install-modal__qr img {
+    width: 11rem;
+    height: 11rem;
+    display: block;
+    border-radius: 0.25rem;
+}
+
+.lig-install-modal__qr-label {
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0d0d0d;
+}
+
+.lig-install-modal__qr-link,
+.lig-install-modal__qr-download {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #0d0d0d;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.baixar-app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.baixar-app__loading {
+    margin: 3rem auto;
+    color: var(--lig-text-subtle);
+    font-size: 0.9rem;
+}
+
+.baixar-app__hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.5rem 1.15rem 2.5rem;
+    background:
+        radial-gradient(120% 80% at 10% 0%, rgba(247, 213, 60, 0.55), transparent 55%),
+        linear-gradient(180deg, #fff8d6 0%, #f4f4f4 48%, #efefef 100%);
+}
+
+html.dark .baixar-app__hero {
+    background:
+        radial-gradient(120% 80% at 10% 0%, rgba(247, 213, 60, 0.22), transparent 55%),
+        linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+}
+
+.baixar-app__brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    max-width: 36rem;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.baixar-app__brand img {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.85rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.baixar-app__eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6b5a00;
+}
+
+html.dark .baixar-app__eyebrow {
+    color: #f7d53c;
+}
+
+.baixar-app__title {
+    margin: 0.15rem 0 0.35rem;
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: clamp(1.55rem, 4vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--lig-text);
+}
+
+.baixar-app__sub {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.45;
+    color: var(--lig-text-subtle);
+    max-width: 32rem;
+}
+
+.baixar-app__panel {
+    width: min(100%, 26rem);
+    margin: 0 auto;
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+}
+
+.baixar-app__panel--mobile {
+    width: min(100%, 28rem);
+}
+
+.baixar-app__qr-wrap {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: #fff;
+}
+
+.baixar-app__qr {
+    width: min(100%, 18rem);
+    height: auto;
+    aspect-ratio: 1;
+    display: block;
+}
+
+.baixar-app__url {
+    margin: 0.85rem 0 0;
+    text-align: center;
+    font-size: 0.78rem;
+    word-break: break-all;
+    color: var(--lig-text-subtle);
+}
+
+.baixar-app__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-top: 1rem;
+}
+
+.baixar-app__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.85rem;
+    padding: 0.65rem 1rem;
+    border-radius: 0.65rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.baixar-app__btn--primary {
+    background: #f7d53c;
+    color: #0d0d0d;
+    box-shadow: 0 8px 18px rgba(247, 213, 60, 0.35);
+}
+
+.baixar-app__btn--ghost {
+    background: transparent;
+    border-color: var(--lig-border);
+    color: var(--lig-text);
+}
+
+.baixar-app__footnote {
+    margin: 0.85rem 0 0;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--lig-text-subtle);
+}
+
+.baixar-app__steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.baixar-app__steps li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    color: var(--lig-text);
+}
+
+.baixar-app__steps li > span:first-child {
+    flex-shrink: 0;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f7d53c;
+    color: #0d0d0d;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.baixar-app__hint {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.45;
+    color: var(--lig-text-subtle);
 }
 
 .lig-install-modal__head {

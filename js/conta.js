@@ -273,6 +273,12 @@ ${item.sub ? `<p class="conta-menu-row__sub">${esc(item.sub)}</p>` : ''}
                 nav: 'preferencias',
             },
             {
+                title: 'Baixar app (QR)',
+                icon: 'qr_code_2',
+                sub: 'QR code para instalar no celular e baixar a imagem.',
+                href: 'baixar-app.html',
+            },
+            {
                 title: 'Ajuda',
                 icon: 'help',
                 sub: 'WhatsApp, endereço e perguntas frequentes.',

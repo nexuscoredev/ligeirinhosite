@@ -96,6 +96,25 @@
         return window.location.origin.replace(/\/$/, '') + '/';
     }
 
+    function getBaixarAppUrl() {
+        const site = window.LigeirinhoSite?.get?.() || window.LigeirinhoSite;
+        const productionUrl = String(site?.productionUrl || '').replace(/\/$/, '');
+        const origin = productionUrl || window.location.origin.replace(/\/$/, '');
+        return `${origin}/baixar-app`;
+    }
+
+    function qrBlockHtml() {
+        const pageUrl = getBaixarAppUrl();
+        return (
+            '<div class="lig-install-modal__qr">' +
+            '<img src="/api/app-qr?size=220" width="220" height="220" alt="QR code para baixar o app no celular" />' +
+            '<p class="lig-install-modal__qr-label">Escaneie com o celular</p>' +
+            `<a class="lig-install-modal__qr-link" href="${pageUrl}">Abrir página do QR</a>` +
+            '<a class="lig-install-modal__qr-download" href="/api/app-qr?download=1&amp;size=512" download="ligeirinho-parceiros-app-qr.png">Baixar QR code</a>' +
+            '</div>'
+        );
+    }
+
     function getModalMode() {
         if (hasInstalledApp()) return 'share';
         if (isIos()) return 'ios';
@@ -105,10 +124,10 @@
     }
 
     async function shareApp() {
-        const url = getShareUrl();
+        const url = getBaixarAppUrl();
         const shareData = {
             title: 'Ligeirinho Parceiros',
-            text: 'Caixas e pallets para revendedores — catálogo, ofertas, caminhão e Mercado Pago.',
+            text: 'Baixe o app Ligeirinho Parceiros — catálogo, ofertas, caminhão e Mercado Pago.',
             url,
         };
 
@@ -136,7 +155,7 @@
     function stepsHtml(mode, shareFeedback) {
         if (mode === 'share') {
             return (
-                '<p class="lig-install-modal__hint">O Ligeirinho Parceiros já está na sua tela inicial. Envie o link para outros parceiros instalarem também.</p>' +
+                '<p class="lig-install-modal__hint">O Ligeirinho Parceiros já está na sua tela inicial. Mostre o QR ou envie o link para outros parceiros instalarem também.</p>' +
                 (shareFeedback ? `<p class="lig-install-modal__ok">${shareFeedback}</p>` : '')
             );
         }
@@ -204,6 +223,7 @@
             '<div class="lig-install-modal__preview">' +
             '<img src="img/app-icon-light-192.png" alt="" width="48" height="48" />' +
             '<div><p class="lig-install-modal__app">Ligeirinho Parceiros</p><p class="lig-install-modal__meta">Caixas · pallets · ofertas · caminhão</p></div></div>' +
+            (isMobile() ? '' : qrBlockHtml()) +
             stepsHtml(mode, shareFeedback) +
             '<div class="lig-install-modal__actions">' +
             (mode === 'native'
@@ -212,7 +232,7 @@
                   ? '<button type="button" class="lig-install-modal__primary" id="lig-install-share">Compartilhar</button>'
                   : mode === 'ios' || mode === 'android'
                     ? '<button type="button" class="lig-install-modal__primary" data-install-close>Entendi</button>'
-                    : '') +
+                    : `<a class="lig-install-modal__primary" href="${getBaixarAppUrl()}">Ver QR code</a>`) +
             (mode !== 'share'
                 ? '<button type="button" class="lig-install-modal__ghost" data-install-close>Agora não</button>'
                 : '<button type="button" class="lig-install-modal__ghost" data-install-close>Fechar</button>') +

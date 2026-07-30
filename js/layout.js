@@ -361,6 +361,7 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <h4 class="lig-footer-title">Navegação</h4>
 <nav class="lig-footer-nav" aria-label="Links do site">
 <a class="lig-footer-link" href="inicio.html">Início</a>
+<a class="lig-footer-link" href="baixar-app.html">Baixar app</a>
 ${hidePromocoes ? '' : '<a class="lig-footer-link" href="ofertas.html">Promoções</a>'}
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
 <a class="lig-footer-link" href="meus-pedidos.html" data-nav-id="meus-pedidos" aria-label="Pedidos">Pedidos</a>
