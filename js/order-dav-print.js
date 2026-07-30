@@ -278,23 +278,52 @@ window.addEventListener('load', function () {
         return digits(session.cnpj || session.login) === DISTRIBUIDORA_CNPJ;
     };
 
-    const printOrderDav = async (orderId, session) => {
-        const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`, {
-            headers: { Accept: 'application/json' },
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok || !data.order) {
-            throw new Error(data.error || 'Não foi possível carregar o pedido para impressão.');
-        }
-
-        const html = buildDavHtml(data.order, data.tracking || {}, session);
-        const printWin = window.open('', '_blank', 'noopener,noreferrer,width=900,height=720');
-        if (!printWin) {
-            throw new Error('Permita pop-ups neste site para imprimir o DAV.');
-        }
+    const writePrintWindow = (printWin, html) => {
         printWin.document.open();
         printWin.document.write(html);
         printWin.document.close();
+    };
+
+    const printOrderDav = async (orderId, session) => {
+        // Abrir no mesmo tick do clique (sem noopener): com noopener o Chromium
+        // devolve null e deixa about:blank em branco; após await o pop-up é bloqueado.
+        const printWin = window.open('about:blank', '_blank', 'width=900,height=720');
+        if (!printWin) {
+            throw new Error('Permita pop-ups neste site para imprimir o DAV.');
+        }
+
+        try {
+            writePrintWindow(
+                printWin,
+                '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>DAV</title></head><body style="font-family:system-ui,sans-serif;padding:24px;color:#333">Preparando DAV…</body></html>',
+            );
+
+            const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`, {
+                headers: { Accept: 'application/json' },
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.order) {
+                throw new Error(data.error || 'Não foi possível carregar o pedido para impressão.');
+            }
+
+            const html = buildDavHtml(data.order, data.tracking || {}, session);
+            try {
+                writePrintWindow(printWin, html);
+            } catch {
+                // Fallback se document.write falhar (alguns bloqueios de about:blank)
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                printWin.location.replace(url);
+                window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+            }
+        } catch (err) {
+            try {
+                printWin.close();
+            } catch {
+                /* ignore */
+            }
+            throw err;
+        }
     };
 
     window.LigeirinhoOrderDavPrint = {
