@@ -593,7 +593,7 @@ ${withFilters ? filtersHtml() : ''}
 
     const loadOrders = async ({ keepFilters = false, silent = false } = {}) => {
         const s = session();
-        if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) {
+        if (!s?.sub && !s?.email && !s?.login && !auth?.getAccountSessionToken?.()) {
             renderShell(`<div class="conta-empty meus-pedidos-empty">
 <span class="material-symbols-outlined conta-empty__icon">person</span>
 <p class="conta-empty__title">Entre para ver seus pedidos</p>
@@ -615,20 +615,46 @@ ${withFilters ? filtersHtml() : ''}
 
         const lastLocal = cart?.loadLastOrder?.();
         let orders = [];
+        let loadError = '';
 
         try {
             const headers = await accountHeaders();
             if (s?.sub) headers['X-Auth-Sub'] = s.sub;
             if (s?.email) headers['X-Account-Email'] = s.email;
-            const res = await fetch('/api/orders/mine?limit=50', { headers });
+            const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            const timeoutId = controller
+                ? window.setTimeout(() => controller.abort(), 25000)
+                : null;
+            const res = await fetch('/api/orders/mine?limit=50', {
+                headers,
+                signal: controller?.signal,
+            });
+            if (timeoutId) window.clearTimeout(timeoutId);
             const data = await res.json().catch(() => ({}));
             if (res.ok && Array.isArray(data.orders)) {
                 orders = data.orders;
             } else if (!res.ok) {
-                console.warn('[meus-pedidos]', data.error || res.status);
+                loadError = data.error || `Erro ${res.status} ao carregar pedidos.`;
+                console.warn('[meus-pedidos]', loadError);
             }
         } catch (err) {
-            console.warn('[meus-pedidos]', err?.message || err);
+            loadError =
+                err?.name === 'AbortError'
+                    ? 'A consulta demorou demais. Tente novamente.'
+                    : err?.message || 'Não foi possível carregar os pedidos.';
+            console.warn('[meus-pedidos]', loadError);
+        }
+
+        if (loadError) {
+            stopPolling();
+            renderShell(`<div class="conta-empty meus-pedidos-empty" role="alert">
+<span class="material-symbols-outlined conta-empty__icon">error</span>
+<p class="conta-empty__title">Não foi possível carregar pedidos</p>
+<p class="conta-empty__sub">${esc(loadError)}</p>
+<button type="button" class="conta-btn conta-btn--primary meus-pedidos-empty__btn" id="meus-pedidos-retry">Tentar novamente</button>
+</div>`, { empty: true });
+            root.querySelector('#meus-pedidos-retry')?.addEventListener('click', () => loadOrders());
+            return;
         }
 
         STATE.orders = orders;

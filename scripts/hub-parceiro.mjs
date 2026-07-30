@@ -356,6 +356,18 @@ export async function collectParceiroOrderLookup(config, usuario, authExtras = {
     const pessoa = await findPessoaForUsuario(config, usuario);
     if (pessoa) addEmail(pessoa.email);
 
+    const loginDigits = normalizeDocDigits(usuario?.login);
+    const pessoaCnpjDigits = normalizeDocDigits(pessoa?.cpf_cnpj_digits || pessoa?.cpf_cnpj);
+    const cnpjDigits =
+        pessoaCnpjDigits.length >= 11
+            ? pessoaCnpjDigits
+            : loginDigits.length >= 11
+              ? loginDigits
+              : '';
+    if (cnpjDigits.length === 14 && isValidCnpj(cnpjDigits)) {
+        addEmail(parceiroSyntheticEmail(cnpjDigits));
+    }
+
     const sub = String(authExtras.sub || '').trim();
     if (sub && !isHubUsuarioUuid(sub) && !hubUserIds.includes(sub)) {
         legacyHubUserIds.add(sub);
@@ -370,6 +382,7 @@ export async function collectParceiroOrderLookup(config, usuario, authExtras = {
         hubUserIds,
         emails: [...emails],
         legacyHubUserIds: [...legacyHubUserIds],
+        cnpjDigits: cnpjDigits.length >= 11 ? cnpjDigits : '',
     };
 }
 

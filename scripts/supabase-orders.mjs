@@ -144,7 +144,7 @@ async function fetchOrdersByFilter(supabaseUrl, apiKey, filterParams, { limit = 
 export async function listParceiroOrders(
     supabaseUrl,
     apiKey,
-    { hubUserIds = [], emails = [], legacyHubUserIds = [] } = {},
+    { hubUserIds = [], emails = [], legacyHubUserIds = [], cnpjDigits = '' } = {},
     { limit = 50, channel = 'parceiros', useRpc = false } = {},
 ) {
     const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
@@ -200,6 +200,18 @@ export async function listParceiroOrders(
                 supabaseUrl,
                 apiKey,
                 { customer_email: `ilike.${email}` },
+                { limit: safeLimit, channel },
+            ),
+        );
+    }
+
+    const cnpj = String(cnpjDigits || '').replace(/\D/g, '');
+    if (cnpj.length >= 11) {
+        addRows(
+            await fetchOrdersByFilter(
+                supabaseUrl,
+                apiKey,
+                { notes: `ilike.*${cnpj}*` },
                 { limit: safeLimit, channel },
             ),
         );

@@ -56,7 +56,17 @@ export default async function handler(req, res) {
             useRpc: db.useRpc,
         });
         const views = rows.map((row) => publicOrderView(row)).filter(Boolean);
-        const orders = await enrichOrdersWithTracking(views, process.env);
+        let orders = views;
+        try {
+            orders = await Promise.race([
+                enrichOrdersWithTracking(views, process.env),
+                new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('tracking timeout')), 12000);
+                }),
+            ]);
+        } catch (trackErr) {
+            console.warn('orders/mine tracking', trackErr?.message || trackErr);
+        }
         return res.status(200).json({ orders });
     } catch (err) {
         console.error('orders/mine', err);

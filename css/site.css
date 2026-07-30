@@ -5459,6 +5459,23 @@ html.lig-story-open {
         display: none !important;
     }
 
+    body[data-page='meus-pedidos'] #lig-page-main {
+        padding: 0;
+        min-height: 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    body[data-page='meus-pedidos'] .meus-pedidos-page {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+    }
+
     body[data-page='meus-pedidos'] .meus-pedidos-header,
     body[data-page='ofertas'] .ofertas-header {
         padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
