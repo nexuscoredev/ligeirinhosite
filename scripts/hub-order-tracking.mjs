@@ -135,13 +135,29 @@ const DONE_STATUSES = new Set([
 
 const CANCEL_STATUSES = new Set(['cancelado', 'cancelado_cliente', 'cancelled', 'cancelada']);
 
-function resolveTrackingFilterKey(order, { cancelled, step, hubStatus }) {
+function isPickupOrder(order) {
+    const type = String(order?.deliveryType || order?.delivery_type || '').toLowerCase();
+    return type === 'retirada';
+}
+
+function pickupReadyCopy() {
+    return {
+        step: 3,
+        stepLabel: 'Aguardando retirada',
+        headerTitle: 'Pronto para retirada',
+        message: 'Seu pedido está pronto. Você já pode retirar no ponto Ligeirinho.',
+    };
+}
+
+function resolveTrackingFilterKey(order, { cancelled, step, hubStatus, isPickup }) {
     if (cancelled) return 'cancelled';
     if (order?.status === 'pending_payment' || hubStatus === 'aguardando_pagamento') {
         return 'pending_payment';
     }
     if (step >= 4 || DONE_STATUSES.has(hubStatus)) return 'done';
-    if (ROUTE_STATUSES.has(hubStatus) || READY_STATUSES.has(hubStatus) || step >= 3) return 'route';
+    if (ROUTE_STATUSES.has(hubStatus) || READY_STATUSES.has(hubStatus) || step >= 3) {
+        return isPickup ? 'pickup' : 'route';
+    }
     if (SEPARATED_STATUSES.has(hubStatus) || STOCK_ISSUE_STATUSES.has(hubStatus)) {
         return 'separated';
     }
@@ -158,7 +174,7 @@ function resolveTrackingFilterKey(order, { cancelled, step, hubStatus }) {
     return 'progress';
 }
 
-function trackingCopyForHubStatus(hubStatus) {
+function trackingCopyForHubStatus(hubStatus, { isPickup = false } = {}) {
     if (hubStatus === 'aguardando_emissao_nf') {
         return {
             step: 2,
@@ -172,7 +188,9 @@ function trackingCopyForHubStatus(hubStatus) {
             step: 2,
             stepLabel: 'Separado',
             headerTitle: 'Pedido separado',
-            message: 'Seu pedido foi separado e segue para a próxima etapa.',
+            message: isPickup
+                ? 'Seu pedido foi separado e em breve estará pronto para retirada.'
+                : 'Seu pedido foi separado e segue para a próxima etapa.',
         };
     }
     if (hubStatus === 'falta_estoque') {
@@ -184,13 +202,12 @@ function trackingCopyForHubStatus(hubStatus) {
                 'Alguns itens ficaram indisponíveis na separação. A loja está ajustando seu pedido.',
         };
     }
-    if (hubStatus === 'aguardando_retirada') {
-        return {
-            step: 3,
-            stepLabel: 'Aguardando retirada',
-            headerTitle: 'Pronto para retirada',
-            message: 'Seu pedido está pronto. Você já pode retirar no ponto Ligeirinho.',
-        };
+    if (
+        hubStatus === 'aguardando_retirada' ||
+        (isPickup &&
+            (hubStatus === 'aguardando_entrega' || hubStatus === 'aguardando_roteirizacao'))
+    ) {
+        return pickupReadyCopy();
     }
     if (hubStatus === 'aguardando_entrega' || hubStatus === 'aguardando_roteirizacao') {
         return {
@@ -245,13 +262,14 @@ function trackingCopyForHubStatus(hubStatus) {
 
 export function buildOrderTracking(order, hubPedido = null) {
     const hubStatus = String(hubPedido?.status || '').toLowerCase();
+    const isPickup = isPickupOrder(order);
     let step = 1;
     let stepLabel = 'Aguardando confirmação';
     let headerTitle = 'Aguardando confirmação';
     let message = 'Seu pedido foi recebido e está aguardando confirmação no Ligeirinho Hub.';
     let cancelled = false;
 
-    const statusCopy = trackingCopyForHubStatus(hubStatus);
+    const statusCopy = trackingCopyForHubStatus(hubStatus, { isPickup });
 
     if (
         order?.status === 'cancelled' ||
@@ -265,22 +283,32 @@ export function buildOrderTracking(order, hubPedido = null) {
         message = 'Esta solicitação foi cancelada.';
     } else if (DONE_STATUSES.has(hubStatus) && hubStatus !== 'retirado') {
         step = 4;
-        stepLabel = 'Entrega concluída';
-        headerTitle = 'Pedido entregue';
-        message = 'Seu pedido foi entregue. Obrigado pela preferência!';
+        if (isPickup) {
+            stepLabel = 'Retirado';
+            headerTitle = 'Pedido retirado';
+            message = 'Pedido retirado com sucesso. Obrigado pela preferência!';
+        } else {
+            stepLabel = 'Entrega concluída';
+            headerTitle = 'Pedido entregue';
+            message = 'Seu pedido foi entregue. Obrigado pela preferência!';
+        }
     } else if (statusCopy) {
         step = statusCopy.step;
         stepLabel = statusCopy.stepLabel;
         headerTitle = statusCopy.headerTitle;
         message = statusCopy.message;
     } else if (ROUTE_STATUSES.has(hubStatus)) {
-        step = 3;
-        stepLabel = 'A caminho';
-        headerTitle = 'Saiu para entrega';
-        message =
-            hubStatus === 'proximo_entrega'
-                ? 'Seu pedido é o próximo a ser entregue!'
-                : 'Seu pedido saiu para entrega.';
+        if (isPickup) {
+            ({ step, stepLabel, headerTitle, message } = pickupReadyCopy());
+        } else {
+            step = 3;
+            stepLabel = 'A caminho';
+            headerTitle = 'Saiu para entrega';
+            message =
+                hubStatus === 'proximo_entrega'
+                    ? 'Seu pedido é o próximo a ser entregue!'
+                    : 'Seu pedido saiu para entrega.';
+        }
     } else if (ACCEPTED_STATUSES.has(hubStatus)) {
         step = 1;
         stepLabel = 'Aceito';
@@ -324,7 +352,12 @@ export function buildOrderTracking(order, hubPedido = null) {
         message = 'Assim que o pagamento for confirmado, seguimos com o pedido.';
     }
 
-    const filterKey = resolveTrackingFilterKey(order, { cancelled, step, hubStatus });
+    const filterKey = resolveTrackingFilterKey(order, {
+        cancelled,
+        step,
+        hubStatus,
+        isPickup,
+    });
 
     return {
         hubStatus: hubStatus || null,
@@ -345,8 +378,16 @@ export function buildOrderTracking(order, hubPedido = null) {
             { id: 'sent', icon: 'send', label: 'Enviado' },
             { id: 'accept', icon: 'check_circle', label: 'Aceite' },
             { id: 'prep', icon: 'package_2', label: 'Separação' },
-            { id: 'route', icon: 'local_shipping', label: 'Rota' },
-            { id: 'done', icon: 'home', label: 'Entregue' },
+            {
+                id: 'route',
+                icon: isPickup ? 'storefront' : 'local_shipping',
+                label: isPickup ? 'Aguardando retirada' : 'Rota',
+            },
+            {
+                id: 'done',
+                icon: 'home',
+                label: isPickup ? 'Retirado' : 'Entregue',
+            },
         ],
     };
 }
