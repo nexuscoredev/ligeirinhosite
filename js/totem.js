@@ -1116,16 +1116,33 @@ ${unitHtml}
 
     const session = () => auth.loadSession();
 
-    const isTotemLGShopping = () =>
-        String(session()?.login || '')
+    const isTotemLGShopping = () => {
+        const login = String(session()?.login || '')
             .trim()
-            .toLowerCase() === 'totemlgshopping';
+            .toLowerCase();
+        if (login !== 'totemlgshopping') return false;
+        const unit = resolveUnitSettings();
+        return Boolean(unit?.doseWizardEnabled);
+    };
 
     const updateLGShoppingUi = () => {
         const enabled = isTotemLGShopping();
-        if (doseStartBtn) doseStartBtn.hidden = !enabled;
-        if (doseChipBtn) doseChipBtn.hidden = !enabled || !customerIdentified;
         document.documentElement.classList.toggle('totem--lg-shopping', enabled);
+        if (doseStartBtn) {
+            doseStartBtn.hidden = !enabled;
+            doseStartBtn.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+        }
+        if (doseChipBtn) {
+            const showChip = enabled && customerIdentified;
+            doseChipBtn.hidden = !showChip;
+            doseChipBtn.setAttribute('aria-hidden', showChip ? 'false' : 'true');
+        }
+        if (!enabled) {
+            pendingDoseWizard = false;
+            if (views.doseWizard?.classList.contains('totem-view--active')) {
+                window.LigeirinhoTotemDoseWizard?.close?.();
+            }
+        }
     };
 
     const openDoseWizard = () => {
@@ -4411,11 +4428,18 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             if (e.key === 'Enter') confirmAdminLogout();
         });
 
+        window.addEventListener('ligeirinho-auth-changed', () => {
+            unitSettings = resolveUnitSettings();
+            updateLGShoppingUi();
+        });
+
         window.addEventListener('resize', () => scheduleViewSwitcherUpdate(), { passive: true });
     };
 
     const init = async () => {
         if (!routing.guardPageAccess()) return;
+
+        updateLGShoppingUi();
 
         const s = session();
         unitSettings = resolveUnitSettings();
@@ -4500,8 +4524,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             openCart,
             startCheckout,
             bumpIdle,
-            getDoseCategorySlugs: () => resolveUnitSettings()?.doseCategorySlugs || ['dose', 'doses'],
-            doseCategoryOnly: () => Boolean(resolveUnitSettings()?.doseCategoryOnly),
+            getDoseCategorySlugs: () =>
+                isTotemLGShopping() ? resolveUnitSettings()?.doseCategorySlugs || ['dose', 'doses'] : [],
+            doseCategoryOnly: () =>
+                isTotemLGShopping() && Boolean(resolveUnitSettings()?.doseCategoryOnly),
         });
         updateLGShoppingUi();
         suppressGhostClicks(280);

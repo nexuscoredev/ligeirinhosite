@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const CACHE_NAME = 'ligeirinho-app-v491';
+=======
+const CACHE_NAME = 'ligeirinho-app-v490';
+>>>>>>> 7c24b70 (fix(totem): restringe Crie sua dose! apenas ao TotemLGShopping)
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 

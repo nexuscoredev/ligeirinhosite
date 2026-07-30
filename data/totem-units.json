@@ -59,6 +59,7 @@
       "label": "Ligeirinho Shopping",
       "hiddenCategories": ["insumos"],
       "hiddenProductIds": [],
+      "doseWizardEnabled": true,
       "doseCategorySlugs": ["dose", "doses"],
       "doseCategoryOnly": true
     }
