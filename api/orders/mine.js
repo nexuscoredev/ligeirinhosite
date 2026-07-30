@@ -6,8 +6,9 @@ import {
     publicOrderView,
     dbFromPaymentConfig,
 } from '../../scripts/supabase-orders.mjs';
+import { enrichOrdersWithTracking } from '../../scripts/hub-order-tracking.mjs';
 
-export const config = { maxDuration: 15 };
+export const config = { maxDuration: 30 };
 
 export default async function handler(req, res) {
     const host = req.headers['x-forwarded-host'] || req.headers.host;
@@ -54,9 +55,9 @@ export default async function handler(req, res) {
             channel: 'parceiros',
             useRpc: db.useRpc,
         });
-        return res.status(200).json({
-            orders: rows.map((row) => publicOrderView(row)).filter(Boolean),
-        });
+        const views = rows.map((row) => publicOrderView(row)).filter(Boolean);
+        const orders = await enrichOrdersWithTracking(views, process.env);
+        return res.status(200).json({ orders });
     } catch (err) {
         console.error('orders/mine', err);
         return res.status(500).json({ error: err.message || 'Erro ao listar pedidos.' });

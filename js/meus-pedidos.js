@@ -19,16 +19,21 @@
         { value: 'all', label: 'Todos', icon: 'list', tone: 'muted' },
         { value: 'pending', label: 'Aguardando', icon: 'wait', tone: 'wait' },
         { value: 'pending_payment', label: 'Pagamento', icon: 'pay', tone: 'info' },
-        { value: 'progress', label: 'Em andamento', icon: 'truck', tone: 'progress' },
-        { value: 'paid', label: 'Confirmado', icon: 'check', tone: 'ok' },
+        { value: 'accepted', label: 'Aceito', icon: 'check', tone: 'progress' },
+        { value: 'separation', label: 'Em separação', icon: 'package', tone: 'progress' },
+        { value: 'route', label: 'A caminho', icon: 'truck', tone: 'progress' },
+        { value: 'done', label: 'Entregue', icon: 'check', tone: 'ok' },
         { value: 'cancelled', label: 'Cancelado', icon: 'cancel', tone: 'danger' },
     ];
+
+    let pollTimer = null;
 
     const STATUS_GLYPHS = {
         list: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/></svg>',
         wait: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2H7zm1 3h8l1 2v2.2c0 1.6-.7 3-1.9 4L12 17l-3.1-2.8A5.2 5.2 0 0 1 7 10.2V8l1-2zm2 3v1.2c0 .7.3 1.4.8 1.8L12 13.5l1.2-1.5c.5-.4.8-1.1.8-1.8V9H10zm-1 11h6v2H9z"/></svg>',
         pay: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5zm2 1.5v2h14V8zm0 5v4.5c0 .3.2.5.5.5h13c.3 0 .5-.2.5-.5V13z"/></svg>',
         truck: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18 7h-2V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h.2a2.5 2.5 0 0 0 4.6 0h4.4a2.5 2.5 0 0 0 4.6 0H20a2 2 0 0 0 2-2v-4a4 4 0 0 0-4-4ZM6.5 17a1.5 1.5 0 1 1 1.5-1.5A1.5 1.5 0 0 1 6.5 17ZM4 13V5h10v8Zm11.5 4a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5Zm4.5-2h-2v-4h2a2 2 0 0 1 2 2Z"/></svg>',
+        package: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2 3 7v10l9 5 9-5V7zm0 2.2 6.5 3.6L12 11.4 5.5 7.8 12 4.2zM5 9.3l6 3.3v6.8l-6-3.3V9.3zm8 10.1v-6.8l6-3.3v6.8l-6 3.3z"/></svg>',
         check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm4.3 7.7-5 5a1 1 0 0 1-1.4 0l-2.2-2.2a1 1 0 0 1 1.4-1.4l1.5 1.49 4.3-4.29a1 1 0 0 1 1.4 1.4Z"/></svg>',
         cancel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm3.5 12.1a1 1 0 0 1-1.4 1.4L12 13.4l-2.1 2.1a1 1 0 0 1-1.4-1.4l2.1-2.1-2.1-2.1a1 1 0 0 1 1.4-1.4l2.1 2.1 2.1-2.1a1 1 0 0 1 1.4 1.4L13.4 12Z"/></svg>',
         help: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 15a1.25 1.25 0 1 1 1.25-1.25A1.25 1.25 0 0 1 12 17Zm1.6-5.35-.45.3A1.6 1.6 0 0 0 12.4 13.5v.2a.8.8 0 0 1-1.6 0v-.35a2.2 2.2 0 0 1 1.05-1.85l.55-.35A1.2 1.2 0 1 0 11.2 9a.8.8 0 0 1-1.6 0 2.8 2.8 0 1 1 4 2.65Z"/></svg>',
@@ -128,8 +133,35 @@
 
     const orderShortId = (order) => String(order?.id || '').replace(/-/g, '').slice(0, 8).toUpperCase();
 
+    const STATUS_META_BY_KEY = {
+        pending: { tone: 'wait', icon: 'wait' },
+        pending_payment: { tone: 'info', icon: 'pay', shortLabel: 'Pagamento' },
+        accepted: { tone: 'progress', icon: 'check' },
+        separation: { tone: 'progress', icon: 'package' },
+        route: { tone: 'progress', icon: 'truck' },
+        done: { tone: 'ok', icon: 'check' },
+        paid: { tone: 'ok', icon: 'check' },
+        cancelled: { tone: 'danger', icon: 'cancel' },
+        progress: { tone: 'progress', icon: 'truck' },
+    };
+
     const orderStatusMeta = (order) => {
         if (!order) return { key: 'all', label: '—', tone: 'muted', icon: 'help' };
+
+        const tracking = order.tracking;
+        if (tracking?.filterKey) {
+            const key = tracking.filterKey;
+            const style = STATUS_META_BY_KEY[key] || STATUS_META_BY_KEY.progress;
+            const label = tracking.stepLabel || style.label || 'Em andamento';
+            return {
+                key,
+                label,
+                shortLabel: style.shortLabel || label,
+                tone: style.tone,
+                icon: style.icon,
+            };
+        }
+
         if (order.status === 'paid') {
             return { key: 'paid', label: 'Confirmado', tone: 'ok', icon: 'check' };
         }
@@ -165,12 +197,16 @@ ${statusGlyphHtml(status.icon)}
 </span>`;
     };
 
-    const canCancelOrder = (order) =>
-        Boolean(
+    const canCancelOrder = (order) => {
+        if (order?.tracking && typeof order.tracking.canCancel === 'boolean') {
+            return order.tracking.canCancel;
+        }
+        return Boolean(
             order?.id &&
                 order.status === 'pending' &&
                 (order.channel || 'parceiros') === 'parceiros',
         );
+    };
 
     const paymentMethodLabelSingle = (id) => {
         const methods = window.LigeirinhoPaymentMethods;
@@ -533,7 +569,29 @@ ${withFilters ? filtersHtml() : ''}
         if (withFilters) bindFilters();
     };
 
-    const loadOrders = async ({ keepFilters = false } = {}) => {
+    const hasOpenOrders = (orders) =>
+        (orders || []).some((order) => {
+            const tracking = order?.tracking;
+            if (tracking) {
+                return !tracking.cancelled && tracking.step < 4 && order.status !== 'pending_payment';
+            }
+            return ['pending', 'confirmed', 'pending_payment'].includes(order?.status);
+        });
+
+    const stopPolling = () => {
+        if (pollTimer) window.clearInterval(pollTimer);
+        pollTimer = null;
+    };
+
+    const startPolling = () => {
+        stopPolling();
+        if (!hasOpenOrders(STATE.orders)) return;
+        pollTimer = window.setInterval(() => {
+            void loadOrders({ keepFilters: true, silent: true });
+        }, 30000);
+    };
+
+    const loadOrders = async ({ keepFilters = false, silent = false } = {}) => {
         const s = session();
         if (!s?.sub && !s?.email && !auth?.getAccountSessionToken?.()) {
             renderShell(`<div class="conta-empty meus-pedidos-empty">
@@ -551,7 +609,9 @@ ${withFilters ? filtersHtml() : ''}
             STATE.date = '';
         }
 
-        renderShell('<p class="conta-hint">Carregando pedidos…</p>', { withFilters: false });
+        if (!silent) {
+            renderShell('<p class="conta-hint">Carregando pedidos…</p>', { withFilters: false });
+        }
 
         const lastLocal = cart?.loadLastOrder?.();
         let orders = [];
@@ -576,15 +636,24 @@ ${withFilters ? filtersHtml() : ''}
         if (!STATE.expandedId && orders[0]?.id) STATE.expandedId = orders[0].id;
 
         if (!orders.length) {
+            stopPolling();
             renderShell(emptyOrdersHtml(), { withFilters: false, empty: true });
+            return;
+        }
+
+        if (silent) {
+            renderOrdersList();
+            startPolling();
             return;
         }
 
         renderShell('', { withFilters: true });
         renderOrdersList();
+        startPolling();
     };
 
     window.addEventListener('ligeirinho-auth-changed', () => loadOrders());
     window.addEventListener('ligeirinho-cart-changed', () => loadOrders({ keepFilters: true }));
+    window.addEventListener('pagehide', stopPolling);
     loadOrders();
 })();
