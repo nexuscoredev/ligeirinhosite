@@ -56,11 +56,46 @@
         return value || '';
     };
 
-    const formatQty = (value) =>
-        Number(value || 0).toLocaleString('pt-BR', {
-            minimumFractionDigits: 3,
+    const UUID_RE =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    const isUuidLike = (value) => UUID_RE.test(String(value || '').trim());
+
+    /** Código do item no DAV: SKU/EAN curto — nunca UUID interno. */
+    const resolveProductCode = (item) => {
+        const candidates = [
+            item?.sku,
+            item?.ean,
+            item?.barcode,
+            item?.codigoBarras,
+            item?.codigo_barras,
+            item?.legacyGfId,
+            item?.legacy_gf_id,
+            item?.codigo,
+            item?.code,
+        ];
+        for (const candidate of candidates) {
+            const raw = String(candidate || '').trim();
+            if (!raw || isUuidLike(raw)) continue;
+            const prod = raw.match(/^prod-(\d{1,14})$/i);
+            if (prod) return prod[1];
+            if (/^prod-/i.test(raw)) continue;
+            return raw;
+        }
+        return '—';
+    };
+
+    const formatQty = (value) => {
+        const n = Number(value || 0);
+        if (!Number.isFinite(n)) return '0';
+        if (Math.abs(n - Math.round(n)) < 1e-9) {
+            return Math.round(n).toLocaleString('pt-BR');
+        }
+        return n.toLocaleString('pt-BR', {
+            minimumFractionDigits: 0,
             maximumFractionDigits: 3,
         });
+    };
 
     const formatMoney = (value) =>
         Number(value || 0).toLocaleString('pt-BR', {
@@ -109,7 +144,12 @@
             : formatCnpj(session?.cnpj || session?.login) ||
               (order?.customerCpf ? formatCnpj(order.customerCpf) : '');
         const phone = formatPhoneDisplay(order?.customerPhone || session?.phone);
-        const address = String(order?.address || '').trim();
+        const rawAddress = String(order?.address || '').trim();
+        const isPickup =
+            String(order?.deliveryType || order?.delivery_type || '').toLowerCase() === 'retirada';
+        const address =
+            rawAddress ||
+            (isPickup ? 'RETIRADA NO PONTO LIGEIRINHO' : '');
         return { name: String(name).toUpperCase(), cnpj, phone, address };
     };
 
@@ -122,7 +162,7 @@
             const subtotal = original * qty;
             const discount = Math.max(0, subtotal - unitPrice * qty);
             const total = unitPrice * qty;
-            const code = String(item.sku || item.hubId || item.id || '—').trim() || '—';
+            const code = resolveProductCode(item);
             return {
                 index: index + 1,
                 code,
@@ -160,7 +200,7 @@
             .map(
                 (line) => `<tr>
 <td class="idx">${line.index}</td>
-<td>${esc(line.code)}</td>
+<td class="code">${esc(line.code)}</td>
 <td class="desc">${esc(line.name)}</td>
 <td class="und">${esc(line.unit)}</td>
 <td class="num">${formatQty(line.qty)}</td>
@@ -179,7 +219,9 @@
 <title>DAV ${esc(davNo)}</title>
 <link rel="stylesheet" href="${esc(cssHref)}">
 <style>
+@page { size: A4 portrait; margin: 12mm; }
 body { margin: 0; background: #fff; }
+@media screen { body { padding: 12mm; } }
 </style>
 </head>
 <body>
@@ -191,8 +233,7 @@ body { margin: 0; background: #fff; }
 <img class="dav-doc__logo" src="${esc(logoSrc)}" alt="" width="42" height="42">
 <div>
 <p class="dav-doc__issuer-name">${esc(ISSUER.razaoSocial)}</p>
-<p class="dav-doc__issuer-meta">CNPJ: ${esc(ISSUER.cnpj)}</p>
-<p class="dav-doc__issuer-meta">IE: ${esc(ISSUER.ie)}</p>
+<p class="dav-doc__issuer-meta">CNPJ: ${esc(ISSUER.cnpj)} · IE: ${esc(ISSUER.ie)}</p>
 <p class="dav-doc__issuer-meta">${esc(ISSUER.endereco)}</p>
 </div>
 </div>
@@ -211,7 +252,7 @@ body { margin: 0; background: #fff; }
 <tr><td>Não é documento fiscal - não é válido como recibo e como garantia de mercadoria - não comprova pagamento</td></tr>
 </table>
 
-<table>
+<table class="dav-doc__dest">
 <tr class="dav-doc__section-title"><td colspan="4">Identificação do destinatário</td></tr>
 <tr>
 <td class="dav-doc__dest-label">Nome / Razão Social</td>
@@ -230,16 +271,27 @@ body { margin: 0; background: #fff; }
 </table>
 
 <table class="dav-doc__items">
+<colgroup>
+<col class="c-idx">
+<col class="c-code">
+<col class="c-desc">
+<col class="c-und">
+<col class="c-qty">
+<col class="c-unit">
+<col class="c-sub">
+<col class="c-disc">
+<col class="c-total">
+</colgroup>
 <thead>
 <tr>
 <th>#</th>
 <th>Código</th>
 <th>Descrição</th>
 <th>Und</th>
-<th>Quantidade</th>
+<th>Qtd</th>
 <th>Unitário</th>
 <th>Subtotal</th>
-<th>Desconto</th>
+<th>Desc.</th>
 <th>Total</th>
 </tr>
 </thead>
@@ -266,7 +318,7 @@ window.addEventListener('load', function () {
   window.setTimeout(function () {
     window.focus();
     window.print();
-  }, 150);
+  }, 250);
 });
 <\/script>
 </body>

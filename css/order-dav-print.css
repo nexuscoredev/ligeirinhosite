@@ -1,6 +1,6 @@
 @page {
     size: A4 portrait;
-    margin: 10mm;
+    margin: 12mm;
 }
 
 @media print {
@@ -11,13 +11,27 @@
     }
 }
 
+@media screen {
+    body {
+        background: #e8e8e8;
+        margin: 0;
+        padding: 12mm;
+    }
+
+    .dav-doc {
+        background: #fff;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+        padding: 4mm;
+    }
+}
+
 .dav-doc {
     box-sizing: border-box;
     color: #000;
     font-family: Arial, Helvetica, sans-serif;
     font-size: 9pt;
-    line-height: 1.25;
-    max-width: 190mm;
+    line-height: 1.3;
+    max-width: 186mm;
     margin: 0 auto;
     width: 100%;
 }
@@ -36,12 +50,16 @@
 .dav-doc td,
 .dav-doc th {
     border: 1px solid #000;
-    padding: 2px 4px;
+    padding: 3px 5px;
     vertical-align: top;
 }
 
+.dav-doc__header {
+    margin-bottom: 0;
+}
+
 .dav-doc__header td {
-    padding: 4px 6px;
+    padding: 5px 7px;
 }
 
 .dav-doc__brand {
@@ -56,20 +74,21 @@
 
 .dav-doc__logo {
     flex-shrink: 0;
-    height: 42px;
+    height: 40px;
     object-fit: contain;
-    width: 42px;
+    width: 40px;
 }
 
 .dav-doc__issuer-name {
-    font-size: 10pt;
+    font-size: 9.5pt;
     font-weight: 700;
     margin: 0 0 2px;
     text-transform: uppercase;
 }
 
 .dav-doc__issuer-meta {
-    font-size: 8pt;
+    font-size: 7.5pt;
+    line-height: 1.35;
     margin: 0;
 }
 
@@ -79,9 +98,10 @@
 }
 
 .dav-doc__title {
-    font-size: 9pt;
+    font-size: 8.5pt;
     font-weight: 700;
-    margin: 0 0 6px;
+    line-height: 1.25;
+    margin: 0 0 5px;
     text-transform: uppercase;
 }
 
@@ -97,28 +117,30 @@
 }
 
 .dav-doc__dav-no {
-    font-size: 10pt;
+    font-size: 11pt;
     font-weight: 700;
-    margin: 4px 0 2px;
+    margin: 5px 0 3px;
     text-align: center;
 }
 
 .dav-doc__barcode {
     margin: 2px auto 0;
     max-width: 100%;
+    overflow: hidden;
 }
 
 .dav-doc__barcode svg {
     display: block;
-    height: 36px;
+    height: 32px;
     margin: 0 auto;
+    max-width: 100%;
     width: auto;
 }
 
 .dav-doc__disclaimer td {
-    font-size: 7.5pt;
+    font-size: 7pt;
     font-weight: 700;
-    padding: 3px 6px;
+    padding: 4px 6px;
     text-align: center;
     text-transform: uppercase;
 }
@@ -127,18 +149,53 @@
     background: #d9d9d9;
     font-size: 8pt;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 3px 6px;
     text-transform: uppercase;
+}
+
+.dav-doc__dest {
+    margin-top: 0;
 }
 
 .dav-doc__dest-label {
     font-size: 7.5pt;
     font-weight: 700;
+    white-space: nowrap;
     width: 18%;
 }
 
 .dav-doc__dest-value {
     font-size: 8pt;
+    word-break: break-word;
+}
+
+.dav-doc__items {
+    margin-top: 2px;
+    table-layout: fixed;
+}
+
+.dav-doc__items col.c-idx {
+    width: 4%;
+}
+
+.dav-doc__items col.c-code {
+    width: 13%;
+}
+
+.dav-doc__items col.c-desc {
+    width: 35%;
+}
+
+.dav-doc__items col.c-und {
+    width: 5%;
+}
+
+.dav-doc__items col.c-qty,
+.dav-doc__items col.c-unit,
+.dav-doc__items col.c-sub,
+.dav-doc__items col.c-disc,
+.dav-doc__items col.c-total {
+    width: 8.6%;
 }
 
 .dav-doc__items th {
@@ -163,8 +220,16 @@
     text-align: center;
 }
 
+.dav-doc__items .code {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 7.5pt;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
 .dav-doc__items .desc {
-    min-width: 8rem;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .dav-doc__totals td {
@@ -174,13 +239,14 @@
 
 .dav-doc__totals-wrap {
     margin-left: auto;
-    margin-top: 4px;
-    width: 42%;
+    margin-top: 6px;
+    width: 46%;
 }
 
 .dav-doc__totals-wrap td {
     border: 1px solid #000;
-    font-size: 8pt;
+    font-size: 8.5pt;
+    padding: 3px 6px;
 }
 
 .dav-doc__totals-wrap .label {
@@ -192,4 +258,10 @@
 .dav-doc__totals-wrap .value {
     text-align: right;
     width: 38%;
+}
+
+.dav-doc__totals-wrap tr:last-child .label,
+.dav-doc__totals-wrap tr:last-child .value {
+    font-size: 9.5pt;
+    font-weight: 700;
 }
