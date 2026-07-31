@@ -73,7 +73,7 @@ async function fetchLiveCatalog(query = 'sync=1') {
 }
 
 async function verifyTable(config, tabela, produtos, categorias) {
-    const { tabelaPadrao, priceMap } = await fetchHubCatalogData(config, {
+    const { tabelaPadrao, priceMap, basePriceMap } = await fetchHubCatalogData(config, {
         channel: 'parceiros',
         tabelaPrecoId: tabela.id,
     });
@@ -82,6 +82,7 @@ async function verifyTable(config, tabela, produtos, categorias) {
         channel: 'parceiros',
         tabelaPadrao,
         priceMap,
+        basePriceMap,
     });
 
     const prodByHubId = new Map(produtos.map((p) => [String(p.id), p]));
@@ -92,7 +93,7 @@ async function verifyTable(config, tabela, produtos, categorias) {
         const hubProd = prodByHubId.get(String(item.hubId));
         if (!hubProd) continue;
 
-        const expected = resolveCatalogPrice(hubProd, priceMap, tabelaPadrao);
+        const expected = resolveCatalogPrice(hubProd, priceMap, tabelaPadrao, { basePriceMap });
         if (!priceEqual(item.price, expected)) {
             mismatches.push({
                 name: item.name,

@@ -1,6 +1,8 @@
-/** Alinha preços promocionais ao Hub (valor_venda_desc / valor_venda_original). */
+/** Alinha preços promocionais e tabelas percentuais ao Hub. */
 
 const CAIXA_UNIDADES = new Set(['CX', 'FD', 'PC', 'FARDO', 'PL', 'PALLET', 'PAL', 'PLT']);
+const DECIMAIS_PRECO_UNITARIO = 2;
+const EPS = 1e-9;
 
 export function fatorEmbalagemValido(fator) {
     const f = Number(fator);
@@ -9,6 +11,79 @@ export function fatorEmbalagemValido(fator) {
 
 export function precoEmbalagem(precoUnitario, fator) {
     return Math.round(Number(precoUnitario) * fatorEmbalagemValido(fator) * 100) / 100;
+}
+
+export function normalizarUnidadeProduto(unidade) {
+    const raw = String(unidade || 'UN').trim().toUpperCase();
+    if (['UN', 'CX', 'PL'].includes(raw)) return raw;
+    if (['PC', 'FARDO', 'FD', 'PCT', 'PCTO', 'PACOTE', 'CAIXA'].includes(raw)) return 'CX';
+    if (['PLT', 'PALLET', 'PAL'].includes(raw)) return 'PL';
+    return 'UN';
+}
+
+export function unidadeExigeQuantidadeEmbalagem(unidade) {
+    const u = normalizarUnidadeProduto(unidade);
+    return u === 'CX' || u === 'PL';
+}
+
+function precoTemMaisCasasQue(valor, casas) {
+    if (!Number.isFinite(valor)) return false;
+    const f = 10 ** casas;
+    const escalado = valor * f;
+    return Math.abs(escalado - Math.round(escalado)) > EPS;
+}
+
+/** Mesma regra do Hub (`arredondarPrecoParaCima`). */
+export function arredondarPrecoParaCima(valor, casas = DECIMAIS_PRECO_UNITARIO) {
+    if (!Number.isFinite(valor)) return 0;
+    const f = 10 ** casas;
+    if (!precoTemMaisCasasQue(valor, casas)) {
+        return Math.round(valor * f) / f;
+    }
+    return Math.ceil(valor * f - EPS) / f;
+}
+
+/** Preço unitário = valor da embalagem ÷ quantidade (arredonda para cima se dízima). */
+export function precoUnitarioDeEmbalagem(precoEmb, fator) {
+    const f = fatorEmbalagemValido(fator);
+    const unitario = Number(precoEmb) / f;
+    if (!Number.isFinite(unitario)) return 0;
+    return arredondarPrecoParaCima(unitario, DECIMAIS_PRECO_UNITARIO);
+}
+
+export function fatorTotalUnidadesEmbalagem(produto) {
+    const u = normalizarUnidadeProduto(produto?.unidade);
+    const fator = fatorEmbalagemValido(produto?.fator_multiplicacao);
+    if (u === 'PL') {
+        const cx = Number(produto?.fator_caixa_cx);
+        const fCx = Number.isFinite(cx) && cx > 0 ? cx : 1;
+        return fator * fCx;
+    }
+    return fator;
+}
+
+export function produtoUsaPrecoEmbalagem(produto) {
+    const base = String(produto?.produto_base_id || '').trim();
+    return (
+        unidadeExigeQuantidadeEmbalagem(produto?.unidade) ||
+        Boolean(base && produto?.id && base !== produto.id)
+    );
+}
+
+/** Cadastro CX/PL: `preco_base`/`valor_custo` na escala da embalagem → unitário UN. */
+export function precoBaseUnitarioDoProduto(produto, bruto) {
+    const valor = Number(bruto);
+    if (!Number.isFinite(valor)) return 0;
+    if (!produtoUsaPrecoEmbalagem(produto)) return valor;
+    return precoUnitarioDeEmbalagem(valor, fatorTotalUnidadesEmbalagem(produto));
+}
+
+/** Unitário da tabela → preço de vitrine (embalagem para CX/PL). */
+export function catalogPriceFromUnitPrice(produto, unitPrice) {
+    const unit = Number(unitPrice);
+    if (!Number.isFinite(unit)) return 0;
+    if (!produtoUsaPrecoEmbalagem(produto)) return unit;
+    return precoEmbalagem(unit, fatorTotalUnidadesEmbalagem(produto));
 }
 
 export function unidadeUsaPrecoEmbalagem(unidade, fator) {

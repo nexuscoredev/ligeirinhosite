@@ -1,6 +1,8 @@
 import { hubConfig } from '../hub-auth.mjs';
 import {
+    catalogPriceFromUnitPrice,
     fatorEmbalagemValido,
+    precoBaseUnitarioDoProduto,
     precoEmbalagem,
     unidadeUsaPrecoEmbalagem,
 } from './hub-promo-precos.mjs';
@@ -154,17 +156,22 @@ function aplicarPercentualTabela(precoBase, modo, percentual) {
  * Preço de vitrine alinhado ao Hub: tabela PADRAO (unitário) + embalagem, ou preco_base.
  * @param {object} produto
  * @param {Map<string, number> | null | undefined} priceMap produto_id → preço unitário na tabela
- * @param {{ aplicacao?: string, modo?: string, percentual?: number } | null | undefined} tabelaPadrao
+ * @param {{ aplicacao?: string, modo?: string, percentual?: number, base_origem?: string, tabela_base_id?: string } | null | undefined} tabelaAtiva
+ * @param {{ basePriceMap?: Map<string, number> | null } | null | undefined} calcContext
  */
-export function resolveCatalogPrice(produto, priceMap, tabelaPadrao) {
+export function resolveCatalogPrice(produto, priceMap, tabelaAtiva, calcContext = null) {
     const precoBaseEmb = Number(produto.preco_base ?? produto.preco_atacado ?? 0);
 
-    if (tabelaPadrao?.aplicacao === 'todos_produtos') {
-        return aplicarPercentualTabela(
-            precoBaseEmb,
-            tabelaPadrao.modo,
-            tabelaPadrao.percentual,
+    if (tabelaAtiva?.aplicacao === 'todos_produtos') {
+        const baseUnit =
+            calcContext?.basePriceMap?.get(produto.id) ??
+            precoBaseUnitarioDoProduto(produto, precoBaseEmb);
+        const unitAfter = aplicarPercentualTabela(
+            baseUnit,
+            tabelaAtiva.modo === 'acrescimo' ? 'acrescimo' : 'desconto',
+            tabelaAtiva.percentual,
         );
+        return catalogPriceFromUnitPrice(produto, unitAfter);
     }
 
     const precoUnitario = priceMap?.get(produto.id);
@@ -183,7 +190,52 @@ export function resolveCatalogPrice(produto, priceMap, tabelaPadrao) {
     return Number.isFinite(precoBaseEmb) ? precoBaseEmb : 0;
 }
 
-const TABELA_PRECO_SELECT = 'id,codigo,padrao,ativo,aplicacao,modo,percentual';
+const TABELA_PRECO_SELECT =
+    'id,codigo,padrao,ativo,aplicacao,modo,percentual,base_origem,tabela_base_id';
+
+function mapBaseOrigem(value) {
+    const v = String(value || '').trim();
+    if (v === 'tabela_custo' || v === 'outra_tabela') return v;
+    return 'tabela_padrao';
+}
+
+/** Hub: acréscimo incide sobre custo unitário; desconto respeita base_origem. */
+function baseOrigemCalculoTabela(modo, baseOrigem) {
+    if (modo === 'acrescimo') return 'tabela_custo';
+    return mapBaseOrigem(baseOrigem);
+}
+
+async function buildMapaPrecosBaseCalculo(hub, tabelaAtiva, produtos, tabelaPadraoRef) {
+    const mapa = new Map();
+    const modo = tabelaAtiva?.modo === 'acrescimo' ? 'acrescimo' : 'desconto';
+    const origem = baseOrigemCalculoTabela(modo, tabelaAtiva?.base_origem);
+
+    if (origem === 'tabela_custo') {
+        for (const p of produtos) {
+            mapa.set(p.id, precoBaseUnitarioDoProduto(p, Number(p.valor_custo) || 0));
+        }
+        return mapa;
+    }
+
+    let tabelaBaseId = null;
+    if (origem === 'outra_tabela') {
+        tabelaBaseId = String(tabelaAtiva?.tabela_base_id || '').trim() || null;
+    } else {
+        tabelaBaseId = tabelaPadraoRef?.id || null;
+    }
+
+    const precosTabela = tabelaBaseId ? await fetchTabelaPrecoItensMap(hub, tabelaBaseId) : null;
+
+    for (const p of produtos) {
+        const daTabela = precosTabela?.get(p.id);
+        const unit =
+            daTabela != null && Number.isFinite(Number(daTabela))
+                ? Number(daTabela)
+                : precoBaseUnitarioDoProduto(p, Number(p.preco_base) || 0);
+        mapa.set(p.id, unit);
+    }
+    return mapa;
+}
 
 function distribuidoraFilter(distribuidoraId) {
     const id = String(distribuidoraId || '').trim();
@@ -357,6 +409,7 @@ export function buildCatalog(produtos, categorias, options = {}) {
             p,
             options.priceMap,
             options.tabelaPadrao,
+            { basePriceMap: options.basePriceMap },
         );
         const unidade = normalizarUnidadeProduto(p.unidade);
         const fatorRaw = Number(p.fator_multiplicacao);
@@ -497,7 +550,7 @@ export async function fetchHubCatalogData(config, options = {}) {
         fetchAll(
             hub,
             'produtos',
-            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,unidade,fator_multiplicacao,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,updated_at,categorias_produto(slug,nome)',
+            'id,nome,descricao_resumida,sku,preco_base,preco_atacado,valor_custo,unidade,fator_multiplicacao,produto_base_id,imagem_url,imagem_cx_url,imagem_pl_url,venda_parceiros,updated_at,categorias_produto(slug,nome)',
             `&ativo=eq.true&visivel_catalogo=eq.true${channelFilter}${distFilter}`,
         ),
         fetchTabelaPrecoPadrao(hub, distribuidoraId),
@@ -524,8 +577,11 @@ export async function fetchHubCatalogData(config, options = {}) {
     });
 
     let priceMap = null;
+    let basePriceMap = null;
     if (tabelaPreco?.id && tabelaPreco.aplicacao !== 'todos_produtos') {
         priceMap = await fetchTabelaPrecoItensMap(hub, tabelaPreco.id);
+    } else if (tabelaPreco?.aplicacao === 'todos_produtos') {
+        basePriceMap = await buildMapaPrecosBaseCalculo(hub, tabelaPreco, produtos, tabelaPadrao);
     }
 
     return {
@@ -533,6 +589,7 @@ export async function fetchHubCatalogData(config, options = {}) {
         produtos,
         tabelaPadrao: tabelaPreco,
         priceMap,
+        basePriceMap,
         priceTableId: tabelaPreco?.id || null,
         priceTableCodigo: tabelaPreco?.codigo || null,
     };
@@ -552,12 +609,13 @@ export async function listActivePriceTables(hub, distribuidoraId = null) {
 
 export async function fetchCatalogFromHub(env = process.env, options = {}) {
     const config = hubConfig(env);
-    const { categorias, produtos, tabelaPadrao, priceMap, priceTableId, priceTableCodigo } =
+    const { categorias, produtos, tabelaPadrao, priceMap, basePriceMap, priceTableId, priceTableCodigo } =
         await fetchHubCatalogData(config, options);
     const catalog = buildCatalog(produtos, categorias, {
         ...options,
         tabelaPadrao,
         priceMap,
+        basePriceMap,
     });
     return {
         ...catalog,
