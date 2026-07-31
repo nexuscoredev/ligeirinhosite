@@ -348,7 +348,9 @@ async function createHubPedidoFromParceirosOrder(hub, order, { status }) {
         parceiros_order_id: order.id,
         observacoes: buildObservacoes(order),
     };
-    if (clienteMeta?.tabela_preco_id) {
+    if (order.order_tabela_preco_id) {
+        pedidoBody.tabela_preco_id = order.order_tabela_preco_id;
+    } else if (clienteMeta?.tabela_preco_id) {
         pedidoBody.tabela_preco_id = clienteMeta.tabela_preco_id;
     }
 

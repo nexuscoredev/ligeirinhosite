@@ -158,6 +158,123 @@
     const deliveryApi = window.LigeirinhoParceiroDelivery;
     const feeApi = () => window.LigeirinhoDeliveryFee;
 
+    const isDistribuidoraAccount = () => {
+        const s = session();
+        const digits = String(s?.cnpj || s?.login || '').replace(/\D/g, '');
+        return deliveryApi?.isDistribuidoraCnpj?.(digits) ?? false;
+    };
+
+    const parseMoneyInput = (raw) => {
+        const api = splitsApi();
+        if (api?.parseMoneyInput) return api.parseMoneyInput(raw);
+        const cleaned = String(raw || '')
+            .replace(/[^\d,.-]/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.');
+        const n = Number(cleaned);
+        return Number.isFinite(n) ? Math.max(0, Math.round(n * 100) / 100) : 0;
+    };
+
+    const formatMoneyInput = (value) => {
+        const api = splitsApi();
+        if (api?.formatMoneyInput) return api.formatMoneyInput(value);
+        const n = Number(value);
+        if (!Number.isFinite(n)) return '';
+        return n.toFixed(2).replace('.', ',');
+    };
+
+    let priceTablesCache = null;
+    let priceTablesLoading = false;
+    let pickerCondicaoTabelaId = '';
+    let pickerCondicaoTaxa = '';
+    let pickerCondicaoError = '';
+    let pickerCondicaoInitialized = false;
+    let pickerCondicaoApplying = false;
+
+    const loadPriceTables = async () => {
+        if (priceTablesCache) return priceTablesCache;
+        if (priceTablesLoading) return priceTablesCache || [];
+        priceTablesLoading = true;
+        try {
+            const headers = await auth?.buildAccountHeaders?.();
+            const res = await fetch('/api/catalog/tabelas', { headers: headers || {} });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Não foi possível carregar tabelas de preço.');
+            priceTablesCache = Array.isArray(data.tabelas) ? data.tabelas : [];
+            return priceTablesCache;
+        } catch (err) {
+            pickerCondicaoError = err.message || 'Erro ao carregar tabelas.';
+            return [];
+        } finally {
+            priceTablesLoading = false;
+        }
+    };
+
+    const buildCatalogPriceLookup = (catalog) => {
+        const map = new Map();
+        for (const cat of catalog?.categories || []) {
+            for (const product of cat.products || []) {
+                if (product.id) map.set(String(product.id), Number(product.price));
+                if (product.hubId) map.set(String(product.hubId), Number(product.price));
+            }
+        }
+        return map;
+    };
+
+    const applyOrderPriceTable = async (tabelaPrecoId) => {
+        if (!tabelaPrecoId) return;
+        const headers = await auth?.buildAccountHeaders?.();
+        const url = `/api/catalog/by-table?tabelaPrecoId=${encodeURIComponent(tabelaPrecoId)}&sync=${Date.now()}`;
+        const res = await fetch(url, { headers: headers || {} });
+        const catalog = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(catalog.error || 'Falha ao aplicar tabela de preço.');
+        const lookup = buildCatalogPriceLookup(catalog);
+        const cart = cartApi.loadCart();
+        let updated = false;
+        Object.keys(cart).forEach((key) => {
+            const item = cart[key];
+            if (!item || item.isDeliveryFee) return;
+            const next =
+                lookup.get(String(item.id)) ??
+                lookup.get(String(item.hubId)) ??
+                lookup.get(String(item.cartKey));
+            if (next != null && Number.isFinite(next) && next > 0) {
+                cart[key] = { ...item, price: next };
+                updated = true;
+            }
+        });
+        if (updated) cartApi.saveCart(cart);
+    };
+
+    const condicaoPagamentoLabel = (checkout) => {
+        const tableLabel =
+            checkout.orderTabelaPrecoLabel ||
+            checkout.orderTabelaPrecoCodigo ||
+            (checkout.orderTabelaPrecoId ? 'Tabela personalizada' : '');
+        const hasTaxa =
+            checkout.orderTaxaEntrega !== undefined &&
+            checkout.orderTaxaEntrega !== null &&
+            checkout.orderTaxaEntrega !== '';
+        const taxa = hasTaxa ? Number(checkout.orderTaxaEntrega) : null;
+        if (!tableLabel && !hasTaxa) return 'Definir tabela e taxa de entrega';
+        const parts = [];
+        if (tableLabel) parts.push(`Tabela ${tableLabel}`);
+        if (hasTaxa) {
+            parts.push(`Taxa ${taxa > 0 ? formatPrice(taxa) : 'Grátis'}`);
+        }
+        return parts.join(' · ');
+    };
+
+    const initPickerCondicaoState = (checkout) => {
+        pickerCondicaoTabelaId = checkout.orderTabelaPrecoId || '';
+        const hasTaxa =
+            checkout.orderTaxaEntrega !== undefined &&
+            checkout.orderTaxaEntrega !== null &&
+            checkout.orderTaxaEntrega !== '';
+        pickerCondicaoTaxa = hasTaxa ? formatMoneyInput(checkout.orderTaxaEntrega) : '';
+        pickerCondicaoError = '';
+    };
+
     const orderTotals = (cart, checkout) => {
         const { units, subtotal } = cartApi.cartSummary(cart);
         const deliveryFee = feeApi()?.resolveFee?.(session(), checkout) ?? 0;
@@ -452,6 +569,13 @@ ${body}
             ? s?.diasEntregaLabel || deliveryApi?.rotuloDiasEntrega?.(s?.datasEntrega) || ''
             : '';
         const payLabel = paymentMethodSelectHtml(checkout, total);
+        const condicaoCard = isDistribuidoraAccount()
+            ? cardHtml(
+                  'Condição de pagamento',
+                  `<p class="resumo-field-hint">Tabela de preço e taxa de entrega deste pedido</p>
+<button type="button" class="resumo-select-btn" data-open-picker="condicao">${esc(condicaoPagamentoLabel(checkout))}</button>`,
+              )
+            : '';
 
         const feeDisplayItem = deliveryFee > 0 ? feeApi()?.buildDisplayItem?.(deliveryFee) : null;
         const listItems = feeDisplayItem ? [feeDisplayItem, ...items] : items;
@@ -473,6 +597,7 @@ ${cardHtml(
 <button type="button" class="resumo-select-btn resumo-select-btn--payment${errors.paymentMethod ? ' resumo-select-btn--error' : ''}" data-open-picker="payment">${payLabel}</button>
 ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</p>` : ''}`
 )}
+${condicaoCard}
 ${cardHtml('Produtos', productsBody, String(units))}
 ${cardHtml(
     'Resumo do pedido',
@@ -494,6 +619,7 @@ ${cardHtml(
             btn.addEventListener('click', () => {
                 pickerMode = btn.dataset.openPicker;
                 if (pickerMode === 'payment') pickerPaymentInitialized = false;
+                if (pickerMode === 'condicao') pickerCondicaoInitialized = false;
                 step = 'picker';
                 render();
             });
@@ -501,11 +627,58 @@ ${cardHtml(
         root.querySelector('#resumo-confirm')?.addEventListener('click', () => confirmOrder());
     };
 
+    const renderCondicaoPickerBody = (tables) => {
+        const tableRows = (tables || [])
+            .map((table) => {
+                const active = pickerCondicaoTabelaId === table.id;
+                const label = table.padrao
+                    ? `${table.codigo || table.nome} (padrão)`
+                    : table.nome || table.codigo || 'Tabela';
+                return `<button type="button" class="resumo-option resumo-option--payment${active ? ' resumo-option--active' : ''}" data-pick-tabela="${esc(table.id)}" aria-pressed="${active ? 'true' : 'false'}">
+<span class="material-symbols-outlined resumo-option__check" aria-hidden="true">${active ? 'check_circle' : 'radio_button_unchecked'}</span>
+<div class="resumo-option__body">
+<strong>${esc(label)}</strong>
+<span>${esc(table.codigo || '')}</span>
+</div>
+</button>`;
+            })
+            .join('');
+
+        return `<div class="resumo-picker-stack">
+<div class="resumo-picker-stack__methods resumo-picker-stack__methods--condicao">
+${tables?.length ? tableRows : `<p class="resumo-field-hint">${priceTablesLoading ? 'Carregando tabelas…' : 'Nenhuma tabela disponível.'}</p>`}
+</div>
+<div class="resumo-payment-amounts resumo-payment-amounts--condicao">
+<p class="resumo-payment-amounts__title">Taxa de entrega deste pedido</p>
+<label class="resumo-payment-amounts__row">
+<span class="resumo-payment-amounts__label">Valor (R$)</span>
+<span class="resumo-payment-amounts__field">
+<span class="resumo-payment-amounts__prefix">R$</span>
+<input type="text" inputmode="decimal" class="resumo-payment-amounts__input" id="resumo-condicao-taxa" value="${esc(pickerCondicaoTaxa)}" placeholder="100,00" autocomplete="off">
+</span>
+</label>
+<p class="resumo-field-hint">Deixe em branco para usar a taxa padrão da conta. Use 0 para entrega grátis.</p>
+</div>
+${pickerCondicaoError ? `<p class="resumo-error resumo-picker-error">${esc(pickerCondicaoError)}</p>` : ''}
+<div class="resumo-picker-stack__footer">
+<button type="button" class="resumo-confirm-btn resumo-payment-confirm" id="resumo-condicao-confirm"${pickerCondicaoApplying ? ' disabled' : ''}>
+<span>${pickerCondicaoApplying ? 'Aplicando…' : 'Confirmar condição'}</span>
+<span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>`;
+    };
+
     const renderPicker = () => {
         const checkout = loadCheckoutState();
         const cart = cartApi.loadCart();
         const { total } = orderTotals(cart, loadCheckoutState());
-        const title = pickerMode === 'date' ? 'Data de entrega' : 'Condições de pagamento';
+        const title =
+            pickerMode === 'date'
+                ? 'Data de entrega'
+                : pickerMode === 'condicao'
+                  ? 'Condição de pagamento'
+                  : 'Condições de pagamento';
 
         let body = '';
         const options = deliveryOptions();
@@ -551,6 +724,21 @@ ${pickerDateError ? `<p class="resumo-error resumo-picker-error">${esc(pickerDat
 </button>
 </div>
 </div>`;
+        } else if (pickerMode === 'condicao') {
+            if (!pickerCondicaoInitialized) {
+                initPickerCondicaoState(checkout);
+                pickerCondicaoInitialized = true;
+                if (!priceTablesCache && !priceTablesLoading) {
+                    void loadPriceTables().then((tables) => {
+                        if (!pickerCondicaoTabelaId && tables?.length) {
+                            const padrao = tables.find((row) => row.padrao) || tables[0];
+                            pickerCondicaoTabelaId = padrao?.id || '';
+                        }
+                        renderPicker();
+                    });
+                }
+            }
+            body = renderCondicaoPickerBody(priceTablesCache || []);
         } else {
             if (!pickerPaymentInitialized) {
                 initPickerPaymentState(checkout, total);
@@ -599,7 +787,9 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
                           ? `Entrega: ${diasLabel}.${feeHint}`
                           : `Escolha a data de entrega.${feeHint}`;
                   })()
-                : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
+                : pickerMode === 'condicao'
+                  ? 'Escolha a tabela de preço e a taxa de entrega aplicadas somente a este pedido.'
+                  : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
 
         root.innerHTML = `<div class="resumo-shell resumo-shell--picker${pickerMode === 'date' ? ' resumo-shell--picker-date' : ''}">
 ${headerHtml(title)}
@@ -673,6 +863,58 @@ ${body}
             pickerPaymentInitialized = false;
             render();
         });
+        root.querySelectorAll('[data-pick-tabela]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                pickerCondicaoTabelaId = btn.dataset.pickTabela || '';
+                pickerCondicaoError = '';
+                renderPicker();
+            });
+        });
+        root.querySelector('#resumo-condicao-taxa')?.addEventListener('input', (event) => {
+            pickerCondicaoTaxa = event.target.value;
+        });
+        root.querySelector('#resumo-condicao-taxa')?.addEventListener('blur', (event) => {
+            pickerCondicaoTaxa = formatMoneyInput(parseMoneyInput(event.target.value));
+            renderPicker();
+        });
+        root.querySelector('#resumo-condicao-confirm')?.addEventListener('click', async () => {
+            if (pickerCondicaoApplying) return;
+            pickerCondicaoError = '';
+            if (!pickerCondicaoTabelaId) {
+                pickerCondicaoError = 'Selecione uma tabela de preço.';
+                renderPicker();
+                return;
+            }
+            const tables = priceTablesCache || [];
+            const selected = tables.find((row) => row.id === pickerCondicaoTabelaId);
+            if (!selected) {
+                pickerCondicaoError = 'Tabela de preço inválida.';
+                renderPicker();
+                return;
+            }
+            const taxaRaw = String(pickerCondicaoTaxa || '').trim();
+            const patch = {
+                orderTabelaPrecoId: selected.id,
+                orderTabelaPrecoCodigo: selected.codigo || '',
+                orderTabelaPrecoLabel: selected.nome || selected.codigo || '',
+                orderTaxaEntrega: taxaRaw ? parseMoneyInput(taxaRaw) : null,
+            };
+            pickerCondicaoApplying = true;
+            renderPicker();
+            try {
+                await applyOrderPriceTable(selected.id);
+                cartApi.saveCheckout(patch);
+                step = 'resumo';
+                pickerMode = null;
+                pickerCondicaoInitialized = false;
+                render();
+            } catch (err) {
+                pickerCondicaoError = err.message || 'Não foi possível aplicar a tabela.';
+                renderPicker();
+            } finally {
+                pickerCondicaoApplying = false;
+            }
+        });
     };
 
     const confirmOrder = async () => {
@@ -718,10 +960,7 @@ ${body}
         }
 
         try {
-            const res = await fetch('/api/orders/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            const payload = {
                     items,
                     deliveryType: checkout.deliveryType,
                     address: checkout.address,
@@ -738,7 +977,24 @@ ${body}
                         hubUserId,
                         cnpj: s?.cnpj || '',
                     },
-                }),
+                };
+            if (isDistribuidoraAccount()) {
+                if (checkout.orderTabelaPrecoId) {
+                    payload.orderTabelaPrecoId = checkout.orderTabelaPrecoId;
+                    payload.orderTabelaPrecoCodigo = checkout.orderTabelaPrecoCodigo || '';
+                }
+                if (
+                    checkout.orderTaxaEntrega !== undefined &&
+                    checkout.orderTaxaEntrega !== null &&
+                    checkout.orderTaxaEntrega !== ''
+                ) {
+                    payload.orderTaxaEntrega = checkout.orderTaxaEntrega;
+                }
+            }
+            const res = await fetch('/api/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Não foi possível criar o pedido.');
@@ -772,6 +1028,8 @@ ${body}
                 pickerDateInitialized = false;
                 pickerSelectedDate = '';
                 pickerDateError = '';
+                pickerCondicaoInitialized = false;
+                pickerCondicaoError = '';
                 render();
                 return;
             }
@@ -791,6 +1049,9 @@ ${body}
     } else if (params.get('picker') === 'payment') {
         step = 'picker';
         pickerMode = 'payment';
+    } else if (params.get('picker') === 'condicao' && isDistribuidoraAccount()) {
+        step = 'picker';
+        pickerMode = 'condicao';
     }
 
     const boot = async () => {

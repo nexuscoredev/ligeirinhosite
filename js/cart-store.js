@@ -96,6 +96,10 @@
         condicaoPagamento: '',
         deliveryDate: '',
         notes: '',
+        orderTabelaPrecoId: '',
+        orderTabelaPrecoCodigo: '',
+        orderTabelaPrecoLabel: '',
+        orderTaxaEntrega: null,
     });
 
     const loadCheckout = () => {

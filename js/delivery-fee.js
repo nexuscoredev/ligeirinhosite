@@ -13,6 +13,10 @@
     const resolveFee = (session, checkout) => {
         const type = String(checkout?.deliveryType || '').trim().toLowerCase();
         if (type === 'retirada' || type === 'pickup') return 0;
+        if (checkout?.orderTaxaEntrega !== undefined && checkout?.orderTaxaEntrega !== null && checkout?.orderTaxaEntrega !== '') {
+            const orderFee = parseTaxaEntrega(checkout.orderTaxaEntrega);
+            if (orderFee != null) return orderFee;
+        }
         const parsed = parseTaxaEntrega(session?.taxaEntrega);
         if (parsed === 0) return 0;
         if (parsed != null) return parsed;

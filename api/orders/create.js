@@ -13,7 +13,8 @@ import {
     getFinanceSettings,
 } from '../../scripts/supabase-finance.mjs';
 import { validatePaymentSplits } from '../../scripts/lib/payment-splits.mjs';
-import { resolveParceirosDeliveryFee, prependDeliveryFeeToItems, isDeliveryFeeLineItem } from '../../scripts/lib/delivery-fee.mjs';
+import { resolveParceirosDeliveryFee, prependDeliveryFeeToItems, isDeliveryFeeLineItem, parseTaxaEntrega } from '../../scripts/lib/delivery-fee.mjs';
+import { isDistribuidoraAccount } from '../../scripts/lib/distribuidora-account.mjs';
 import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
 import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import { registerTotemCustomer } from '../../scripts/lib/totem-customer-register.mjs';
@@ -123,12 +124,27 @@ export default async function handler(req, res) {
         const isTotem = channel === 'totem';
         const isParceiros = !isTotem;
 
-        const deliveryFee = await resolveParceirosDeliveryFee(process.env, {
-            channel,
-            deliveryType,
-            hubUserId,
-        });
-        const orderItems = prependDeliveryFeeToItems(items, deliveryFee);
+        const deliveryFee = (() => {
+            const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
+            const orderTaxaRaw = body.orderTaxaEntrega;
+            const hasOrderTaxa =
+                orderTaxaRaw !== undefined && orderTaxaRaw !== null && orderTaxaRaw !== '';
+            if (isDistribuidoraAccount(customerCnpj) && hasOrderTaxa) {
+                const parsed = parseTaxaEntrega(orderTaxaRaw);
+                if (parsed != null) return parsed;
+            }
+            return null;
+        })();
+
+        const resolvedDeliveryFee =
+            deliveryFee != null
+                ? deliveryFee
+                : await resolveParceirosDeliveryFee(process.env, {
+                      channel,
+                      deliveryType,
+                      hubUserId,
+                  });
+        const orderItems = prependDeliveryFeeToItems(items, resolvedDeliveryFee);
         const total = roundMoney(orderItems.reduce((sum, item) => sum + item.price * item.qty, 0));
         let paymentMethod = String(body.paymentMethod || body.payment || '').toLowerCase().trim();
         let paymentSplits = null;
@@ -223,6 +239,11 @@ export default async function handler(req, res) {
             customerCnpj ? `CNPJ: ${customerCnpj}` : '',
             customerCpf ? `CPF na nota: ${formatCpf(customerCpf)}` : '',
         ].filter(Boolean);
+        const orderTabelaPrecoId = String(body.orderTabelaPrecoId || '').trim();
+        const orderTabelaPrecoCodigo = String(body.orderTabelaPrecoCodigo || '').trim();
+        if (orderTabelaPrecoCodigo) {
+            notesParts.push(`Tabela: ${orderTabelaPrecoCodigo}`);
+        }
         let notes = notesParts.join(' · ').slice(0, 2000) || null;
         if (paymentSplits?.length) {
             const human = paymentSplits
@@ -243,7 +264,7 @@ export default async function handler(req, res) {
             status: 'pending',
             items: orderItems,
             total,
-            delivery_fee: deliveryFee,
+            delivery_fee: resolvedDeliveryFee,
             delivery_type: deliveryType,
             delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,
@@ -297,6 +318,10 @@ export default async function handler(req, res) {
             } else {
                 throw insertErr;
             }
+        }
+
+        if (order && orderTabelaPrecoId && isDistribuidoraAccount(customerCnpj)) {
+            order.order_tabela_preco_id = orderTabelaPrecoId;
         }
 
         let hubPedido = null;

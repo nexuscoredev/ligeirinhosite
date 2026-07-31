@@ -538,6 +538,18 @@ export async function fetchHubCatalogData(config, options = {}) {
     };
 }
 
+/** Lista tabelas de preço ativas (Distribuidora / pedido avulso). */
+export async function listActivePriceTables(hub, distribuidoraId = null) {
+    const distFilter = distribuidoraFilter(distribuidoraId);
+    return fetchAll(
+        hub,
+        'tabelas_preco',
+        'id,codigo,nome,padrao,ativo',
+        `&ativo=eq.true${distFilter}`,
+        'codigo.asc',
+    );
+}
+
 export async function fetchCatalogFromHub(env = process.env, options = {}) {
     const config = hubConfig(env);
     const { categorias, produtos, tabelaPadrao, priceMap, priceTableId, priceTableCodigo } =
