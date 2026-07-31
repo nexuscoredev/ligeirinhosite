@@ -241,8 +241,12 @@ export default async function handler(req, res) {
         ].filter(Boolean);
         const orderTabelaPrecoId = String(body.orderTabelaPrecoId || '').trim();
         const orderTabelaPrecoCodigo = String(body.orderTabelaPrecoCodigo || '').trim();
+        const orderClienteNome = String(body.orderClienteNome || '').trim().slice(0, 120);
         if (orderTabelaPrecoCodigo) {
             notesParts.push(`Tabela: ${orderTabelaPrecoCodigo}`);
+        }
+        if (orderClienteNome) {
+            notesParts.push(`Cliente: ${orderClienteNome}`);
         }
         let notes = notesParts.join(' · ').slice(0, 2000) || null;
         if (paymentSplits?.length) {
@@ -269,7 +273,7 @@ export default async function handler(req, res) {
             delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,
             notes,
-            customer_name: String(customer.name || '').trim().slice(0, 120) || null,
+            customer_name: orderClienteNome || String(customer.name || '').trim().slice(0, 120) || null,
             customer_phone: customerPhone ? customerPhone.slice(0, 32) : null,
             customer_email: String(customer.email || '').trim().slice(0, 120) || null,
             customer_cpf: customerCpf,

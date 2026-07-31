@@ -13273,6 +13273,14 @@ html.dark .baixar-app__eyebrow {
     outline: none;
 }
 
+.resumo-cliente-nome-row {
+    margin-top: 0.25rem;
+}
+
+.resumo-cliente-nome-input {
+    font-weight: 600;
+}
+
 .resumo-payment-amounts__sum {
     margin: 0;
     font-size: 0.8125rem;

@@ -133,9 +133,10 @@
 
     const resolveDestinatario = (order, session) => {
         const isDistribuidora = isDistribuidoraAccount(session);
+        const customerName = String(order?.customerName || order?.customer_name || '').trim();
         const name = isDistribuidora
-            ? 'LIGEIRINHO DISTRIBUIDORA'
-            : String(order?.customerName || '').trim() ||
+            ? customerName || 'LIGEIRINHO DISTRIBUIDORA'
+            : customerName ||
               String(session?.razaoSocial || '').trim() ||
               String(session?.name || '').trim() ||
               '—';

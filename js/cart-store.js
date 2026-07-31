@@ -100,6 +100,7 @@
         orderTabelaPrecoCodigo: '',
         orderTabelaPrecoLabel: '',
         orderTaxaEntrega: null,
+        orderClienteNome: '',
     });
 
     const loadCheckout = () => {

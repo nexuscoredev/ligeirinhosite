@@ -576,6 +576,18 @@ ${body}
 <button type="button" class="resumo-select-btn" data-open-picker="condicao">${esc(condicaoPagamentoLabel(checkout))}</button>`,
               )
             : '';
+        const clienteNomeCard = isDistribuidoraAccount()
+            ? cardHtml(
+                  'Nome do cliente',
+                  `<p class="resumo-field-hint">Cliente final deste pedido (aparece no Hub e no DAV)</p>
+<label class="resumo-payment-amounts__row resumo-cliente-nome-row">
+<span class="resumo-payment-amounts__label">Nome</span>
+<span class="resumo-payment-amounts__field">
+<input type="text" class="resumo-payment-amounts__input resumo-cliente-nome-input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="name" maxlength="120">
+</span>
+</label>`,
+              )
+            : '';
 
         const feeDisplayItem = deliveryFee > 0 ? feeApi()?.buildDisplayItem?.(deliveryFee) : null;
         const listItems = feeDisplayItem ? [feeDisplayItem, ...items] : items;
@@ -598,6 +610,7 @@ ${cardHtml(
 ${errors.paymentMethod ? `<p class="resumo-error">${esc(errors.paymentMethod)}</p>` : ''}`
 )}
 ${condicaoCard}
+${clienteNomeCard}
 ${cardHtml('Produtos', productsBody, String(units))}
 ${cardHtml(
     'Resumo do pedido',
@@ -623,6 +636,9 @@ ${cardHtml(
                 step = 'picker';
                 render();
             });
+        });
+        root.querySelector('#resumo-cliente-nome')?.addEventListener('input', (event) => {
+            cartApi.saveCheckout({ orderClienteNome: event.target.value });
         });
         root.querySelector('#resumo-confirm')?.addEventListener('click', () => confirmOrder());
     };
@@ -989,6 +1005,11 @@ ${body}
                     checkout.orderTaxaEntrega !== ''
                 ) {
                     payload.orderTaxaEntrega = checkout.orderTaxaEntrega;
+                }
+                const orderClienteNome = String(checkout.orderClienteNome || '').trim();
+                if (orderClienteNome) {
+                    payload.orderClienteNome = orderClienteNome;
+                    payload.customer.name = orderClienteNome;
                 }
             }
             const res = await fetch('/api/orders/create', {

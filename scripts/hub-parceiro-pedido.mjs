@@ -232,6 +232,12 @@ function paymentMethodLabel(method) {
     return method ? String(method).trim() : '';
 }
 
+function parceirosNomeClienteFromOrder(order) {
+    const notes = String(order.notes || '');
+    const match = notes.match(/Cliente:\s*([^·]+)/);
+    return match ? match[1].trim().slice(0, 120) : '';
+}
+
 function buildObservacoes(order) {
     const parts = [PARCEIROS_TAG];
     parts.push(`Pedido ${String(order.id || '').slice(0, 8).toUpperCase()}`);
@@ -352,6 +358,10 @@ async function createHubPedidoFromParceirosOrder(hub, order, { status }) {
         pedidoBody.tabela_preco_id = order.order_tabela_preco_id;
     } else if (clienteMeta?.tabela_preco_id) {
         pedidoBody.tabela_preco_id = clienteMeta.tabela_preco_id;
+    }
+    const parceirosNomeCliente = parceirosNomeClienteFromOrder(order);
+    if (parceirosNomeCliente) {
+        pedidoBody.parceiros_nome_cliente = parceirosNomeCliente;
     }
 
     const pedidoRows = await hubRest(hub, 'pedidos', {
