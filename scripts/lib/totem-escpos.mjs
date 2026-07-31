@@ -1,5 +1,8 @@
 import { compactTotemCode, scannerTotemCode } from '../totem-order-code.mjs';
 
+/** Versao do layout minimal (codigo + barcode + instrucoes; sem pagamento/total). */
+export const RECEIPT_FORMAT_VERSION = 'minimal-v2';
+
 const compactCode = compactTotemCode;
 
 /** Code 128 alinhado ao cupom HTML (barra alta e larga para o PDV). */

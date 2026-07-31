@@ -17,7 +17,11 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import http from 'node:http';
 import net from 'node:net';
-import { buildEscPosReceipt, sanitizeOrderForPhysicalReceipt } from './lib/totem-escpos.mjs';
+import {
+    buildEscPosReceipt,
+    RECEIPT_FORMAT_VERSION,
+    sanitizeOrderForPhysicalReceipt,
+} from './lib/totem-escpos.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -161,6 +165,7 @@ const server = http.createServer(async (req, res) => {
                 ok: true,
                 renderer: 'escpos',
                 receiptFormat: 'minimal',
+                receiptFormatVersion: RECEIPT_FORMAT_VERSION,
                 printerName: PRINTER_NAME || null,
                 printerHost: PRINTER_HOST || null,
                 printerPort: PRINTER_PORT,
@@ -198,7 +203,9 @@ const server = http.createServer(async (req, res) => {
             printerPort: body.printerPort,
         });
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ ok: true, renderer: 'escpos', receiptFormat: 'minimal' }));
+        res.end(
+            JSON.stringify({ ok: true, renderer: 'escpos', receiptFormat: 'minimal', receiptFormatVersion: RECEIPT_FORMAT_VERSION })
+        );
     } catch (err) {
         console.error('[totem-print-bridge]', err.message || err);
         res.writeHead(500, { 'Content-Type': 'application/json' });

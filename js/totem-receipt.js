@@ -332,23 +332,6 @@
         return `<div class="totem-receipt__row"><span>${esc(label)}</span><strong>${esc(amount)}</strong></div>`;
     };
 
-    const appendEscPosPaymentLines = (lines, order, width, padLine) => {
-        const splits = resolvePaymentSplits(order);
-        const isCashTender =
-            splits.length === 1 && String(splits[0]?.method || '').toLowerCase() === 'dinheiro';
-        if (splits.length >= 2 || isCashTender) {
-            splits.forEach((item) => {
-                lines.push(padLine(methodLabel(item.method), formatPrice(item.amount), width));
-            });
-            const troco = cashChangeForOrder(order, splits);
-            if (troco > 0.009) {
-                lines.push(padLine('Troco', formatPrice(troco), width));
-            }
-            return;
-        }
-        lines.push(padLine(methodLabel(order.paymentMethod), formatPrice(order.total), width));
-    };
-
     const formatDateTime = (iso) => {
         const d = iso ? new Date(iso) : new Date();
         if (Number.isNaN(d.getTime())) return new Date().toLocaleString('pt-BR');
