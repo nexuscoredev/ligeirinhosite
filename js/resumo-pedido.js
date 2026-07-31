@@ -715,11 +715,11 @@ ${pickerCondicaoError ? `<p class="resumo-error resumo-picker-error">${esc(picke
                 )
                 .join('');
             body = `<div class="resumo-picker-stack resumo-picker-stack--date">
-<div class="resumo-date-panel">
-<div class="resumo-date-list">${dateRows}</div>
+<div class="resumo-date-list" role="listbox" aria-label="Datas de entrega">${dateRows}</div>
 ${pickerDateError ? `<p class="resumo-error resumo-picker-error">${esc(pickerDateError)}</p>` : ''}
+<div class="resumo-picker-stack__footer">
 <button type="button" class="resumo-confirm-btn resumo-date-confirm" id="resumo-date-confirm"${pickerSelectedDate ? '' : ' disabled'}>
-<span>Confirmar data</span>
+<span>Continuar</span>
 <span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
 </button>
 </div>

@@ -2022,7 +2022,55 @@ html.dark .ze-price-tier--active {
     }
 
     html.lig-app-mode.lig-has-float-cart #lig-page-main {
-        padding-bottom: 3.75rem;
+        padding-bottom: 4.25rem;
+    }
+
+    /* Float cart: nav está no fluxo (não fixed) — cola logo acima da tab bar. */
+    html.lig-app-mode #ze-float-cart {
+        bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px));
+        left: 0.65rem;
+        right: 0.65rem;
+    }
+
+    html.lig-app-mode .ze-float-cart__btn {
+        min-height: 2.85rem;
+        padding: 0.4rem 0.5rem 0.4rem 0.4rem;
+    }
+
+    html.lig-app-mode .ze-float-cart__icon {
+        width: 2.15rem;
+        height: 2.15rem;
+    }
+
+    /* Resumo / pickers: preenche o main sem 100dvh (evita botão atrás da tab bar). */
+    html.lig-app-mode body[data-page='resumo-pedido'] #lig-page-main,
+    html.lig-app-mode body[data-page='resumo-pedido'] .resumo-page,
+    html.lig-app-mode body[data-page='resumo-pedido'] #resumo-app {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    html.lig-app-mode body[data-page='resumo-pedido'] .resumo-shell,
+    html.lig-app-mode body[data-page='resumo-pedido'] .resumo-shell--picker {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: 100%;
+        max-height: none;
+    }
+
+    html.lig-app-mode body[data-page='resumo-pedido'] .resumo-shell:not(.resumo-shell--picker) {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    html.lig-app-mode body[data-page='resumo-pedido'] .resumo-footer {
+        position: sticky;
+        bottom: 0;
+        padding-bottom: 0.75rem;
     }
 
     /*
@@ -2600,7 +2648,7 @@ body[data-page='pedidos'] .ze-product-card__price {
     position: fixed;
     left: 0.75rem;
     right: 0.75rem;
-    bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
     z-index: 55;
     max-width: 28rem;
     margin: 0 auto;
@@ -12328,6 +12376,12 @@ html.dark .baixar-app__eyebrow {
     min-height: 60vh;
 }
 
+#resumo-app {
+    display: flex;
+    flex-direction: column;
+    min-height: inherit;
+}
+
 .resumo-shell {
     display: flex;
     flex-direction: column;
@@ -12745,14 +12799,16 @@ html.dark .baixar-app__eyebrow {
 
 .resumo-date-list {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.4rem;
     width: 100%;
-    padding: 0.125rem 0.25rem;
+    padding: 0.125rem 0.15rem;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .resumo-date-list::-webkit-scrollbar {
@@ -12767,7 +12823,7 @@ html.dark .baixar-app__eyebrow {
 .resumo-date-panel {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
     width: min(100%, 26rem);
     margin: 0 auto;
     flex: 1;
@@ -12778,20 +12834,21 @@ html.dark .baixar-app__eyebrow {
 .resumo-date-panel .resumo-date-confirm {
     width: 100%;
     justify-content: space-between;
-    min-height: 3rem;
-    padding: 0.65rem 0.75rem 0.65rem 1rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.65rem 0.55rem 0.85rem;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .resumo-date-row {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.65rem;
     width: 100%;
-    min-height: 3.5rem;
-    padding: 0.8rem 1rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.75rem;
     border: 1px solid var(--lig-border);
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     background: var(--lig-surface);
     color: var(--lig-text);
     text-align: left;
@@ -12820,7 +12877,7 @@ html.dark .baixar-app__eyebrow {
 .resumo-date-row--active {
     border: 2px solid #1a1a1a;
     background: rgba(247, 213, 60, 0.16);
-    padding: calc(0.8rem - 1px) calc(1rem - 1px);
+    padding: calc(0.55rem - 1px) calc(0.75rem - 1px);
 }
 
 .resumo-date-row--active::before {
@@ -12992,23 +13049,24 @@ html.dark .baixar-app__eyebrow {
 }
 
 .resumo-shell--picker {
-    min-height: calc(100dvh - var(--ze-header-offset, 0px));
-    height: calc(100dvh - var(--ze-header-offset, 0px));
-    max-height: calc(100dvh - var(--ze-header-offset, 0px));
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
     overflow: hidden;
 }
 
 .resumo-shell--picker .resumo-header {
     flex-shrink: 0;
-    padding: 0.75rem 1rem 0.625rem;
+    padding: 0.65rem 1rem 0.5rem;
 }
 
 .resumo-content--picker {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 0.625rem 1rem max(1rem, env(safe-area-inset-bottom, 0px));
-    gap: 0.5rem;
+    padding: 0.5rem 1rem 0.5rem;
+    gap: 0.4rem;
     min-height: 0;
     overflow: hidden;
 }
@@ -13018,8 +13076,8 @@ html.dark .baixar-app__eyebrow {
 }
 
 .resumo-content--picker-date {
-    align-items: center;
-    padding-inline: max(1.25rem, env(safe-area-inset-left, 0px)) max(1.25rem, env(safe-area-inset-right, 0px));
+    align-items: stretch;
+    padding-inline: max(1rem, env(safe-area-inset-left, 0px)) max(1rem, env(safe-area-inset-right, 0px));
 }
 
 .resumo-content--picker-date .resumo-picker-lead {
@@ -13028,26 +13086,33 @@ html.dark .baixar-app__eyebrow {
     margin: 0 auto;
     text-align: center;
     padding-inline: 0.25rem;
+    font-size: 0.75rem;
 }
 
 .resumo-picker-stack--date {
-    align-items: center;
+    align-items: stretch;
     width: 100%;
+    max-width: 26rem;
+    margin-inline: auto;
     flex: 1;
     min-height: 0;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .resumo-picker-stack--date .resumo-date-list {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
+}
+
+.resumo-picker-stack--date .resumo-picker-stack__footer {
+    width: 100%;
 }
 
 .resumo-picker-stack {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
+    gap: 0.5rem;
     min-height: 0;
     overflow: hidden;
 }
@@ -13064,7 +13129,8 @@ html.dark .baixar-app__eyebrow {
 .resumo-picker-stack__footer {
     flex-shrink: 0;
     margin-top: 0;
-    padding-top: 0.5rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.15rem;
     background: linear-gradient(180deg, transparent 0%, var(--lig-bg, #f3f4f6) 28%);
 }
 
@@ -13159,8 +13225,8 @@ html.dark .baixar-app__eyebrow {
     margin-top: 0;
     width: 100%;
     justify-content: space-between;
-    min-height: 3rem;
-    padding: 0.65rem 0.75rem 0.65rem 1rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.65rem 0.55rem 0.85rem;
 }
 
 .resumo-payment-amounts__title {
