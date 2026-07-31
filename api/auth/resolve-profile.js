@@ -32,6 +32,7 @@ function publicProfile(profile) {
         provider: profile.provider || 'hub',
         totemUnitId: profile.totemUnitId || null,
         totemLabel: profile.totemLabel || null,
+        totemFeatures: profile.totemFeatures || null,
         isTotem: isTotemRole(profile.role),
         mustChangePassword: Boolean(profile.mustChangePassword),
         cnpj: profile.cnpj || '',

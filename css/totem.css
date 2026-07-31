@@ -7773,12 +7773,17 @@ body.totem-keyboard-payment .totem-pay-summary__scroll {
 
 /* Dose wizard — exclusivo TotemLGShopping */
 
+html:not(.totem--dose-wizard) #totem-dose-start-btn,
+html:not(.totem--dose-wizard) #totem-dose-chip-btn,
+html:not(.totem--dose-wizard) #totem-view-dose-wizard,
 html:not(.totem--lg-shopping) #totem-dose-start-btn,
 html:not(.totem--lg-shopping) #totem-dose-chip-btn,
 html:not(.totem--lg-shopping) #totem-view-dose-wizard {
     display: none !important;
 }
 
+html.totem--dose-wizard #totem-dose-start-btn[hidden],
+html.totem--dose-wizard #totem-dose-chip-btn[hidden],
 html.totem--lg-shopping #totem-dose-start-btn[hidden],
 html.totem--lg-shopping #totem-dose-chip-btn[hidden] {
     display: none !important;

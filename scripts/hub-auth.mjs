@@ -7,6 +7,7 @@ import {
     resolveParceiroHubContact,
     syncParceiroContactLink,
 } from './hub-parceiro.mjs';
+import { enrichTotemProfile, isKnownTotemLogin } from './lib/totem-units.mjs';
 
 const DEFAULT_HUB_URL = 'https://liszpwocwvkytzyaxvit.supabase.co';
 const DEFAULT_HUB_ANON_KEY =
@@ -122,22 +123,8 @@ async function fetchUsuarioByPhone(config, phone) {
     return Array.isArray(rows) ? rows[0] : null;
 }
 
-const TOTEM_LOGINS = new Set([
-    'totem',
-    'totem_device',
-    'totem-loja',
-    'totemloja',
-    'tablet1',
-    'tablet2',
-    'tablet3',
-]);
-
 function isTotemLoginKey(loginKey) {
-    const key = String(loginKey || '')
-        .trim()
-        .toLowerCase();
-    if (!key) return false;
-    return TOTEM_LOGINS.has(key) || key.startsWith('totem') || key.startsWith('tablet');
+    return isKnownTotemLogin(loginKey);
 }
 
 function resolveRoleFromUsuario(usuario) {
@@ -157,7 +144,7 @@ function profileFromUsuario(usuario, extras = {}) {
         usuario.distribuidora_id || extras.distribuidoraId || extras.distribuidora_id || '',
     ).trim() || null;
     const { distribuidoraId: _a, distribuidora_id: _b, ...restExtras } = extras;
-    return {
+    const profile = {
         sub: usuario.id,
         email: usuario.email || extras.email || '',
         name: usuario.nome || extras.name || '',
@@ -171,6 +158,7 @@ function profileFromUsuario(usuario, extras = {}) {
         ...restExtras,
         distribuidoraId,
     };
+    return enrichTotemProfile(profile, usuario);
 }
 
 function finalizeParceiroProfile(profile, { provider, authEmail, authName, usuario, pessoa } = {}) {

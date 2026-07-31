@@ -22,6 +22,16 @@
       "hiddenCategories": ["insumos"],
       "hiddenProductIds": []
     },
+    "totem1": {
+      "label": "Totem 1",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
+    },
+    "totem2": {
+      "label": "Totem 2",
+      "hiddenCategories": ["insumos"],
+      "hiddenProductIds": []
+    },
     "tablet1": {
       "label": "Tablet 1",
       "printMode": "bridge",
@@ -61,15 +71,26 @@
       "hiddenProductIds": [],
       "doseWizardEnabled": true,
       "doseCategorySlugs": ["dose", "doses"],
-      "doseCategoryOnly": true
+      "doseCategoryOnly": true,
+      "features": {
+        "doseWizard": true,
+        "doseCategoryOnly": true
+      }
     }
   },
   "loginUnitMap": {
+    "Totem": "default",
+    "totem": "default",
+    "Totem1": "totem1",
+    "totem1": "totem1",
+    "Totem2": "totem2",
+    "totem2": "totem2",
     "Tablet1": "tablet1",
     "tablet1": "tablet1",
     "Tablet2": "tablet2",
     "tablet2": "tablet2",
     "Tablet3": "tablet3",
+    "tablet3": "tablet3",
     "TotemLGShopping": "lgshopping",
     "totemlgshopping": "lgshopping"
   }

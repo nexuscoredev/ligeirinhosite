@@ -1116,28 +1116,35 @@ ${unitHtml}
 
     const session = () => auth.loadSession();
 
-    const isTotemLGShopping = () => {
-        const login = String(session()?.login || '')
-            .trim()
-            .toLowerCase();
-        if (login !== 'totemlgshopping') return false;
-        const unit = resolveUnitSettings();
-        return Boolean(unit?.doseWizardEnabled);
-    };
+    const unitContext = () =>
+        window.LigeirinhoTotemUnitContext?.resolve?.(session(), totemConfig) || {
+            unitId: 'default',
+            storeKey: 'default',
+            label: 'Totem',
+            features: {},
+            unit: {},
+            doseCategorySlugs: [],
+        };
 
-    const updateLGShoppingUi = () => {
-        const enabled = isTotemLGShopping();
-        document.documentElement.classList.toggle('totem--lg-shopping', enabled);
+    const unitFeature = (name) =>
+        window.LigeirinhoTotemUnitContext?.featureEnabled?.(unitContext(), name) || false;
+
+    const isDoseWizardEnabled = () => unitFeature('doseWizard');
+
+    const updateUnitFeatureUi = () => {
+        const doseWizard = isDoseWizardEnabled();
+        document.documentElement.classList.toggle('totem--dose-wizard', doseWizard);
+        document.documentElement.classList.toggle('totem--lg-shopping', doseWizard);
         if (doseStartBtn) {
-            doseStartBtn.hidden = !enabled;
-            doseStartBtn.setAttribute('aria-hidden', enabled ? 'false' : 'true');
+            doseStartBtn.hidden = !doseWizard;
+            doseStartBtn.setAttribute('aria-hidden', doseWizard ? 'false' : 'true');
         }
         if (doseChipBtn) {
-            const showChip = enabled && customerIdentified;
+            const showChip = doseWizard && customerIdentified;
             doseChipBtn.hidden = !showChip;
             doseChipBtn.setAttribute('aria-hidden', showChip ? 'false' : 'true');
         }
-        if (!enabled) {
+        if (!doseWizard) {
             pendingDoseWizard = false;
             if (views.doseWizard?.classList.contains('totem-view--active')) {
                 window.LigeirinhoTotemDoseWizard?.close?.();
@@ -1146,7 +1153,7 @@ ${unitHtml}
     };
 
     const openDoseWizard = () => {
-        if (!isTotemLGShopping()) return;
+        if (!isDoseWizardEnabled()) return;
         if (!customerIdentified) {
             pendingDoseWizard = true;
             setView('customer');
@@ -1157,17 +1164,9 @@ ${unitHtml}
         window.LigeirinhoTotemDoseWizard?.open?.();
     };
 
-    const resolveStoreKey = () => {
-        const s = session();
-        const login = String(s?.login || '').trim();
-        if (login) return login.toLowerCase().replace(/\s+/g, '-');
-        const mapped =
-            totemConfig.loginUnitMap?.[s?.login] ||
-            totemConfig.loginUnitMap?.[String(s?.login || '').toLowerCase()] ||
-            totemConfig.loginUnitMap?.[s?.email];
-        const unitId = s?.totemUnitId || mapped || 'default';
-        return String(unitId).trim().toLowerCase().replace(/\s+/g, '-');
-    };
+    const resolveStoreKey = () => unitContext().storeKey;
+
+    const resolveUnitId = () => unitContext().unitId;
 
     const invalidateVisibleItemsCache = () => {
         visibleItemsCacheKey = '';
@@ -1250,15 +1249,7 @@ ${unitHtml}
         if (rawCatalogData) applyCatalogFromRaw(rawCatalogData, { skipGroupRebuild: true });
         window.LigeirinhoTotemPromos?.refresh?.();
     };
-    const resolveUnitSettings = () => {
-        const s = session();
-        const mapped =
-            totemConfig.loginUnitMap?.[s?.login] ||
-            totemConfig.loginUnitMap?.[String(s?.login || '').toLowerCase()] ||
-            totemConfig.loginUnitMap?.[s?.email];
-        const unitId = s?.totemUnitId || mapped || 'default';
-        return totemConfig.units?.[unitId] || totemConfig.units?.default || { label: 'Ligeirinho', hiddenCategories: [], hiddenProductIds: [] };
-    };
+    const resolveUnitSettings = () => unitContext().unit;
 
     const CATEGORY_CANON = {
         cerveja: { id: 'cerveja', name: 'Cerveja' },
@@ -2311,16 +2302,6 @@ ${unitHtml}
         totemKeyboard?.show?.();
     };
 
-    const resolveUnitId = () => {
-        const s = session();
-        const login = String(s?.login || '').trim();
-        const mapped =
-            totemConfig.loginUnitMap?.[login] ||
-            totemConfig.loginUnitMap?.[login.toLowerCase()] ||
-            totemConfig.loginUnitMap?.[s?.email];
-        return String(s?.totemUnitId || mapped || 'default').trim() || 'default';
-    };
-
     const applyRedoSession = () => {
         try {
             const raw = sessionStorage.getItem('lig_totem_redo_customer');
@@ -2355,8 +2336,8 @@ ${unitHtml}
         renderCategories();
         renderProducts();
         updateCatalogGreeting();
-        updateLGShoppingUi();
-        if (pendingDoseWizard && isTotemLGShopping()) {
+        updateUnitFeatureUi();
+        if (pendingDoseWizard && isDoseWizardEnabled()) {
             pendingDoseWizard = false;
             window.LigeirinhoTotemDoseWizard?.open?.();
             return;
@@ -2707,7 +2688,7 @@ ${unitHtml}
         const inDoseWizard = name === 'doseWizard';
         const inShopping = inCatalog || inPromos || inDoseWizard;
         updateShoppingChrome();
-        updateLGShoppingUi();
+        updateUnitFeatureUi();
         totemHeader?.classList.toggle('totem-header--catalog', inCatalog || inDoseWizard);
         totemHeader?.classList.toggle('totem-header--promos', inPromos);
         if (name === 'welcome') hideIdleWarning();
@@ -4430,7 +4411,17 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
 
         window.addEventListener('ligeirinho-auth-changed', () => {
             unitSettings = resolveUnitSettings();
-            updateLGShoppingUi();
+            updateUnitFeatureUi();
+            pendingDoseWizard = false;
+            resetCart();
+            void loadTotemCatalog({ force: true })
+                .then((rawCatalog) => {
+                    applyCatalogFromRaw(rawCatalog);
+                    renderCategories();
+                    renderProducts();
+                    window.LigeirinhoTotemStoreAdmin?.reload?.();
+                })
+                .catch((err) => console.warn('totem auth catalog reload', err));
         });
 
         window.addEventListener('resize', () => scheduleViewSwitcherUpdate(), { passive: true });
@@ -4439,7 +4430,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
     const init = async () => {
         if (!routing.guardPageAccess()) return;
 
-        updateLGShoppingUi();
+        updateUnitFeatureUi();
 
         const s = session();
         unitSettings = resolveUnitSettings();
@@ -4508,7 +4499,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             getDisplayItems: () => displayItems,
             isItemHidden: (item) => window.LigeirinhoTotemStoreAdmin?.isItemHidden?.(item),
             addItem: (cartKey, itemKey, opts) => addItem(cartKey, itemKey, opts),
-            isEnabled: isTotemLGShopping,
+            isEnabled: isDoseWizardEnabled,
             setView,
             onOpen: () => {
                 closeProductDetail();
@@ -4525,11 +4516,11 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             startCheckout,
             bumpIdle,
             getDoseCategorySlugs: () =>
-                isTotemLGShopping() ? resolveUnitSettings()?.doseCategorySlugs || ['dose', 'doses'] : [],
+                isDoseWizardEnabled() ? unitContext().doseCategorySlugs || ['dose', 'doses'] : [],
             doseCategoryOnly: () =>
-                isTotemLGShopping() && Boolean(resolveUnitSettings()?.doseCategoryOnly),
+                isDoseWizardEnabled() && unitFeature('doseCategoryOnly'),
         });
-        updateLGShoppingUi();
+        updateUnitFeatureUi();
         suppressGhostClicks(280);
         window.LigeirinhoTotemPwaUpdate?.onStatusChange?.((detail) => {
             updateShoppingChrome();
