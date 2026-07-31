@@ -6,6 +6,8 @@
     let warmPrintFrame = null;
 
     const BRIDGE_STORAGE_KEY = 'lig_totem_print_bridge_url';
+    const PRINT_MODE_STORAGE_KEY = 'lig_totem_print_mode';
+    const PRINT_FALLBACK_STORAGE_KEY = 'lig_totem_print_fallback_browser';
     const PRINT_MARGIN_LEFT_KEY = 'lig_totem_print_margin_left_mm';
     const PRINT_MARGIN_RIGHT_KEY = 'lig_totem_print_margin_right_mm';
 
@@ -107,6 +109,23 @@
                 printPaperWidthMm: 70,
                 printFallbackBrowser: true,
             };
+        }
+        try {
+            const bridgeStored = String(localStorage.getItem(BRIDGE_STORAGE_KEY) || '').trim();
+            if (bridgeStored) {
+                cachedConfig.printBridgeUrl = bridgeStored;
+                const modeStored = String(localStorage.getItem(PRINT_MODE_STORAGE_KEY) || '').trim().toLowerCase();
+                if (modeStored) {
+                    cachedConfig.printMode = modeStored;
+                } else if (cachedConfig.printMode === 'kiosk' || cachedConfig.printMode === 'auto') {
+                    cachedConfig.printMode = 'bridge';
+                }
+                const fallbackStored = localStorage.getItem(PRINT_FALLBACK_STORAGE_KEY);
+                if (fallbackStored === 'false') cachedConfig.printFallbackBrowser = false;
+                if (fallbackStored === 'true') cachedConfig.printFallbackBrowser = true;
+            }
+        } catch {
+            /* ignore */
         }
         return cachedConfig;
     };
@@ -679,7 +698,10 @@ body{display:flex;justify-content:center;align-items:flex-start}
         const parts = host.split('.');
         if (parts.length !== 4) return '';
         const base = parts.slice(0, 3).join('.');
-        const octets = [1, 2, 10, 11, 20, 50, 100, 101, 150, 200];
+        const octets = [];
+        for (let n = 1; n <= 254; n += 1) {
+            if (n <= 30 || n % 10 === 0 || n >= 100) octets.push(n);
+        }
         const candidates = octets.map((n) => `http://${base}.${n}:${bridgePort}/print`);
         const checks = await Promise.all(
             candidates.map(async (url) => ((await bridgeReachable(url, 450)) ? url : ''))
@@ -1057,7 +1079,14 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return false;
             }
 
-            // PC totem: Chrome kiosk (sem Node/ponte) → serial USB opcional
+            // PC com ponte configurada (?printBridge= ou Totem-Kiosk.bat)
+            if (printOpts.printBridgeUrl || config.printBridgeUrl) {
+                const bridgeOk = await tryBridge();
+                if (bridgeOk) return true;
+                if (!allowBrowserFallback) return false;
+            }
+
+            // PC totem sem ponte: Chrome kiosk (sem Node) → serial USB opcional
             return printBrowser();
         };
 
@@ -1079,6 +1108,21 @@ body{display:flex;justify-content:center;align-items:flex-start}
         const bridgeFromUrl = params.get('printBridge');
         if (bridgeFromUrl) {
             localStorage.setItem(BRIDGE_STORAGE_KEY, bridgeFromUrl.trim());
+            localStorage.setItem(PRINT_MODE_STORAGE_KEY, 'bridge');
+            localStorage.setItem(PRINT_FALLBACK_STORAGE_KEY, 'false');
+            cachedConfig = null;
+        }
+        const modeFromUrl = params.get('printMode');
+        if (modeFromUrl) {
+            localStorage.setItem(PRINT_MODE_STORAGE_KEY, modeFromUrl.trim().toLowerCase());
+            cachedConfig = null;
+        }
+        const fallbackFromUrl = params.get('printFallback');
+        if (fallbackFromUrl != null && fallbackFromUrl !== '') {
+            localStorage.setItem(
+                PRINT_FALLBACK_STORAGE_KEY,
+                fallbackFromUrl === '1' || fallbackFromUrl.toLowerCase() === 'true' ? 'true' : 'false'
+            );
             cachedConfig = null;
         }
         const marginFromUrl = params.get('printMarginLeft');
