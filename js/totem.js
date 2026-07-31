@@ -164,6 +164,8 @@
     let cartToastTimer = null;
     let searchQuery = '';
     let searchTimer = null;
+    let pedSearchPending = false;
+    let pedLookupError = '';
     const SEARCH_DEBOUNCE_MS = 300;
     const CART_TAP_COOLDOWN_MS = 360;
     let lastCartTapAt = 0;
@@ -1574,11 +1576,14 @@ ${unitHtml}
 
     const updateSearchClear = () => {
         if (!searchClearBtn) return;
-        searchClearBtn.hidden = !searchQuery;
+        const hasInput = Boolean(searchQuery || pedSearchPending || searchInput?.value?.trim());
+        searchClearBtn.hidden = !hasInput;
     };
 
     const clearSearch = () => {
         searchQuery = '';
+        pedSearchPending = false;
+        pedLookupError = '';
         cachedQueryKey = '';
         cachedQueryInfo = null;
         invalidateVisibleItemsCache();
@@ -1587,7 +1592,29 @@ ${unitHtml}
     };
 
     const setSearchQuery = (value) => {
-        searchQuery = String(value || '').trim().toLowerCase();
+        const raw = String(value || '').trim();
+        const refill = window.LigeirinhoTotemOrderRefill;
+        if (refill?.isPedSearchInput?.(raw)) {
+            if (refill.parseTotemOrderCode?.(raw)) {
+                pedSearchPending = false;
+                pedLookupError = '';
+                refill.tryFromSearch(raw);
+                return;
+            }
+            pedSearchPending = true;
+            pedLookupError = '';
+            searchQuery = '';
+            cachedQueryKey = '';
+            cachedQueryInfo = null;
+            invalidateVisibleItemsCache();
+            updateSearchClear();
+            renderProducts();
+            bumpIdle();
+            return;
+        }
+        pedSearchPending = false;
+        pedLookupError = '';
+        searchQuery = raw.toLowerCase();
         cachedQueryKey = '';
         cachedQueryInfo = null;
         invalidateVisibleItemsCache();
@@ -2892,6 +2919,9 @@ ${unitHtml}
         }
         if (homeConfirmModal?.classList.contains('totem-deactivate-modal--open')) return true;
         if (clearCartModal?.classList.contains('totem-deactivate-modal--open')) return true;
+        if (document.getElementById('totem-order-refill-modal')?.classList.contains('totem-deactivate-modal--open')) {
+            return true;
+        }
         if (document.documentElement.classList.contains('lig-promo-notice-open')) return true;
         return false;
     };
@@ -3092,13 +3122,16 @@ ${bodyHtml}
         }
         updateCategoriesBtnLabel();
         const searching = Boolean(searchQuery);
-        const items = getVisibleItems();
+        const pedCodeSearch = pedSearchPending;
+        const items = pedCodeSearch ? [] : getVisibleItems();
         const catMeta = activeCategoryMeta();
-        const catLabel = searching
-            ? `Busca: ${searchInput?.value?.trim() || searchQuery}`
-            : catMeta
-              ? catalog.formatCategoryLabel(catMeta.name)
-              : '';
+        const catLabel = pedCodeSearch
+            ? `Pedido: ${searchInput?.value?.trim() || 'PED'}`
+            : searching
+              ? `Busca: ${searchInput?.value?.trim() || searchQuery}`
+              : catMeta
+                ? catalog.formatCategoryLabel(catMeta.name)
+                : '';
 
         if (productsHead) productsHead.hidden = !catalogHeadVisible(catLabel);
         if (categoryTitle) {
@@ -3123,19 +3156,25 @@ ${bodyHtml}
             productsEmpty.style.display = isEmpty ? '' : 'none';
         }
         if (productsEmptyTitle) {
-            productsEmptyTitle.textContent = searching
-                ? 'Nenhum produto encontrado'
-                : 'Nenhum produto nesta categoria';
+            productsEmptyTitle.textContent = pedCodeSearch
+                ? pedLookupError || 'Código do pedido'
+                : searching
+                  ? 'Nenhum produto encontrado'
+                  : 'Nenhum produto nesta categoria';
         }
         if (productsEmptyLead) {
-            productsEmptyLead.textContent = searching
-                ? 'Tente outro termo ou limpe a busca.'
-                : 'Selecione outra categoria para continuar.';
+            productsEmptyLead.textContent = pedCodeSearch
+                ? pedLookupError
+                    ? 'Verifique o código no comprovante (ex.: PED 4F4F) e tente novamente.'
+                    : 'Digite ou escaneie o código completo (ex.: PED 4F4F) e pressione Enter.'
+                : searching
+                  ? 'Tente outro termo ou limpe a busca.'
+                  : 'Selecione outra categoria para continuar.';
         }
         if (productsGrid) {
             productsGrid.hidden = isEmpty;
             productsGrid.style.display = isEmpty ? 'none' : '';
-            productsGrid.classList.toggle('totem-grid--searching', searching);
+            productsGrid.classList.toggle('totem-grid--searching', searching || pedCodeSearch);
         }
         syncListHead(!isEmpty && catalogView === 'list');
 
@@ -4368,7 +4407,13 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
 
         searchInput?.addEventListener('input', () => {
-            const value = searchInput.value.trim().toLowerCase();
+            const value = searchInput.value.trim();
+            const refill = window.LigeirinhoTotemOrderRefill;
+            if (refill?.isPedSearchInput?.(value) && refill.parseTotemOrderCode?.(value)) {
+                if (searchTimer) clearTimeout(searchTimer);
+                refill.tryFromSearch(value);
+                return;
+            }
             if (searchTimer) clearTimeout(searchTimer);
             searchTimer = window.setTimeout(
                 () => setSearchQuery(value),
@@ -4534,6 +4579,28 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
         window.addEventListener('lig-totem-pwa', () => updateShoppingChrome());
         renderCart();
+        window.LigeirinhoTotemOrderRefill?.init?.({
+            cartApi,
+            pricing,
+            catalog,
+            findDisplayItem,
+            resolvePromoOffer,
+            openCart,
+            clearSearch,
+            onCartChanged: () => renderCart(),
+            guardGhostClick,
+            onBumpIdle: bumpIdle,
+            onLookupError: (message) => {
+                pedLookupError = String(message || '').trim();
+                pedSearchPending = true;
+                renderProducts();
+            },
+            onLookupSuccess: () => {
+                pedSearchPending = false;
+                pedLookupError = '';
+                renderProducts();
+            },
+        });
         await window.LigeirinhoTotemPromos?.init?.({
             gridEl: document.getElementById('totem-promos-grid'),
             emptyEl: document.getElementById('totem-promos-empty'),

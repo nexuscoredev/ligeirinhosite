@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v498';
+const CACHE_NAME = 'ligeirinho-app-v499';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -14,6 +14,7 @@ const NETWORK_FIRST_STATIC = new Set([
     '/js/baixar-app.js',
     '/js/install-app.js',
     '/js/totem.js',
+    '/js/totem-order-refill.js',
     '/js/totem-unit-context.js',
     '/js/totem-receipt.js',
     '/js/totem-pwa-update.js',
@@ -126,6 +127,7 @@ const APP_SHELL = [
     '/js/cpf.js',
     '/js/cnpj.js',
     '/js/totem.js',
+    '/js/totem-order-refill.js',
     '/js/totem-payment.js',
     '/js/totem-caixa.js',
     '/js/totem-loading.js',
