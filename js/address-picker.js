@@ -24,6 +24,28 @@
         return map[String(parts.state || '').toLowerCase()] || '';
     };
 
+    const onlyDigits = (value) => String(value || '').replace(/\D/g, '');
+
+    const formatCepMask = (value) => {
+        const d = onlyDigits(value).slice(0, 8);
+        if (d.length <= 5) return d;
+        return `${d.slice(0, 5)}-${d.slice(5)}`;
+    };
+
+    const isCepQuery = (value) => {
+        const digits = onlyDigits(value);
+        if (digits.length !== 8) return false;
+        const compact = String(value || '').replace(/\s/g, '');
+        return /^\d{8}$/.test(compact) || /^\d{5}-?\d{3}$/.test(compact);
+    };
+
+    const shortSuggestionLabel = (r) => {
+        if (r.suggestionLabel) return r.suggestionLabel;
+        const street = [r.street, r.number].filter(Boolean).join(', ');
+        const line = [street, r.neighborhood, r.city, r.stateCode || r.state].filter(Boolean).join(' - ');
+        return line || r.label || '';
+    };
+
     const formatAddressLine = (parts) => {
         const street = [parts.street, parts.noNumber ? 'S/N' : parts.number].filter(Boolean).join(', ');
         const tail = [parts.complement, parts.neighborhood, parts.city, parts.stateCode || parts.state]
@@ -121,7 +143,7 @@
 </header>
 <div class="lig-addr__search-wrap">
 <label class="lig-addr__field">
-<input type="search" id="lig-addr-q" class="lig-addr__input" placeholder="Digite o endereço completo" autocomplete="street-address" enterkeyhint="search">
+<input type="search" id="lig-addr-q" class="lig-addr__input" placeholder="CEP ou endereço (rua, bairro…)" autocomplete="street-address" inputmode="search" enterkeyhint="search">
 <span class="material-symbols-outlined lig-addr__field-icon" aria-hidden="true">location_on</span>
 </label>
 <button type="button" class="lig-addr__geo-row" data-addr-geo>
@@ -170,6 +192,12 @@
 </header>
 <div class="lig-addr__confirm-scroll">
 <p class="lig-addr__lead">Esse é o endereço aproximado do local no mapa. Confira e ajuste o <strong>número</strong> se precisar — o valor que você confirmar será o salvo na entrega.</p>
+<label class="lig-addr__label" for="lig-addr-cep">CEP</label>
+<div class="lig-addr__cep-row">
+<input id="lig-addr-cep" class="lig-addr__input" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000" maxlength="9">
+<button type="button" class="lig-addr__cep-btn" data-addr-cep-lookup>Buscar</button>
+</div>
+<p id="lig-addr-cep-status" class="lig-addr__cep-status" hidden></p>
 <label class="lig-addr__label" for="lig-addr-street">Rua</label>
 <input id="lig-addr-street" class="lig-addr__input" type="text" autocomplete="address-line1">
 <div class="lig-addr__row">
@@ -264,7 +292,8 @@
             stateCode: place.stateCode || stateCodeFrom(place) || draft.stateCode,
             lat: Number.isFinite(place.lat) ? place.lat : draft.lat,
             lng: Number.isFinite(place.lng) ? place.lng : draft.lng,
-            label: place.label || draft.label,
+            /* Apelido só vem do campo do formulário — não do geocoder. */
+            label: draft.label,
             postcode: place.postcode || draft.postcode || '',
         };
     };
@@ -283,7 +312,10 @@
                 (r) =>
                     `<button type="button" class="lig-addr__result" role="option" data-addr-pick="${esc(r.id)}">
 <span class="material-symbols-outlined" aria-hidden="true">location_on</span>
-<span>${esc(r.label)}</span>
+<span class="lig-addr__result-copy">
+<span class="lig-addr__result-title">${esc(shortSuggestionLabel(r))}</span>
+${r.postcode ? `<span class="lig-addr__result-meta">CEP ${esc(r.postcode)}</span>` : ''}
+</span>
 </button>`,
             )
             .join('');
@@ -292,7 +324,7 @@
                 const place = results.find((r) => r.id === btn.dataset.addrPick);
                 if (!place) return;
                 applyPlace(place);
-                setView('map');
+                setView(Number.isFinite(place.lat) && Number.isFinite(place.lng) ? 'map' : 'confirm');
             });
         });
     };
@@ -368,16 +400,63 @@
     const renderAddressHistory = () => renderSavedAddresses();
 
     const searchAddress = async (q) => {
-        setSearchStatus('Buscando…');
+        const query = String(q || '').trim();
+        const cepMode = isCepQuery(query);
+        setSearchStatus(cepMode ? 'Buscando CEP…' : 'Buscando…');
         try {
-            const res = await fetch(`/api/geo/search?q=${encodeURIComponent(q)}`);
+            const res = await fetch(`/api/geo/search?q=${encodeURIComponent(cepMode ? onlyDigits(query) : query)}`);
             const data = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(data.error || 'Falha na busca');
-            setSearchStatus('');
+            setSearchStatus(data.source === 'cep' ? 'Endereço encontrado pelo CEP' : '');
             renderResults(data.results || []);
         } catch (err) {
             setSearchStatus(err.message || 'Não foi possível buscar agora.');
             renderResults([]);
+        }
+    };
+
+    const setCepStatus = (msg) => {
+        const el = root?.querySelector('#lig-addr-cep-status');
+        if (!el) return;
+        el.hidden = !msg;
+        el.textContent = msg || '';
+    };
+
+    const lookupCepOnConfirm = async () => {
+        const input = root.querySelector('#lig-addr-cep');
+        const btn = root.querySelector('[data-addr-cep-lookup]');
+        const digits = onlyDigits(input?.value || '');
+        if (digits.length !== 8) {
+            setCepStatus('Informe um CEP com 8 dígitos.');
+            input?.focus();
+            return;
+        }
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '…';
+        }
+        setCepStatus('Buscando CEP…');
+        try {
+            const res = await fetch(`/api/geo/search?q=${encodeURIComponent(digits)}`);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.results?.length) {
+                throw new Error(data.error || 'CEP não encontrado.');
+            }
+            const place = data.results[0];
+            applyPlace(place);
+            if (input) input.value = formatCepMask(place.postcode || digits);
+            fillConfirmForm();
+            setCepStatus('Endereço preenchido pelo CEP. Confira o número.');
+            if (Number.isFinite(place.lat) && Number.isFinite(place.lng) && map) {
+                map.setView([place.lat, place.lng], Math.max(map.getZoom(), 17));
+            }
+        } catch (err) {
+            setCepStatus(err.message || 'Não foi possível consultar o CEP.');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Buscar';
+            }
         }
     };
 
@@ -440,6 +519,9 @@
     };
 
     const fillConfirmForm = () => {
+        const cepInput = root.querySelector('#lig-addr-cep');
+        if (cepInput) cepInput.value = formatCepMask(draft.postcode || '');
+        setCepStatus('');
         root.querySelector('#lig-addr-street').value = draft.street || '';
         root.querySelector('#lig-addr-number').value = draft.noNumber ? '' : draft.number || '';
         root.querySelector('#lig-addr-comp').value = draft.noComplement ? '' : draft.complement || '';
@@ -459,6 +541,7 @@
     };
 
     const readConfirmForm = () => {
+        draft.postcode = formatCepMask(root.querySelector('#lig-addr-cep')?.value || draft.postcode || '');
         draft.street = root.querySelector('#lig-addr-street').value.trim();
         draft.noNumber = root.querySelector('#lig-addr-no-num').checked;
         draft.noComplement = root.querySelector('#lig-addr-no-comp').checked;
@@ -569,16 +652,46 @@
         });
         root.querySelector('[data-addr-loc-dismiss]')?.addEventListener('click', hideLocationMismatchDialog);
 
+        root.querySelector('[data-addr-cep-lookup]')?.addEventListener('click', () => {
+            void lookupCepOnConfirm();
+        });
+
         const q = root.querySelector('#lig-addr-q');
         q?.addEventListener('input', () => {
             const value = q.value.trim();
             if (searchTimer) clearTimeout(searchTimer);
+            const digits = onlyDigits(value);
+            const typingCep = /^[\d\s-]*$/.test(value) && digits.length > 0 && digits.length <= 8;
+
+            if (typingCep && digits.length < 8) {
+                setSearchStatus(digits.length >= 5 ? 'Digite o CEP completo (8 dígitos)' : '');
+                root.querySelector('#lig-addr-results').innerHTML = '';
+                return;
+            }
+            if (isCepQuery(value) || digits.length === 8 && typingCep) {
+                searchTimer = window.setTimeout(() => searchAddress(digits), 180);
+                return;
+            }
             if (value.length < 3) {
                 setSearchStatus('');
                 renderAddressHistory();
                 return;
             }
             searchTimer = window.setTimeout(() => searchAddress(value), 320);
+        });
+
+        const cepInput = root.querySelector('#lig-addr-cep');
+        cepInput?.addEventListener('input', () => {
+            cepInput.value = formatCepMask(cepInput.value);
+            draft.postcode = cepInput.value;
+            setCepStatus('');
+            syncSaveEnabled();
+        });
+        cepInput?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                void lookupCepOnConfirm();
+            }
         });
 
         ['#lig-addr-street', '#lig-addr-number', '#lig-addr-comp', '#lig-addr-neigh', '#lig-addr-city', '#lig-addr-ref', '#lig-addr-label'].forEach(

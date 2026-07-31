@@ -14776,6 +14776,60 @@ html.lig-addr-open body {
     gap: 0.65rem;
 }
 
+.lig-addr__cep-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.lig-addr__cep-row .lig-addr__input {
+    flex: 1;
+    min-width: 0;
+}
+
+.lig-addr__cep-btn {
+    flex-shrink: 0;
+    min-width: 5.5rem;
+    padding: 0 0.85rem;
+    border: none;
+    border-radius: 0.65rem;
+    background: #f7d53c;
+    color: #0d0d0d;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.lig-addr__cep-btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.lig-addr__cep-status {
+    margin: 0.35rem 0 0.15rem;
+    font-size: 0.75rem;
+    color: var(--lig-text-muted);
+}
+
+.lig-addr__result-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+    text-align: left;
+}
+
+.lig-addr__result-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.lig-addr__result-meta {
+    font-size: 0.72rem;
+    color: var(--lig-text-muted);
+}
+
 .lig-addr__col {
     flex: 1;
     min-width: 0;
