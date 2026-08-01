@@ -2073,6 +2073,11 @@ html.dark .ze-price-tier--active {
         padding-bottom: 0.75rem;
     }
 
+    html.lig-app-mode body[data-page='resumo-pedido'] .resumo-picker-stack__footer {
+        bottom: calc(3.65rem + env(safe-area-inset-bottom, 0px));
+        padding-bottom: 0.65rem;
+    }
+
     /*
      * Carrosséis: pan-y por padrão → arrastar pra descer SEMPRE rola o main.
      * O eixo X é tratado em js/mobile-scroll.js quando o gesto é claramente horizontal.
@@ -13108,6 +13113,20 @@ html.dark .baixar-app__eyebrow {
     font-size: 0.75rem;
 }
 
+.resumo-content--picker-payment {
+    align-items: stretch;
+    padding-inline: max(1rem, env(safe-area-inset-left, 0px)) max(1rem, env(safe-area-inset-right, 0px));
+}
+
+.resumo-content--picker-payment .resumo-picker-lead {
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+    text-align: center;
+    padding-inline: 0.25rem;
+    font-size: 0.75rem;
+}
+
 .resumo-picker-stack--date {
     align-items: stretch;
     width: 100%;
@@ -13121,10 +13140,70 @@ html.dark .baixar-app__eyebrow {
 .resumo-picker-stack--date .resumo-date-list {
     flex: 1 1 auto;
     min-height: 0;
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 .resumo-picker-stack--date .resumo-picker-stack__footer {
     width: 100%;
+}
+
+.resumo-picker-stack--payment {
+    align-items: stretch;
+    width: 100%;
+    max-width: 26rem;
+    margin-inline: auto;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.resumo-picker-stack--payment .resumo-date-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: 0.35rem;
+}
+
+.resumo-picker-stack--payment .resumo-payment-amounts {
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+}
+
+.resumo-payment-row .resumo-date-row__main {
+    justify-content: flex-start;
+}
+
+.resumo-payment-row__copy {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    flex: 1;
+}
+
+.resumo-payment-row__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    flex-shrink: 0;
+}
+
+.resumo-payment-row__icon .resumo-option__icon--compact {
+    font-size: 1.125rem;
+    color: var(--lig-text);
+}
+
+.resumo-payment-row__icon .resumo-option__logo--compact {
+    width: 1.65rem;
+    height: auto;
+    max-height: 1rem;
+    object-fit: contain;
+}
+
+.resumo-payment-row__icon .resumo-option__logo--pix.resumo-option__logo--compact {
+    width: 2rem;
+    max-height: 0.85rem;
 }
 
 .resumo-picker-stack {
@@ -13134,6 +13213,14 @@ html.dark .baixar-app__eyebrow {
     gap: 0.5rem;
     min-height: 0;
     overflow: hidden;
+}
+
+.resumo-picker-stack:not(.resumo-picker-stack--date):not(.resumo-picker-stack--payment) {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.resumo-picker-stack--payment {
+    padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 .resumo-picker-stack__methods {
@@ -13146,11 +13233,36 @@ html.dark .baixar-app__eyebrow {
 }
 
 .resumo-picker-stack__footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
     flex-shrink: 0;
     margin-top: 0;
-    padding-top: 0.35rem;
-    padding-bottom: 0.15rem;
-    background: linear-gradient(180deg, transparent 0%, var(--lig-bg, #f3f4f6) 28%);
+    padding: 0.65rem max(1rem, env(safe-area-inset-left, 0px))
+        calc(0.65rem + env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-right, 0px));
+    background: linear-gradient(180deg, transparent 0%, var(--lig-bg, #f3f4f6) 22%, var(--lig-bg, #f3f4f6) 100%);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+    pointer-events: none;
+}
+
+.resumo-picker-stack__footer .resumo-confirm-btn {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+    display: flex;
+}
+
+[data-theme='dark'] .resumo-picker-stack__footer {
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+    [data-theme='auto'] .resumo-picker-stack__footer {
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+    }
 }
 
 .resumo-picker-stack .resumo-date-list {
@@ -13231,8 +13343,8 @@ html.dark .baixar-app__eyebrow {
 
 .resumo-payment-amounts {
     margin-top: 0;
-    padding: 0.75rem;
-    gap: 0.5rem;
+    padding: 0.65rem 0.75rem;
+    gap: 0.45rem;
     border: 1px solid var(--lig-border);
     border-radius: 0.75rem;
     background: var(--lig-surface);

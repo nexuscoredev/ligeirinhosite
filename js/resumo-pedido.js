@@ -118,18 +118,36 @@
         return extra.length ? [...base, ...extra] : base;
     };
 
-    const paymentMethodIconHtml = (opt) => {
+    const paymentMethodIconHtml = (opt, opts = {}) => {
+        const compact = Boolean(opts.compact);
         const enriched = enrichPaymentMethod(opt);
         const logo = enriched.logo;
         if (logo) {
             const logoMod = enriched.id === 'pix' ? ' resumo-option__logo--pix' : '';
-            return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}" width="44" height="24" loading="lazy" decoding="async">`;
+            const compactMod = compact ? ' resumo-option__logo--compact' : '';
+            const w = compact ? 32 : 44;
+            const h = compact ? 18 : 24;
+            return `<img src="${esc(logo)}" alt="" class="resumo-option__logo${logoMod}${compactMod}" width="${w}" height="${h}" loading="lazy" decoding="async">`;
         }
         const icon =
             enriched.icon ||
             (enriched.id === 'dinheiro' ? 'payments' : enriched.id === 'prazo' ? 'calendar_month' : 'credit_card');
-        return `<span class="material-symbols-outlined resumo-option__icon" aria-hidden="true">${icon}</span>`;
+        const iconClass = compact ? ' resumo-option__icon--compact' : '';
+        return `<span class="material-symbols-outlined resumo-option__icon${iconClass}" aria-hidden="true">${icon}</span>`;
     };
+
+    const paymentPickerRowHtml = (opt, active) => `<button type="button" class="resumo-date-row resumo-payment-row${active ? ' resumo-date-row--active' : ''}" data-toggle-payment="${esc(opt.id)}" aria-pressed="${active ? 'true' : 'false'}">
+<span class="resumo-date-row__radio" aria-hidden="true"></span>
+<span class="resumo-date-row__main">
+<span class="resumo-payment-row__copy">
+<span class="resumo-payment-row__icon">${paymentMethodIconHtml(opt, { compact: true })}</span>
+<span class="resumo-date-row__copy">
+<strong class="resumo-date-row__date">${esc(opt.label)}</strong>
+${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : ''}
+</span>
+</span>
+</span>
+</button>`;
 
     const resolvePaymentMethodForOrder = (method) => {
         const key = String(method || '').toLowerCase();
@@ -760,19 +778,9 @@ ${pickerDateError ? `<p class="resumo-error resumo-picker-error">${esc(pickerDat
                 initPickerPaymentState(checkout, total);
                 pickerPaymentInitialized = true;
             }
-            body = `<div class="resumo-picker-stack">
-<div class="resumo-picker-stack__methods">${paymentMethods()
-                .map((opt) => {
-                    const active = pickerPaymentIds.includes(opt.id);
-                    return `<button type="button" class="resumo-option resumo-option--payment resumo-option--multi${active ? ' resumo-option--active' : ''}" data-toggle-payment="${esc(opt.id)}" aria-pressed="${active ? 'true' : 'false'}">
-<span class="material-symbols-outlined resumo-option__check" aria-hidden="true">${active ? 'check_circle' : 'radio_button_unchecked'}</span>
-<span class="resumo-option__media">${paymentMethodIconHtml(opt)}</span>
-<div class="resumo-option__body">
-<strong>${esc(opt.label)}</strong>
-${opt.hint ? `<span>${esc(opt.hint)}</span>` : ''}
-</div>
-</button>`;
-                })
+            body = `<div class="resumo-picker-stack resumo-picker-stack--payment">
+<div class="resumo-date-list" role="listbox" aria-label="Formas de pagamento">${paymentMethods()
+                .map((opt) => paymentPickerRowHtml(opt, pickerPaymentIds.includes(opt.id)))
                 .join('')}</div>
 ${pickerPaymentAmountsHtml(total)}
 ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(pickerPaymentError)}</p>` : ''}
@@ -807,9 +815,9 @@ ${pickerPaymentError ? `<p class="resumo-error resumo-picker-error">${esc(picker
                   ? 'Escolha a tabela de preço e a taxa de entrega aplicadas somente a este pedido.'
                   : 'Selecione uma ou mais formas. Com mais de uma, informe o valor de cada.';
 
-        root.innerHTML = `<div class="resumo-shell resumo-shell--picker${pickerMode === 'date' ? ' resumo-shell--picker-date' : ''}">
+        root.innerHTML = `<div class="resumo-shell resumo-shell--picker${pickerMode === 'date' ? ' resumo-shell--picker-date' : pickerMode === 'payment' ? ' resumo-shell--picker-payment' : ''}">
 ${headerHtml(title)}
-<div class="resumo-content resumo-content--picker${pickerMode === 'date' ? ' resumo-content--picker-date' : ''}">
+<div class="resumo-content resumo-content--picker${pickerMode === 'date' ? ' resumo-content--picker-date' : pickerMode === 'payment' ? ' resumo-content--picker-payment' : ''}">
 <p class="resumo-picker-lead">${esc(pickerLead)}</p>
 ${body}
 </div>
