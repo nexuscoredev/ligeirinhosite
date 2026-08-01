@@ -6399,6 +6399,8 @@ html.lig-story-open {
     display: flex;
     flex-direction: column;
     padding-bottom: 0;
+    width: 100%;
+    max-width: none;
 }
 
 .meus-pedidos-header {
@@ -6407,6 +6409,8 @@ html.lig-story-open {
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     text-align: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .meus-pedidos-header__title {
@@ -6432,6 +6436,8 @@ html.lig-story-open {
     position: sticky;
     top: var(--ze-header-offset, 0px);
     z-index: 40;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 @media (max-width: 639px) {
@@ -6685,6 +6691,7 @@ body[data-page='meus-pedidos'] #lig-page-main {
     display: flex;
     flex-direction: column;
     min-height: 0;
+    padding: 0;
 }
 
 body[data-page='meus-pedidos'] .meus-pedidos-page {
@@ -6719,6 +6726,20 @@ body[data-page='meus-pedidos'] .meus-pedidos-page {
 }
 
 @media (min-width: 768px) {
+    .meus-pedidos-header,
+    .meus-pedidos-filters {
+        padding-left: max(1rem, calc((100% - min(72rem, 96vw)) / 2));
+        padding-right: max(1rem, calc((100% - min(72rem, 96vw)) / 2));
+    }
+
+    .meus-pedidos-body {
+        max-width: min(72rem, 96vw);
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
     .meus-pedidos-shell--empty .meus-pedidos-body {
         min-height: min(28rem, calc(100vh - 14rem));
         padding: 2rem 1.5rem 3rem;
@@ -12275,7 +12296,6 @@ html.dark .baixar-app__eyebrow {
 /* ?? Desktop: nav, conta, ofertas wide ?? */
 @media (min-width: 768px) {
     .ofertas-shell,
-    .meus-pedidos-shell,
     .caminhao-shell {
         max-width: min(72rem, 96vw);
         margin-left: auto;
@@ -14598,12 +14618,6 @@ body[data-page='quemsomos'].qs-page,
 
 .qs-card__text {
     color: var(--lig-text-muted);
-}
-
-.qs-warehouse-tag {
-    background: color-mix(in srgb, var(--lig-surface) 94%, transparent);
-    color: var(--lig-yellow-text);
-    border: 1px solid var(--lig-promo-border);
 }
 
 html.dark .qs-page .lig-page-title,
