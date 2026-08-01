@@ -12114,6 +12114,8 @@ html.dark .baixar-app__eyebrow {
 }
 
 .lig-notif-list {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -12257,6 +12259,23 @@ html.dark .baixar-app__eyebrow {
         right: 0.75rem;
         left: 0.75rem;
         width: auto;
+        z-index: 120;
+    }
+}
+
+@media (min-width: 768px) {
+    .lig-notif-panel {
+        position: fixed;
+        z-index: 120;
+    }
+
+    .lig-notif-push-banner {
+        display: none;
+    }
+
+    #lig-notifications-mount {
+        position: relative;
+        z-index: 3;
     }
 }
 

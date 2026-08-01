@@ -24,6 +24,7 @@
     let pollTimer = null;
     let mountedHost = null;
     let uiState = null;
+    let panelPositionHandler = null;
     let broadcastsCache = null;
     /** Timestamp da última sync — só dispara push de sistema para itens novos depois disso. */
     let lastSyncAt = 0;
@@ -479,6 +480,54 @@ ${error ? `<p class="lig-notif-error">${escapeHtml(error)}</p>` : ''}
         });
     }
 
+    const PANEL_WIDTH_PX = 352;
+
+    function clearPanelPositionListeners() {
+        if (!panelPositionHandler) return;
+        window.removeEventListener('resize', panelPositionHandler);
+        window.removeEventListener('scroll', panelPositionHandler, true);
+        panelPositionHandler = null;
+    }
+
+    function positionNotifPanel(host) {
+        const panel = host?.querySelector('.lig-notif-panel');
+        const bell = host?.querySelector('.lig-notif-bell');
+        if (!panel || !bell) return;
+
+        if (!window.matchMedia('(min-width: 768px)').matches) {
+            panel.removeAttribute('style');
+            return;
+        }
+
+        const rect = bell.getBoundingClientRect();
+        const width = Math.min(PANEL_WIDTH_PX, window.innerWidth - 24);
+        let left = rect.right - width;
+        left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+        const top = Math.round(rect.bottom + 8);
+        const maxHeight = Math.max(160, Math.min(448, window.innerHeight - top - 16));
+
+        panel.style.position = 'fixed';
+        panel.style.top = `${top}px`;
+        panel.style.left = `${left}px`;
+        panel.style.right = 'auto';
+        panel.style.width = `${width}px`;
+        panel.style.maxHeight = `${maxHeight}px`;
+    }
+
+    function syncPanelPosition(host, state) {
+        if (!state?.open) {
+            clearPanelPositionListeners();
+            return;
+        }
+        positionNotifPanel(host);
+        if (panelPositionHandler) return;
+        panelPositionHandler = () => {
+            if (uiState?.open && mountedHost) positionNotifPanel(mountedHost);
+        };
+        window.addEventListener('resize', panelPositionHandler);
+        window.addEventListener('scroll', panelPositionHandler, true);
+    }
+
     function render(host, state) {
         const unread = state.items.filter((n) => !n.readAt).length;
         host.innerHTML = `<div class="lig-notif-root">
@@ -497,6 +546,7 @@ ${renderPanel(state)}
         });
 
         bindPanel(host, state);
+        syncPanelPosition(host, state);
     }
 
     async function loadList(host, state) {
