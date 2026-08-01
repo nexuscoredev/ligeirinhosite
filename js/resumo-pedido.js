@@ -848,25 +848,33 @@ ${body}
                 renderPicker();
             });
         });
+        const refreshPickerPaymentSum = (totalValue) => {
+            const api = splitsApi();
+            const amounts = root.querySelector('.resumo-payment-amounts');
+            if (!amounts || !api?.refreshAmountsSumEl) return;
+            const splits = pickerPaymentIds.map((method) => ({
+                method,
+                amount: api.parseMoneyInput(pickerPaymentAmounts[method]),
+            }));
+            api.refreshAmountsSumEl(amounts, splits, totalValue, {
+                labelFn: paymentLabelFor,
+                formatMoney: formatPrice,
+                sumClassBase: 'resumo-payment-amounts__sum',
+            });
+        };
+
         root.querySelectorAll('[data-payment-amount]').forEach((input) => {
             input.addEventListener('input', () => {
                 pickerPaymentAmounts[input.dataset.paymentAmount] = input.value;
-                const amounts = root.querySelector('.resumo-payment-amounts');
-                if (amounts) {
-                    amounts.outerHTML = pickerPaymentAmountsHtml(total);
-                    root.querySelectorAll('[data-payment-amount]').forEach((el) => {
-                        el.addEventListener('input', () => {
-                            pickerPaymentAmounts[el.dataset.paymentAmount] = el.value;
-                            renderPicker();
-                        });
-                    });
-                }
+                refreshPickerPaymentSum(total);
             });
             input.addEventListener('blur', () => {
                 const api = splitsApi();
                 const id = input.dataset.paymentAmount;
-                pickerPaymentAmounts[id] = api.formatMoneyInput(api.parseMoneyInput(input.value));
-                renderPicker();
+                const formatted = api.formatMoneyInput(api.parseMoneyInput(input.value));
+                pickerPaymentAmounts[id] = formatted;
+                input.value = formatted;
+                refreshPickerPaymentSum(total);
             });
         });
         root.querySelector('#resumo-payment-confirm')?.addEventListener('click', () => {

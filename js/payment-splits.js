@@ -225,6 +225,22 @@
         };
     };
 
+    /** Atualiza só a linha de total/troco sem recriar os inputs (evita perder foco ao digitar). */
+    const refreshAmountsSumEl = (container, splits, total, { labelFn, formatMoney, sumClassBase } = {}) => {
+        if (!container || !sumClassBase) return;
+        const meta = formatAmountsSumMeta(splits, total, { labelFn, formatMoney });
+        const sumEl = container.querySelector(`.${sumClassBase}`);
+        if (!sumEl) return;
+        const suffix =
+            meta.state === 'ok'
+                ? `${sumClassBase}--ok`
+                : meta.state === 'high'
+                  ? `${sumClassBase}--high`
+                  : `${sumClassBase}--low`;
+        sumEl.className = `${sumClassBase} ${suffix}`;
+        sumEl.innerHTML = meta.html;
+    };
+
     const formatSplitSummary = (splits, labelFn, formatMoney) => {
         const normalized = normalizeSplits(splits);
         if (!normalized.length) return '';
@@ -369,6 +385,7 @@
         validateSplits,
         validateCheckoutPayment,
         formatAmountsSumMeta,
+        refreshAmountsSumEl,
         formatSplitSummary,
         encodeSplitsInNotes,
         parseSplitsFromNotes,

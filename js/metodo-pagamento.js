@@ -185,6 +185,36 @@ ${formError ? `<p class="pay-method-error">${esc(formError)}</p>` : ''}
         window.location.href = 'resumo.html';
     };
 
+    const refreshAmountsSum = (total) => {
+        const block = root.querySelector('.pay-method-amounts');
+        if (!block) return;
+        const splits = selectedIds.map((method) => ({
+            method,
+            amount: splitsApi.parseMoneyInput(amountInputs[method]),
+        }));
+        splitsApi.refreshAmountsSumEl(block, splits, total, {
+            labelFn: paymentLabel,
+            formatMoney: formatPrice,
+            sumClassBase: 'pay-method-amounts__sum',
+        });
+    };
+
+    const bindAmountInputs = (total) => {
+        root.querySelectorAll('[data-payment-amount]').forEach((input) => {
+            input.addEventListener('input', () => {
+                amountInputs[input.dataset.paymentAmount] = input.value;
+                refreshAmountsSum(total);
+            });
+            input.addEventListener('blur', () => {
+                const id = input.dataset.paymentAmount;
+                const formatted = splitsApi.formatMoneyInput(splitsApi.parseMoneyInput(input.value));
+                amountInputs[id] = formatted;
+                input.value = formatted;
+                refreshAmountsSum(total);
+            });
+        });
+    };
+
     const bindActions = (total) => {
         document.getElementById('pay-method-back-btn')?.addEventListener('click', () => {
             if (window.history.length > 1) window.history.back();
@@ -198,19 +228,7 @@ ${formError ? `<p class="pay-method-error">${esc(formError)}</p>` : ''}
             });
         });
 
-        root.querySelectorAll('[data-payment-amount]').forEach((input) => {
-            input.addEventListener('input', () => {
-                amountInputs[input.dataset.paymentAmount] = input.value;
-                const block = root.querySelector('.pay-method-amounts');
-                if (block) block.outerHTML = amountsHtml(total);
-                bindAmountInputs(total);
-            });
-            input.addEventListener('blur', () => {
-                const id = input.dataset.paymentAmount;
-                amountInputs[id] = splitsApi.formatMoneyInput(splitsApi.parseMoneyInput(input.value));
-                render();
-            });
-        });
+        bindAmountInputs(total);
 
         document.getElementById('pay-method-confirm-btn')?.addEventListener('click', () => {
             if (!saveSelection(total)) {
@@ -218,22 +236,6 @@ ${formError ? `<p class="pay-method-error">${esc(formError)}</p>` : ''}
                 return;
             }
             afterConfirm();
-        });
-    };
-
-    const bindAmountInputs = (total) => {
-        root.querySelectorAll('[data-payment-amount]').forEach((input) => {
-            input.addEventListener('input', () => {
-                amountInputs[input.dataset.paymentAmount] = input.value;
-                const block = root.querySelector('.pay-method-amounts');
-                if (block) block.outerHTML = amountsHtml(total);
-                bindAmountInputs(total);
-            });
-            input.addEventListener('blur', () => {
-                const id = input.dataset.paymentAmount;
-                amountInputs[id] = splitsApi.formatMoneyInput(splitsApi.parseMoneyInput(input.value));
-                render();
-            });
         });
     };
 
