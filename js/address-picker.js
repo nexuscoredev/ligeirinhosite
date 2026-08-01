@@ -133,12 +133,14 @@
         el.className = 'lig-addr';
         el.setAttribute('hidden', '');
         el.innerHTML = `
+<div class="lig-addr__backdrop" data-addr-close tabindex="-1" aria-hidden="true"></div>
+<div class="lig-addr__dialog" role="dialog" aria-modal="true" aria-labelledby="lig-addr-dialog-title">
 <div class="lig-addr__screen" data-addr-view="search">
 <header class="lig-addr__top">
-<button type="button" class="lig-addr__icon-btn" data-addr-close aria-label="Voltar">
-<span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+<button type="button" class="lig-addr__icon-btn" data-addr-close aria-label="Fechar">
+<span class="material-symbols-outlined" aria-hidden="true">close</span>
 </button>
-<h1 class="lig-addr__title">Onde entregamos?</h1>
+<h1 id="lig-addr-dialog-title" class="lig-addr__title">Onde entregamos?</h1>
 <span class="lig-addr__top-spacer" aria-hidden="true"></span>
 </header>
 <div class="lig-addr__search-wrap">
@@ -242,12 +244,28 @@
 <button type="button" class="lig-addr__loc-btn" data-addr-loc-proceed>Prosseguir</button>
 </div>
 </div>
+</div>
 </div>`;
         return el;
     };
 
+    const syncDialogMode = (name) => {
+        const dialog = root?.querySelector('.lig-addr__dialog');
+        if (!dialog) return;
+        dialog.classList.toggle('lig-addr__dialog--map', name === 'map');
+        dialog.classList.toggle('lig-addr__dialog--confirm', name === 'confirm');
+        const titles = {
+            search: 'Onde entregamos?',
+            map: 'Indicar local no mapa',
+            confirm: 'Conferir endereço',
+        };
+        const titleEl = root.querySelector('#lig-addr-dialog-title');
+        if (titleEl) titleEl.textContent = titles[name] || titles.search;
+    };
+
     const setView = (name) => {
         view = name;
+        syncDialogMode(name);
         root.querySelectorAll('[data-addr-view]').forEach((screen) => {
             const active = screen.dataset.addrView === name;
             screen.hidden = !active;
@@ -709,6 +727,13 @@ ${r.postcode ? `<span class="lig-addr__result-meta">CEP ${esc(r.postcode)}</span
             if (draft.noComplement) root.querySelector('#lig-addr-comp').value = '';
             syncSaveEnabled();
         });
+
+        if (!root.dataset.escapeBound) {
+            root.dataset.escapeBound = '1';
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && root && !root.hasAttribute('hidden')) close();
+            });
+        }
     };
 
     const open = (opts = {}) => {

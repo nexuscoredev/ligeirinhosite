@@ -14514,14 +14514,47 @@ html.lig-addr-open body {
     position: fixed;
     inset: 0;
     z-index: 120;
-    background: var(--lig-surface);
-    color: var(--lig-text);
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
 }
 
 .lig-addr[hidden] {
     display: none !important;
+}
+
+.lig-addr__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: var(--lig-overlay, rgba(0, 0, 0, 0.55));
+    cursor: pointer;
+}
+
+.lig-addr__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(26rem, 100%);
+    max-height: min(88vh, 40rem);
+    display: flex;
+    flex-direction: column;
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    border-radius: 1rem;
+    border: 1px solid var(--lig-border);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+}
+
+.lig-addr__dialog--map {
+    width: min(36rem, 100%);
+    max-height: min(92vh, 34rem);
+}
+
+.lig-addr__dialog--confirm {
+    max-height: min(92vh, 44rem);
 }
 
 .lig-addr__screen {
@@ -14535,6 +14568,11 @@ html.lig-addr-open body {
 .lig-addr__screen--map {
     position: relative;
     background: #e8e8e8;
+    min-height: 16rem;
+}
+
+.lig-addr__dialog--map .lig-addr__screen--map {
+    min-height: 18rem;
 }
 
 .lig-addr__top {
@@ -14543,10 +14581,11 @@ html.lig-addr-open body {
     align-items: center;
     gap: 0.25rem;
     min-height: 3.25rem;
-    padding: max(0.5rem, env(safe-area-inset-top, 0px)) 0.5rem 0.5rem;
+    padding: 0.65rem 0.5rem 0.5rem;
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     z-index: 2;
+    flex-shrink: 0;
 }
 
 .lig-addr__top--over-map {
@@ -14980,7 +15019,8 @@ html.lig-addr-open body {
 }
 
 .lig-addr__history {
-    flex-shrink: 0;
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 0.25rem 0 0.5rem;
@@ -15130,6 +15170,30 @@ html.lig-addr-open body {
     text-transform: none;
     font-weight: 700;
     letter-spacing: 0;
+}
+
+@media (max-width: 767px) {
+    .lig-addr {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .lig-addr__dialog,
+    .lig-addr__dialog--map,
+    .lig-addr__dialog--confirm {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .lig-addr__dialog--map {
+        max-height: 94vh;
+        min-height: min(70vh, 34rem);
+    }
+
+    .lig-addr__top {
+        padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+    }
 }
 
 .lig-onboarding__skip {
