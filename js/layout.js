@@ -347,60 +347,45 @@ ${item.id === 'caminhao' ? '<span id="app-tab-cart-badge" class="absolute top-1.
 <div class="lig-footer-grid">
 <div class="lig-footer-col lig-footer-col--brand">
 <a class="lig-brand lig-footer-brand" href="inicio.html" aria-label="Ligeirinho Parceiros — início">
-<img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="32" height="32" decoding="async">
+<img class="lig-brand__logo" src="img/ligeirinhologo.png" alt="" width="28" height="28" decoding="async">
 <span class="lig-brand__wordmark"><span class="lig-brand__text">Ligeirinho</span><span class="lig-brand__app">Parceiros</span></span>
 </a>
-<p class="lig-footer-lead">Atacado em caixas e pallets para revendedores parceiros — rapidez e confiança na entrega.</p>
-<div class="lig-footer-social">
-<a class="lig-footer-social-btn" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">${brandIcon(brandIcons.whatsapp, 26)}</a>
-<a class="lig-footer-social-btn" href="${instagramUrl}" target="_blank" rel="noopener noreferrer" aria-label="Instagram">${brandIcon(brandIcons.instagram, 26)}</a>
-<a class="lig-footer-social-btn" href="${mapsUrl}" target="_blank" rel="noopener noreferrer" aria-label="Google Maps">${brandIcon(brandIcons.maps, 26)}</a>
+<p class="lig-footer-lead">Atacado em caixas e pallets para revendedores parceiros.</p>
+<div class="lig-footer-contact">
+<a class="lig-footer-contact__link" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">${brandIcon(brandIcons.whatsapp, 18)}<span>WhatsApp</span></a>
+<a class="lig-footer-contact__link" href="${instagramUrl}" target="_blank" rel="noopener noreferrer">${brandIcon(brandIcons.instagram, 18)}<span>Instagram</span></a>
+<a class="lig-footer-contact__link" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">${brandIcon(brandIcons.maps, 18)}<span>Maps</span></a>
 </div>
 </div>
 <div class="lig-footer-col">
 <h4 class="lig-footer-title">Navegação</h4>
-<nav class="lig-footer-nav" aria-label="Links do site">
+<nav class="lig-footer-nav lig-footer-nav--grid" aria-label="Links do site">
 <a class="lig-footer-link" href="inicio.html">Início</a>
-<a class="lig-footer-link" href="baixar-app.html">Baixar app</a>
-${hidePromocoes ? '' : '<a class="lig-footer-link" href="ofertas.html">Promoções</a>'}
 <a class="lig-footer-link" href="pedidos.html">Catálogo</a>
+${hidePromocoes ? '' : '<a class="lig-footer-link" href="ofertas.html">Promoções</a>'}
 <a class="lig-footer-link" href="meus-pedidos.html" data-nav-id="meus-pedidos" aria-label="Pedidos">Pedidos</a>
 <a class="lig-footer-link" href="caminhao.html">Caminhão</a>
 <a class="lig-footer-link" href="${accountHref}">Minha conta</a>
+<a class="lig-footer-link" href="baixar-app.html">Baixar app</a>
 <a class="lig-footer-link" href="quemsomos.html">Quem somos</a>
 <a class="lig-footer-link" href="contato.html">Fale conosco</a>
 </nav>
 </div>
-<div class="lig-footer-col">
-<h4 class="lig-footer-title">Fale conosco</h4>
-<div class="lig-footer-nav">
-<a class="lig-footer-link lig-footer-link--icon" href="${whatsappUrl}" target="_blank" rel="noopener noreferrer">${brandIcon(brandIcons.whatsapp, 20)}<span>WhatsApp · (11) 97092-4909</span></a>
-<a class="lig-footer-link lig-footer-link--icon" href="${instagramUrl}" target="_blank" rel="noopener noreferrer">${brandIcon(brandIcons.instagram, 20)}<span>Instagram</span></a>
-</div>
-</div>
-<div class="lig-footer-col">
-<h4 class="lig-footer-title">Encontre-nos</h4>
-<div class="lig-footer-card">
-<div class="lig-footer-card__row">
-<span class="material-symbols-outlined lig-footer-card__icon">location_on</span>
-<div>
-<p class="lig-footer-card__label">Endereço</p>
-<p class="lig-footer-card__text">Estr. do Campo Limpo, 2083<br>Vila Prel — São Paulo, SP<br>CEP 05777-001</p>
-</div>
-</div>
-<div class="lig-footer-card__divider"></div>
-<div class="lig-footer-card__row">
-<span class="material-symbols-outlined lig-footer-card__icon">schedule</span>
-<div class="lig-footer-card__schedule">
-<p class="lig-footer-card__label">Horário</p>
-<div class="lig-footer-schedule-row"><span>Seg – Sáb</span><span>08h – 20h</span></div>
-<div class="lig-footer-schedule-row lig-footer-schedule-row--highlight"><span>Domingo</span><span>08h – 14h</span></div>
-</div>
-</div>
-</div>
+<div class="lig-footer-col lig-footer-col--location">
+<h4 class="lig-footer-title">Loja</h4>
+<div class="lig-footer-location">
+<p class="lig-footer-location__line">
+<span class="material-symbols-outlined lig-footer-location__icon" aria-hidden="true">location_on</span>
+<span>Estr. do Campo Limpo, 2083 · Vila Prel, SP · CEP 05777-001</span>
+</p>
+<p class="lig-footer-location__line lig-footer-location__line--hours">
+<span class="material-symbols-outlined lig-footer-location__icon" aria-hidden="true">schedule</span>
+<span><strong>Seg–Sáb</strong> 8h–20h · <strong class="lig-footer-location__dom">Dom</strong> 8h–14h</span>
+</p>
 <a class="lig-footer-maps-btn" href="${mapsUrl}" target="_blank" rel="noopener noreferrer">
-${brandIcon(brandIcons.maps, 20)}<span>Como chegar</span>
+${brandIcon(brandIcons.maps, 18)}<span>Como chegar</span>
 </a>
+</div>
 </div>
 </div>
 <div class="lig-footer-bar">
