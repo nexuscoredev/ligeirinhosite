@@ -29,6 +29,10 @@
       "memory": 256,
       "maxDuration": 60
     },
+    "api/cron/promote-parceiros-separation.js": {
+      "memory": 256,
+      "maxDuration": 60
+    },
     "api/**/*.js": {
       "memory": 256,
       "maxDuration": 30
@@ -54,6 +58,10 @@
     {
       "path": "/api/cron/order-status-push",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/promote-parceiros-separation",
+      "schedule": "5 * * * *"
     }
   ],
   "headers": [

@@ -368,6 +368,36 @@ export function publicOrderView(order) {
     };
 }
 
+/** Pedidos Parceiros com Hub vinculado para sincronizar fila de separação por data. */
+export async function listParceirosOrdersForSeparationSync(
+    supabaseUrl,
+    apiKey,
+    { deliveryDate = null, deliveryAfter = null, limit = 120 } = {},
+) {
+    const safeLimit = Math.min(200, Math.max(1, Number(limit) || 120));
+    const params = new URLSearchParams({
+        channel: 'eq.parceiros',
+        status: 'in.(confirmed,pending)',
+        hub_pedido_id: 'not.is.null',
+        select: '*',
+        order: 'created_at.asc',
+        limit: String(safeLimit),
+    });
+    const date = String(deliveryDate || '').slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        params.set('delivery_date', `eq.${date}`);
+    } else if (deliveryAfter) {
+        const after = String(deliveryAfter).slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(after)) {
+            params.set('delivery_date', `gt.${after}`);
+        }
+    }
+    const url = `${supabaseUrl}/rest/v1/orders?${params}`;
+    const res = await fetch(url, { headers: headers(apiKey) });
+    const data = await parseJson(res);
+    return Array.isArray(data) ? data : [];
+}
+
 export function dbFromPaymentConfig(config) {
     return {
         url: config.supabaseUrl,

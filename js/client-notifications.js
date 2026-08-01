@@ -494,24 +494,30 @@ ${error ? `<p class="lig-notif-error">${escapeHtml(error)}</p>` : ''}
         const bell = host?.querySelector('.lig-notif-bell');
         if (!panel || !bell) return;
 
-        if (!window.matchMedia('(min-width: 768px)').matches) {
-            panel.removeAttribute('style');
-            return;
-        }
-
-        const rect = bell.getBoundingClientRect();
-        const width = Math.min(PANEL_WIDTH_PX, window.innerWidth - 24);
-        let left = rect.right - width;
-        left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
-        const top = Math.round(rect.bottom + 8);
+        const stack = document.querySelector('.lig-header-stack');
+        const anchorRect = stack?.getBoundingClientRect() || bell.getBoundingClientRect();
+        const top = Math.round(anchorRect.bottom + 8);
         const maxHeight = Math.max(160, Math.min(448, window.innerHeight - top - 16));
+        const isMobile = !window.matchMedia('(min-width: 768px)').matches;
 
         panel.style.position = 'fixed';
         panel.style.top = `${top}px`;
-        panel.style.left = `${left}px`;
-        panel.style.right = 'auto';
-        panel.style.width = `${width}px`;
         panel.style.maxHeight = `${maxHeight}px`;
+
+        if (isMobile) {
+            panel.style.left = '0.75rem';
+            panel.style.right = '0.75rem';
+            panel.style.width = 'auto';
+        } else {
+            const width = Math.min(PANEL_WIDTH_PX, window.innerWidth - 24);
+            const bellRect = bell.getBoundingClientRect();
+            let left = bellRect.right - width;
+            left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+            panel.style.top = `${top}px`;
+            panel.style.left = `${left}px`;
+            panel.style.right = 'auto';
+            panel.style.width = `${width}px`;
+        }
     }
 
     function syncPanelPosition(host, state) {
@@ -530,7 +536,7 @@ ${error ? `<p class="lig-notif-error">${escapeHtml(error)}</p>` : ''}
 
     function render(host, state) {
         const unread = state.items.filter((n) => !n.readAt).length;
-        host.innerHTML = `<div class="lig-notif-root">
+        host.innerHTML = `<div class="lig-notif-root${state.open ? ' lig-notif-root--open' : ''}">
 <button type="button" class="lig-notif-bell${state.open ? ' lig-notif-bell--open' : ''}" aria-expanded="${state.open}" aria-haspopup="dialog" aria-label="${unread > 0 ? `Notificações — ${unread} não lidas` : 'Notificações'}" title="Notificações">
 <span class="material-symbols-outlined lig-notif-bell__icon" aria-hidden="true">notifications</span>
 ${unread > 0 ? `<span class="lig-notif-badge" aria-hidden="true">${badgeLabel(unread)}</span>` : ''}

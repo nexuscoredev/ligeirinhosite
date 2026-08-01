@@ -265,6 +265,14 @@ function trackingCopyForHubStatus(hubStatus, { isPickup = false } = {}) {
             message: 'Seu pedido foi aceito e entra na fila de separação.',
         };
     }
+    if (hubStatus === 'aceito') {
+        return {
+            step: 1,
+            stepLabel: 'Aceito',
+            headerTitle: 'Pedido aceito',
+            message: 'Seu pedido foi aceito. A separação começa no dia da entrega ou retirada.',
+        };
+    }
     return null;
 }
 

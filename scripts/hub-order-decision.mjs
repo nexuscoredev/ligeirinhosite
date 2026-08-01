@@ -9,6 +9,7 @@ import {
     fetchHubPedidoById,
     fetchHubPedidoByParceirosOrderId,
 } from './hub-order-tracking.mjs';
+import { enforceParceirosSeparationPolicy } from './hub-parceiro-pedido.mjs';
 import {
     claimOrderTrackNotify,
     deletePushSubscriptionByEndpoint,
@@ -173,6 +174,9 @@ export async function applyHubOrderDecision(
                 numero: hubPedidoNumero ?? null,
                 status: 'aguardando_separacao',
             };
+        if (hubPedido?.id) {
+            hubPedido = (await enforceParceirosSeparationPolicy(order, hubPedido, env)) || hubPedido;
+        }
     } else if (acao === 'recusar') {
         if (order.status !== 'cancelled') {
             patch.status = 'cancelled';

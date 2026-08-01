@@ -1189,7 +1189,7 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     padding: 0.55rem var(--lig-gutter-x) 0.65rem;
     overflow: visible;
     position: relative;
-    z-index: 60;
+    z-index: 1;
 }
 
 .ze-app-chrome .ze-fulfillment-bar,
@@ -12027,6 +12027,11 @@ html.dark .baixar-app__eyebrow {
 /* ?? Notifica??es Hub ?? */
 .lig-notif-root {
     position: relative;
+    z-index: 1;
+}
+
+.lig-notif-root--open {
+    z-index: 130;
 }
 
 .lig-notif-bell {
@@ -12075,7 +12080,7 @@ html.dark .baixar-app__eyebrow {
     position: absolute;
     top: calc(100% + 0.45rem);
     right: 0;
-    z-index: 70;
+    z-index: 130;
     width: min(22rem, calc(100vw - 1.5rem));
     max-height: min(28rem, calc(100vh - 5rem));
     display: flex;
@@ -12260,18 +12265,14 @@ html.dark .baixar-app__eyebrow {
 @media (max-width: 767px) {
     .lig-notif-panel {
         position: fixed;
-        top: 3.75rem;
-        right: 0.75rem;
-        left: 0.75rem;
-        width: auto;
-        z-index: 120;
+        z-index: 130;
     }
 }
 
 @media (min-width: 768px) {
     .lig-notif-panel {
         position: fixed;
-        z-index: 120;
+        z-index: 130;
     }
 
     .lig-notif-push-banner {
@@ -12280,7 +12281,12 @@ html.dark .baixar-app__eyebrow {
 
     #lig-notifications-mount {
         position: relative;
-        z-index: 3;
+        z-index: 2;
+    }
+
+    .lig-notif-root--open,
+    #lig-notifications-mount:has(.lig-notif-root--open) {
+        z-index: 130;
     }
 }
 

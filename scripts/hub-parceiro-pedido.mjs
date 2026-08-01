@@ -8,6 +8,16 @@ import {
     prependDeliveryFeeToItems,
     roundMoney,
 } from './lib/delivery-fee.mjs';
+import {
+    canEnforceParceirosSeparationPolicy,
+    HUB_STATUS_ACCEPTED_HELD,
+    HUB_STATUS_SEPARATION_QUEUE,
+    isParceirosHubPedido,
+    shouldDemoteParceirosFromSeparation,
+    shouldPromoteParceirosToSeparation,
+    targetHubStatusAfterParceirosAccept,
+    todayIsoInSaoPaulo,
+} from './lib/parceiros-separation-policy.mjs';
 
 export const PARCEIROS_NF_TAG = 'Ligeirinho Parceiros';
 export const PARCEIROS_TAG = PARCEIROS_NF_TAG;
@@ -532,4 +542,115 @@ export async function cancelHubPedidoForParceiros(order, env = process.env) {
     });
     const updated = Array.isArray(rows) ? rows[0] : rows;
     return { ok: true, hubPedido: updated || { ...hubPedido, status: 'cancelado' } };
+}
+
+async function fetchHubPedidoSnapshot(hub, hubPedidoId) {
+    const rows = await hubRest(
+        hub,
+        `pedidos?select=id,numero,status,origem,parceiros_order_id,aceito_em&id=eq.${encodeURIComponent(hubPedidoId)}&limit=1`,
+    );
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+
+async function patchHubPedidoStatus(hub, hubPedidoId, status, extra = {}) {
+    const body = { status, ...extra };
+    const rows = await hubRest(hub, `pedidos?id=eq.${encodeURIComponent(hubPedidoId)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body,
+    });
+    return Array.isArray(rows) ? rows[0] ?? null : null;
+}
+
+/**
+ * Garante que pedidos Parceiros só entram em aguardando_separacao no dia da entrega/retirada.
+ */
+export async function enforceParceirosSeparationPolicy(order, hubPedido, env = process.env) {
+    const hub = hubConfig(env);
+    if (!hub?.serviceKey || !hubPedido?.id || !order?.id) return hubPedido;
+    if (!isParceirosHubPedido(hubPedido, order)) return hubPedido;
+    if (!canEnforceParceirosSeparationPolicy(hubPedido)) return hubPedido;
+
+    const today = todayIsoInSaoPaulo();
+    const current = String(hubPedido.status || '').toLowerCase();
+    let targetStatus = null;
+
+    if (shouldDemoteParceirosFromSeparation(order, current, today)) {
+        targetStatus = HUB_STATUS_ACCEPTED_HELD;
+    } else if (shouldPromoteParceirosToSeparation(order, current, today)) {
+        targetStatus = HUB_STATUS_SEPARATION_QUEUE;
+    } else {
+        targetStatus = targetHubStatusAfterParceirosAccept(order, today);
+        if (current === targetStatus) return hubPedido;
+        const preAccept = new Set(['pendente', 'aguardando_aceite', '']);
+        if (!preAccept.has(current) && current !== HUB_STATUS_SEPARATION_QUEUE && current !== HUB_STATUS_ACCEPTED_HELD) {
+            return hubPedido;
+        }
+    }
+
+    if (!targetStatus || current === targetStatus) return hubPedido;
+
+    const extra = {};
+    if (!hubPedido.aceito_em && targetStatus !== 'pendente') {
+        extra.aceito_em = new Date().toISOString();
+    }
+
+    try {
+        return (
+            (await patchHubPedidoStatus(hub, hubPedido.id, targetStatus, extra)) ||
+            { ...hubPedido, status: targetStatus, ...extra }
+        );
+    } catch (err) {
+        console.warn('hub-parceiro-pedido enforceSeparationPolicy', err?.message || err);
+        return hubPedido;
+    }
+}
+
+/**
+ * Promove pedidos aceitos para a fila de separação no dia da entrega/retirada.
+ * Também corrige pedidos que entraram cedo demais na fila.
+ */
+export async function syncParceirosSeparationQueue(db, env = process.env, { limit = 120 } = {}) {
+    const hub = hubConfig(env);
+    if (!hub?.serviceKey || !db?.url || !db?.key) {
+        return { promoted: 0, demoted: 0, checked: 0, errors: 0 };
+    }
+
+    const today = todayIsoInSaoPaulo();
+    const { listParceirosOrdersForSeparationSync } = await import('./supabase-orders.mjs');
+    const dueToday = await listParceirosOrdersForSeparationSync(db.url, db.key, {
+        deliveryDate: today,
+        limit,
+    });
+    const future = await listParceirosOrdersForSeparationSync(db.url, db.key, {
+        deliveryAfter: today,
+        limit,
+    });
+
+    const summary = { promoted: 0, demoted: 0, checked: 0, errors: 0 };
+
+    for (const order of [...dueToday, ...future]) {
+        summary.checked += 1;
+        const hubPedidoId = String(order.hub_pedido_id || '').trim();
+        if (!hubPedidoId) continue;
+
+        try {
+            let hubPedido = await fetchHubPedidoSnapshot(hub, hubPedidoId);
+            if (!hubPedido?.id) continue;
+            const before = String(hubPedido.status || '').toLowerCase();
+            hubPedido = await enforceParceirosSeparationPolicy(order, hubPedido, env);
+            const after = String(hubPedido?.status || '').toLowerCase();
+            if (before !== after) {
+                if (after === HUB_STATUS_SEPARATION_QUEUE) summary.promoted += 1;
+                if (before === HUB_STATUS_SEPARATION_QUEUE && after === HUB_STATUS_ACCEPTED_HELD) {
+                    summary.demoted += 1;
+                }
+            }
+        } catch (err) {
+            summary.errors += 1;
+            console.warn('syncParceirosSeparationQueue', order.id, err?.message || err);
+        }
+    }
+
+    return summary;
 }
