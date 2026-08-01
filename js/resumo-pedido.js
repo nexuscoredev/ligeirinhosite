@@ -31,6 +31,92 @@
 
     const loadCheckoutState = () => cartApi.loadCheckout();
 
+    const orderShortId = (id) =>
+        String(id || '')
+            .replace(/-/g, '')
+            .slice(0, 8)
+            .toUpperCase();
+
+    const evaluateEditPolicy = (checkout) => {
+        const editOrderId = String(checkout?.editOrderId || '').trim();
+        if (!editOrderId) return null;
+        const meta = checkout.editOrderMeta || {};
+        const policyApi = window.LigeirinhoOrderEditPolicy;
+        if (!policyApi?.evaluateOrderEditPolicy) return null;
+        return policyApi.evaluateOrderEditPolicy(
+            {
+                id: editOrderId,
+                deliveryDate: checkout.deliveryDate,
+                deliveryType: checkout.deliveryType,
+                notes: meta.notes || '',
+                status: meta.status || 'pending',
+                financialStatus: meta.financialStatus || '',
+                channel: meta.channel || 'parceiros',
+                tracking: { hubStatus: meta.hubStatus || '' },
+            },
+            { session: session() },
+        );
+    };
+
+    const refreshEditOrderMeta = async (checkout) => {
+        const editOrderId = String(checkout?.editOrderId || '').trim();
+        if (!editOrderId) return checkout;
+        try {
+            const headers = await buildAccountHeaders();
+            const res = await fetch('/api/orders/mine?limit=50', { headers });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) return checkout;
+            const order = (data.orders || []).find((entry) => entry.id === editOrderId);
+            if (!order) return checkout;
+            const next = {
+                ...checkout,
+                deliveryDate: order.deliveryDate || checkout.deliveryDate,
+                deliveryType: order.deliveryType || checkout.deliveryType,
+                editOrderMeta: {
+                    notes: order.notes || '',
+                    status: order.status || 'pending',
+                    financialStatus: order.financialStatus || '',
+                    hubStatus: order.tracking?.hubStatus || '',
+                    channel: order.channel || 'parceiros',
+                },
+            };
+            cartApi.saveCheckout(next);
+            return next;
+        } catch {
+            return checkout;
+        }
+    };
+
+    const buildAccountHeaders = async () => {
+        const headers = { 'Content-Type': 'application/json' };
+        const hubToken = await auth?.getHubAccessToken?.();
+        if (hubToken) {
+            headers.Authorization = `Bearer ${hubToken}`;
+            return headers;
+        }
+        let accountToken = auth?.getAccountSessionToken?.();
+        if (!accountToken) accountToken = await auth?.ensureAccountSession?.();
+        if (accountToken) {
+            headers['X-Account-Session'] = accountToken;
+            return headers;
+        }
+        const googleCred = auth?.getGoogleCredential?.();
+        if (googleCred) {
+            headers['X-Google-Credential'] = googleCred;
+            const s = session();
+            if (s?.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+            return headers;
+        }
+        const s = session();
+        if (s?.provider === 'google' && s?.email) {
+            headers['X-Auth-Provider'] = 'google';
+            headers['X-Account-Email'] = s.email;
+            if (s.sub) headers['X-Auth-Sub'] = s.sub;
+            if (s.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
+        }
+        return headers;
+    };
+
     const assetUrl = (path) => {
         const value = String(path || '').trim();
         if (!value || /^https?:/i.test(value)) return value;
@@ -578,6 +664,16 @@ ${body}
         }
 
         const checkout = loadCheckoutState();
+        const editOrderId = String(checkout.editOrderId || '').trim();
+        const isEditing = Boolean(editOrderId);
+        const editPolicy = isEditing ? evaluateEditPolicy(checkout) : null;
+        const editBlocked = Boolean(editPolicy && !editPolicy.canEdit);
+        const editBlockedMessage =
+            editPolicy?.editBlockedReason === 'delivery_day'
+                ? 'Hoje é o dia de entrega ou retirada. Volte em Meus pedidos e solicite permissão para editar.'
+                : editPolicy?.editPermissionRequested
+                  ? 'Solicitação de edição enviada. Aguarde a liberação da loja.'
+                  : 'Este pedido não pode ser editado.';
         const { units, subtotal, deliveryFee, total } = orderTotals(cart, checkout);
         const s = session();
         const errors = validateCheckout(checkout, total);
@@ -612,8 +708,10 @@ ${body}
         const productsBody = `<div class="resumo-products-list">${listItems.map(productLineHtml).join('')}</div>`;
 
         root.innerHTML = `<div class="resumo-shell">
-${headerHtml('Resumo do pedido', 'LIGEIRINHO DISTRIBUI')}
+${headerHtml(isEditing ? 'Editar pedido' : 'Resumo do pedido', 'LIGEIRINHO DISTRIBUI')}
 <div class="resumo-content">
+${isEditing ? `<p class="resumo-edit-banner" role="status">Alterando pedido <strong>#${esc(orderShortId(editOrderId))}</strong>. Salve para atualizar no Hub.</p>` : ''}
+${editBlocked ? `<p class="resumo-edit-banner resumo-edit-banner--blocked" role="alert">${esc(editBlockedMessage)}</p>` : ''}
 ${vendorCardHtml()}
 ${cardHtml(
     'Data de entrega',
@@ -638,8 +736,8 @@ ${cardHtml(
 )}
 </div>
 <div class="resumo-footer resumo-footer--action">
-<button type="button" class="resumo-confirm-btn" id="resumo-confirm" ${Object.keys(errors).length ? 'disabled' : ''}>
-<span>Confirmar pedido</span>
+<button type="button" class="resumo-confirm-btn" id="resumo-confirm" ${Object.keys(errors).length || editBlocked ? 'disabled' : ''}>
+<span>${isEditing ? 'Salvar alterações' : 'Confirmar pedido'}</span>
 <span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>
 </button>
 </div>
@@ -951,12 +1049,29 @@ ${body}
 
     const confirmOrder = async () => {
         const cart = cartApi.loadCart();
-        const checkout = loadCheckoutState();
+        let checkout = loadCheckoutState();
         const errors = validateCheckout(checkout, orderTotals(cart, checkout).total);
         if (Object.keys(errors).length) {
             step = 'resumo';
             render();
             return;
+        }
+
+        const editOrderId = String(checkout.editOrderId || '').trim();
+        if (editOrderId) {
+            checkout = await refreshEditOrderMeta(checkout);
+            const editPolicy = evaluateEditPolicy(checkout);
+            if (editPolicy && !editPolicy.canEdit) {
+                const message =
+                    editPolicy.editBlockedReason === 'delivery_day'
+                        ? 'Hoje é o dia de entrega ou retirada. Solicite permissão em Meus pedidos.'
+                        : editPolicy.editPermissionRequested
+                          ? 'Solicitação de edição enviada. Aguarde a liberação da loja.'
+                          : 'Este pedido não pode ser editado.';
+                window.alert(message);
+                render();
+                return;
+            }
         }
 
         const btn = root.querySelector('#resumo-confirm');
@@ -1028,15 +1143,37 @@ ${body}
                     payload.customer.name = orderClienteNome;
                 }
             }
-            const res = await fetch('/api/orders/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Não foi possível criar o pedido.');
 
-            cartApi.saveLastOrder(cart, checkout, data.orderId);
+            const editOrderId = String(checkout.editOrderId || '').trim();
+            const isEditing = Boolean(editOrderId);
+            let res;
+            if (isEditing) {
+                payload.orderId = editOrderId;
+                const headers = await buildAccountHeaders();
+                if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+                if (s?.email) headers['X-Account-Email'] = s.email;
+                res = await fetch('/api/orders/update', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload),
+                });
+            } else {
+                res = await fetch('/api/orders/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+            }
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(
+                    data.error || (isEditing ? 'Não foi possível atualizar o pedido.' : 'Não foi possível criar o pedido.'),
+                );
+            }
+
+            const savedOrderId = isEditing ? editOrderId : data.orderId;
+            cartApi.saveLastOrder(cart, { ...checkout, editOrderId: '' }, savedOrderId);
+            cartApi.saveCheckout({ editOrderId: '' });
             if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {
                 cartApi.saveAddressToHistory?.({
                     address: checkout.address,
@@ -1045,13 +1182,15 @@ ${body}
                 });
             }
             cartApi.saveCart({});
-            window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(data.orderId)}`;
+            window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(savedOrderId)}`;
         } catch (err) {
             alert(err.message || 'Erro ao confirmar pedido.');
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML =
-                    '<span>Confirmar pedido</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>';
+                const isEditing = Boolean(String(loadCheckoutState().editOrderId || '').trim());
+                btn.innerHTML = isEditing
+                    ? '<span>Salvar alterações</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>'
+                    : '<span>Confirmar pedido</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>';
             }
         }
     };
@@ -1095,6 +1234,10 @@ ${body}
         await loadPaymentConfig();
         await refreshParceiroProfile();
         syncDeliveryDateWithHub();
+        const checkout = loadCheckoutState();
+        if (String(checkout.editOrderId || '').trim()) {
+            await refreshEditOrderMeta(checkout);
+        }
         render();
     };
 

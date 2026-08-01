@@ -13282,6 +13282,31 @@ html.dark .baixar-app__eyebrow {
     color: var(--lig-text-muted);
 }
 
+.resumo-edit-banner {
+    margin: 0;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.75rem;
+    background: rgba(247, 213, 60, 0.22);
+    border: 1px solid var(--lig-border);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--lig-text);
+}
+
+.resumo-edit-banner--blocked {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+.conta-order-detail__edit-hint,
+.order-track__edit-hint {
+    margin: 0;
+    width: 100%;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--lig-text-muted);
+}
+
 .resumo-option--multi {
     grid-template-columns: auto auto 1fr;
     align-items: center;

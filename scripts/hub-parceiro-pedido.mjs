@@ -417,6 +417,82 @@ export async function ensureHubPedidoNfParceiros(order, env = process.env) {
 /** Status Hub ainda canceláveis pelo cliente (antes do aceite). */
 export const HUB_CANCELABLE_STATUSES = new Set(['pendente', 'aguardando_aceite', '']);
 
+async function fetchHubPedidoForParceirosOrder(hub, order) {
+    if (order?.hub_pedido_id) {
+        const rows = await hubRest(
+            hub,
+            `pedidos?select=id,numero,status,origem,parceiros_order_id&id=eq.${encodeURIComponent(order.hub_pedido_id)}&limit=1`,
+        );
+        const hit = Array.isArray(rows) ? rows[0] ?? null : null;
+        if (hit?.id) return hit;
+    }
+    return buscarHubPedidoPorParceirosId(hub, order.id);
+}
+
+/**
+ * Atualiza pedido espelhado no Hub enquanto ainda aguarda aceite (itens + cabeçalho).
+ * @returns {{ ok: true, hubPedido: object|null } | { ok: false, code: string, message: string, hubPedido?: object }}
+ */
+export async function updateHubPedidoForParceiros(order, env = process.env) {
+    const hub = hubConfig(env);
+    if (!hub.serviceKey) return { ok: false, code: 'hub_unavailable', message: 'Hub indisponível.' };
+    if (!order?.id) return { ok: false, code: 'invalid_order', message: 'Pedido inválido.' };
+    if (String(order.channel || 'parceiros').toLowerCase() === 'totem') {
+        return { ok: false, code: 'invalid_channel', message: 'Pedido não editável por aqui.' };
+    }
+
+    let hubPedido = await fetchHubPedidoForParceirosOrder(hub, order);
+    if (!hubPedido?.id) {
+        const created = await ensureHubPedidoForParceiros(order, env);
+        return { ok: true, hubPedido: created };
+    }
+
+    const status = String(hubPedido.status || '').toLowerCase().trim();
+    if (!HUB_CANCELABLE_STATUSES.has(status)) {
+        return {
+            ok: false,
+            code: 'hub_already_accepted',
+            message: 'Este pedido já foi aceito pela loja e não pode mais ser alterado por aqui.',
+            hubPedido,
+        };
+    }
+
+    const cliente = await fetchClienteParceiro(hub, order);
+    const clienteMeta = cliente?.clienteId ? await fetchClienteHubMeta(hub, cliente.clienteId) : null;
+    const patchBody = {
+        modalidade: order.delivery_type === 'retirada' ? 'retirada' : 'entrega',
+        valor_pedido: Number(order.total) || 0,
+        pagamento_split: buildPagamentoSplit(order),
+        observacoes: buildObservacoes(order),
+    };
+    if (order.order_tabela_preco_id) {
+        patchBody.tabela_preco_id = order.order_tabela_preco_id;
+    } else if (clienteMeta?.tabela_preco_id) {
+        patchBody.tabela_preco_id = clienteMeta.tabela_preco_id;
+    }
+    const parceirosNomeCliente = parceirosNomeClienteFromOrder(order);
+    if (parceirosNomeCliente) {
+        patchBody.parceiros_nome_cliente = parceirosNomeCliente;
+    }
+
+    await hubRest(hub, `pedidos?id=eq.${encodeURIComponent(hubPedido.id)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=representation' },
+        body: patchBody,
+    });
+
+    await hubRest(hub, `pedido_itens?pedido_id=eq.${encodeURIComponent(hubPedido.id)}`, {
+        method: 'DELETE',
+    });
+    await inserirItensNoPedidoHub(hub, hubPedido.id, order);
+
+    const refreshed = await hubRest(
+        hub,
+        `pedidos?select=id,numero,status,origem,parceiros_order_id&id=eq.${encodeURIComponent(hubPedido.id)}&limit=1`,
+    );
+    return { ok: true, hubPedido: Array.isArray(refreshed) ? refreshed[0] ?? hubPedido : hubPedido };
+}
+
 /**
  * Cancela pedido espelhado no Hub se ainda estiver aguardando aceite.
  * @returns {{ ok: true, hubPedido: object|null } | { ok: false, code: string, message: string, hubPedido?: object }}

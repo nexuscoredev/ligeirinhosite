@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         let orders = views;
         try {
             orders = await Promise.race([
-                enrichOrdersWithTracking(views, process.env),
+                enrichOrdersWithTracking(views, process.env, { accountCnpj: lookup.cnpjDigits || '' }),
                 new Promise((_, reject) => {
                     setTimeout(() => reject(new Error('tracking timeout')), 12000);
                 }),

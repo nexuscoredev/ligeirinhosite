@@ -5,6 +5,9 @@ import {
     fetchHubPedidoByParceirosOrderId,
     buildOrderTracking,
 } from '../../scripts/hub-order-tracking.mjs';
+import { requireAccountSession } from '../account/_require-hub-session.mjs';
+import { collectParceiroOrderLookup } from '../../scripts/hub-parceiro.mjs';
+import { resolveAccountCnpj } from '../../scripts/lib/order-edit-policy.mjs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -45,7 +48,25 @@ export default async function handler(req, res) {
         if (!hubPedido) {
             hubPedido = await fetchHubPedidoByParceirosOrderId(view.id, process.env);
         }
-        const tracking = buildOrderTracking(view, hubPedido);
+
+        let accountCnpj = '';
+        try {
+            const session = await requireAccountSession(req);
+            if (!session.error) {
+                const authEmail = String(
+                    session.authUser?.email || session.usuario?.email || req.headers['x-account-email'] || '',
+                ).trim();
+                const lookup = await collectParceiroOrderLookup(session.config, session.usuario, {
+                    email: authEmail,
+                    sub: String(req.headers['x-auth-sub'] || req.query.sub || session.userId || '').trim(),
+                });
+                accountCnpj = resolveAccountCnpj(lookup.cnpjDigits || session.usuario, view);
+            }
+        } catch {
+            /* tracking público sem sessão */
+        }
+
+        const tracking = buildOrderTracking(view, hubPedido, { accountCnpj });
         return res.status(200).json({ order: view, tracking });
     } catch (err) {
         console.error('orders/get', err);

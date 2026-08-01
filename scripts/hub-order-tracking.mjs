@@ -1,4 +1,7 @@
 import { hubConfig } from './hub-auth.mjs';
+import {
+    evaluateOrderEditPolicy,
+} from './lib/order-edit-policy.mjs';
 
 function hubHeaders(config) {
     return {
@@ -82,13 +85,14 @@ export async function fetchHubPedidosMapForOrders(orders, env = process.env) {
     return map;
 }
 
-export async function enrichOrdersWithTracking(orders, env = process.env) {
+export async function enrichOrdersWithTracking(orders, env = process.env, options = {}) {
     const views = (orders || []).filter(Boolean);
     if (!views.length) return [];
     const hubMap = await fetchHubPedidosMapForOrders(views, env);
+    const accountCnpj = options.accountCnpj || '';
     return views.map((view) => ({
         ...view,
-        tracking: buildOrderTracking(view, hubMap.get(view.id) || null),
+        tracking: buildOrderTracking(view, hubMap.get(view.id) || null, { accountCnpj }),
     }));
 }
 
@@ -264,7 +268,7 @@ function trackingCopyForHubStatus(hubStatus, { isPickup = false } = {}) {
     return null;
 }
 
-export function buildOrderTracking(order, hubPedido = null) {
+export function buildOrderTracking(order, hubPedido = null, options = {}) {
     const hubStatus = String(hubPedido?.status || '').toLowerCase();
     const isPickup = isPickupOrder(order);
     let step = 1;
@@ -363,6 +367,11 @@ export function buildOrderTracking(order, hubPedido = null) {
         isPickup,
     });
 
+    const editPolicy = evaluateOrderEditPolicy(order, {
+        accountCnpj: options.accountCnpj,
+        hubStatus,
+    });
+
     return {
         hubStatus: hubStatus || null,
         hubNumero: hubPedido?.numero ?? null,
@@ -378,6 +387,13 @@ export function buildOrderTracking(order, hubPedido = null) {
             (order?.channel || 'parceiros') === 'parceiros' &&
             order?.status === 'pending' &&
             (hubStatus === 'pendente' || hubStatus === 'aguardando_aceite' || !hubStatus),
+        canEdit: editPolicy.canEdit,
+        canRequestEdit: editPolicy.canRequestEdit,
+        editPermissionRequested: editPolicy.editPermissionRequested,
+        editPermissionGranted: editPolicy.editPermissionGranted,
+        editBlockedReason: editPolicy.editBlockedReason || null,
+        deliveryToday: editPolicy.deliveryToday,
+        alwaysEditAccount: editPolicy.alwaysEditAccount,
         steps: [
             { id: 'sent', icon: 'send', label: 'Enviado' },
             { id: 'accept', icon: 'check_circle', label: 'Aceite' },

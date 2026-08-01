@@ -212,6 +212,27 @@ ${statusGlyphHtml(status.icon)}
         );
     };
 
+    const canEditOrder = (order) => {
+        if (order?.tracking && typeof order.tracking.canEdit === 'boolean') {
+            return order.tracking.canEdit;
+        }
+        return canCancelOrder(order);
+    };
+
+    const canRequestEditOrder = (order) => order?.tracking?.canRequestEdit === true;
+
+    const editBlockedHint = (order) => {
+        const tracking = order?.tracking;
+        if (!tracking || tracking.canEdit) return '';
+        if (tracking.editPermissionRequested) {
+            return 'Solicitação de edição enviada. Aguarde a liberação da loja.';
+        }
+        if (tracking.deliveryToday && !tracking.alwaysEditAccount) {
+            return 'Hoje é o dia de entrega ou retirada. Solicite permissão para editar.';
+        }
+        return '';
+    };
+
     const paymentMethodLabelSingle = (id) => {
         const methods = window.LigeirinhoPaymentMethods;
         if (methods?.label?.(id)) return methods.label(id);
@@ -371,6 +392,21 @@ ${
 }
 <button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-open-cart>Ir ao caminhão</button>
 ${
+    editBlockedHint(order)
+        ? `<p class="conta-order-detail__edit-hint" role="status">${esc(editBlockedHint(order))}</p>`
+        : ''
+}
+${
+    canEditOrder(order)
+        ? `<button type="button" class="conta-btn conta-btn--primary" data-meus-pedidos-edit="${esc(order.id)}">Editar pedido</button>`
+        : ''
+}
+${
+    canRequestEditOrder(order)
+        ? `<button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-request-edit="${esc(order.id)}">Solicitar permissão para editar</button>`
+        : ''
+}
+${
     canCancelOrder(order)
         ? `<button type="button" class="conta-btn conta-btn--danger" data-meus-pedidos-cancel="${esc(order.id)}">Cancelar solicitação</button>`
         : ''
@@ -378,6 +414,47 @@ ${
 </div>
 </div>
 </article>`;
+    };
+
+    const requestEditPermission = async (orderId, button) => {
+        const prevLabel = button?.textContent;
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Enviando…';
+        }
+
+        try {
+            const headers = await accountHeaders();
+            const s = session();
+            if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+            if (s?.email) headers['X-Account-Email'] = s.email;
+            const res = await fetch('/api/orders/request-edit-permission', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ orderId }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Não foi possível enviar a solicitação.');
+            }
+            window.alert(data.message || 'Solicitação enviada. A loja vai analisar e liberar a edição se necessário.');
+            await loadOrders({ keepFilters: true });
+        } catch (err) {
+            window.alert(err?.message || 'Não foi possível enviar a solicitação.');
+            if (button) {
+                button.disabled = false;
+                button.textContent = prevLabel || 'Solicitar permissão para editar';
+            }
+        }
+    };
+
+    const editOrder = (order) => {
+        if (!cart?.loadOrderForEdit?.(order)) {
+            window.alert('Não foi possível carregar o pedido para edição.');
+            return;
+        }
+        window.LigeirinhoCartUI?.render?.();
+        window.location.href = 'caminhao.html';
     };
 
     const cancelOrder = async (orderId, button) => {
@@ -435,6 +512,19 @@ ${
         });
         root.querySelectorAll('[data-meus-pedidos-open-cart]').forEach((btn) => {
             btn.addEventListener('click', openCaminhao);
+        });
+        root.querySelectorAll('[data-meus-pedidos-edit]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const orderId = btn.getAttribute('data-meus-pedidos-edit');
+                const order = STATE.orders.find((entry) => entry.id === orderId);
+                if (order) editOrder(order);
+            });
+        });
+        root.querySelectorAll('[data-meus-pedidos-request-edit]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const orderId = btn.getAttribute('data-meus-pedidos-request-edit');
+                if (orderId) requestEditPermission(orderId, btn);
+            });
         });
         root.querySelectorAll('[data-meus-pedidos-cancel]').forEach((btn) => {
             btn.addEventListener('click', () => {

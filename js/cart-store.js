@@ -96,6 +96,7 @@
         condicaoPagamento: '',
         deliveryDate: '',
         notes: '',
+        editOrderId: '',
         orderTabelaPrecoId: '',
         orderTabelaPrecoCodigo: '',
         orderTabelaPrecoLabel: '',
@@ -212,8 +213,51 @@
         return true;
     };
 
+    const isDeliveryFeeCartItem = (item) => {
+        if (!item) return false;
+        if (item.isDeliveryFee === true) return true;
+        const id = String(item.id || item.cartKey || '').toLowerCase();
+        const sku = String(item.sku || '').trim();
+        const hubId = String(item.hubId || '').toLowerCase();
+        return id === 'taxa-entrega-hr' || sku === '1045' || hubId === '59af880d-0c08-4827-b2de-7ea5b10a6324';
+    };
+
+    const checkoutFromOrder = (order) => {
+        const splitsApi = window.LigeirinhoPaymentSplits;
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        const notes = String(order?.notes || '');
+        const clienteMatch = notes.match(/Cliente:\s*([^·]+)/);
+        const tabelaMatch = notes.match(/Tabela:\s*([^·]+)/);
+        const paymentMethod =
+            splits.length === 1
+                ? splits[0].method
+                : String(order?.paymentMethod || order?.payment_method || '').toLowerCase();
+        const deliveryFee = Number(order?.deliveryFee ?? order?.delivery_fee);
+        return {
+            editOrderId: String(order?.id || ''),
+            editOrderMeta: {
+                notes,
+                status: order?.status || 'pending',
+                financialStatus: order?.financialStatus || order?.financial_status || '',
+                hubStatus: order?.tracking?.hubStatus || order?.hubStatus || '',
+                channel: order?.channel || 'parceiros',
+            },
+            deliveryType: order?.deliveryType || order?.delivery_type || 'entrega',
+            address: order?.address || '',
+            deliveryDate: order?.deliveryDate || order?.delivery_date || '',
+            paymentMethod: paymentMethod || '',
+            paymentSplits: splits.length >= 2 ? splits : [],
+            orderClienteNome: String(order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || ''),
+            orderTabelaPrecoCodigo: tabelaMatch?.[1]?.trim() || '',
+            orderTaxaEntrega: Number.isFinite(deliveryFee) && deliveryFee >= 0 ? deliveryFee : null,
+            notes: '',
+        };
+    };
+
     const loadOrderIntoCart = (order) => {
-        const items = Array.isArray(order?.items) ? order.items : [];
+        const items = (Array.isArray(order?.items) ? order.items : []).filter(
+            (item) => !isDeliveryFeeCartItem(item),
+        );
         if (!items.length) return false;
         const cart = {};
         items.forEach((item) => {
@@ -236,6 +280,12 @@
         });
         saveCart(cart);
         saveLastOrder(cart, loadCheckout(), order?.id || null);
+        return true;
+    };
+
+    const loadOrderForEdit = (order) => {
+        if (!loadOrderIntoCart(order)) return false;
+        saveCheckout(checkoutFromOrder(order));
         return true;
     };
 
@@ -532,6 +582,7 @@
         loadLastOrder,
         restoreLastOrder,
         loadOrderIntoCart,
+        loadOrderForEdit,
         lastOrderSummary,
         loadPrefs,
         savePrefs,

@@ -262,11 +262,26 @@ Resumo do pedido <span class="material-symbols-outlined" aria-hidden="true">chev
 
 <div class="order-track__actions">
 ${
+    tracking?.canEdit
+        ? `<button type="button" class="lig-btn-primary w-full text-center order-track__edit-btn" id="order-track-edit">Editar pedido</button>`
+        : ''
+}
+${
+    tracking?.canRequestEdit
+        ? `<button type="button" class="lig-btn-secondary w-full text-center order-track__request-edit-btn" id="order-track-request-edit">Solicitar permissão para editar</button>`
+        : ''
+}
+${
+    tracking?.editPermissionRequested && !tracking?.canEdit
+        ? `<p class="order-track__edit-hint" role="status">Solicitação enviada. Aguarde a liberação da loja.</p>`
+        : ''
+}
+${
     tracking?.canCancel
         ? `<button type="button" class="lig-btn-secondary w-full text-center order-track__cancel-btn" id="order-track-cancel">Cancelar solicitação</button>`
         : ''
 }
-<a href="meus-pedidos.html" class="lig-btn-primary w-full text-center">Ir para pedidos</a>
+<a href="meus-pedidos.html" class="lig-btn-secondary w-full text-center">Ir para pedidos</a>
 <a href="pedidos.html" class="lig-btn-secondary w-full text-center mt-3">Fazer novo pedido</a>
 </div>
 </div>`;
@@ -313,6 +328,45 @@ ${
             root.querySelector('#order-track-notify')?.remove();
         });
 
+        root.querySelector('#order-track-edit')?.addEventListener('click', () => {
+            const cartApi = window.LigeirinhoCart;
+            if (!cartApi?.loadOrderForEdit?.(order)) {
+                window.alert('Não foi possível carregar o pedido para edição.');
+                return;
+            }
+            window.LigeirinhoCartUI?.render?.();
+            window.location.href = 'caminhao.html';
+        });
+
+        root.querySelector('#order-track-request-edit')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget;
+            const prev = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Enviando…';
+            try {
+                const headers = await accountHeaders();
+                const s = session();
+                if (s?.sub) headers['X-Auth-Sub'] = s.sub;
+                if (s?.email) headers['X-Account-Email'] = s.email;
+                const res = await fetch('/api/orders/request-edit-permission', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ orderId: order.id }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Não foi possível enviar a solicitação.');
+                window.alert(
+                    data.message || 'Solicitação enviada. A loja vai analisar e liberar a edição se necessário.',
+                );
+                const fresh = await loadOrder();
+                render(fresh.order, fresh.tracking);
+            } catch (err) {
+                window.alert(err?.message || 'Não foi possível enviar a solicitação.');
+                button.disabled = false;
+                button.textContent = prev;
+            }
+        });
+
         root.querySelector('#order-track-cancel')?.addEventListener('click', async (event) => {
             const button = event.currentTarget;
             const shortId = String(order.id || '').slice(0, 8).toUpperCase();
@@ -349,7 +403,13 @@ ${
     };
 
     const loadOrder = async () => {
-        const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`);
+        const headers = {};
+        try {
+            Object.assign(headers, await accountHeaders());
+        } catch {
+            /* acompanhamento sem sessão */
+        }
+        const res = await fetch(`/api/orders/get?id=${encodeURIComponent(orderId)}`, { headers });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
         return data;
