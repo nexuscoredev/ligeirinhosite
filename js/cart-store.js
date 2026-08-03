@@ -103,6 +103,7 @@
         orderTaxaEntrega: null,
         orderClienteNome: '',
         orderClienteDoc: '',
+        orderClienteTelefone: '',
     });
 
     const loadCheckout = () => {
@@ -293,6 +294,7 @@
             paymentSplits: splits.length >= 2 ? splits : [],
             orderClienteNome: String(order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || ''),
             orderClienteDoc,
+            orderClienteTelefone: String(order?.customerPhone || order?.customer_phone || '').trim(),
             orderTabelaPrecoCodigo: tabelaMatch?.[1]?.trim() || '',
             orderTaxaEntrega: Number.isFinite(deliveryFee) && deliveryFee >= 0 ? deliveryFee : null,
             notes: '',

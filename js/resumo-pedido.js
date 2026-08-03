@@ -42,6 +42,23 @@
         return { ok: false, error: 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos).' };
     };
 
+    const maskClientePhoneInput = (value) => window.LigeirinhoPhoneAuth?.maskPhoneInput?.(value) || String(value || '');
+
+    const formatClientePhoneDisplay = (value) => {
+        const digits = String(value || '').replace(/\D/g, '');
+        if (!digits) return '';
+        return maskClientePhoneInput(digits);
+    };
+
+    const validateClientePhoneInput = (value) => {
+        const digits = String(value || '').replace(/\D/g, '');
+        if (!digits) return { ok: true, formatted: '' };
+        if (digits.length === 10 || digits.length === 11) {
+            return { ok: true, formatted: maskClientePhoneInput(digits), digits };
+        }
+        return { ok: false, error: 'Telefone incompleto. Informe DDD + número (10 ou 11 dígitos).' };
+    };
+
     const session = () => auth?.loadSession?.() || null;
 
     const isHubUserUuid = (value) =>
@@ -720,7 +737,7 @@ ${body}
             : '';
         const clienteNomeCard = isDistribuidoraAccount()
             ? cardHtml(
-                  'Nome do cliente',
+                  'Dados do cliente',
                   `<p class="resumo-field-hint">Cliente final deste pedido (aparece no Hub e no DAV)</p>
 <div class="resumo-cliente-fields">
 <label class="resumo-cliente-field">
@@ -728,10 +745,14 @@ ${body}
 <input type="text" class="resumo-cliente-field__input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="off" maxlength="120">
 </label>
 <label class="resumo-cliente-field">
+<span class="resumo-cliente-field__label">Telefone</span>
+<input type="tel" class="resumo-cliente-field__input resumo-cliente-field__input--phone" id="resumo-cliente-telefone" value="${esc(formatClientePhoneDisplay(checkout.orderClienteTelefone || ''))}" placeholder="(11) 99999-9999" inputmode="tel" autocomplete="off" maxlength="15">
+</label>
+<label class="resumo-cliente-field">
 <span class="resumo-cliente-field__label">CPF/CNPJ</span>
 <input type="text" class="resumo-cliente-field__input resumo-cliente-field__input--doc" id="resumo-cliente-doc" value="${esc(checkout.orderClienteDoc || '')}" placeholder="000.000.000-00 ou 00.000.000/0000-00" inputmode="numeric" autocomplete="off" maxlength="18">
 </label>
-<p class="resumo-field-hint resumo-cliente-doc-hint">O documento entra na identificação do destinatário na DAV.</p>
+<p class="resumo-field-hint resumo-cliente-doc-hint">Nome, telefone e documento entram na identificação do destinatário na DAV.</p>
 </div>`,
               )
             : '';
@@ -788,6 +809,19 @@ ${cardHtml(
         });
         root.querySelector('#resumo-cliente-nome')?.addEventListener('input', (event) => {
             cartApi.saveCheckout({ orderClienteNome: event.target.value });
+        });
+        const phoneInput = root.querySelector('#resumo-cliente-telefone');
+        phoneInput?.addEventListener('input', (event) => {
+            const formatted = maskClientePhoneInput(event.target.value);
+            event.target.value = formatted;
+            cartApi.saveCheckout({ orderClienteTelefone: formatted });
+        });
+        phoneInput?.addEventListener('blur', (event) => {
+            const check = validateClientePhoneInput(event.target.value);
+            if (check.ok && check.formatted) {
+                event.target.value = check.formatted;
+                cartApi.saveCheckout({ orderClienteTelefone: check.formatted });
+            }
         });
         const docInput = root.querySelector('#resumo-cliente-doc');
         docInput?.addEventListener('input', (event) => {
@@ -1187,6 +1221,19 @@ ${body}
                 if (orderClienteNome) {
                     payload.orderClienteNome = orderClienteNome;
                 }
+                const phoneCheck = validateClientePhoneInput(checkout.orderClienteTelefone || '');
+                if (!phoneCheck.ok) {
+                    window.alert(phoneCheck.error);
+                    if (btn) {
+                        btn.disabled = false;
+                        const editing = Boolean(String(loadCheckoutState().editOrderId || '').trim());
+                        btn.innerHTML = editing
+                            ? '<span>Salvar alterações</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>'
+                            : '<span>Confirmar pedido</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>';
+                    }
+                    return;
+                }
+                payload.customer.phone = phoneCheck.formatted || '';
                 const docCheck = validateClienteDocInput(checkout.orderClienteDoc || '');
                 if (!docCheck.ok) {
                     window.alert(docCheck.error);
@@ -1245,6 +1292,7 @@ ${body}
                 paymentSplits: [],
                 orderClienteNome: '',
                 orderClienteDoc: '',
+                orderClienteTelefone: '',
             });
             if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {
                 cartApi.saveAddressToHistory?.({

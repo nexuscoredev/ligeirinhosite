@@ -13698,7 +13698,8 @@ body.lig-push-prompt-open {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--lig-yellow) 22%, transparent);
 }
 
-.resumo-cliente-field__input--doc {
+.resumo-cliente-field__input--doc,
+.resumo-cliente-field__input--phone {
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.01em;
     font-weight: 700;
