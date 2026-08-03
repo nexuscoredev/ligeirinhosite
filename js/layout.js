@@ -1143,32 +1143,20 @@ ${meta}
 
     const bindPwaUpdateButton = () => {
         const updateBtn = document.getElementById('lig-pwa-update-btn');
-        if (!updateBtn || updateBtn.dataset.bound === '1') return;
+        if (updateBtn) updateBtn.hidden = true;
         const pwaUpdate = window.LigeirinhoPwaUpdate;
-        if (!pwaUpdate) return;
-        updateBtn.dataset.bound = '1';
+        if (!pwaUpdate || updateBtn?.dataset.bound === '1') return;
+        if (updateBtn) updateBtn.dataset.bound = '1';
 
+        // Atualização é automática (barra de progresso) — botão do header fica oculto.
         const syncUpdateChrome = () => {
             const pending = Boolean(pwaUpdate.isPending?.());
-            const checking = pwaUpdate.status?.() === 'checking';
-            updateBtn.hidden = !pending;
-            updateBtn.disabled = checking;
-            updateBtn.classList.toggle('lig-update-nav-btn--busy', checking);
-            updateBtn.classList.toggle('lig-update-nav-btn--pending', pending);
-            updateBtn.setAttribute('aria-busy', checking ? 'true' : 'false');
-            updateBtn.setAttribute(
-                'aria-label',
-                pending ? 'Aplicar atualização do sistema' : 'Atualizar',
-            );
+            if (updateBtn) updateBtn.hidden = true;
             document.documentElement.classList.toggle('lig-pwa-update-pending', pending);
         };
 
         pwaUpdate.onStatusChange?.(syncUpdateChrome);
         syncUpdateChrome();
-
-        updateBtn.addEventListener('click', () => {
-            if (pwaUpdate.isPending?.()) void pwaUpdate.aplicar();
-        });
     };
 
     if (page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso' && page !== 'totem-caixa') {

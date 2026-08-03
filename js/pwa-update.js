@@ -1,5 +1,6 @@
 /**
  * Atualização sistêmica do Ligeirinho Parceiros (service worker).
+ * Igual ao Hub: ao detectar versão nova, aplica sozinho com barra de progresso.
  */
 (function () {
     'use strict';
@@ -8,11 +9,13 @@
     const SW_URL = '/js/sw.js';
     const SW_SCOPE = '/';
 
-    /** @type {'idle' | 'pending' | 'checking'} */
+    /** @type {'idle' | 'pending' | 'checking' | 'applying'} */
     let status = 'idle';
     let started = false;
     let aplicando = false;
-    let oculto = false;
+    let autoApplyTimer = 0;
+    let progresso = 0;
+    let etapa = 'Atualizando…';
     /** @type {ServiceWorkerRegistration | null} */
     let lastRegistration = null;
     const listeners = new Set();
@@ -45,6 +48,12 @@
         );
     }
 
+    function reportarProgresso(pct, label) {
+        progresso = Math.max(0, Math.min(100, Math.round(pct)));
+        if (label) etapa = label;
+        syncBanner();
+    }
+
     function ensureBanner() {
         if (document.getElementById('lig-pwa-update')) return;
 
@@ -55,26 +64,19 @@
         root.setAttribute('aria-live', 'polite');
         root.hidden = true;
         root.innerHTML =
-            '<div class="lig-pwa-update__card">' +
-            '<div class="lig-pwa-update__text">' +
-            '<strong class="lig-pwa-update__title" id="lig-pwa-update-title">Atualização disponível</strong>' +
-            '<span class="lig-pwa-update__lead" id="lig-pwa-update-lead">Uma versão nova do app está pronta. Toque em atualizar para aplicar.</span>' +
+            '<div class="lig-pwa-update__chip" aria-busy="true">' +
+            '<div class="lig-pwa-update__progresso">' +
+            '<div class="lig-pwa-update__topo">' +
+            '<span class="lig-pwa-update__etapa" id="lig-pwa-update-etapa">Atualizando…</span>' +
+            '<span class="lig-pwa-update__pct" id="lig-pwa-update-pct">0%</span>' +
             '</div>' +
-            '<div class="lig-pwa-update__actions">' +
-            '<button type="button" class="lig-pwa-update__primary" id="lig-pwa-update-apply">Atualizar agora</button>' +
-            '<button type="button" class="lig-pwa-update__ghost" id="lig-pwa-update-later">Depois</button>' +
+            '<div class="lig-pwa-update__barra" aria-hidden="true">' +
+            '<div class="lig-pwa-update__barra-fill" id="lig-pwa-update-fill" style="width:0%"></div>' +
+            '</div>' +
             '</div>' +
             '</div>';
 
         document.body.appendChild(root);
-
-        document.getElementById('lig-pwa-update-apply')?.addEventListener('click', () => {
-            void aplicar();
-        });
-        document.getElementById('lig-pwa-update-later')?.addEventListener('click', () => {
-            oculto = true;
-            syncBanner();
-        });
     }
 
     function syncBanner() {
@@ -83,36 +85,34 @@
         if (!root) return;
 
         const pendente = status === 'pending' || lerPersistido();
-        const visivel = (pendente || status === 'checking') && !oculto;
+        const aplicandoAgora = status === 'applying' || aplicando;
+        const visivel = aplicandoAgora || pendente;
         root.hidden = !visivel;
         document.body.classList.toggle('lig-pwa-update-open', visivel);
 
-        const title = document.getElementById('lig-pwa-update-title');
-        const lead = document.getElementById('lig-pwa-update-lead');
-        const applyBtn = document.getElementById('lig-pwa-update-apply');
-        const laterBtn = document.getElementById('lig-pwa-update-later');
+        const etapaEl = document.getElementById('lig-pwa-update-etapa');
+        const pctEl = document.getElementById('lig-pwa-update-pct');
+        const fillEl = document.getElementById('lig-pwa-update-fill');
+        const chip = root.querySelector('.lig-pwa-update__chip');
+        const pct = Math.min(100, Math.max(0, Math.round(progresso)));
+        const concluido = pct >= 100;
 
-        if (status === 'checking') {
-            if (title) title.textContent = 'Verificando…';
-            if (lead) lead.textContent = 'Consultando se há versão nova no servidor.';
-            if (applyBtn) applyBtn.hidden = true;
-            if (laterBtn) laterBtn.hidden = true;
-            return;
-        }
-
-        if (pendente) {
-            if (title) title.textContent = 'Atualização disponível';
-            if (lead) lead.textContent = 'Uma versão nova do app está pronta. Toque em atualizar para aplicar.';
-            if (applyBtn) {
-                applyBtn.hidden = false;
-                applyBtn.textContent = 'Atualizar agora';
-            }
-            if (laterBtn) laterBtn.hidden = false;
+        if (etapaEl) etapaEl.textContent = concluido ? 'Atualizado' : etapa || 'Atualizando…';
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (chip) {
+            chip.setAttribute('aria-busy', concluido ? 'false' : 'true');
+            chip.setAttribute('aria-valuenow', String(pct));
         }
     }
 
     function emitir() {
-        const detail = { status, pendente: status === 'pending' || lerPersistido() };
+        const detail = {
+            status,
+            pendente: status === 'pending' || lerPersistido(),
+            progresso,
+            etapa,
+        };
         window.dispatchEvent(new CustomEvent('lig-pwa-update', { detail }));
         for (const fn of listeners) fn(detail);
         syncBanner();
@@ -120,8 +120,16 @@
 
     function definirStatus(next) {
         status = next;
-        if (next === 'pending') oculto = false;
         emitir();
+        if (next === 'pending') agendarAplicacaoAutomatica();
+    }
+
+    function agendarAplicacaoAutomatica() {
+        if (aplicando || autoApplyTimer) return;
+        autoApplyTimer = window.setTimeout(() => {
+            autoApplyTimer = 0;
+            void aplicar();
+        }, 400);
     }
 
     function sinalizarPendente() {
@@ -168,6 +176,7 @@
     async function verificar(opcoes) {
         const silencioso = opcoes?.silencioso ?? false;
         if (!('serviceWorker' in navigator)) return 'indisponivel';
+        if (aplicando) return 'pendente';
         if (!silencioso) definirStatus('checking');
 
         try {
@@ -199,22 +208,38 @@
     async function aplicar() {
         if (aplicando) return;
         aplicando = true;
-        persistirPendente(false);
-        definirStatus('idle');
-
-        const applyBtn = document.getElementById('lig-pwa-update-apply');
-        if (applyBtn) {
-            applyBtn.disabled = true;
-            applyBtn.textContent = 'Atualizando…';
+        if (autoApplyTimer) {
+            window.clearTimeout(autoApplyTimer);
+            autoApplyTimer = 0;
         }
+        persistirPendente(false);
+        status = 'applying';
+        reportarProgresso(5, 'Iniciando…');
+        emitir();
 
         try {
+            reportarProgresso(20, 'Baixando versão…');
+            await new Promise((r) => window.setTimeout(r, 80));
+
+            reportarProgresso(45, 'Ativando…');
             const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
             reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
-        } finally {
+
+            reportarProgresso(75, 'Aplicando…');
+            await new Promise((r) => window.setTimeout(r, 100));
+
+            reportarProgresso(92, 'Recarregando…');
             window.setTimeout(() => {
+                reportarProgresso(100, 'Pronto');
                 if (document.visibilityState !== 'hidden') window.location.reload();
-            }, 400);
+            }, 250);
+        } catch {
+            aplicando = false;
+            status = 'pending';
+            persistirPendente(true);
+            reportarProgresso(0, 'Falha ao atualizar');
+            emitir();
+            agendarAplicacaoAutomatica();
         }
     }
 
@@ -229,6 +254,7 @@
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!aplicando) return;
                 persistirPendente(false);
+                reportarProgresso(100, 'Pronto');
                 window.location.reload();
             });
         }
@@ -238,7 +264,6 @@
 
             const onVis = () => {
                 if (document.visibilityState === 'visible') {
-                    if (status === 'pending' || lerPersistido()) oculto = false;
                     void verificar({ silencioso: true });
                 }
             };
@@ -262,13 +287,18 @@
 
     window.LigeirinhoPwaUpdate = {
         init,
-        isPending: () => status === 'pending' || lerPersistido(),
+        isPending: () => status === 'pending' || status === 'applying' || lerPersistido(),
         status: () => status,
         verificar,
         aplicar,
         onStatusChange(fn) {
             listeners.add(fn);
-            fn({ status, pendente: status === 'pending' || lerPersistido() });
+            fn({
+                status,
+                pendente: status === 'pending' || lerPersistido(),
+                progresso,
+                etapa,
+            });
             return () => listeners.delete(fn);
         },
     };

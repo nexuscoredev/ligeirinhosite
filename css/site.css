@@ -14370,94 +14370,81 @@ html.dark .order-track__timeline-bar::after {
     cursor: wait;
 }
 
-/* PWA ? banner de atualiza??o (Parceiros) */
+/* PWA — atualização automática com progresso (estilo Hub) */
 .lig-pwa-update {
     position: fixed;
     inset-inline: 0;
-    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-    z-index: 1150;
-    padding: 0.75rem 1rem;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    z-index: 10050;
+    padding: 0 12px;
     pointer-events: none;
     display: flex;
     justify-content: center;
+    align-items: center;
 }
 
 .lig-pwa-update[hidden] {
     display: none !important;
 }
 
-.lig-pwa-update__card {
+.lig-pwa-update__chip {
     pointer-events: auto;
-    width: min(100%, 28rem);
+    display: flex;
+    align-items: center;
+    width: min(20rem, calc(100% - 4px));
+    padding: 0.5rem 0.75rem;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--lig-yellow) 40%, var(--lig-border));
+    background: color-mix(in srgb, var(--lig-surface) 92%, transparent);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: var(--lig-text);
+}
+
+.lig-pwa-update__progresso {
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.85rem;
-    padding: 1rem 1.05rem 1.05rem;
-    border-radius: 1rem;
-    background: var(--lig-surface);
-    border: 1px solid var(--lig-border);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.28);
+    gap: 0.35rem;
+    width: 100%;
 }
 
-.lig-pwa-update__text {
-    min-width: 0;
-}
-
-.lig-pwa-update__title {
-    display: block;
-    font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--lig-text);
-}
-
-.lig-pwa-update__lead {
-    display: block;
-    margin-top: 0.3rem;
-    font-size: 0.8125rem;
-    line-height: 1.45;
-    color: var(--lig-text-muted);
-}
-
-.lig-pwa-update__actions {
+.lig-pwa-update__topo {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
 }
 
-.lig-pwa-update__primary {
-    min-height: 2.5rem;
-    padding: 0.45rem 1.15rem;
-    border-radius: 999px;
-    border: none;
-    background: var(--lig-yellow);
-    color: var(--lig-on-yellow);
-    font-size: 0.875rem;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.lig-pwa-update__primary:disabled {
-    opacity: 0.7;
-    cursor: wait;
-}
-
-.lig-pwa-update__ghost {
-    min-height: 2.5rem;
-    padding: 0.45rem 1rem;
-    border-radius: 999px;
-    border: 1px solid var(--lig-border);
-    background: transparent;
-    color: var(--lig-text-muted);
-    font-size: 0.875rem;
+.lig-pwa-update__etapa {
+    font-size: 0.75rem;
     font-weight: 600;
-    cursor: pointer;
+    color: var(--lig-text-muted);
 }
 
-.lig-pwa-update__ghost:hover {
-    color: var(--lig-text);
-    border-color: color-mix(in srgb, var(--lig-text-muted) 45%, var(--lig-border));
+.lig-pwa-update__pct {
+    font-size: 0.78rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--lig-yellow);
+}
+
+.lig-pwa-update__barra {
+    height: 0.35rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--lig-text-muted) 22%, transparent);
+    overflow: hidden;
+}
+
+.lig-pwa-update__barra-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--lig-yellow) 75%, #fff),
+        var(--lig-yellow)
+    );
+    transition: width 0.22s ease;
 }
 
 /* ?? Dark mode: contraste seguro (cards, texto, ?cones) ?? */
@@ -14682,20 +14669,10 @@ html.dark .ze-float-cart__btn {
     color: var(--lig-on-yellow);
 }
 
-html.dark .lig-pwa-update__card {
-    background: var(--lig-surface);
-    border-color: var(--lig-border);
+html.dark .lig-pwa-update__chip {
+    background: color-mix(in srgb, var(--lig-surface) 90%, transparent);
+    border-color: color-mix(in srgb, var(--lig-yellow) 35%, var(--lig-border));
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
-}
-
-html.dark .lig-pwa-update__primary {
-    color: var(--lig-on-yellow);
-}
-
-html.dark .lig-pwa-update__ghost {
-    background: transparent;
-    border-color: var(--lig-border);
-    color: var(--lig-text-muted);
 }
 
 html.dark .caminhao-product,
