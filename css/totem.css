@@ -284,31 +284,6 @@ body.totem-kiosk > main {
     display: flex;
 }
 
-.totem-header__actions.totem-header__actions--update-only {
-    position: fixed;
-    top: max(0.65rem, env(safe-area-inset-top, 0px));
-    right: max(0.65rem, env(safe-area-inset-right, 0px));
-    z-index: 120;
-}
-
-.totem-btn--update-pending {
-    position: relative;
-    border-color: rgba(234, 179, 8, 0.45);
-    background: rgba(254, 243, 199, 0.92);
-}
-
-.totem-btn--update-pending::after {
-    content: '';
-    position: absolute;
-    top: 0.2rem;
-    right: 0.2rem;
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 999px;
-    background: #eab308;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
-}
-
 .totem-header__actions[hidden] {
     display: none !important;
 }
@@ -394,7 +369,6 @@ body.totem-kiosk > main {
     background: rgba(20, 18, 15, 0.04);
 }
 
-.totem-btn--refreshing .totem-refresh-btn__icon,
 .totem-btn--refreshing .totem-sync-btn__icon {
     animation: totem-refresh-spin 0.85s linear infinite;
 }
@@ -1961,15 +1935,6 @@ html.totem--admin-edit .totem-product__list-price .totem-product__price-block {
 
 html.totem--phone .totem-btn--promos .totem-btn__label {
     display: none;
-}
-
-html.totem--phone #totem-refresh-btn .totem-btn__label {
-    display: none;
-}
-
-html.totem--phone #totem-refresh-btn {
-    padding-inline: 0.62rem;
-    min-width: 44px;
 }
 
 html.totem--phone .totem-btn--sync {

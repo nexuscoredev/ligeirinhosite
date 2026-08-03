@@ -55,6 +55,15 @@
     }
 
     function ensureBanner() {
+        const existing = document.getElementById('lig-pwa-update');
+        // Remove UI antiga com botões ("Atualizar agora" / "Depois").
+        if (
+            existing &&
+            (existing.querySelector('#lig-pwa-update-apply, #lig-pwa-update-later, .lig-pwa-update__primary, .lig-pwa-update__ghost, .lig-pwa-update__actions') ||
+                !existing.querySelector('.lig-pwa-update__chip'))
+        ) {
+            existing.remove();
+        }
         if (document.getElementById('lig-pwa-update')) return;
 
         const root = document.createElement('div');
@@ -84,8 +93,9 @@
         const root = document.getElementById('lig-pwa-update');
         if (!root) return;
 
-        const pendente = status === 'pending' || lerPersistido();
+        // Só barra de progresso — nunca botões. Visível enquanto aplica (ou ao detectar pendente).
         const aplicandoAgora = status === 'applying' || aplicando;
+        const pendente = status === 'pending' || lerPersistido();
         const visivel = aplicandoAgora || pendente;
         root.hidden = !visivel;
         document.body.classList.toggle('lig-pwa-update-open', visivel);

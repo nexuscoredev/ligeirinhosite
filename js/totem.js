@@ -79,7 +79,6 @@
     const syncBtn = document.getElementById('totem-sync-btn');
     const adminEditBtn = document.getElementById('totem-admin-edit-btn');
     const adminOrdersBtn = document.getElementById('totem-admin-orders-btn');
-    const refreshBtn = document.getElementById('totem-refresh-btn');
     const promosBackBtn = document.getElementById('totem-promos-back');
     const cartBtn = document.getElementById('totem-cart-btn');
     const cartBadge = document.getElementById('totem-cart-badge');
@@ -2549,13 +2548,6 @@ ${unitHtml}
             window.LigeirinhoTotemOrdersAdmin?.updateAdminChrome?.();
         }
 
-        if (refreshBtn) {
-            // Atualização do app é automática — botão some.
-            refreshBtn.hidden = true;
-            refreshBtn.disabled = true;
-            refreshBtn.classList.remove('totem-btn--update-pending');
-        }
-
         document.documentElement.classList.toggle('totem--shopping-chrome', showShoppingActions);
         document.documentElement.classList.toggle('totem--system-update-pending', pendingSystemUpdate);
     };
@@ -2653,8 +2645,6 @@ ${unitHtml}
         if (!canAutoApplySystemUpdate()) return false;
         if (!window.LigeirinhoTotemPwaUpdate?.isPending?.()) return false;
         refreshBusy = true;
-        refreshBtn?.classList.add('totem-btn--refreshing');
-        refreshBtn?.setAttribute('aria-busy', 'true');
         void window.LigeirinhoTotemPwaUpdate.aplicar();
         return true;
     };
@@ -4132,14 +4122,6 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         syncBtn?.addEventListener('click', () => {
             void refreshTotemData();
             bumpIdle();
-        });
-
-        refreshBtn?.addEventListener('click', () => {
-            // Mantido só por compatibilidade; o botão fica oculto — update é automático.
-            if (refreshBusy || !window.LigeirinhoTotemPwaUpdate?.isPending?.()) return;
-            if (!canAutoApplySystemUpdate()) return;
-            refreshBusy = true;
-            void window.LigeirinhoTotemPwaUpdate.aplicar();
         });
 
         promosBackBtn?.addEventListener('click', () => {

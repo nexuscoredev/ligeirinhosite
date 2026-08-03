@@ -688,7 +688,6 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 
     .lig-header-actions .lig-notif-bell,
     .lig-header-actions .lig-sync-nav-btn,
-    .lig-header-actions .lig-update-nav-btn,
     .lig-header-actions .lig-install-nav-btn,
     .lig-theme-toggle-mount--header .lig-theme-toggle {
         width: 2.125rem;
@@ -699,7 +698,6 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 
     .lig-header-actions .lig-notif-bell__icon,
     .lig-header-actions .lig-sync-nav-btn__icon,
-    .lig-header-actions .lig-update-nav-btn__icon,
     .lig-header-actions .lig-install-nav-btn .material-symbols-outlined,
     .lig-theme-toggle-mount--header .lig-theme-toggle__icon {
         font-size: 1rem;
@@ -912,7 +910,6 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     }
 
     .lig-sync-nav-btn,
-    .lig-update-nav-btn,
     .lig-install-nav-btn,
     .lig-theme-toggle-mount--header .lig-theme-toggle {
         width: 2.5rem;
@@ -11309,65 +11306,6 @@ html.lig-login-modal-open {
     flex-shrink: 0;
     box-sizing: border-box;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.lig-update-nav-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    padding: 0;
-    border-radius: 999px;
-    border: 1px solid rgba(234, 179, 8, 0.45);
-    background: rgba(254, 243, 199, 0.92);
-    color: var(--lig-yellow-text);
-    cursor: pointer;
-    flex-shrink: 0;
-    box-sizing: border-box;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.lig-update-nav-btn[hidden] {
-    display: none !important;
-}
-
-.lig-update-nav-btn--pending {
-    position: relative;
-}
-
-.lig-update-nav-btn--pending::after {
-    content: '';
-    position: absolute;
-    top: 0.2rem;
-    right: 0.2rem;
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 999px;
-    background: #eab308;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
-}
-
-.lig-update-nav-btn:hover {
-    border-color: rgba(247, 213, 60, 0.65);
-    background: var(--lig-yellow-light);
-}
-
-.lig-update-nav-btn:disabled {
-    opacity: 0.72;
-    cursor: wait;
-}
-
-.lig-update-nav-btn__icon {
-    font-size: 1.15rem;
-}
-
-.lig-update-nav-btn--busy .lig-update-nav-btn__icon {
-    animation: lig-sync-spin 0.85s linear infinite;
 }
 
 .lig-sync-nav-btn__icon {

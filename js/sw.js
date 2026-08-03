@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v520';
+const CACHE_NAME = 'ligeirinho-app-v521';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -184,8 +184,8 @@ function cacheShellUrls(cache, urls) {
 }
 
 self.addEventListener('install', (event) => {
-    /* Não chama skipWaiting aqui — evita recarregar o app no meio do uso.
-       A troca acontece só quando o usuário toca em "Atualizar". */
+    /* Não chama skipWaiting aqui — a troca acontece na atualização automática
+       (mensagem SKIP_WAITING + barra de progresso), como no Hub. */
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => cacheShellUrls(cache, APP_SHELL)));
 });
 

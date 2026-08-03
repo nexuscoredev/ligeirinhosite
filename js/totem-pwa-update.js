@@ -44,6 +44,14 @@
     }
 
     function ensureBanner() {
+        const existing = document.getElementById('lig-totem-pwa-update');
+        if (
+            existing &&
+            (existing.querySelector('.lig-pwa-update__primary, .lig-pwa-update__ghost, .lig-pwa-update__actions') ||
+                !existing.querySelector('.lig-pwa-update__chip'))
+        ) {
+            existing.remove();
+        }
         if (document.getElementById('lig-totem-pwa-update')) return;
         const root = document.createElement('div');
         root.id = 'lig-totem-pwa-update';
