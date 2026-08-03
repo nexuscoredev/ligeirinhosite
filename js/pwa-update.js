@@ -273,7 +273,7 @@
                 if (ev.persisted) void verificar({ silencioso: true });
             });
 
-            const id = window.setInterval(() => void verificar({ silencioso: true }), 300_000);
+            const id = window.setInterval(() => void verificar({ silencioso: true }), 30_000);
             window.addEventListener(
                 'beforeunload',
                 () => {
