@@ -13589,7 +13589,7 @@ body.lig-push-prompt-open {
     border: 1px solid var(--lig-border);
     border-radius: 0.625rem;
     padding: 0.55rem 0.85rem;
-    background: var(--lig-bg, #fff);
+    background: var(--lig-surface-alt);
     font: inherit;
     font-size: 0.9375rem;
     font-weight: 600;

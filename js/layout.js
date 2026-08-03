@@ -255,9 +255,6 @@ ${desktopNavHtml}
 <span class="lig-nav-account__label">Minha conta</span>
 </a>
 <div id="lig-notifications-mount" class="shrink-0"></div>
-<button type="button" id="lig-pwa-update-btn" class="lig-update-nav-btn" aria-label="Aplicar atualização do sistema" title="Atualizar app" hidden>
-<span class="material-symbols-outlined lig-update-nav-btn__icon" aria-hidden="true">refresh</span>
-</button>
 ${showCatalogSync ? `<button type="button" id="lig-catalog-sync-btn" class="lig-sync-nav-btn" aria-label="Atualizar catálogo e promoções" title="Atualizar catálogo e promoções">
 <span class="material-symbols-outlined lig-sync-nav-btn__icon" aria-hidden="true">refresh</span>
 </button>` : ''}
