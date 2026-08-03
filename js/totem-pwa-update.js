@@ -1,5 +1,6 @@
 /**
- * Atualização sistêmica do totem (service worker) — espelha o fluxo do Hub.
+ * Atualização sistêmica do totem (service worker).
+ * Aplica sozinho com barra de progresso — sem botão "Atualizar".
  */
 (function () {
     'use strict';
@@ -8,10 +9,13 @@
     const SW_URL = '/js/sw.js';
     const SW_SCOPE = '/';
 
-    /** @type {'idle' | 'pending' | 'checking'} */
+    /** @type {'idle' | 'pending' | 'checking' | 'applying'} */
     let status = 'idle';
     let started = false;
     let aplicando = false;
+    let autoApplyTimer = 0;
+    let progresso = 0;
+    let etapa = 'Atualizando…';
     /** @type {ServiceWorkerRegistration | null} */
     let lastRegistration = null;
     const listeners = new Set();
@@ -34,15 +38,84 @@
         }
     }
 
+    function reportarProgresso(pct, label) {
+        progresso = Math.max(0, Math.min(100, Math.round(pct)));
+        if (label) etapa = label;
+        syncBanner();
+    }
+
+    function ensureBanner() {
+        if (document.getElementById('lig-totem-pwa-update')) return;
+        const root = document.createElement('div');
+        root.id = 'lig-totem-pwa-update';
+        root.className = 'lig-pwa-update';
+        root.setAttribute('role', 'status');
+        root.setAttribute('aria-live', 'polite');
+        root.hidden = true;
+        root.innerHTML =
+            '<div class="lig-pwa-update__chip" aria-busy="true">' +
+            '<div class="lig-pwa-update__progresso">' +
+            '<div class="lig-pwa-update__topo">' +
+            '<span class="lig-pwa-update__etapa" id="lig-totem-pwa-etapa">Atualizando…</span>' +
+            '<span class="lig-pwa-update__pct" id="lig-totem-pwa-pct">0%</span>' +
+            '</div>' +
+            '<div class="lig-pwa-update__barra" aria-hidden="true">' +
+            '<div class="lig-pwa-update__barra-fill" id="lig-totem-pwa-fill" style="width:0%"></div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        document.body.appendChild(root);
+    }
+
+    function syncBanner() {
+        ensureBanner();
+        const root = document.getElementById('lig-totem-pwa-update');
+        if (!root) return;
+        const pendente = status === 'pending' || lerPersistido();
+        const aplicandoAgora = status === 'applying' || aplicando;
+        const visivel = aplicandoAgora || pendente;
+        root.hidden = !visivel;
+        document.body.classList.toggle('lig-pwa-update-open', visivel);
+
+        const etapaEl = document.getElementById('lig-totem-pwa-etapa');
+        const pctEl = document.getElementById('lig-totem-pwa-pct');
+        const fillEl = document.getElementById('lig-totem-pwa-fill');
+        const chip = root.querySelector('.lig-pwa-update__chip');
+        const pct = Math.min(100, Math.max(0, Math.round(progresso)));
+        const concluido = pct >= 100;
+        if (etapaEl) etapaEl.textContent = concluido ? 'Atualizado' : etapa || 'Atualizando…';
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (fillEl) fillEl.style.width = pct + '%';
+        if (chip) {
+            chip.setAttribute('aria-busy', concluido ? 'false' : 'true');
+            chip.setAttribute('aria-valuenow', String(pct));
+        }
+    }
+
     function emitir() {
-        const detail = { status, pendente: status === 'pending' || lerPersistido() };
+        const detail = {
+            status,
+            pendente: status === 'pending' || lerPersistido(),
+            progresso,
+            etapa,
+        };
         window.dispatchEvent(new CustomEvent('lig-totem-pwa', { detail }));
         for (const fn of listeners) fn(detail);
+        syncBanner();
     }
 
     function definirStatus(next) {
         status = next;
         emitir();
+        if (next === 'pending') agendarAplicacaoAutomatica();
+    }
+
+    function agendarAplicacaoAutomatica() {
+        if (aplicando || autoApplyTimer) return;
+        autoApplyTimer = window.setTimeout(() => {
+            autoApplyTimer = 0;
+            void aplicar();
+        }, 400);
     }
 
     function sinalizarPendente() {
@@ -89,6 +162,7 @@
     async function verificar(opcoes) {
         const silencioso = opcoes?.silencioso ?? false;
         if (!('serviceWorker' in navigator)) return 'indisponivel';
+        if (aplicando) return 'pendente';
         if (!silencioso) definirStatus('checking');
 
         try {
@@ -120,22 +194,45 @@
     async function aplicar() {
         if (aplicando) return;
         aplicando = true;
+        if (autoApplyTimer) {
+            window.clearTimeout(autoApplyTimer);
+            autoApplyTimer = 0;
+        }
         persistirPendente(false);
-        definirStatus('idle');
+        status = 'applying';
+        reportarProgresso(5, 'Iniciando…');
+        emitir();
 
         try {
+            reportarProgresso(20, 'Baixando versão…');
+            await new Promise((r) => window.setTimeout(r, 80));
+
+            reportarProgresso(45, 'Ativando…');
             const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
             reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
-        } finally {
+
+            reportarProgresso(75, 'Aplicando…');
+            await new Promise((r) => window.setTimeout(r, 100));
+
+            reportarProgresso(92, 'Recarregando…');
             window.setTimeout(() => {
+                reportarProgresso(100, 'Pronto');
                 if (document.visibilityState !== 'hidden') window.location.reload();
-            }, 400);
+            }, 250);
+        } catch {
+            aplicando = false;
+            status = 'pending';
+            persistirPendente(true);
+            reportarProgresso(0, 'Falha ao atualizar');
+            emitir();
+            agendarAplicacaoAutomatica();
         }
     }
 
     function init() {
         if (started) return;
         started = true;
+        ensureBanner();
 
         if (lerPersistido()) definirStatus('pending');
 
@@ -143,6 +240,7 @@
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!aplicando) return;
                 persistirPendente(false);
+                reportarProgresso(100, 'Pronto');
                 window.location.reload();
             });
         }
@@ -173,13 +271,18 @@
 
     window.LigeirinhoTotemPwaUpdate = {
         init,
-        isPending: () => status === 'pending' || lerPersistido(),
+        isPending: () => status === 'pending' || status === 'applying' || lerPersistido(),
         status: () => status,
         verificar,
         aplicar,
         onStatusChange(fn) {
             listeners.add(fn);
-            fn({ status, pendente: status === 'pending' || lerPersistido() });
+            fn({
+                status,
+                pendente: status === 'pending' || lerPersistido(),
+                progresso,
+                etapa,
+            });
             return () => listeners.delete(fn);
         },
     };

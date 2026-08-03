@@ -1138,17 +1138,13 @@ ${meta}
         }
     }
 
-    const bindPwaUpdateButton = () => {
-        const updateBtn = document.getElementById('lig-pwa-update-btn');
-        if (updateBtn) updateBtn.hidden = true;
+    const bindPwaUpdateChrome = () => {
         const pwaUpdate = window.LigeirinhoPwaUpdate;
-        if (!pwaUpdate || updateBtn?.dataset.bound === '1') return;
-        if (updateBtn) updateBtn.dataset.bound = '1';
+        if (!pwaUpdate) return;
 
-        // Atualização é automática (barra de progresso) — botão do header fica oculto.
+        // Atualização é automática (barra de progresso) — sem botão no header.
         const syncUpdateChrome = () => {
             const pending = Boolean(pwaUpdate.isPending?.());
-            if (updateBtn) updateBtn.hidden = true;
             document.documentElement.classList.toggle('lig-pwa-update-pending', pending);
         };
 
@@ -1157,7 +1153,7 @@ ${meta}
     };
 
     if (page !== 'totem' && page !== 'totem-pagamento' && page !== 'totem-sucesso' && page !== 'totem-caixa') {
-        ensureScript('js/pwa-update.js').then(bindPwaUpdateButton);
+        ensureScript('js/pwa-update.js').then(bindPwaUpdateChrome);
     }
 
     const caminhaoParam = new URLSearchParams(window.location.search).get('caminhao');

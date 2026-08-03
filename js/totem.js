@@ -2510,15 +2510,12 @@ ${unitHtml}
         const showShoppingActions = Boolean(customerIdentified && inShopping);
         const pendingSystemUpdate = Boolean(window.LigeirinhoTotemPwaUpdate?.isPending?.());
         const showAdminOrders = Boolean(window.LigeirinhoTotemOrdersAdmin?.isTotemAdmin?.());
-        const showHeaderActions = showShoppingActions || pendingSystemUpdate || showAdminOrders;
+        const showHeaderActions = showShoppingActions || showAdminOrders;
 
         if (headerActions) {
             headerActions.hidden = !showHeaderActions;
             headerActions.classList.toggle('totem-header__actions--visible', showHeaderActions);
-            headerActions.classList.toggle(
-                'totem-header__actions--update-only',
-                pendingSystemUpdate && !showShoppingActions,
-            );
+            headerActions.classList.remove('totem-header__actions--update-only');
         }
 
         if (promosBtn) {
@@ -2553,13 +2550,10 @@ ${unitHtml}
         }
 
         if (refreshBtn) {
-            refreshBtn.hidden = !pendingSystemUpdate;
-            refreshBtn.disabled = refreshBusy || window.LigeirinhoTotemPwaUpdate?.status?.() === 'checking';
-            refreshBtn.classList.toggle('totem-btn--update-pending', pendingSystemUpdate);
-            refreshBtn.setAttribute(
-                'aria-label',
-                pendingSystemUpdate ? 'Aplicar atualização do sistema' : 'Atualizar',
-            );
+            // Atualização do app é automática — botão some.
+            refreshBtn.hidden = true;
+            refreshBtn.disabled = true;
+            refreshBtn.classList.remove('totem-btn--update-pending');
         }
 
         document.documentElement.classList.toggle('totem--shopping-chrome', showShoppingActions);
