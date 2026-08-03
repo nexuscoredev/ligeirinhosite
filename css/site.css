@@ -14416,6 +14416,19 @@ html.dark .order-track__timeline-bar::after {
     transition: width 0.22s ease;
 }
 
+.lig-pwa-update--waiting .lig-pwa-update__barra {
+    opacity: 0.35;
+}
+
+.lig-pwa-update--waiting .lig-pwa-update__etapa {
+    color: var(--lig-text);
+    font-weight: 700;
+}
+
+.lig-pwa-update--waiting .lig-pwa-update__pct {
+    display: none;
+}
+
 /* ?? Dark mode: contraste seguro (cards, texto, ?cones) ?? */
 html.dark .ze-product-card,
 html.dark .ze-product-h,

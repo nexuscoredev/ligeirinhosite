@@ -1,6 +1,7 @@
 /**
  * Atualização sistêmica do Ligeirinho Parceiros (service worker).
- * Igual ao Hub: ao detectar versão nova, aplica sozinho com barra de progresso.
+ * Aplica sozinha com barra de progresso — mas só em momento seguro
+ * (não no meio de digitação, modal ou interação recente).
  */
 (function () {
     'use strict';
@@ -8,14 +9,19 @@
     const STORAGE_KEY = 'lig-parceiros-pwa-update-pending-v1';
     const SW_URL = '/js/sw.js';
     const SW_SCOPE = '/';
+    /** Sem interação tipável por este tempo → pode aplicar. */
+    const IDLE_MS = 10_000;
+    const RETRY_MS = 1_200;
 
-    /** @type {'idle' | 'pending' | 'checking' | 'applying'} */
+    /** @type {'idle' | 'pending' | 'checking' | 'applying' | 'waiting'} */
     let status = 'idle';
     let started = false;
     let aplicando = false;
     let autoApplyTimer = 0;
     let progresso = 0;
     let etapa = 'Atualizando…';
+    let lastActivityAt = 0;
+    let activityBound = false;
     /** @type {ServiceWorkerRegistration | null} */
     let lastRegistration = null;
     const listeners = new Set();
@@ -48,6 +54,84 @@
         );
     }
 
+    function marcarAtividade() {
+        lastActivityAt = Date.now();
+    }
+
+    function elementoEditavel(el) {
+        if (!el || el === document.body || el === document.documentElement) return false;
+        const tag = String(el.tagName || '').toUpperCase();
+        if (tag === 'INPUT') {
+            const type = String(el.type || 'text').toLowerCase();
+            if (
+                type === 'button' ||
+                type === 'submit' ||
+                type === 'reset' ||
+                type === 'checkbox' ||
+                type === 'radio' ||
+                type === 'file' ||
+                type === 'hidden' ||
+                type === 'image'
+            ) {
+                return false;
+            }
+            return !el.disabled && !el.readOnly;
+        }
+        if (tag === 'TEXTAREA' || tag === 'SELECT') return !el.disabled && !el.readOnly;
+        if (el.isContentEditable) return true;
+        return false;
+    }
+
+    function overlayBloqueanteAberto() {
+        if (document.body.classList.contains('lig-push-prompt-open')) return true;
+        if (document.body.classList.contains('lig-install-modal-open')) return true;
+        if (document.getElementById('lig-push-prompt')) return true;
+        if (document.querySelector('.lig-promo-entry-notice--open')) return true;
+        if (document.querySelector('.lig-cart-sheet.is-open, .lig-cart-panel.is-open, body.lig-cart-open')) {
+            return true;
+        }
+        // Pickers / sheets do resumo e formulários
+        if (document.querySelector('.resumo-shell--picker')) return true;
+        if (document.querySelector('[role="dialog"]:not([hidden]):not([aria-hidden="true"])')) return true;
+        if (document.querySelector('dialog[open]')) return true;
+        return false;
+    }
+
+    function formularioEmEnvio() {
+        const busy = document.querySelector(
+            'button[disabled][aria-busy="true"], button.resumo-confirm-btn[disabled], .resumo-confirm-btn[aria-busy="true"]',
+        );
+        return Boolean(busy);
+    }
+
+    /** true = usuário no meio de algo — não recarregar. */
+    function usuarioOcupado() {
+        if (document.visibilityState === 'hidden') return true;
+        if (elementoEditavel(document.activeElement)) return true;
+        if (overlayBloqueanteAberto()) return true;
+        if (formularioEmEnvio()) return true;
+        if (lastActivityAt && Date.now() - lastActivityAt < IDLE_MS) return true;
+        return false;
+    }
+
+    function bindActivityTracking() {
+        if (activityBound) return;
+        activityBound = true;
+        const onAct = () => marcarAtividade();
+        document.addEventListener('keydown', onAct, true);
+        document.addEventListener('input', onAct, true);
+        document.addEventListener('change', onAct, true);
+        document.addEventListener('compositionstart', onAct, true);
+        document.addEventListener('pointerdown', (ev) => {
+            if (elementoEditavel(ev.target) || ev.target?.closest?.('form, .resumo-shell, .lig-cart-sheet, [role="dialog"]')) {
+                marcarAtividade();
+            }
+        }, true);
+        document.addEventListener('focusin', (ev) => {
+            if (elementoEditavel(ev.target)) marcarAtividade();
+        }, true);
+    }
+
     function reportarProgresso(pct, label) {
         progresso = Math.max(0, Math.min(100, Math.round(pct)));
         if (label) etapa = label;
@@ -56,10 +140,11 @@
 
     function ensureBanner() {
         const existing = document.getElementById('lig-pwa-update');
-        // Remove UI antiga com botões ("Atualizar agora" / "Depois").
         if (
             existing &&
-            (existing.querySelector('#lig-pwa-update-apply, #lig-pwa-update-later, .lig-pwa-update__primary, .lig-pwa-update__ghost, .lig-pwa-update__actions') ||
+            (existing.querySelector(
+                '#lig-pwa-update-apply, #lig-pwa-update-later, .lig-pwa-update__primary, .lig-pwa-update__ghost, .lig-pwa-update__actions',
+            ) ||
                 !existing.querySelector('.lig-pwa-update__chip'))
         ) {
             existing.remove();
@@ -93,12 +178,13 @@
         const root = document.getElementById('lig-pwa-update');
         if (!root) return;
 
-        // Só barra de progresso — nunca botões. Visível enquanto aplica (ou ao detectar pendente).
         const aplicandoAgora = status === 'applying' || aplicando;
+        const aguardando = status === 'waiting';
         const pendente = status === 'pending' || lerPersistido();
-        const visivel = aplicandoAgora || pendente;
+        const visivel = aplicandoAgora || aguardando || pendente;
         root.hidden = !visivel;
         document.body.classList.toggle('lig-pwa-update-open', visivel);
+        root.classList.toggle('lig-pwa-update--waiting', aguardando && !aplicandoAgora);
 
         const etapaEl = document.getElementById('lig-pwa-update-etapa');
         const pctEl = document.getElementById('lig-pwa-update-pct');
@@ -106,6 +192,14 @@
         const chip = root.querySelector('.lig-pwa-update__chip');
         const pct = Math.min(100, Math.max(0, Math.round(progresso)));
         const concluido = pct >= 100;
+
+        if (aguardando && !aplicandoAgora) {
+            if (etapaEl) etapaEl.textContent = 'Nova versão pronta — aplica ao terminar';
+            if (pctEl) pctEl.textContent = '';
+            if (fillEl) fillEl.style.width = '0%';
+            if (chip) chip.setAttribute('aria-busy', 'false');
+            return;
+        }
 
         if (etapaEl) etapaEl.textContent = concluido ? 'Atualizado' : etapa || 'Atualizando…';
         if (pctEl) pctEl.textContent = pct + '%';
@@ -119,9 +213,10 @@
     function emitir() {
         const detail = {
             status,
-            pendente: status === 'pending' || lerPersistido(),
+            pendente: status === 'pending' || status === 'waiting' || lerPersistido(),
             progresso,
             etapa,
+            ocupado: usuarioOcupado(),
         };
         window.dispatchEvent(new CustomEvent('lig-pwa-update', { detail }));
         for (const fn of listeners) fn(detail);
@@ -131,15 +226,39 @@
     function definirStatus(next) {
         status = next;
         emitir();
-        if (next === 'pending') agendarAplicacaoAutomatica();
+        if (next === 'pending' || next === 'waiting') agendarAplicacaoAutomatica();
     }
 
     function agendarAplicacaoAutomatica() {
-        if (aplicando || autoApplyTimer) return;
+        if (aplicando) return;
+        if (autoApplyTimer) window.clearTimeout(autoApplyTimer);
         autoApplyTimer = window.setTimeout(() => {
             autoApplyTimer = 0;
-            void aplicar();
+            void tentarAplicarComSeguranca();
         }, 400);
+    }
+
+    function tentarAplicarComSeguranca() {
+        if (aplicando) return;
+        if (!(status === 'pending' || status === 'waiting' || lerPersistido())) return;
+
+        if (usuarioOcupado()) {
+            if (status !== 'waiting') {
+                status = 'waiting';
+                progresso = 0;
+                etapa = 'Aguardando…';
+                emitir();
+            } else {
+                syncBanner();
+            }
+            autoApplyTimer = window.setTimeout(() => {
+                autoApplyTimer = 0;
+                void tentarAplicarComSeguranca();
+            }, RETRY_MS);
+            return;
+        }
+
+        void aplicar();
     }
 
     function sinalizarPendente() {
@@ -205,18 +324,26 @@
 
             if (await detectarSwAguardando()) return 'pendente';
 
-            const pendente = status === 'pending' || lerPersistido();
+            const pendente = status === 'pending' || status === 'waiting' || lerPersistido();
             if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
             return pendente ? 'pendente' : 'em-dia';
         } catch {
-            const pendente = status === 'pending' || lerPersistido();
+            const pendente = status === 'pending' || status === 'waiting' || lerPersistido();
             if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
             return 'indisponivel';
         }
     }
 
-    async function aplicar() {
+    async function aplicar(opcoes) {
+        const forcar = Boolean(opcoes?.forcar);
         if (aplicando) return;
+        if (!forcar && usuarioOcupado()) {
+            status = 'waiting';
+            emitir();
+            agendarAplicacaoAutomatica();
+            return;
+        }
+
         aplicando = true;
         if (autoApplyTimer) {
             window.clearTimeout(autoApplyTimer);
@@ -230,6 +357,17 @@
         try {
             reportarProgresso(20, 'Baixando versão…');
             await new Promise((r) => window.setTimeout(r, 80));
+
+            // Dupla checagem: se começou a digitar no meio do countdown, aborta.
+            if (!forcar && usuarioOcupado()) {
+                aplicando = false;
+                persistirPendente(true);
+                status = 'waiting';
+                progresso = 0;
+                emitir();
+                agendarAplicacaoAutomatica();
+                return;
+            }
 
             reportarProgresso(45, 'Ativando…');
             const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
@@ -256,6 +394,7 @@
     function init() {
         if (started || isTotemPage()) return;
         started = true;
+        bindActivityTracking();
         ensureBanner();
 
         if (lerPersistido()) definirStatus('pending');
@@ -268,6 +407,17 @@
                 window.location.reload();
             });
         }
+
+        // Ao sair de um campo ou fechar overlay, tenta aplicar se houver update pendente.
+        document.addEventListener(
+            'focusout',
+            () => {
+                if (status === 'waiting' || status === 'pending' || lerPersistido()) {
+                    window.setTimeout(() => agendarAplicacaoAutomatica(), 300);
+                }
+            },
+            true,
+        );
 
         void registrarSw().then(() => {
             window.setTimeout(() => void verificar({ silencioso: true }), 2000);
@@ -297,17 +447,20 @@
 
     window.LigeirinhoPwaUpdate = {
         init,
-        isPending: () => status === 'pending' || status === 'applying' || lerPersistido(),
+        isPending: () =>
+            status === 'pending' || status === 'waiting' || status === 'applying' || lerPersistido(),
         status: () => status,
         verificar,
         aplicar,
+        usuarioOcupado,
         onStatusChange(fn) {
             listeners.add(fn);
             fn({
                 status,
-                pendente: status === 'pending' || lerPersistido(),
+                pendente: status === 'pending' || status === 'waiting' || lerPersistido(),
                 progresso,
                 etapa,
+                ocupado: usuarioOcupado(),
             });
             return () => listeners.delete(fn);
         },
