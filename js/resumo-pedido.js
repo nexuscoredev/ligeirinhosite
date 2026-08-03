@@ -1238,8 +1238,17 @@ ${body}
             }
 
             const savedOrderId = isEditing ? editOrderId : data.orderId;
-            cartApi.saveLastOrder(cart, { ...checkout, editOrderId: '' }, savedOrderId);
-            cartApi.saveCheckout({ editOrderId: '' });
+            cartApi.saveLastOrder(cart, checkout, savedOrderId);
+            // Próximo pedido não herda divisão/pagamento (nem id de edição).
+            cartApi.saveCheckout({
+                editOrderId: '',
+                editOrderMeta: undefined,
+                payment: '',
+                paymentMethod: '',
+                paymentSplits: [],
+                orderClienteNome: '',
+                orderClienteDoc: '',
+            });
             if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {
                 cartApi.saveAddressToHistory?.({
                     address: checkout.address,

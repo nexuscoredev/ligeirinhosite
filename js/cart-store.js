@@ -162,6 +162,32 @@
         return patch;
     };
 
+    const paymentCheckoutReset = () => ({
+        payment: '',
+        paymentMethod: '',
+        paymentSplits: [],
+    });
+
+    /** Checkout do “pedir de novo”: mantém entrega/endereço, nunca a forma de pagamento. */
+    const checkoutForReorder = (checkout) => {
+        const raw = checkout && typeof checkout === 'object' ? checkout : {};
+        const {
+            payment: _p,
+            paymentMethod: _pm,
+            paymentSplits: _ps,
+            editOrderId: _eo,
+            editOrderMeta: _em,
+            ...rest
+        } = raw;
+        return {
+            ...defaultCheckout(),
+            ...rest,
+            ...paymentCheckoutReset(),
+            editOrderId: '',
+            editOrderMeta: undefined,
+        };
+    };
+
     const saveLastOrder = (cart, checkout, orderId = null) => {
         const items = cartEntries(cart);
         if (!items.length) return;
@@ -182,7 +208,8 @@
                         categoryName: item.categoryName || '',
                         ...promoFieldsFromItem(item),
                     })),
-                    checkout: checkout || loadCheckout(),
+                    // Não persiste divisão/pagamento — próximo pedido escolhe de novo.
+                    checkout: checkoutForReorder(checkout || loadCheckout()),
                     savedAt: Date.now(),
                 })
             );
@@ -210,8 +237,14 @@
             cart[key] = { ...item, cartKey: key };
         });
         saveCart(cart);
-        if (data.checkout) saveCheckout(data.checkout);
+        if (data.checkout) saveCheckout(checkoutForReorder(data.checkout));
+        else saveCheckout(paymentCheckoutReset());
         return true;
+    };
+
+    /** Limpa forma de pagamento do checkout atual (após pedido ou ao iniciar fluxo novo). */
+    const clearCheckoutPayment = () => {
+        saveCheckout(paymentCheckoutReset());
     };
 
     const isDeliveryFeeCartItem = (item) => {
@@ -593,6 +626,8 @@
         saveLastOrder,
         loadLastOrder,
         restoreLastOrder,
+        clearCheckoutPayment,
+        checkoutForReorder,
         loadOrderIntoCart,
         loadOrderForEdit,
         lastOrderSummary,
