@@ -13,6 +13,7 @@
     let status = 'idle';
     let started = false;
     let aplicando = false;
+    let reloadAgendado = false;
     let progresso = 0;
     let etapa = 'Atualizando…';
     /** @type {ServiceWorkerRegistration | null} */
@@ -78,25 +79,19 @@
         ensureBanner();
         const root = document.getElementById('lig-totem-pwa-update');
         if (!root) return;
-        const pendente = status === 'pending' || lerPersistido();
+        // Só mostra barra enquanto aplica — pendente fica silencioso (evita flicker/crash).
         const aplicandoAgora = status === 'applying' || aplicando;
-        const visivel = aplicandoAgora || pendente;
-        root.hidden = !visivel;
-        document.body.classList.toggle('lig-pwa-update-open', visivel);
+        root.hidden = !aplicandoAgora;
+        document.body.classList.toggle('lig-pwa-update-open', aplicandoAgora);
+        if (!aplicandoAgora) return;
 
         const etapaEl = document.getElementById('lig-totem-pwa-etapa');
         const pctEl = document.getElementById('lig-totem-pwa-pct');
         const fillEl = document.getElementById('lig-totem-pwa-fill');
-        const chip = root.querySelector('.lig-pwa-update__chip');
         const pct = Math.min(100, Math.max(0, Math.round(progresso)));
-        const concluido = pct >= 100;
-        if (etapaEl) etapaEl.textContent = concluido ? 'Atualizado' : etapa || 'Atualizando…';
+        if (etapaEl) etapaEl.textContent = pct >= 100 ? 'Atualizado' : etapa || 'Atualizando…';
         if (pctEl) pctEl.textContent = pct + '%';
         if (fillEl) fillEl.style.width = pct + '%';
-        if (chip) {
-            chip.setAttribute('aria-busy', concluido ? 'false' : 'true');
-            chip.setAttribute('aria-valuenow', String(pct));
-        }
     }
 
     function emitir() {
@@ -180,45 +175,68 @@
 
             if (await detectarSwAguardando()) return 'pendente';
 
-            const pendente = status === 'pending' || lerPersistido();
-            if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
-            return pendente ? 'pendente' : 'em-dia';
+            // Sem waiting: limpa falso pendente (não recarrega).
+            if (status === 'pending' || lerPersistido()) {
+                persistirPendente(false);
+                if (!silencioso) definirStatus('idle');
+                else status = 'idle';
+            } else if (!silencioso) {
+                definirStatus('idle');
+            }
+            return 'em-dia';
         } catch {
-            const pendente = status === 'pending' || lerPersistido();
-            if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
+            if (!silencioso) definirStatus(lerPersistido() ? 'pending' : 'idle');
             return 'indisponivel';
         }
     }
 
+    let reloadAgendado = false;
+
+    function recarregarUmaVez() {
+        if (reloadAgendado) return;
+        reloadAgendado = true;
+        reportarProgresso(100, 'Pronto');
+        const url = location.pathname + location.search + location.hash;
+        window.setTimeout(() => {
+            try {
+                window.location.replace(url);
+            } catch {
+                window.location.reload();
+            }
+        }, 120);
+    }
+
     async function aplicar() {
-        if (aplicando) return;
+        if (aplicando || reloadAgendado) return;
+
+        const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
+        const temWaiting = Boolean(reg?.waiting && navigator.serviceWorker.controller);
+        if (!temWaiting) {
+            persistirPendente(false);
+            status = 'idle';
+            progresso = 0;
+            emitir();
+            return;
+        }
+
         aplicando = true;
         persistirPendente(false);
         status = 'applying';
-        reportarProgresso(5, 'Iniciando…');
+        reportarProgresso(8, 'Iniciando…');
         emitir();
 
         try {
-            reportarProgresso(20, 'Baixando versão…');
-            await new Promise((r) => window.setTimeout(r, 80));
-
-            reportarProgresso(45, 'Ativando…');
-            const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
-            reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
-
+            reportarProgresso(40, 'Ativando…');
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
             reportarProgresso(75, 'Aplicando…');
-            await new Promise((r) => window.setTimeout(r, 100));
-
-            reportarProgresso(92, 'Recarregando…');
             window.setTimeout(() => {
-                reportarProgresso(100, 'Pronto');
-                if (document.visibilityState !== 'hidden') window.location.reload();
-            }, 250);
+                if (!reloadAgendado) recarregarUmaVez();
+            }, 1800);
         } catch {
             aplicando = false;
             status = 'pending';
             persistirPendente(true);
-            reportarProgresso(0, 'Falha ao atualizar');
+            progresso = 0;
             emitir();
         }
     }
@@ -234,8 +252,7 @@
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!aplicando) return;
                 persistirPendente(false);
-                reportarProgresso(100, 'Pronto');
-                window.location.reload();
+                recarregarUmaVez();
             });
         }
 

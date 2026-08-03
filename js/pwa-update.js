@@ -1,22 +1,22 @@
 /**
- * Atualização sistêmica do Ligeirinho Parceiros (service worker).
+ * Atualização PWA do Ligeirinho Parceiros — estável.
  *
- * - Baixa a versão nova em silêncio (sem banner de “aguardando”).
- * - Só recarrega em momento seguro: fora de pedido/formulário/caminhão aberto.
- * - Enquanto aplica, mostra só a barra de progresso (%).
+ * - Baixa a versão nova em silêncio.
+ * - Só aplica com SW `waiting` real (sem reload falso → evita tela branca em loop).
+ * - Um único reload (controllerchange + fallback).
+ * - Nunca no meio de pedido / formulário / digitação.
  */
 (function () {
     'use strict';
 
     const STORAGE_KEY = 'lig-parceiros-pwa-update-pending-v1';
+    const RELOAD_GUARD_KEY = 'lig-parceiros-pwa-reload-guard-v1';
     const SW_URL = '/js/sw.js';
     const SW_SCOPE = '/';
-    /** Idle real fora de fluxo crítico antes de aplicar. */
-    const IDLE_SAFE_MS = 8_000;
-    const RETRY_MS = 5_000;
-    const AWAY_APPLY_MS = 25_000;
+    const IDLE_SAFE_MS = 20_000;
+    const RETRY_MS = 12_000;
+    const AWAY_APPLY_MS = 45_000;
 
-    /** Páginas onde NUNCA recarregamos no meio do uso. */
     const CRITICAL_PAGES = new Set([
         'resumo',
         'resumo-pedido',
@@ -24,12 +24,26 @@
         'pix',
         'endereco',
         'conta',
+        'caminhao',
     ]);
 
-    /** @type {'idle' | 'pending' | 'checking' | 'applying' | 'waiting'} */
+    const SAFE_PAGES = new Set([
+        'inicio',
+        'home',
+        'pedidos',
+        'ofertas',
+        'promocoes',
+        'quemsomos',
+        'contato',
+        'meus-pedidos',
+        '',
+    ]);
+
+    /** @type {'idle' | 'pending' | 'waiting' | 'applying'} */
     let status = 'idle';
     let started = false;
     let aplicando = false;
+    let reloadAgendado = false;
     let autoApplyTimer = 0;
     let progresso = 0;
     let etapa = 'Atualizando…';
@@ -79,6 +93,7 @@
         if (path.includes('resumo-pedido')) return 'resumo-pedido';
         if (path.includes('pedido-confirmado')) return 'pedido-confirmado';
         if (path.includes('conta')) return 'conta';
+        if (path.includes('totem')) return 'totem';
         return path.replace(/^\//, '').replace(/\.html$/, '') || 'inicio';
     }
 
@@ -92,12 +107,16 @@
         if (sheet && !sheet.classList.contains('hidden') && sheet.getAttribute('aria-hidden') !== 'true') {
             return true;
         }
-        const panel = document.getElementById('cart-desktop-panel') || document.querySelector('.lig-cart-panel');
-        if (panel && !panel.classList.contains('hidden') && panel.offsetParent !== null) {
-            // painel desktop aberto com campos de checkout
-            if (panel.querySelector('textarea, input:not([type="hidden"])')) return true;
-        }
         return false;
+    }
+
+    function paginaSeguraParaReload() {
+        const page = pageKey();
+        if (fluxoCriticoAtivo()) return false;
+        if (SAFE_PAGES.has(page)) return true;
+        // Catálogo / listagens: ok se não estiver digitando nem com modal.
+        if (page === 'pedido-confirmado') return true;
+        return !CRITICAL_PAGES.has(page);
     }
 
     function elementoEditavel(el) {
@@ -105,26 +124,16 @@
         const tag = String(el.tagName || '').toUpperCase();
         if (tag === 'INPUT') {
             const type = String(el.type || 'text').toLowerCase();
-            if (
-                type === 'button' ||
-                type === 'submit' ||
-                type === 'reset' ||
-                type === 'checkbox' ||
-                type === 'radio' ||
-                type === 'file' ||
-                type === 'hidden' ||
-                type === 'image'
-            ) {
+            if (['button', 'submit', 'reset', 'checkbox', 'radio', 'file', 'hidden', 'image'].includes(type)) {
                 return false;
             }
             return !el.disabled && !el.readOnly;
         }
         if (tag === 'TEXTAREA' || tag === 'SELECT') return !el.disabled && !el.readOnly;
-        if (el.isContentEditable) return true;
-        return false;
+        return Boolean(el.isContentEditable);
     }
 
-    function overlayBloqueanteAberto() {
+    function overlayAberto() {
         if (document.body.classList.contains('lig-push-prompt-open')) return true;
         if (document.body.classList.contains('lig-install-modal-open')) return true;
         if (document.getElementById('lig-push-prompt')) return true;
@@ -134,41 +143,14 @@
         return false;
     }
 
-    function formularioEmEnvio() {
-        return Boolean(
-            document.querySelector(
-                'button[disabled][aria-busy="true"], button.resumo-confirm-btn[disabled], .resumo-confirm-btn[aria-busy="true"]',
-            ),
-        );
-    }
-
-    /**
-     * true = não é seguro recarregar agora.
-     * Update fica em segundo plano (SW waiting) sem UI.
-     */
-    function usuarioOcupado() {
-        if (fluxoCriticoAtivo()) return true;
-        if (elementoEditavel(document.activeElement)) return true;
-        if (overlayBloqueanteAberto()) return true;
-        if (formularioEmEnvio()) return true;
-        if (Date.now() - lastActivityAt < IDLE_SAFE_MS) return true;
-        return false;
-    }
-
     function podeAplicarAgora() {
-        if (aplicando) return false;
+        if (aplicando || reloadAgendado) return false;
         if (document.visibilityState === 'hidden') return false;
-        return !usuarioOcupado();
-    }
-
-    function flushEstadoAntesDeAtualizar() {
-        try {
-            const el = document.activeElement;
-            if (elementoEditavel(el)) el.blur();
-        } catch {
-            /* ignore */
-        }
-        window.dispatchEvent(new CustomEvent('lig-pwa-flush-before-update'));
+        if (!paginaSeguraParaReload()) return false;
+        if (elementoEditavel(document.activeElement)) return false;
+        if (overlayAberto()) return false;
+        if (Date.now() - lastActivityAt < IDLE_SAFE_MS) return false;
+        return true;
     }
 
     function bindActivityTracking() {
@@ -177,14 +159,15 @@
         const onAct = () => marcarAtividade();
         document.addEventListener('keydown', onAct, true);
         document.addEventListener('input', onAct, true);
-        document.addEventListener('change', onAct, true);
-        document.addEventListener('compositionstart', onAct, true);
         document.addEventListener('pointerdown', onAct, true);
         document.addEventListener('touchstart', onAct, { capture: true, passive: true });
-        document.addEventListener('scroll', onAct, { capture: true, passive: true });
-        document.addEventListener('focusin', (ev) => {
-            if (elementoEditavel(ev.target)) marcarAtividade();
-        }, true);
+        document.addEventListener(
+            'focusin',
+            (ev) => {
+                if (elementoEditavel(ev.target)) marcarAtividade();
+            },
+            true,
+        );
     }
 
     function reportarProgresso(pct, label) {
@@ -197,9 +180,7 @@
         const existing = document.getElementById('lig-pwa-update');
         if (
             existing &&
-            (existing.querySelector(
-                '#lig-pwa-update-apply, #lig-pwa-update-later, .lig-pwa-update__primary, .lig-pwa-update__ghost, .lig-pwa-update__actions',
-            ) ||
+            (existing.querySelector('.lig-pwa-update__primary, .lig-pwa-update__actions') ||
                 !existing.querySelector('.lig-pwa-update__chip'))
         ) {
             existing.remove();
@@ -224,7 +205,6 @@
             '</div>' +
             '</div>' +
             '</div>';
-
         document.body.appendChild(root);
     }
 
@@ -233,28 +213,19 @@
         const root = document.getElementById('lig-pwa-update');
         if (!root) return;
 
-        // Só mostra UI enquanto aplica de fato — pendente fica 100% silencioso.
         const aplicandoAgora = status === 'applying' || aplicando;
         root.hidden = !aplicandoAgora;
         document.body.classList.toggle('lig-pwa-update-open', aplicandoAgora);
-        root.classList.remove('lig-pwa-update--waiting');
 
         if (!aplicandoAgora) return;
 
         const etapaEl = document.getElementById('lig-pwa-update-etapa');
         const pctEl = document.getElementById('lig-pwa-update-pct');
         const fillEl = document.getElementById('lig-pwa-update-fill');
-        const chip = root.querySelector('.lig-pwa-update__chip');
         const pct = Math.min(100, Math.max(0, Math.round(progresso)));
-        const concluido = pct >= 100;
-
-        if (etapaEl) etapaEl.textContent = concluido ? 'Atualizado' : etapa || 'Atualizando…';
+        if (etapaEl) etapaEl.textContent = pct >= 100 ? 'Atualizado' : etapa || 'Atualizando…';
         if (pctEl) pctEl.textContent = pct + '%';
         if (fillEl) fillEl.style.width = pct + '%';
-        if (chip) {
-            chip.setAttribute('aria-busy', concluido ? 'false' : 'true');
-            chip.setAttribute('aria-valuenow', String(pct));
-        }
     }
 
     function emitir() {
@@ -263,7 +234,6 @@
             pendente: status === 'pending' || status === 'waiting' || lerPersistido(),
             progresso,
             etapa,
-            ocupado: usuarioOcupado(),
         };
         window.dispatchEvent(new CustomEvent('lig-pwa-update', { detail }));
         for (const fn of listeners) fn(detail);
@@ -273,26 +243,25 @@
     function definirStatus(next) {
         status = next;
         emitir();
-        if (next === 'pending' || next === 'waiting') agendarAplicacaoAutomatica();
+        if (next === 'pending' || next === 'waiting') agendarAplicacaoAutomatica(900);
     }
 
     function agendarAplicacaoAutomatica(delayMs) {
-        if (aplicando) return;
+        if (aplicando || reloadAgendado) return;
         if (autoApplyTimer) window.clearTimeout(autoApplyTimer);
         autoApplyTimer = window.setTimeout(() => {
             autoApplyTimer = 0;
             void tentarAplicarComSeguranca();
-        }, delayMs == null ? 600 : delayMs);
+        }, delayMs == null ? 900 : delayMs);
     }
 
     function tentarAplicarComSeguranca() {
-        if (aplicando) return;
+        if (aplicando || reloadAgendado) return;
         if (!(status === 'pending' || status === 'waiting' || lerPersistido())) return;
 
         if (!podeAplicarAgora()) {
             if (status !== 'waiting') {
                 status = 'waiting';
-                progresso = 0;
                 emitir();
             }
             agendarAplicacaoAutomatica(RETRY_MS);
@@ -304,21 +273,23 @@
 
     function sinalizarPendente() {
         persistirPendente(true);
-        definirStatus('pending');
+        definirStatus(fluxoCriticoAtivo() ? 'waiting' : 'pending');
     }
 
-    async function detectarSwAguardando() {
-        if (!('serviceWorker' in navigator)) return false;
-        const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
-        if (!reg?.waiting || !navigator.serviceWorker.controller) return false;
-        sinalizarPendente();
-        return true;
+    async function getRegistration() {
+        if (!('serviceWorker' in navigator)) return null;
+        lastRegistration = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
+        return lastRegistration;
+    }
+
+    async function temSwWaiting() {
+        const reg = await getRegistration();
+        return Boolean(reg?.waiting && navigator.serviceWorker.controller);
     }
 
     function vincularListenersRegistro(reg) {
         if (registrationsWithListeners.has(reg)) return;
         registrationsWithListeners.add(reg);
-
         reg.addEventListener('updatefound', () => {
             const installing = reg.installing;
             if (!installing) return;
@@ -336,7 +307,7 @@
             const reg = await navigator.serviceWorker.register(SW_URL, { scope: SW_SCOPE });
             lastRegistration = reg;
             vincularListenersRegistro(reg);
-            await detectarSwAguardando();
+            if (await temSwWaiting()) sinalizarPendente();
             return reg;
         } catch {
             return null;
@@ -344,48 +315,65 @@
     }
 
     async function verificar(opcoes) {
-        const silencioso = opcoes?.silencioso ?? false;
-        if (!('serviceWorker' in navigator)) return 'indisponivel';
-        if (aplicando) return 'pendente';
-        if (!silencioso) definirStatus('checking');
-
+        const silencioso = opcoes?.silencioso ?? true;
+        if (!('serviceWorker' in navigator) || aplicando) return 'indisponivel';
         try {
-            const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
-            if (!reg) {
-                if (!silencioso) definirStatus('idle');
-                return 'indisponivel';
-            }
-
+            const reg = await getRegistration();
+            if (!reg) return 'indisponivel';
             await reg.update();
-
-            if (reg.waiting && navigator.serviceWorker.controller) {
+            if (await temSwWaiting()) {
                 sinalizarPendente();
                 return 'pendente';
             }
-
-            if (await detectarSwAguardando()) return 'pendente';
-
-            const pendente = status === 'pending' || status === 'waiting' || lerPersistido();
-            if (!silencioso) definirStatus(pendente ? (fluxoCriticoAtivo() ? 'waiting' : 'pending') : 'idle');
-            return pendente ? 'pendente' : 'em-dia';
+            if (lerPersistido() || status === 'pending' || status === 'waiting') {
+                // Falso positivo: limpa sem reload (evita loop de tela branca).
+                persistirPendente(false);
+                status = 'idle';
+                if (!silencioso) emitir();
+            }
+            return 'em-dia';
         } catch {
-            const pendente = status === 'pending' || status === 'waiting' || lerPersistido();
-            if (!silencioso) definirStatus(pendente ? 'pending' : 'idle');
             return 'indisponivel';
         }
     }
 
-    async function aplicar(opcoes) {
-        const forcar = Boolean(opcoes?.forcar);
-        if (aplicando) return;
-        if (!forcar && !podeAplicarAgora()) {
+    function recarregarUmaVez() {
+        if (reloadAgendado) return;
+        reloadAgendado = true;
+        try {
+            sessionStorage.setItem(RELOAD_GUARD_KEY, String(Date.now()));
+        } catch {
+            /* ignore */
+        }
+        reportarProgresso(100, 'Pronto');
+        // Replace evita empilhar histórico quebrado após claim do SW.
+        const url = location.pathname + location.search + location.hash;
+        window.setTimeout(() => {
+            try {
+                window.location.replace(url);
+            } catch {
+                window.location.reload();
+            }
+        }, 120);
+    }
+
+    async function aplicar() {
+        if (aplicando || reloadAgendado) return;
+
+        if (!(await temSwWaiting())) {
+            persistirPendente(false);
+            status = 'idle';
+            progresso = 0;
+            emitir();
+            return;
+        }
+
+        if (!podeAplicarAgora()) {
             status = 'waiting';
             emitir();
             agendarAplicacaoAutomatica(RETRY_MS);
             return;
         }
-
-        flushEstadoAntesDeAtualizar();
 
         aplicando = true;
         if (autoApplyTimer) {
@@ -394,14 +382,28 @@
         }
         persistirPendente(false);
         status = 'applying';
-        reportarProgresso(5, 'Iniciando…');
+        reportarProgresso(8, 'Iniciando…');
         emitir();
 
         try {
-            reportarProgresso(20, 'Baixando versão…');
-            await new Promise((r) => window.setTimeout(r, 60));
+            try {
+                document.activeElement?.blur?.();
+            } catch {
+                /* ignore */
+            }
 
-            if (!forcar && !podeAplicarAgora()) {
+            reportarProgresso(30, 'Preparando…');
+            await new Promise((r) => window.setTimeout(r, 50));
+
+            if (!(await temSwWaiting())) {
+                aplicando = false;
+                status = 'idle';
+                progresso = 0;
+                emitir();
+                return;
+            }
+
+            if (!podeAplicarAgora()) {
                 aplicando = false;
                 persistirPendente(true);
                 status = 'waiting';
@@ -411,23 +413,20 @@
                 return;
             }
 
-            reportarProgresso(45, 'Ativando…');
-            const reg = lastRegistration ?? (await navigator.serviceWorker.getRegistration(SW_SCOPE));
+            reportarProgresso(55, 'Ativando…');
+            const reg = await getRegistration();
             reg?.waiting?.postMessage({ type: 'SKIP_WAITING' });
 
-            reportarProgresso(75, 'Aplicando…');
-            await new Promise((r) => window.setTimeout(r, 80));
-
-            reportarProgresso(92, 'Recarregando…');
+            reportarProgresso(80, 'Aplicando…');
+            // Fallback se controllerchange não disparar (alguns WebViews).
             window.setTimeout(() => {
-                reportarProgresso(100, 'Pronto');
-                window.location.reload();
-            }, 200);
+                if (!reloadAgendado) recarregarUmaVez();
+            }, 1800);
         } catch {
             aplicando = false;
-            status = 'pending';
             persistirPendente(true);
-            reportarProgresso(0, 'Falha ao atualizar');
+            status = 'pending';
+            progresso = 0;
             emitir();
             agendarAplicacaoAutomatica(RETRY_MS);
         }
@@ -439,74 +438,51 @@
         bindActivityTracking();
         ensureBanner();
 
+        // Proteção: se o último reload foi há < 8s e a página está “vazia”, não force outro update.
+        try {
+            const lastReload = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) || 0);
+            if (lastReload && Date.now() - lastReload < 8000) {
+                persistirPendente(false);
+                sessionStorage.removeItem(RELOAD_GUARD_KEY);
+            }
+        } catch {
+            /* ignore */
+        }
+
         if (lerPersistido()) definirStatus(fluxoCriticoAtivo() ? 'waiting' : 'pending');
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!aplicando) return;
                 persistirPendente(false);
-                reportarProgresso(100, 'Pronto');
-                window.location.reload();
+                recarregarUmaVez();
             });
         }
 
-        // Ao navegar no app (fora de fluxo crítico), tenta aplicar na chegada.
-        document.addEventListener(
-            'click',
-            (ev) => {
-                const link = ev.target?.closest?.('a[href]');
-                if (!link) return;
-                if (!(status === 'waiting' || status === 'pending' || lerPersistido())) return;
-                // Deixa a navegação ocorrer; a nova página agenda o apply se for segura.
-                window.setTimeout(() => agendarAplicacaoAutomatica(900), 0);
-            },
-            true,
-        );
-
-        document.addEventListener(
-            'focusout',
-            () => {
-                if (status === 'waiting' || status === 'pending' || lerPersistido()) {
-                    agendarAplicacaoAutomatica(IDLE_SAFE_MS);
-                }
-            },
-            true,
-        );
-
         void registrarSw().then(() => {
-            window.setTimeout(() => void verificar({ silencioso: true }), 2500);
+            window.setTimeout(() => void verificar({ silencioso: true }), 4000);
 
-            const onVis = () => {
+            document.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'hidden') {
                     hiddenSince = Date.now();
                     return;
                 }
-                const awayMs = hiddenSince ? Date.now() - hiddenSince : 0;
+                const away = hiddenSince ? Date.now() - hiddenSince : 0;
                 hiddenSince = 0;
-                void verificar({ silencioso: true });
-                // Voltou ao app após um tempo: aplica se o contexto for seguro.
-                if (awayMs >= AWAY_APPLY_MS) {
-                    agendarAplicacaoAutomatica(700);
-                }
-            };
-            document.addEventListener('visibilitychange', onVis);
-
-            window.addEventListener('pageshow', (ev) => {
-                if (ev.persisted) void verificar({ silencioso: true });
-                agendarAplicacaoAutomatica(1000);
+                void verificar({ silencioso: true }).then(() => {
+                    if (away >= AWAY_APPLY_MS) agendarAplicacaoAutomatica(1500);
+                });
             });
 
             const id = window.setInterval(() => {
-                void verificar({ silencioso: true });
-                if (status === 'waiting' || status === 'pending' || lerPersistido()) {
-                    tentarAplicarComSeguranca();
-                }
-            }, 20_000);
+                void verificar({ silencioso: true }).then((r) => {
+                    if (r === 'pendente') tentarAplicarComSeguranca();
+                });
+            }, 45_000);
 
             window.addEventListener(
                 'beforeunload',
                 () => {
-                    document.removeEventListener('visibilitychange', onVis);
                     window.clearInterval(id);
                 },
                 { once: true },
@@ -521,7 +497,7 @@
         status: () => status,
         verificar,
         aplicar,
-        usuarioOcupado,
+        usuarioOcupado: () => !podeAplicarAgora(),
         fluxoCriticoAtivo,
         onStatusChange(fn) {
             listeners.add(fn);
@@ -530,7 +506,6 @@
                 pendente: status === 'pending' || status === 'waiting' || lerPersistido(),
                 progresso,
                 etapa,
-                ocupado: usuarioOcupado(),
             });
             return () => listeners.delete(fn);
         },
