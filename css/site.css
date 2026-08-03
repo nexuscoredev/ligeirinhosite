@@ -1290,9 +1290,10 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     }
 
     .ze-app-chrome .ze-search-bar {
-        flex: 0 1 16rem;
-        width: 16rem;
-        max-width: 100%;
+        flex: 1 1 20rem;
+        width: min(22rem, 100%);
+        max-width: min(24rem, 100%);
+        min-width: 0;
     }
 }
 
