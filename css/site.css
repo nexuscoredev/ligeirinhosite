@@ -5152,12 +5152,169 @@ html.lig-story-open {
 }
 
 .conta-order-detail__actions {
-    display: grid;
-    gap: 0.625rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 0.15rem;
+    padding: 0.85rem;
+    border-radius: 0.875rem;
+    background: color-mix(in srgb, var(--lig-surface-muted) 75%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lig-border) 85%, transparent);
 }
 
-.conta-order-detail__actions .conta-btn--outline {
-    width: 100%;
+.conta-order-detail__actions-title {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lig-text-muted);
+}
+
+.conta-order-detail__actions-primary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+    gap: 0.5rem;
+}
+
+.conta-order-detail__actions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.conta-order-detail__actions-footer {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.conta-order-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 4.5rem;
+    padding: 0.6rem 0.45rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.1s ease;
+}
+
+.conta-order-action:hover {
+    background: color-mix(in srgb, var(--lig-yellow) 14%, var(--lig-surface));
+    border-color: color-mix(in srgb, var(--lig-yellow) 45%, var(--lig-border));
+}
+
+.conta-order-action:active {
+    transform: scale(0.98);
+}
+
+.conta-order-action:focus-visible {
+    outline: 2px solid var(--lig-yellow);
+    outline-offset: 2px;
+}
+
+.conta-order-action__icon {
+    font-size: 1.375rem;
+    color: var(--lig-text);
+    font-variation-settings: 'FILL' 0, 'wght' 500;
+}
+
+.conta-order-action__label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conta-order-action--primary {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    padding: 0.7rem 0.85rem;
+    background: var(--lig-yellow);
+    color: var(--lig-on-yellow);
+    border-color: transparent;
+    font-size: 0.8125rem;
+}
+
+.conta-order-action--primary .conta-order-action__icon {
+    font-size: 1.125rem;
+    color: inherit;
+}
+
+.conta-order-action--primary:hover {
+    background: color-mix(in srgb, var(--lig-yellow) 88%, #000);
+    border-color: transparent;
+}
+
+.conta-order-action--wide,
+.conta-order-action--danger-wide {
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2.625rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.8125rem;
+}
+
+.conta-order-action--wide .conta-order-action__icon,
+.conta-order-action--danger-wide .conta-order-action__icon {
+    font-size: 1.125rem;
+}
+
+.conta-order-action--danger-wide {
+    background: transparent;
+    color: var(--lig-danger, #b42318);
+    border-color: color-mix(in srgb, var(--lig-danger, #b42318) 35%, var(--lig-border));
+}
+
+.conta-order-action--danger-wide:hover {
+    background: color-mix(in srgb, var(--lig-danger, #b42318) 8%, var(--lig-surface));
+    border-color: color-mix(in srgb, var(--lig-danger, #b42318) 45%, var(--lig-border));
+}
+
+.conta-order-action:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+}
+
+.conta-order-detail__actions .conta-order-detail__edit-hint {
+    padding: 0.55rem 0.65rem;
+    border-radius: 0.625rem;
+    background: color-mix(in srgb, var(--lig-yellow) 12%, var(--lig-surface));
+    border: 1px solid color-mix(in srgb, var(--lig-yellow) 28%, var(--lig-border));
+}
+
+@media (max-width: 420px) {
+    .conta-order-detail__actions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .conta-order-detail__actions-grid .conta-order-action:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        min-height: 2.75rem;
+        padding-inline: 0.85rem;
+    }
+
+    .conta-order-detail__actions-grid .conta-order-action:last-child:nth-child(odd) .conta-order-action__icon {
+        font-size: 1.125rem;
+    }
 }
 
 .conta-empty {

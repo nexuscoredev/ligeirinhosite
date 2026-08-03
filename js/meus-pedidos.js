@@ -273,6 +273,115 @@ ${statusGlyphHtml(status.icon)}
 </div>`
             : '';
 
+    const getActionButtonLabel = (button) => {
+        const labelEl = button?.querySelector('.conta-order-action__label');
+        return labelEl?.textContent?.trim() || button?.textContent?.trim() || '';
+    };
+
+    const setActionButtonLabel = (button, label) => {
+        const labelEl = button?.querySelector('.conta-order-action__label');
+        if (labelEl) {
+            labelEl.textContent = label;
+            return;
+        }
+        if (button) button.textContent = label;
+    };
+
+    const orderActionHtml = ({ tag = 'button', href = '', icon, label, variant = 'tile', attrs = '' } = {}) => {
+        const cls = `conta-order-action conta-order-action--${variant}`;
+        const inner = `<span class="material-symbols-outlined conta-order-action__icon" aria-hidden="true">${esc(icon)}</span><span class="conta-order-action__label">${esc(label)}</span>`;
+        if (tag === 'a') {
+            return `<a href="${href}" class="${cls}" ${attrs}>${inner}</a>`;
+        }
+        return `<button type="button" class="${cls}" ${attrs}>${inner}</button>`;
+    };
+
+    const orderActionsHtml = (order, { showReorder = false } = {}) => {
+        const primary = [];
+        const grid = [];
+        const footer = [];
+
+        if (showReorder) {
+            primary.push(
+                orderActionHtml({
+                    icon: 'replay',
+                    label: 'Repetir pedido',
+                    variant: 'primary',
+                    attrs: 'data-meus-pedidos-reorder',
+                }),
+            );
+        }
+        if (canEditOrder(order)) {
+            primary.push(
+                orderActionHtml({
+                    icon: 'edit',
+                    label: 'Editar pedido',
+                    variant: 'primary',
+                    attrs: `data-meus-pedidos-edit="${esc(order.id)}"`,
+                }),
+            );
+        }
+
+        if (order.id) {
+            grid.push(
+                orderActionHtml({
+                    tag: 'a',
+                    href: `pedido-confirmado.html?order=${encodeURIComponent(order.id)}`,
+                    icon: 'local_shipping',
+                    label: 'Acompanhar',
+                    attrs: 'data-meus-pedidos-track',
+                }),
+            );
+        }
+        if (canPrintDav() && order.id) {
+            grid.push(
+                orderActionHtml({
+                    icon: 'print',
+                    label: 'Imprimir DAV',
+                    attrs: `data-meus-pedidos-print-dav="${esc(order.id)}"`,
+                }),
+            );
+        }
+        grid.push(
+            orderActionHtml({
+                icon: 'shopping_cart',
+                label: 'Caminhão',
+                attrs: 'data-meus-pedidos-open-cart',
+            }),
+        );
+
+        const hint = editBlockedHint(order);
+
+        if (canRequestEditOrder(order)) {
+            footer.push(
+                orderActionHtml({
+                    icon: 'lock_open',
+                    label: 'Solicitar permissão para editar',
+                    variant: 'wide',
+                    attrs: `data-meus-pedidos-request-edit="${esc(order.id)}"`,
+                }),
+            );
+        }
+        if (canCancelOrder(order)) {
+            footer.push(
+                orderActionHtml({
+                    icon: 'cancel',
+                    label: 'Cancelar solicitação',
+                    variant: 'danger-wide',
+                    attrs: `data-meus-pedidos-cancel="${esc(order.id)}"`,
+                }),
+            );
+        }
+
+        return `<div class="conta-order-detail__actions">
+<p class="conta-order-detail__actions-title">Ações do pedido</p>
+${primary.length ? `<div class="conta-order-detail__actions-primary">${primary.join('')}</div>` : ''}
+${grid.length ? `<div class="conta-order-detail__actions-grid">${grid.join('')}</div>` : ''}
+${hint ? `<p class="conta-order-detail__edit-hint" role="status">${esc(hint)}</p>` : ''}
+${footer.length ? `<div class="conta-order-detail__actions-footer">${footer.join('')}</div>` : ''}
+</div>`;
+    };
+
     const filtersActive = () => Boolean(STATE.q.trim() || STATE.status !== 'all' || STATE.date);
 
     const emptyOrdersHtml = ({ filtered = false } = {}) => {
@@ -374,53 +483,16 @@ ${orderFact('Cliente', order.customerName)}
 <span class="conta-order-detail__total-label">Total do pedido</span>
 <strong class="conta-order-detail__total">${formatPrice(order.total)}</strong>
 </footer>
-<div class="conta-order-detail__actions">
-${
-    showReorder
-        ? `<button type="button" class="conta-btn conta-btn--primary" data-meus-pedidos-reorder>Repetir pedido</button>`
-        : ''
-}
-${
-    order.id
-        ? `<a href="pedido-confirmado.html?order=${encodeURIComponent(order.id)}" class="conta-btn conta-btn--outline">Acompanhar pedido</a>`
-        : ''
-}
-${
-    canPrintDav() && order.id
-        ? `<button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-print-dav="${esc(order.id)}">Imprimir DAV</button>`
-        : ''
-}
-<button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-open-cart>Ir ao caminhão</button>
-${
-    editBlockedHint(order)
-        ? `<p class="conta-order-detail__edit-hint" role="status">${esc(editBlockedHint(order))}</p>`
-        : ''
-}
-${
-    canEditOrder(order)
-        ? `<button type="button" class="conta-btn conta-btn--primary" data-meus-pedidos-edit="${esc(order.id)}">Editar pedido</button>`
-        : ''
-}
-${
-    canRequestEditOrder(order)
-        ? `<button type="button" class="conta-btn conta-btn--outline" data-meus-pedidos-request-edit="${esc(order.id)}">Solicitar permissão para editar</button>`
-        : ''
-}
-${
-    canCancelOrder(order)
-        ? `<button type="button" class="conta-btn conta-btn--danger" data-meus-pedidos-cancel="${esc(order.id)}">Cancelar solicitação</button>`
-        : ''
-}
-</div>
+${orderActionsHtml(order, { showReorder })}
 </div>
 </article>`;
     };
 
     const requestEditPermission = async (orderId, button) => {
-        const prevLabel = button?.textContent;
+        const prevLabel = getActionButtonLabel(button);
         if (button) {
             button.disabled = true;
-            button.textContent = 'Enviando…';
+            setActionButtonLabel(button, 'Enviando…');
         }
 
         try {
@@ -443,7 +515,7 @@ ${
             window.alert(err?.message || 'Não foi possível enviar a solicitação.');
             if (button) {
                 button.disabled = false;
-                button.textContent = prevLabel || 'Solicitar permissão para editar';
+                setActionButtonLabel(button, prevLabel || 'Solicitar permissão para editar');
             }
         }
     };
@@ -464,10 +536,10 @@ ${
         );
         if (!ok) return;
 
-        const prevLabel = button?.textContent;
+        const prevLabel = getActionButtonLabel(button);
         if (button) {
             button.disabled = true;
-            button.textContent = 'Cancelando…';
+            setActionButtonLabel(button, 'Cancelando…');
         }
 
         try {
@@ -489,7 +561,7 @@ ${
             window.alert(err?.message || 'Não foi possível cancelar o pedido.');
             if (button) {
                 button.disabled = false;
-                button.textContent = prevLabel || 'Cancelar solicitação';
+                setActionButtonLabel(button, prevLabel || 'Cancelar solicitação');
             }
         }
     };
@@ -536,16 +608,16 @@ ${
             btn.addEventListener('click', async () => {
                 const orderId = btn.getAttribute('data-meus-pedidos-print-dav');
                 if (!orderId) return;
-                const prevLabel = btn.textContent;
+                const prevLabel = getActionButtonLabel(btn);
                 btn.disabled = true;
-                btn.textContent = 'Preparando…';
+                setActionButtonLabel(btn, 'Preparando…');
                 try {
                     await window.LigeirinhoOrderDavPrint.printOrderDav(orderId, session());
                 } catch (err) {
                     window.alert(err?.message || 'Não foi possível imprimir o DAV.');
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = prevLabel;
+                    setActionButtonLabel(btn, prevLabel || 'Imprimir DAV');
                 }
             });
         });
