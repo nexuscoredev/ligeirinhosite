@@ -6364,6 +6364,8 @@ html.lig-story-open {
     display: flex;
     flex-direction: column;
     padding-bottom: 0;
+    width: 100%;
+    max-width: none;
 }
 
 .ofertas-header {
@@ -6372,6 +6374,8 @@ html.lig-story-open {
     background: var(--lig-surface);
     border-bottom: 1px solid var(--lig-border);
     text-align: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .ofertas-header__title {
@@ -6780,6 +6784,9 @@ body[data-page='meus-pedidos'] .meus-pedidos-page {
     gap: 0.625rem;
     padding: 0.75rem 1rem;
     background: var(--lig-surface);
+    border-bottom: 1px solid var(--lig-border);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .ofertas-toolbar__btn,
@@ -6837,6 +6844,9 @@ body[data-page='meus-pedidos'] .meus-pedidos-page {
 .ofertas-filter-panel {
     padding: 0 1rem 0.75rem;
     background: var(--lig-surface);
+    border-bottom: 1px solid var(--lig-border);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .ofertas-filter-panel__select {
@@ -7672,31 +7682,25 @@ html.parceiros-detail-open body {
     }
 }
 
+body[data-page='ofertas'] #lig-page-main {
+    padding: 0;
+}
+
 @media (min-width: 768px) {
-    .ofertas-shell {
-        max-width: 40rem;
-        margin: 0 auto;
-        width: 100%;
-        padding-top: 1rem;
-    }
-
-    .ofertas-header {
-        border-radius: 0.75rem 0.75rem 0 0;
-        border: 1px solid var(--lig-border);
-        border-bottom: none;
-    }
-
+    .ofertas-header,
     .ofertas-toolbar,
-    .ofertas-filter-panel,
-    .ofertas-tabs,
-    .ofertas-list {
-        border-left: 1px solid var(--lig-border);
-        border-right: 1px solid var(--lig-border);
+    .ofertas-filter-panel {
+        padding-left: max(1rem, calc((100% - min(72rem, 96vw)) / 2));
+        padding-right: max(1rem, calc((100% - min(72rem, 96vw)) / 2));
     }
 
-    .ofertas-list {
-        border-bottom: 1px solid var(--lig-border);
-        border-radius: 0 0 0.75rem 0.75rem;
+    .ofertas-list,
+    .ofertas-status {
+        max-width: min(72rem, 96vw);
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
@@ -12293,9 +12297,8 @@ html.dark .baixar-app__eyebrow {
     }
 }
 
-/* ?? Desktop: nav, conta, ofertas wide ?? */
+/* ?? Desktop: nav, conta, caminhao wide ?? */
 @media (min-width: 768px) {
-    .ofertas-shell,
     .caminhao-shell {
         max-width: min(72rem, 96vw);
         margin-left: auto;

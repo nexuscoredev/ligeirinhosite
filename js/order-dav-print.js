@@ -131,6 +131,38 @@
         return first ? String(first).toUpperCase() : 'OPERADOR';
     };
 
+    const paymentMethodLabelSingle = (id) => {
+        const methods = window.LigeirinhoPaymentMethods;
+        if (methods?.label?.(id)) return methods.label(id);
+        const key = String(id || '').toLowerCase();
+        if (key === 'pix') return 'PIX';
+        if (key === 'mercado_pago') return 'Mercado Pago';
+        if (key === 'dinheiro') return 'Dinheiro';
+        if (key === 'cartao') return 'Cartão';
+        if (key === 'boleto' || key === 'prazo') return 'Boleto para 20 dias';
+        return id ? String(id).trim() : '';
+    };
+
+    const resolvePaymentDisplay = (order) => {
+        const splitsApi = window.LigeirinhoPaymentSplits;
+        const splits = splitsApi?.resolveOrderSplits?.(order) || [];
+        if (splits.length >= 2) {
+            return splitsApi.formatSplitSummary(splits, paymentMethodLabelSingle, formatMoney);
+        }
+        if (splits.length === 1) {
+            const amount = Number(splits[0].amount) || Number(order?.total) || 0;
+            return `${paymentMethodLabelSingle(splits[0].method)} ${formatMoney(amount)}`;
+        }
+        const method = order?.paymentMethod || order?.payment_method;
+        if (method) {
+            return `${paymentMethodLabelSingle(method)} ${formatMoney(order?.total)}`;
+        }
+        const notes = String(order?.notes || '');
+        const match = notes.match(/Pagamento:\s*([^·\n]+)/i);
+        if (match?.[1]?.trim()) return match[1].trim();
+        return '';
+    };
+
     const resolveDestinatario = (order, session) => {
         const isDistribuidora = isDistribuidoraAccount(session);
         const customerName = String(order?.customerName || order?.customer_name || '').trim();
@@ -196,6 +228,7 @@
         const dest = resolveDestinatario(order, session);
         const issuedAt = formatDateTime(order?.createdAt || Date.now());
         const operator = resolveOperator(session);
+        const paymentDisplay = resolvePaymentDisplay(order);
 
         const itemRows = lines
             .map(
@@ -268,6 +301,10 @@ body { margin: 0; background: #fff; }
 <tr>
 <td class="dav-doc__dest-label">Endereço</td>
 <td class="dav-doc__dest-value" colspan="3">${esc(dest.address || '—')}</td>
+</tr>
+<tr>
+<td class="dav-doc__dest-label">Forma(s) de pagamento</td>
+<td class="dav-doc__dest-value" colspan="3">${esc(paymentDisplay || '—')}</td>
 </tr>
 </table>
 

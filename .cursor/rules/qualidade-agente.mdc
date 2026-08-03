@@ -1,0 +1,42 @@
+---
+description: Qualidade leve — só o necessário por tipo de tarefa
+alwaysApply: true
+---
+
+# Qualidade do agente (Ligeirinho Site)
+
+**Princípio:** não rodar checklist completo em toda tarefa. Fazer o mínimo certo; aprofundar só quando o sintoma pedir.
+
+## Sempre (custo ~zero)
+
+- PowerShell: `;` em vez de `&&`.
+- Edits focados — não mudar código não pedido.
+- CSS/JS estático visível ao usuário → bump `CACHE_NAME` em `js/sw.js`.
+- Nunca commitar `_tmp-*.json`, `.env`, `data/auth-config.local.json`.
+
+## Só quando pedirem commit/deploy
+
+1. `git status` + `git diff` (paralelo).
+2. `git pull --rebase origin main` → commit → push.
+3. Incluir na mesma entrega arquivos relacionados (ex.: CSS + SW juntos).
+4. Se commit falhar por author: usar identidade do último commit ou env vars — não configurar git global.
+
+**Opcional pós-push:** fetch rápido de `sw.js` ou asset alterado na produção. Só se pediram deploy ou a mudança é crítica.
+
+## Só se reclamarem de lentidão / Cursor / git estranho
+
+Aí sim checar ambiente **antes** de culpar o repo: disco C:, RAM, OneDrive/sync na pasta.
+
+## Só ao copiar header full-width (Pedidos → outra página)
+
+- Shell: `width: 100%`, `max-width: none`.
+- Header/filtros: full-bleed + `padding-left/right: max(1rem, calc((100% - min(72rem, 96vw)) / 2))`.
+- Conteúdo: `max-width: min(72rem, 96vw)` centralizado.
+- Não usar `--lig-gutter-x-md` no header se o body usa `72rem/96vw`.
+
+## O que NÃO fazer em toda tarefa
+
+- Diagnóstico de disco/RAM sem sintoma.
+- Preflight git em pergunta ou edit pequeno.
+- Confirmar produção após todo commit.
+- Regras longas no chat — aplicar silenciosamente.
