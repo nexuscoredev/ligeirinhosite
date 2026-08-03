@@ -39,6 +39,8 @@ async function applyParceiros() {
         await runSqlFile(client, 'totem-payment-splits-rpc-migration.sql');
         console.log('[parceiros] Aplicando push-schema-migration.sql…');
         await runSqlFile(client, 'push-schema-migration.sql');
+        console.log('[parceiros] Aplicando delivery-fee-migration.sql…');
+        await runSqlFile(client, 'delivery-fee-migration.sql');
 
         const tables = await client.query(
             `select table_name from information_schema.tables
@@ -49,7 +51,7 @@ async function applyParceiros() {
         const cols = await client.query(
             `select column_name from information_schema.columns
              where table_schema = 'public' and table_name = 'orders'
-               and column_name in ('channel','financial_status','totem_id','pix_txid','pix_provider')
+               and column_name in ('channel','financial_status','totem_id','pix_txid','pix_provider','delivery_fee')
              order by 1`
         );
         console.log('[parceiros] Tabelas finance:', tables.rows.map((r) => r.table_name).join(', '));

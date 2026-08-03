@@ -359,7 +359,6 @@ export default async function handler(req, res) {
         const patch = {
             items: orderItems,
             total,
-            delivery_fee: resolvedDeliveryFee,
             delivery_type: deliveryType,
             delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,

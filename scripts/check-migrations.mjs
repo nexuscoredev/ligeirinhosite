@@ -26,6 +26,7 @@ async function checkParceiros() {
         const needTotem = ['channel', 'totem_id', 'totem_label', 'unit_id'];
         const needSeparation = ['separation_status', 'separation_started_at'];
         const needPix = ['pix_txid', 'pix_provider'];
+        const needDeliveryFee = ['delivery_fee'];
 
         const pickTable = await client.query(
             `select 1 from information_schema.tables
@@ -46,6 +47,7 @@ async function checkParceiros() {
             separationOk:
                 needSeparation.every((c) => colSet.has(c)) && pickTable.rows.length > 0,
             pixOk: needPix.every((c) => colSet.has(c)) && pixRpc.rows.length > 0,
+            deliveryFeeOk: needDeliveryFee.every((c) => colSet.has(c)),
             missingFinance: needFinance.filter((c) => !colSet.has(c)),
             missingTotem: needTotem.filter((c) => !colSet.has(c)),
             missingSeparation: [
@@ -56,6 +58,7 @@ async function checkParceiros() {
                 ...needPix.filter((c) => !colSet.has(c)),
                 ...(pixRpc.rows.length ? [] : ['rpc_fetch_order_by_pix_txid']),
             ],
+            missingDeliveryFee: needDeliveryFee.filter((c) => !colSet.has(c)),
         };
     } finally {
         await client.end();
@@ -103,6 +106,10 @@ async function main() {
         console.log('Totem:', p.totemOk ? 'OK' : `PENDENTE (${p.missingTotem.join(', ')})`);
         console.log('Separação:', p.separationOk ? 'OK' : `PENDENTE (${p.missingSeparation.join(', ')})`);
         console.log('Pix Santander:', p.pixOk ? 'OK' : `PENDENTE (${p.missingPix.join(', ')})`);
+        console.log(
+            'Taxa entrega (delivery_fee):',
+            p.deliveryFeeOk ? 'OK' : `PENDENTE (${p.missingDeliveryFee.join(', ')})`,
+        );
         console.log('Tabelas:', p.tables.join(', ') || '(nenhuma finance)');
     }
 

@@ -17,6 +17,7 @@
     "migrate:totem": "node scripts/apply-totem-migration.mjs",
     "migrate:totem-payment-splits": "node scripts/apply-totem-payment-splits-rpc-migration.mjs",
     "migrate:orders-update": "node scripts/apply-orders-update-rpc-migration.mjs",
+    "migrate:delivery-fee": "node scripts/apply-delivery-fee-migration.mjs",
     "migrate:hub-auth": "node scripts/apply-hub-auth-migration.mjs",
     "migrate:all": "node scripts/apply-pending-migrations.mjs",
     "migrate:push": "node scripts/apply-push-migration.mjs",

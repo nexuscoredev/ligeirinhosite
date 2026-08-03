@@ -5,3 +5,6 @@ alter table public.orders
 
 comment on column public.orders.delivery_fee is
   'Taxa de entrega em R$ incluída no total (0 = retirada ou isento).';
+
+-- Recarrega cache do PostgREST após alteração de schema
+notify pgrst, 'reload schema';

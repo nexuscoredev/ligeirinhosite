@@ -725,7 +725,7 @@ ${body}
 <div class="resumo-cliente-fields">
 <label class="resumo-cliente-field">
 <span class="resumo-cliente-field__label">Nome</span>
-<input type="text" class="resumo-cliente-field__input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="name" maxlength="120">
+<input type="text" class="resumo-cliente-field__input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="off" maxlength="120">
 </label>
 <label class="resumo-cliente-field">
 <span class="resumo-cliente-field__label">CPF/CNPJ</span>
@@ -1186,7 +1186,6 @@ ${body}
                 const orderClienteNome = String(checkout.orderClienteNome || '').trim();
                 if (orderClienteNome) {
                     payload.orderClienteNome = orderClienteNome;
-                    payload.customer.name = orderClienteNome;
                 }
                 const docCheck = validateClienteDocInput(checkout.orderClienteDoc || '');
                 if (!docCheck.ok) {
