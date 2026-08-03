@@ -214,6 +214,16 @@
         return { name: String(name).toUpperCase(), cnpj, phone, address };
     };
 
+    const resolveDeliveryFee = (order) => {
+        const fromField = Number(order?.deliveryFee ?? order?.delivery_fee);
+        if (Number.isFinite(fromField) && fromField > 0) return fromField;
+        const feeItem = (order?.items || []).find(isDeliveryFeeLineItem);
+        if (feeItem) {
+            return (Number(feeItem.price) || 0) * (Number(feeItem.qty) || 1);
+        }
+        return 0;
+    };
+
     const buildLineRows = (items) => {
         const rows = (items || []).filter((item) => !isDeliveryFeeLineItem(item));
         return rows.map((item, index) => {
@@ -257,6 +267,7 @@
         const issuedAt = formatDateTime(order?.createdAt || Date.now());
         const operator = resolveOperator(session);
         const paymentDisplay = resolvePaymentDisplay(order);
+        const deliveryFee = resolveDeliveryFee(order);
 
         const itemRows = lines
             .map(
@@ -330,10 +341,6 @@ body { margin: 0; background: #fff; }
 <td class="dav-doc__dest-label">Endereço</td>
 <td class="dav-doc__dest-value" colspan="3">${esc(dest.address || '—')}</td>
 </tr>
-<tr>
-<td class="dav-doc__dest-label">Forma(s) de pagamento</td>
-<td class="dav-doc__dest-value" colspan="3">${esc(paymentDisplay || '—')}</td>
-</tr>
 </table>
 
 <table class="dav-doc__items">
@@ -371,6 +378,8 @@ ${itemRows || '<tr><td colspan="9" style="text-align:center">Sem itens</td></tr>
 <td>
 <table class="dav-doc__totals-wrap">
 <tr><td class="label">Quant. Total Itens</td><td class="value">${formatQty(qtyTotal)}</td></tr>
+<tr><td class="label">Forma(s) de pagamento</td><td class="value">${esc(paymentDisplay || '—')}</td></tr>
+<tr><td class="label">Taxa de entrega</td><td class="value">${deliveryFee > 0 ? formatMoney(deliveryFee) : 'Grátis'}</td></tr>
 <tr><td class="label">SubTotal</td><td class="value">${formatMoney(subtotal)}</td></tr>
 <tr><td class="label">Desconto</td><td class="value">${formatMoney(discountTotal)}</td></tr>
 <tr><td class="label">Valor Total</td><td class="value">${formatMoney(total)}</td></tr>
