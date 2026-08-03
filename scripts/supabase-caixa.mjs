@@ -144,9 +144,23 @@ export async function selectTotemPayment(url, key, orderId, method, { useRpc = f
         return order;
     }
     if (String(order.channel || '').toLowerCase() !== 'totem') {
-        const err = new Error('Pedido não é do totem');
-        err.status = 400;
-        throw err;
+        const notes = String(order.notes || '');
+        const looksLikeTotem =
+            Boolean(order.totem_label || order.totem_id || order.unit_id) ||
+            /pedido\s+totem/i.test(notes);
+        if (!looksLikeTotem) {
+            const err = new Error('Pedido não é do totem');
+            err.status = 400;
+            throw err;
+        }
+        // Reparo: create legado gravou channel=parceiros por DEFAULT após falha de coluna.
+        try {
+            const repaired = await patchOrder(url, key, orderId, { channel: 'totem' }, { useRpc });
+            if (repaired?.id) Object.assign(order, repaired);
+            else order.channel = 'totem';
+        } catch {
+            order.channel = 'totem';
+        }
     }
     const incomingSplits = normalizePaymentSplits(paymentSplits, order.total);
     if (order.financial_status === 'aguardando_caixa' && order.payment_method) {

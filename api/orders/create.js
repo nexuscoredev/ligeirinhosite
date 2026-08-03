@@ -296,7 +296,6 @@ export default async function handler(req, res) {
             status: 'pending',
             items: orderItems,
             total,
-            delivery_fee: resolvedDeliveryFee,
             delivery_type: deliveryType,
             delivery_date: deliveryDate,
             address: deliveryType === 'entrega' ? address : null,
@@ -311,44 +310,64 @@ export default async function handler(req, res) {
             unit_id: String(body.unitId || '').trim().slice(0, 64) || null,
             customer_id: customerRow?.id || null,
             hub_user_id: hubUserId,
-            payment_method: paymentMethod || null,
+            // Totem: null explícito (evita DEFAULT 'pix' do banco). Parceiros: método escolhido.
+            payment_method: isTotem ? (paymentMethod || null) : paymentMethod || 'pix',
             payment_splits: paymentSplits,
             due_date: isCreditOrder || financialStatus === 'pendente' ? addDays(new Date(), dueDays) : null,
             financial_status: financialStatus,
         };
+        // Taxa de entrega vai nos items — a tabela orders não tem coluna delivery_fee.
 
         let order;
         try {
-            order = await insertOrder(db.url, db.key, row, { useRpc: db.useRpc });
-        } catch (insertErr) {
-            const msg = String(insertErr.message || '');
-            if (/column/i.test(msg)) {
+            // Preferir RPC (trata channel/totem e payment_method null corretamente).
+            order = await insertOrder(db.url, db.key, row, { useRpc: true });
+        } catch (rpcErr) {
+            try {
+                order = await insertOrder(db.url, db.key, row, { useRpc: false });
+            } catch (insertErr) {
+                const msg = String(insertErr.message || '');
+                if (!/column/i.test(msg)) throw insertErr;
+
+                // Remove só campos opcionais que possam não existir — NUNCA channel/totem_*.
                 const {
                     customer_id: _a,
                     hub_user_id: _b,
-                    payment_method: _c,
                     payment_splits: _ps,
                     due_date: _d,
-                    financial_status: _e,
-                    delivery_date: _f,
+                    delivery_date: _dd,
                     wants_invoice: _g,
                     nf_queue_status: _h,
                     hub_pedido_id: _i,
                     customer_cpf: _cpf,
-                    delivery_fee: _df,
                     ...legacyRow
                 } = row;
-                if (channel === 'totem') {
-                    const { channel: _f, totem_id: _g, totem_label: _h, unit_id: _i, ...minimal } = legacyRow;
-                    order = await insertOrder(db.url, db.key, minimal, { useRpc: db.useRpc });
-                } else {
-                    order = await insertOrder(db.url, db.key, legacyRow, { useRpc: db.useRpc });
+                order = await insertOrder(db.url, db.key, legacyRow, { useRpc: false });
+            }
+        }
+
+        // Cinto de segurança: pedido totem nunca pode ficar como parceiros/pix por DEFAULT do banco.
+        if (isTotem && order?.id) {
+            const savedChannel = String(order.channel || '').toLowerCase();
+            if (savedChannel !== 'totem' || order.payment_method) {
+                try {
+                    order = await patchOrder(
+                        db.url,
+                        db.key,
+                        order.id,
+                        {
+                            channel: 'totem',
+                            payment_method: paymentMethod || null,
+                            financial_status: financialStatus,
+                            totem_id: row.totem_id,
+                            totem_label: row.totem_label,
+                            unit_id: row.unit_id,
+                        },
+                        { useRpc: db.useRpc },
+                    );
+                } catch (patchErr) {
+                    console.error('orders/create totem channel repair', patchErr);
                 }
-            } else if (channel === 'totem' && /column/i.test(msg)) {
-                const { channel: _c, totem_id: _t, totem_label: _l, unit_id: _u, ...legacyRow } = row;
-                order = await insertOrder(db.url, db.key, legacyRow, { useRpc: db.useRpc });
-            } else {
-                throw insertErr;
             }
         }
 
