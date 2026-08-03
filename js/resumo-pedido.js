@@ -722,19 +722,17 @@ ${body}
             ? cardHtml(
                   'Nome do cliente',
                   `<p class="resumo-field-hint">Cliente final deste pedido (aparece no Hub e no DAV)</p>
-<label class="resumo-payment-amounts__row resumo-cliente-nome-row">
-<span class="resumo-payment-amounts__label">Nome</span>
-<span class="resumo-payment-amounts__field">
-<input type="text" class="resumo-payment-amounts__input resumo-cliente-nome-input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="name" maxlength="120">
-</span>
+<div class="resumo-cliente-fields">
+<label class="resumo-cliente-field">
+<span class="resumo-cliente-field__label">Nome</span>
+<input type="text" class="resumo-cliente-field__input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="name" maxlength="120">
 </label>
-<label class="resumo-payment-amounts__row resumo-cliente-doc-row">
-<span class="resumo-payment-amounts__label">CPF/CNPJ</span>
-<span class="resumo-payment-amounts__field">
-<input type="text" class="resumo-payment-amounts__input resumo-cliente-doc-input" id="resumo-cliente-doc" value="${esc(checkout.orderClienteDoc || '')}" placeholder="000.000.000-00 ou 00.000.000/0000-00" inputmode="numeric" autocomplete="off" maxlength="18">
-</span>
+<label class="resumo-cliente-field">
+<span class="resumo-cliente-field__label">CPF/CNPJ</span>
+<input type="text" class="resumo-cliente-field__input resumo-cliente-field__input--doc" id="resumo-cliente-doc" value="${esc(checkout.orderClienteDoc || '')}" placeholder="000.000.000-00 ou 00.000.000/0000-00" inputmode="numeric" autocomplete="off" maxlength="18">
 </label>
-<p class="resumo-field-hint resumo-cliente-doc-hint">O documento entra na identificação do destinatário na DAV.</p>`,
+<p class="resumo-field-hint resumo-cliente-doc-hint">O documento entra na identificação do destinatário na DAV.</p>
+</div>`,
               )
             : '';
 
