@@ -4135,10 +4135,10 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
 
         refreshBtn?.addEventListener('click', () => {
+            // Mantido só por compatibilidade; o botão fica oculto — update é automático.
             if (refreshBusy || !window.LigeirinhoTotemPwaUpdate?.isPending?.()) return;
+            if (!canAutoApplySystemUpdate()) return;
             refreshBusy = true;
-            refreshBtn.classList.add('totem-btn--refreshing');
-            refreshBtn.setAttribute('aria-busy', 'true');
             void window.LigeirinhoTotemPwaUpdate.aplicar();
         });
 

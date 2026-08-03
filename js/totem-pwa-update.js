@@ -13,7 +13,6 @@
     let status = 'idle';
     let started = false;
     let aplicando = false;
-    let autoApplyTimer = 0;
     let progresso = 0;
     let etapa = 'Atualizando…';
     /** @type {ServiceWorkerRegistration | null} */
@@ -107,15 +106,7 @@
     function definirStatus(next) {
         status = next;
         emitir();
-        if (next === 'pending') agendarAplicacaoAutomatica();
-    }
-
-    function agendarAplicacaoAutomatica() {
-        if (aplicando || autoApplyTimer) return;
-        autoApplyTimer = window.setTimeout(() => {
-            autoApplyTimer = 0;
-            void aplicar();
-        }, 400);
+        // No totem a aplicação segura fica a cargo do totem.js (tela de boas-vindas).
     }
 
     function sinalizarPendente() {
@@ -194,10 +185,6 @@
     async function aplicar() {
         if (aplicando) return;
         aplicando = true;
-        if (autoApplyTimer) {
-            window.clearTimeout(autoApplyTimer);
-            autoApplyTimer = 0;
-        }
         persistirPendente(false);
         status = 'applying';
         reportarProgresso(5, 'Iniciando…');
@@ -225,7 +212,6 @@
             persistirPendente(true);
             reportarProgresso(0, 'Falha ao atualizar');
             emitir();
-            agendarAplicacaoAutomatica();
         }
     }
 
