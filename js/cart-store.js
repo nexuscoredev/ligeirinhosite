@@ -102,6 +102,7 @@
         orderTabelaPrecoLabel: '',
         orderTaxaEntrega: null,
         orderClienteNome: '',
+        orderClienteDoc: '',
     });
 
     const loadCheckout = () => {
@@ -227,12 +228,22 @@
         const splits = splitsApi?.resolveOrderSplits?.(order) || [];
         const notes = String(order?.notes || '');
         const clienteMatch = notes.match(/Cliente:\s*([^·]+)/);
+        const docMatch = notes.match(/Doc cliente:\s*([^·]+)/i);
         const tabelaMatch = notes.match(/Tabela:\s*([^·]+)/);
         const paymentMethod =
             splits.length === 1
                 ? splits[0].method
                 : String(order?.paymentMethod || order?.payment_method || '').toLowerCase();
         const deliveryFee = Number(order?.deliveryFee ?? order?.delivery_fee);
+        const orderClienteDoc =
+            String(order?.customerDoc || '').trim() ||
+            (order?.customerCpf
+                ? window.LigeirinhoCpf?.formatCpf?.(order.customerCpf) || String(order.customerCpf)
+                : '') ||
+            (order?.customerCnpj
+                ? window.LigeirinhoCnpj?.formatCnpj?.(order.customerCnpj) || String(order.customerCnpj)
+                : '') ||
+            String(docMatch?.[1] || '').trim();
         return {
             editOrderId: String(order?.id || ''),
             editOrderMeta: {
@@ -248,6 +259,7 @@
             paymentMethod: paymentMethod || '',
             paymentSplits: splits.length >= 2 ? splits : [],
             orderClienteNome: String(order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || ''),
+            orderClienteDoc,
             orderTabelaPrecoCodigo: tabelaMatch?.[1]?.trim() || '',
             orderTaxaEntrega: Number.isFinite(deliveryFee) && deliveryFee >= 0 ? deliveryFee : null,
             notes: '',

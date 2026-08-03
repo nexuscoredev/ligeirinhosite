@@ -17,7 +17,8 @@ import {
     parseTaxaEntrega,
 } from '../../scripts/lib/delivery-fee.mjs';
 import { isDistribuidoraAccount } from '../../scripts/lib/distribuidora-account.mjs';
-import { formatCpf, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
+import { formatCpf, formatClienteDocDigits, isValidCpf, normalizeCpfDigits } from '../../scripts/lib/cpf.mjs';
+import { formatCnpj, isValidCnpj, normalizeDocDigits } from '../../scripts/hub-parceiro.mjs';
 import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import {
     fetchHubPedidoById,
@@ -122,7 +123,7 @@ async function cancelPendingCharges(supabaseUrl, serviceKey, orderId) {
     }).catch(() => null);
 }
 
-function buildOrderNotes(body, customer, paymentSplits, orderClienteNome, orderTabelaPrecoCodigo) {
+function buildOrderNotes(body, customer, paymentSplits, orderClienteNome, orderTabelaPrecoCodigo, orderClienteDocFormatted) {
     const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
     const customerCpf = normalizeCpfDigits(customer.cpf || customer.customerCpf || body.customerCpf || '');
     const notesBase = String(body.notes || '').trim();
@@ -133,6 +134,7 @@ function buildOrderNotes(body, customer, paymentSplits, orderClienteNome, orderT
     ].filter(Boolean);
     if (orderTabelaPrecoCodigo) notesParts.push(`Tabela: ${orderTabelaPrecoCodigo}`);
     if (orderClienteNome) notesParts.push(`Cliente: ${orderClienteNome}`);
+    if (orderClienteDocFormatted) notesParts.push(`Doc cliente: ${orderClienteDocFormatted}`);
     let notes = notesParts.join(' · ').slice(0, 2000) || null;
     if (paymentSplits?.length) {
         const human = paymentSplits
@@ -260,7 +262,32 @@ export default async function handler(req, res) {
         }
 
         const customer = body.customer || {};
-        const customerCpfRaw = customer.cpf || customer.customerCpf || body.customerCpf || existing.customer_cpf || '';
+        const orderClienteDocRaw = String(body.orderClienteDoc || customer.doc || '').trim();
+        const orderClienteDocDigits = normalizeDocDigits(orderClienteDocRaw).slice(0, 14);
+        let orderClienteDocFormatted = '';
+        if (orderClienteDocDigits) {
+            if (orderClienteDocDigits.length === 11) {
+                if (!isValidCpf(orderClienteDocDigits)) {
+                    return res.status(400).json({ error: 'CPF do cliente inválido. Confira os dígitos.' });
+                }
+                orderClienteDocFormatted = formatClienteDocDigits(orderClienteDocDigits);
+            } else if (orderClienteDocDigits.length === 14) {
+                if (!isValidCnpj(orderClienteDocDigits)) {
+                    return res.status(400).json({ error: 'CNPJ do cliente inválido. Confira os dígitos.' });
+                }
+                orderClienteDocFormatted = formatCnpj(orderClienteDocDigits);
+            } else {
+                return res.status(400).json({ error: 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.' });
+            }
+        }
+
+        const customerCpfRaw =
+            customer.cpf ||
+            customer.customerCpf ||
+            body.customerCpf ||
+            (orderClienteDocDigits.length === 11 ? orderClienteDocDigits : '') ||
+            existing.customer_cpf ||
+            '';
         const customerCpfDigits = normalizeCpfDigits(customerCpfRaw);
         if (customerCpfDigits && !isValidCpf(customerCpfDigits)) {
             return res.status(400).json({ error: 'CPF inválido. Confira os dígitos e tente novamente.' });
@@ -325,6 +352,7 @@ export default async function handler(req, res) {
             paymentSplits,
             orderClienteNome,
             orderTabelaPrecoCodigo,
+            orderClienteDocFormatted,
         );
         notes = preserveEditPolicyTags(existing.notes, notes);
 

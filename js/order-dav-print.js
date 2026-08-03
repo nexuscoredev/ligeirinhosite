@@ -45,6 +45,28 @@
         return `${raw.slice(0, 2)}.${raw.slice(2, 5)}.${raw.slice(5, 8)}/${raw.slice(8, 12)}-${raw.slice(12)}`;
     };
 
+    const formatCpf = (value) => {
+        const raw = digits(value);
+        if (raw.length !== 11) return value || '';
+        return `${raw.slice(0, 3)}.${raw.slice(3, 6)}.${raw.slice(6, 9)}-${raw.slice(9)}`;
+    };
+
+    const formatDoc = (value) => {
+        const raw = digits(value);
+        if (raw.length === 11) return formatCpf(raw);
+        if (raw.length === 14) return formatCnpj(raw);
+        return String(value || '').trim();
+    };
+
+    const extractDocFromNotes = (notes) => {
+        const text = String(notes || '');
+        const tagged = text.match(/Doc cliente:\s*([^·\n]+)/i);
+        if (tagged?.[1]) return formatDoc(tagged[1]);
+        const cpfNota = text.match(/CPF na nota:\s*([^·\n]+)/i);
+        if (cpfNota?.[1]) return formatDoc(cpfNota[1]);
+        return '';
+    };
+
     const formatPhoneDisplay = (value) => {
         const local = normalizePhone(value);
         if (local.length === 11) {
@@ -172,10 +194,16 @@
               String(session?.razaoSocial || '').trim() ||
               String(session?.name || '').trim() ||
               '—';
+        const clientDoc =
+            formatDoc(order?.customerDoc) ||
+            formatDoc(order?.customerCpf || order?.customer_cpf) ||
+            formatDoc(order?.customerCnpj || order?.customer_cnpj) ||
+            extractDocFromNotes(order?.notes);
         const cnpj = isDistribuidora
-            ? formatCnpj(DISTRIBUIDORA_CNPJ)
+            ? clientDoc || '—'
             : formatCnpj(session?.cnpj || session?.login) ||
-              (order?.customerCpf ? formatCnpj(order.customerCpf) : '');
+              clientDoc ||
+              (order?.customerCpf ? formatDoc(order.customerCpf) : '');
         const phone = formatPhoneDisplay(order?.customerPhone || session?.phone);
         const rawAddress = String(order?.address || '').trim();
         const isPickup =

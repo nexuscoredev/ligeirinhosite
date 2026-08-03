@@ -14,6 +14,34 @@
 
     const formatPrice = (value) => cartApi.formatMoney(value);
 
+    const onlyDocDigits = (value) => String(value || '').replace(/\D/g, '').slice(0, 14);
+
+    const formatClienteDocInput = (value) => {
+        const d = onlyDocDigits(value);
+        if (d.length <= 11) {
+            return window.LigeirinhoCpf?.formatCpf?.(d) || d;
+        }
+        return window.LigeirinhoCnpj?.formatCnpj?.(d) || d;
+    };
+
+    const validateClienteDocInput = (value) => {
+        const d = onlyDocDigits(value);
+        if (!d) return { ok: true, formatted: '' };
+        if (d.length === 11) {
+            if (window.LigeirinhoCpf?.isValidCpf && !window.LigeirinhoCpf.isValidCpf(d)) {
+                return { ok: false, error: 'CPF inválido. Confira os dígitos.' };
+            }
+            return { ok: true, formatted: formatClienteDocInput(d), digits: d, kind: 'cpf' };
+        }
+        if (d.length === 14) {
+            if (window.LigeirinhoCnpj?.isValidCnpj && !window.LigeirinhoCnpj.isValidCnpj(d)) {
+                return { ok: false, error: 'CNPJ inválido. Confira os dígitos.' };
+            }
+            return { ok: true, formatted: formatClienteDocInput(d), digits: d, kind: 'cnpj' };
+        }
+        return { ok: false, error: 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos).' };
+    };
+
     const session = () => auth?.loadSession?.() || null;
 
     const isHubUserUuid = (value) =>
@@ -699,7 +727,14 @@ ${body}
 <span class="resumo-payment-amounts__field">
 <input type="text" class="resumo-payment-amounts__input resumo-cliente-nome-input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="name" maxlength="120">
 </span>
-</label>`,
+</label>
+<label class="resumo-payment-amounts__row resumo-cliente-doc-row">
+<span class="resumo-payment-amounts__label">CPF/CNPJ</span>
+<span class="resumo-payment-amounts__field">
+<input type="text" class="resumo-payment-amounts__input resumo-cliente-doc-input" id="resumo-cliente-doc" value="${esc(checkout.orderClienteDoc || '')}" placeholder="000.000.000-00 ou 00.000.000/0000-00" inputmode="numeric" autocomplete="off" maxlength="18">
+</span>
+</label>
+<p class="resumo-field-hint resumo-cliente-doc-hint">O documento entra na identificação do destinatário na DAV.</p>`,
               )
             : '';
 
@@ -755,6 +790,19 @@ ${cardHtml(
         });
         root.querySelector('#resumo-cliente-nome')?.addEventListener('input', (event) => {
             cartApi.saveCheckout({ orderClienteNome: event.target.value });
+        });
+        const docInput = root.querySelector('#resumo-cliente-doc');
+        docInput?.addEventListener('input', (event) => {
+            const formatted = formatClienteDocInput(event.target.value);
+            event.target.value = formatted;
+            cartApi.saveCheckout({ orderClienteDoc: formatted });
+        });
+        docInput?.addEventListener('blur', (event) => {
+            const check = validateClienteDocInput(event.target.value);
+            if (check.ok && check.formatted) {
+                event.target.value = check.formatted;
+                cartApi.saveCheckout({ orderClienteDoc: check.formatted });
+            }
         });
         root.querySelector('#resumo-confirm')?.addEventListener('click', () => confirmOrder());
     };
@@ -1141,6 +1189,24 @@ ${body}
                 if (orderClienteNome) {
                     payload.orderClienteNome = orderClienteNome;
                     payload.customer.name = orderClienteNome;
+                }
+                const docCheck = validateClienteDocInput(checkout.orderClienteDoc || '');
+                if (!docCheck.ok) {
+                    window.alert(docCheck.error);
+                    if (btn) {
+                        btn.disabled = false;
+                        const editing = Boolean(String(loadCheckoutState().editOrderId || '').trim());
+                        btn.innerHTML = editing
+                            ? '<span>Salvar alterações</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>'
+                            : '<span>Confirmar pedido</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>';
+                    }
+                    return;
+                }
+                if (docCheck.formatted) {
+                    payload.orderClienteDoc = docCheck.formatted;
+                    if (docCheck.kind === 'cpf') {
+                        payload.customer.cpf = docCheck.digits;
+                    }
                 }
             }
 

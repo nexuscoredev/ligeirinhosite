@@ -38,5 +38,23 @@ export function extractCpfFromNotes(notes) {
         const digits = normalizeCpfDigits(tagged[1]);
         if (digits.length === 11) return digits;
     }
-    return '';
+    const doc = extractClienteDocDigitsFromNotes(text);
+    return doc.length === 11 ? doc : '';
+}
+
+/** Extrai CPF/CNPJ do cliente final (`Doc cliente:` nas notes). */
+export function extractClienteDocDigitsFromNotes(notes) {
+    const text = String(notes || '');
+    const tagged = text.match(/Doc cliente:\s*([\d.\-\/\s]+)/i);
+    if (!tagged?.[1]) return '';
+    return String(tagged[1]).replace(/\D/g, '').slice(0, 14);
+}
+
+export function formatClienteDocDigits(digitsInput) {
+    const d = String(digitsInput || '').replace(/\D/g, '').slice(0, 14);
+    if (d.length === 11) return formatCpf(d);
+    if (d.length === 14) {
+        return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
+    }
+    return d;
 }

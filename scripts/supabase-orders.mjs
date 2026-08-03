@@ -1,6 +1,6 @@
 import { resolveOrderSplits } from './lib/payment-splits.mjs';
-import { extractCpfFromNotes, isValidCpf, normalizeCpfDigits } from './lib/cpf.mjs';
-import { formatCnpj } from './hub-parceiro.mjs';
+import { extractCpfFromNotes, extractClienteDocDigitsFromNotes, formatClienteDocDigits, isValidCpf, normalizeCpfDigits } from './lib/cpf.mjs';
+import { formatCnpj, isValidCnpj, normalizeDocDigits } from './hub-parceiro.mjs';
 
 function headers(apiKey, extra = {}) {
     return {
@@ -329,10 +329,28 @@ function resolveOrderCustomerCpf(order) {
     return isValidCpf(fromNotes) ? fromNotes : null;
 }
 
+function resolveOrderCustomerDoc(order) {
+    const cpf = resolveOrderCustomerCpf(order);
+    if (cpf) return { digits: cpf, kind: 'cpf', formatted: formatClienteDocDigits(cpf) };
+    const fromNotes = extractClienteDocDigitsFromNotes(order?.notes);
+    if (fromNotes.length === 14 && isValidCnpj(fromNotes)) {
+        return { digits: fromNotes, kind: 'cnpj', formatted: formatCnpj(fromNotes) };
+    }
+    if (fromNotes.length === 11 && isValidCpf(fromNotes)) {
+        return { digits: fromNotes, kind: 'cpf', formatted: formatClienteDocDigits(fromNotes) };
+    }
+    const rawCnpj = normalizeDocDigits(order?.customer_cnpj || '');
+    if (rawCnpj.length === 14 && isValidCnpj(rawCnpj)) {
+        return { digits: rawCnpj, kind: 'cnpj', formatted: formatCnpj(rawCnpj) };
+    }
+    return null;
+}
+
 export function publicOrderView(order) {
     if (!order) return null;
     const paymentSplits = resolveOrderSplits(order);
     const customerCpf = resolveOrderCustomerCpf(order);
+    const customerDoc = resolveOrderCustomerDoc(order);
     return {
         id: order.id,
         status: order.status,
@@ -346,6 +364,8 @@ export function publicOrderView(order) {
         customerName: order.customer_name,
         customerPhone: order.customer_phone,
         customerCpf,
+        customerCnpj: customerDoc?.kind === 'cnpj' ? customerDoc.digits : null,
+        customerDoc: customerDoc?.formatted || (customerCpf ? formatClienteDocDigits(customerCpf) : null),
         paymentMethod: order.payment_method,
         paymentSplits,
         paymentChosen: order.financial_status === 'aguardando_caixa',
