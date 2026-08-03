@@ -12227,6 +12227,126 @@ html.dark .baixar-app__eyebrow {
     cursor: pointer;
 }
 
+/* Pedido proativo de permissão de push */
+.lig-push-prompt {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+.lig-push-prompt__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 13, 13, 0.45);
+}
+
+.lig-push-prompt__dialog {
+    position: relative;
+    width: min(100%, 24rem);
+    margin-bottom: 4.5rem;
+    padding: 1.25rem 1.15rem 1.1rem;
+    border-radius: 1.1rem;
+    background: var(--lig-surface, #fff);
+    border: 1px solid var(--lig-border);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+    display: grid;
+    gap: 0.65rem;
+    text-align: center;
+}
+
+.lig-push-prompt__icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(247, 213, 60, 0.22);
+    color: #1a1a1a;
+}
+
+.lig-push-prompt__icon .material-symbols-outlined {
+    font-size: 1.6rem;
+    font-variation-settings: 'FILL' 1;
+}
+
+.lig-push-prompt__title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--lig-text);
+}
+
+.lig-push-prompt__body {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--lig-text-muted);
+}
+
+.lig-push-prompt__status {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--lig-success-fg, #15803d);
+}
+
+.lig-push-prompt__status--error {
+    color: #ef4444;
+}
+
+.lig-push-prompt__actions {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.25rem;
+}
+
+.lig-push-prompt__primary {
+    min-height: 2.75rem;
+    border: none;
+    border-radius: 999px;
+    background: #f7d53c;
+    color: #0d0d0d;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.lig-push-prompt__primary:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+.lig-push-prompt__ghost {
+    min-height: 2.4rem;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--lig-text-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (min-width: 768px) {
+    .lig-push-prompt {
+        align-items: center;
+    }
+
+    .lig-push-prompt__dialog {
+        margin-bottom: 0;
+    }
+}
+
+body.lig-push-prompt-open {
+    overflow: hidden;
+}
+
 .lig-notif-item__head {
     display: flex;
     align-items: flex-start;

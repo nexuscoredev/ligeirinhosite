@@ -1026,6 +1026,7 @@ ${meta}
         ]).then(() => {
             window.LigeirinhoInstall?.init?.();
             window.LigeirinhoClientNotifications?.mount?.('#lig-notifications-mount');
+            window.LigeirinhoPush?.maybePromptEnable?.();
         });
     };
 
@@ -1049,6 +1050,7 @@ ${meta}
 
     window.addEventListener('ligeirinho-auth-changed', () => {
         window.LigeirinhoClientNotifications?.mount?.('#lig-notifications-mount');
+        window.LigeirinhoPush?.maybePromptEnable?.({ delayMs: 1200 });
     });
 
     if (page === 'login') {

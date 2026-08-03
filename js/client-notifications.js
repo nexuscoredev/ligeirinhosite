@@ -612,6 +612,7 @@ ${renderPanel(state)}
         window.addEventListener('ligeirinho-auth-changed', () => {
             ensureSeed();
             void window.LigeirinhoPush?.ensureSubscribed?.();
+            window.LigeirinhoPush?.maybePromptEnable?.({ delayMs: 1000 });
             void refreshUi();
         });
 
@@ -621,6 +622,7 @@ ${renderPanel(state)}
         render(host, uiState);
 
         void window.LigeirinhoPush?.ensureSubscribed?.();
+        window.LigeirinhoPush?.maybePromptEnable?.();
 
         pollTimer = setInterval(() => {
             if (document.hidden) return;
