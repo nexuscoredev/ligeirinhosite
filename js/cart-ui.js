@@ -664,6 +664,7 @@ ${feeRow}
         window.clearTimeout(undoRemoveTimer);
         window.clearTimeout(undoHideTimer);
         cartApi.saveCart({});
+        cartApi.exitOrderEditMode?.();
         render();
     };
 

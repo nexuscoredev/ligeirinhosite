@@ -1140,6 +1140,7 @@ ${body}
         if (Object.keys(errors).length) {
             step = 'resumo';
             render();
+            window.alert(Object.values(errors).join('\n'));
             return;
         }
 
@@ -1240,9 +1241,24 @@ ${body}
                     return;
                 }
                 payload.customer.phone = phoneCheck.formatted || '';
-                const docCheck = validateClienteDocInput(checkout.orderClienteDoc || '');
+                const docRaw = String(checkout.orderClienteDoc || '').trim();
+                const docDigits = onlyDocDigits(docRaw);
+                const docCheck = validateClienteDocInput(
+                    docDigits.length > 0 && docDigits.length !== 11 && docDigits.length !== 14 ? '' : docRaw,
+                );
+                if (docDigits.length > 0 && docDigits.length !== 11 && docDigits.length !== 14) {
+                    window.alert('CPF/CNPJ incompleto. Complete o documento ou deixe o campo vazio.');
+                    if (btn) {
+                        btn.disabled = false;
+                        const editing = Boolean(String(loadCheckoutState().editOrderId || '').trim());
+                        btn.innerHTML = editing
+                            ? '<span>Salvar alterações</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>'
+                            : '<span>Confirmar pedido</span><span class="resumo-confirm-btn__icon material-symbols-outlined">arrow_forward</span>';
+                    }
+                    return;
+                }
                 if (!docCheck.ok) {
-                    window.alert(docCheck.error);
+                    window.alert(docCheck.error || 'CPF/CNPJ inválido.');
                     if (btn) {
                         btn.disabled = false;
                         const editing = Boolean(String(loadCheckoutState().editOrderId || '').trim());

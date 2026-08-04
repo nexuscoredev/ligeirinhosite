@@ -303,6 +303,18 @@
 
     const isEditingOrder = () => Boolean(String(loadCheckout().editOrderId || '').trim());
 
+    /** Sai do modo edição (ex.: caminhão esvaziado → novo pedido). */
+    const exitOrderEditMode = () => {
+        if (!isEditingOrder()) return false;
+        const checkout = loadCheckout();
+        saveCheckout({
+            editOrderId: '',
+            editOrderMeta: undefined,
+        });
+        window.LigeirinhoCartPrice?.clearEditOrderPriceSnapshot?.();
+        return Boolean(checkout.editOrderId);
+    };
+
     const loadOrderIntoCart = (order, { lockPrices = false } = {}) => {
         const items = (Array.isArray(order?.items) ? order.items : []).filter(
             (item) => !isDeliveryFeeCartItem(item),
@@ -640,6 +652,7 @@
         loadOrderIntoCart,
         loadOrderForEdit,
         isEditingOrder,
+        exitOrderEditMode,
         lastOrderSummary,
         loadPrefs,
         savePrefs,
