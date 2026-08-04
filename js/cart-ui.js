@@ -338,11 +338,22 @@ ${payBtnInnerHtml()}
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
 
+    const resolveThumbSrc = (item) => {
+        const raw = String(item?.image || '').trim();
+        if (!raw) return '';
+        const catalog = window.LigeirinhoCatalog;
+        if (catalog?.productImageUrl) {
+            return catalog.productImageUrl(raw) || raw;
+        }
+        if (/^https?:/i.test(raw)) return raw;
+        return raw.startsWith('/') ? raw : `/${raw.replace(/^\.\//, '')}`;
+    };
+
     const lineThumbHtml = (item, className = 'lig-cart-line__thumb') => {
-        const src = item.image ? escapeHtml(item.image) : '';
+        const src = resolveThumbSrc(item);
         const boxClass = `${className}-box`;
         if (src) {
-            return `<span class="${boxClass}"><img src="${src}" alt="" class="${className}" loading="lazy" width="56" height="56" decoding="async"></span>`;
+            return `<span class="${boxClass}"><img src="${escapeHtml(src)}" alt="" class="${className}" loading="lazy" width="56" height="56" decoding="async"></span>`;
         }
         return `<span class="${boxClass} ${className}--placeholder" aria-hidden="true"><span class="material-symbols-outlined">liquor</span></span>`;
     };

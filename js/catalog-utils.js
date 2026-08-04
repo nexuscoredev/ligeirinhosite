@@ -441,7 +441,7 @@
 
         const meta = variant && p ? p.pricePackMeta(variant) : null;
 
-        const displayPrice = meta?.unitPrice ?? variant?.price;
+        const displayPrice = meta?.packagePrice ?? variant?.price;
 
 
 

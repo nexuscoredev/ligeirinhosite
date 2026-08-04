@@ -520,11 +520,12 @@ ${orderActionsHtml(order, { showReorder })}
         }
     };
 
-    const editOrder = (order) => {
+    const editOrder = async (order) => {
         if (!cart?.loadOrderForEdit?.(order)) {
             window.alert('Não foi possível carregar o pedido para edição.');
             return;
         }
+        await cart?.enrichCartFromCatalogAsync?.();
         window.LigeirinhoCartUI?.render?.();
         window.location.href = 'caminhao.html';
     };

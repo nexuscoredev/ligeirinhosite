@@ -138,6 +138,30 @@
         return 'Caixa';
     };
 
+    const packTypeFromCartKey = (cartKey, fallback = 'caixa') => {
+        const match = String(cartKey || '').match(/::(unidade|caixa|pallet)$/i);
+        return match ? match[1].toLowerCase() : String(fallback || 'caixa').toLowerCase();
+    };
+
+    /** Subtítulo de embalagem — nunca trata CX/PL como unidade avulsa. */
+    const itemPackDetailText = (item) => {
+        const tier = packTypeFromCartKey(item?.cartKey || item?.id, item?.packType || 'caixa');
+        if (tier === 'unidade') {
+            const boxMatch = String(item?.name || '').match(/\((?:Caixa|CX)\s*c\/\s*(\d+)\)/i);
+            if (boxMatch) return `1 Unidade · Caixa contém ${boxMatch[1]} unidades`;
+            return '1 Unidade · preço por unidade';
+        }
+        if (tier === 'pallet') return '1 Pallet · preço por embalagem';
+        return '1 Caixa · preço por embalagem';
+    };
+
+    const itemPackPriceLabel = (item) => {
+        const tier = packTypeFromCartKey(item?.cartKey || item?.id, item?.packType || 'caixa');
+        if (tier === 'pallet') return 'por pallet';
+        if (tier === 'caixa') return 'por caixa';
+        return 'por unidade';
+    };
+
     const lineSubtotal = (item) => (item.price ?? 0) * (item.qty || 0);
 
     const itemMetaText = (item) => {
@@ -324,18 +348,24 @@
         items.forEach((item) => {
             const key = item.cartKey || item.id;
             if (!key) return;
+            const price = Number(item.price);
+            const originalPrice = item.originalPrice != null ? Number(item.originalPrice) : null;
+            const packType = packTypeFromCartKey(key, item.packType || 'caixa');
             cart[key] = {
                 id: item.id || key,
                 cartKey: key,
                 name: item.name,
-                price: item.price,
+                price: Number.isFinite(price) ? price : 0,
                 qty: Math.max(1, Number(item.qty) || 1),
-                packType: item.packType || 'caixa',
+                packType,
                 image: item.image || '',
                 categoryId: item.categoryId || '',
                 categoryName: item.categoryName || '',
                 hubId: item.hubId || '',
                 sku: item.sku || '',
+                ...(originalPrice != null && Number.isFinite(originalPrice) && originalPrice > 0
+                    ? { listPrice: originalPrice }
+                    : {}),
                 ...(lockPrices ? { priceLocked: true } : {}),
                 ...promoFieldsFromItem(item),
             };
@@ -350,6 +380,89 @@
         saveCheckout(checkoutFromOrder(order));
         window.LigeirinhoCartPrice?.snapshotEditOrderPrices?.(loadCart());
         return true;
+    };
+
+    const buildCatalogLookupIndex = (catalogData) => {
+        const pricing = window.LigeirinhoPricing;
+        if (!pricing?.buildGroups || !catalogData?.categories?.length) return null;
+        const index = new Map();
+        const groups = pricing.buildGroups(catalogData);
+        for (const group of groups.values()) {
+            for (const tier of ['unidade', 'caixa', 'pallet']) {
+                const variant = group.variants?.[tier];
+                if (!variant?.id) continue;
+                const cartKey = tier === 'unidade' ? variant.id : `${variant.id}::${tier}`;
+                const entry = { group, tier, variant, cartKey };
+                index.set(String(variant.id), entry);
+                index.set(cartKey, entry);
+                if (variant.hubId) index.set(String(variant.hubId), entry);
+                if (variant.sku) index.set(String(variant.sku), entry);
+            }
+        }
+        return index;
+    };
+
+    const findCatalogEntryForCartItem = (index, item) => {
+        if (!index || !item) return null;
+        const candidates = new Set(
+            [item.cartKey, item.id, item.hubId, item.sku]
+                .map((value) => String(value || '').trim())
+                .filter(Boolean),
+        );
+        const cartKey = String(item.cartKey || '');
+        if (cartKey.includes('::')) candidates.add(cartKey.split('::')[0]);
+        for (const key of candidates) {
+            const hit = index.get(key);
+            if (!hit) continue;
+            const tier = String(item.packType || hit.tier || 'caixa').toLowerCase();
+            const variant = hit.group.variants?.[tier] || hit.variant;
+            return { group: hit.group, tier, variant };
+        }
+        return null;
+    };
+
+    const enrichCartFromCatalog = (catalogData) => {
+        const pricing = window.LigeirinhoPricing;
+        const index = buildCatalogLookupIndex(catalogData);
+        if (!index || !pricing) return false;
+        const cart = loadCart();
+        let changed = false;
+        for (const key of Object.keys(cart)) {
+            const item = cart[key];
+            if (!item || item.isDeliveryFee) continue;
+            const match = findCatalogEntryForCartItem(index, item);
+            if (!match?.variant) continue;
+            const { group, tier, variant } = match;
+            const patch = {};
+            const image = pricing.getTierImage?.(group, tier) || variant.image || group.image || '';
+            if (image && !item.image) patch.image = image;
+            if (variant.hubId && !item.hubId) patch.hubId = variant.hubId;
+            if (variant.sku && !item.sku) patch.sku = variant.sku;
+            if (group.categoryId && !item.categoryId) patch.categoryId = group.categoryId;
+            if (group.categoryName && !item.categoryName) patch.categoryName = group.categoryName;
+            if (item.isPromo && item.originalPrice != null && !item.listPrice) {
+                patch.listPrice = Number(item.originalPrice);
+            }
+            if (!Object.keys(patch).length) continue;
+            cart[key] = { ...item, ...patch };
+            changed = true;
+        }
+        if (changed) {
+            saveCart(cart);
+            window.dispatchEvent(new CustomEvent('ligeirinho-cart-changed'));
+        }
+        return changed;
+    };
+
+    const enrichCartFromCatalogAsync = async () => {
+        const loader = window.LigeirinhoCatalogLoader;
+        if (!loader?.load) return false;
+        try {
+            const catalog = await loader.load({ force: false });
+            return enrichCartFromCatalog(catalog);
+        } catch {
+            return false;
+        }
     };
 
     const lastOrderSummary = () => {
@@ -651,6 +764,8 @@
         checkoutForReorder,
         loadOrderIntoCart,
         loadOrderForEdit,
+        enrichCartFromCatalog,
+        enrichCartFromCatalogAsync,
         isEditingOrder,
         exitOrderEditMode,
         lastOrderSummary,
@@ -662,6 +777,9 @@
         cartSummary,
         formatMoney,
         packTypeLabel,
+        packTypeFromCartKey,
+        itemPackDetailText,
+        itemPackPriceLabel,
         lineSubtotal,
         itemMetaText,
         updateNavCartBadge,

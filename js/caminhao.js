@@ -80,13 +80,7 @@ ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-
 </div>`;
     };
 
-    const productPackDetail = (item) => {
-        const pack = cartApi.packTypeLabel(item.packType);
-        const boxMatch = String(item.name || '').match(/\(Caixa c\/\s*(\d+)\)/i);
-        if (boxMatch) return `1 Unidade · Caixa contém ${boxMatch[1]} unidades`;
-        if (item.packType === 'caixa') return `1 Caixa · preço por embalagem`;
-        return `1 ${pack} · ${formatPrice(item.price)}`;
-    };
+    const productPackDetail = (item) => cartApi.itemPackDetailText?.(item) || '1 Caixa · preço por embalagem';
 
     const productCardHtml = (item) => {
         const lineKey = item.cartKey || item.id;
@@ -403,5 +397,12 @@ ${items.length ? stickyFooterHtml(cart) : ''}
         render();
     });
 
-    render();
+    const boot = async () => {
+        if (cartApi.isEditingOrder?.()) {
+            await cartApi.enrichCartFromCatalogAsync?.();
+        }
+        render();
+    };
+
+    boot();
 })();

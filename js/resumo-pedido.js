@@ -359,16 +359,8 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         }
     };
 
-    const buildCatalogPriceLookup = (catalog) => {
-        const map = new Map();
-        for (const cat of catalog?.categories || []) {
-            for (const product of cat.products || []) {
-                if (product.id) map.set(String(product.id), Number(product.price));
-                if (product.hubId) map.set(String(product.hubId), Number(product.price));
-            }
-        }
-        return map;
-    };
+    const buildCatalogPriceLookup = (catalog) =>
+        window.LigeirinhoCartPrice?.buildCatalogPriceLookup?.(catalog) || new Map();
 
     const applyOrderPriceTable = async (tabelaPrecoId, { unlockPrices = false } = {}) => {
         if (!tabelaPrecoId) return;
@@ -378,17 +370,22 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         const catalog = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(catalog.error || 'Falha ao aplicar tabela de preço.');
         const lookup = buildCatalogPriceLookup(catalog);
+        const resolvePrice =
+            window.LigeirinhoCartPrice?.resolveCartItemCatalogPrice ||
+            ((item, map) => {
+                const next =
+                    map.get(String(item.cartKey)) ??
+                    map.get(`${item.id}::${String(item.packType || 'caixa').toLowerCase()}`);
+                return next != null && Number.isFinite(next) && next > 0 ? next : null;
+            });
         const cart = cartApi.loadCart();
         let updated = false;
         Object.keys(cart).forEach((key) => {
             const item = cart[key];
             if (!item || item.isDeliveryFee) return;
             if (item.priceLocked && !unlockPrices) return;
-            const next =
-                lookup.get(String(item.id)) ??
-                lookup.get(String(item.hubId)) ??
-                lookup.get(String(item.cartKey));
-            if (next != null && Number.isFinite(next) && next > 0) {
+            const next = resolvePrice(item, lookup);
+            if (next != null) {
                 cart[key] = {
                     ...item,
                     price: next,
@@ -652,11 +649,7 @@ ${pickerPaymentIds
 
     const productPackDetail = (item) => {
         if (item?.isDeliveryFee) return 'Taxa de entrega';
-        const pack = cartApi.packTypeLabel(item.packType);
-        const boxMatch = String(item.name || '').match(/\(Caixa c\/\s*(\d+)\)/i);
-        if (boxMatch) return `1 Unidade · Caixa contém ${boxMatch[1]} unidades`;
-        if (item.packType === 'caixa') return `1 Caixa · preço por embalagem`;
-        return `1 ${pack} · ${formatPrice(item.price)}`;
+        return cartApi.itemPackDetailText?.(item) || '1 Caixa · preço por embalagem';
     };
 
     const vendorCardHtml = () => {
@@ -680,13 +673,14 @@ ${pickerPaymentIds
 
     const productLineHtml = (item) => {
         const lineTotal = formatPrice((item.price || 0) * item.qty);
-        const unitPrice = formatPrice(item.price || 0);
+        const packPrice = formatPrice(item.price || 0);
+        const packLabel = cartApi.itemPackPriceLabel?.(item) || 'por embalagem';
         return `<article class="resumo-product resumo-product--rich">
 ${productThumbHtml(item)}
 <div class="resumo-product__main">
 <p class="resumo-product__name">${esc(item.name)}</p>
 <p class="resumo-product__detail">${esc(productPackDetail(item))}</p>
-<p class="resumo-product__unit-price">${unitPrice}</p>
+<p class="resumo-product__unit-price">${packPrice} <span class="resumo-product__price-tier">${esc(packLabel)}</span></p>
 </div>
 <div class="resumo-product__side">
 <span class="resumo-product__qty">x${item.qty}</span>
@@ -1179,6 +1173,17 @@ ${body}
             price: item.price,
             qty: item.qty,
             packType: item.packType,
+            image: item.image || '',
+            categoryId: item.categoryId || '',
+            categoryName: item.categoryName || '',
+            ...(item.isPromo
+                ? {
+                      isPromo: true,
+                      promoId: item.promoId || '',
+                      originalPrice: item.originalPrice ?? item.listPrice ?? null,
+                      discountPct: item.discountPct ?? null,
+                  }
+                : {}),
         }));
 
         const paymentMethod = resolvePaymentMethodForOrder(checkout.paymentMethod);
@@ -1381,6 +1386,7 @@ ${body}
         const checkout = loadCheckoutState();
         if (String(checkout.editOrderId || '').trim()) {
             await refreshEditOrderMeta(checkout);
+            await cartApi.enrichCartFromCatalogAsync?.();
         }
         render();
     };

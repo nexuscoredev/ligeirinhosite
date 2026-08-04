@@ -7,16 +7,42 @@
 
     const priceFromLookup = (lookup, line) => {
         if (!lookup?.size || !line) return null;
-        for (const k of [line.id, line.hubId, line.cartKey, line.key]) {
-            if (!k) continue;
-            const v = lookup.get(String(k));
-            if (v != null && Number.isFinite(v) && v > 0) return v;
-        }
-        return null;
+        return (
+            resolveCartItemCatalogPrice(line, lookup) ??
+            (() => {
+                for (const k of [line.cartKey, line.key, line.id, line.hubId]) {
+                    if (!k) continue;
+                    const v = lookup.get(String(k));
+                    if (v != null && Number.isFinite(v) && v > 0) return v;
+                }
+                return null;
+            })()
+        );
     };
 
     const buildCatalogPriceLookup = (catalog) => {
         const map = new Map();
+        const pricing = window.LigeirinhoPricing;
+        if (pricing?.buildGroups && catalog?.categories?.length) {
+            const groups = pricing.buildGroups(catalog);
+            for (const group of groups.values()) {
+                for (const tier of ['unidade', 'caixa', 'pallet']) {
+                    const variant = pricing.getVariant(group, tier);
+                    if (!variant?.id) continue;
+                    const price = Number(variant.price);
+                    if (!Number.isFinite(price) || price <= 0) continue;
+                    const cartKey = tier === 'unidade' ? String(variant.id) : `${variant.id}::${tier}`;
+                    map.set(cartKey, price);
+                    map.set(`${variant.id}::${tier}`, price);
+                    if (variant.hubId) map.set(`${variant.hubId}::${tier}`, price);
+                    if (tier === 'unidade') {
+                        map.set(String(variant.id), price);
+                        if (variant.hubId) map.set(String(variant.hubId), price);
+                    }
+                }
+            }
+            return map;
+        }
         for (const cat of catalog?.categories || []) {
             for (const product of cat.products || []) {
                 if (product.id) map.set(String(product.id), Number(product.price));
@@ -24,6 +50,26 @@
             }
         }
         return map;
+    };
+
+    const resolveCartItemCatalogPrice = (item, lookup) => {
+        if (!lookup?.size || !item) return null;
+        const packType = String(item.packType || 'caixa').toLowerCase();
+        const keys = [
+            item.cartKey,
+            item.key,
+            `${item.id}::${packType}`,
+            item.hubId ? `${item.hubId}::${packType}` : '',
+            packType === 'unidade' ? item.id : '',
+            packType === 'unidade' ? item.hubId : '',
+        ]
+            .map((value) => String(value || '').trim())
+            .filter(Boolean);
+        for (const key of keys) {
+            const price = lookup.get(key);
+            if (price != null && Number.isFinite(price) && price > 0) return price;
+        }
+        return null;
     };
 
     const setOrderTablePriceLookup = (tabelaPrecoId, catalog) => {
@@ -84,6 +130,7 @@
 
     window.LigeirinhoCartPrice = {
         buildCatalogPriceLookup,
+        resolveCartItemCatalogPrice,
         setOrderTablePriceLookup,
         clearOrderTablePriceLookup,
         snapshotEditOrderPrices,
