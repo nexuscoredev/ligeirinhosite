@@ -301,7 +301,9 @@
         };
     };
 
-    const loadOrderIntoCart = (order) => {
+    const isEditingOrder = () => Boolean(String(loadCheckout().editOrderId || '').trim());
+
+    const loadOrderIntoCart = (order, { lockPrices = false } = {}) => {
         const items = (Array.isArray(order?.items) ? order.items : []).filter(
             (item) => !isDeliveryFeeCartItem(item),
         );
@@ -322,6 +324,7 @@
                 categoryName: item.categoryName || '',
                 hubId: item.hubId || '',
                 sku: item.sku || '',
+                ...(lockPrices ? { priceLocked: true } : {}),
                 ...promoFieldsFromItem(item),
             };
         });
@@ -331,7 +334,7 @@
     };
 
     const loadOrderForEdit = (order) => {
-        if (!loadOrderIntoCart(order)) return false;
+        if (!loadOrderIntoCart(order, { lockPrices: true })) return false;
         saveCheckout(checkoutFromOrder(order));
         return true;
     };
@@ -568,6 +571,7 @@
     };
 
     const repriceFromCatalog = (catalogData) => {
+        if (isEditingOrder()) return false;
         const pricing = window.LigeirinhoPricing;
         if (!pricing?.buildGroups || !pricing?.getVariant) return false;
         const cart = loadCart();
@@ -577,7 +581,7 @@
         const groups = pricing.buildGroups(catalogData);
         let changed = false;
         for (const item of entries) {
-            if (item.promoId || item.isPromo) continue;
+            if (item.priceLocked || item.promoId || item.isPromo) continue;
             let group = null;
             for (const g of groups.values()) {
                 for (const tier of ['unidade', 'caixa', 'pallet']) {
@@ -632,6 +636,7 @@
         checkoutForReorder,
         loadOrderIntoCart,
         loadOrderForEdit,
+        isEditingOrder,
         lastOrderSummary,
         loadPrefs,
         savePrefs,

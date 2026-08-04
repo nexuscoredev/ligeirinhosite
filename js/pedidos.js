@@ -139,12 +139,16 @@
             if (offer.promoId) line.promoId = offer.promoId;
         }
         const cart = cartApi.loadCart();
-        const wasEmpty = !cart[line.key] || cart[line.key].qty <= 0;
-        if (!cart[line.key]) {
+        const existing = cart[line.key];
+        const editing = cartApi.isEditingOrder?.();
+        const wasEmpty = !existing || existing.qty <= 0;
+        if (!existing) {
             cart[line.key] = { ...line, qty: 0 };
-        } else if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
-            cart[line.key].price = Number(offer.promoPrice);
-            if (offer.promoId) cart[line.key].promoId = offer.promoId;
+        } else if (!editing && !existing.priceLocked) {
+            if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
+                cart[line.key].price = Number(offer.promoPrice);
+                if (offer.promoId) cart[line.key].promoId = offer.promoId;
+            }
         }
         cart[line.key].qty += 1;
         cartApi.saveCart(cart);
@@ -166,15 +170,18 @@
         if (!line) return;
         const offer = ctx.offer;
         const cart = cartApi.loadCart();
+        const existing = cart[line.key];
+        const editing = cartApi.isEditingOrder?.();
         if (qty <= 0) {
             delete cart[line.key];
         } else {
-            if (!cart[line.key]) {
+            if (!existing) {
                 cart[line.key] = { ...line, qty: 0 };
-            }
-            if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
-                cart[line.key].price = Number(offer.promoPrice);
-                if (offer.promoId) cart[line.key].promoId = offer.promoId;
+            } else if (!editing && !existing.priceLocked) {
+                if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
+                    cart[line.key].price = Number(offer.promoPrice);
+                    if (offer.promoId) cart[line.key].promoId = offer.promoId;
+                }
             }
             cart[line.key].qty = qty;
         }

@@ -76,9 +76,11 @@
         line.price = ctx.promoPrice;
         if (ctx.promo?.id) line.promoId = ctx.promo.id;
         const cart = cartApi.loadCart();
-        if (!cart[line.key]) {
+        const existing = cart[line.key];
+        const editing = cartApi.isEditingOrder?.();
+        if (!existing) {
             cart[line.key] = { ...line, qty: 0 };
-        } else {
+        } else if (!editing && !existing.priceLocked) {
             cart[line.key].price = ctx.promoPrice;
             if (ctx.promo?.id) cart[line.key].promoId = ctx.promo.id;
         }
@@ -114,12 +116,14 @@
         line.price = ctx.promoPrice;
         if (ctx.promo?.id) line.promoId = ctx.promo.id;
         const cart = cartApi.loadCart();
+        const existing = cart[line.key];
+        const editing = cartApi.isEditingOrder?.();
         if (qty <= 0) {
             delete cart[line.key];
         } else {
-            if (!cart[line.key]) {
+            if (!existing) {
                 cart[line.key] = { ...line, qty: 0 };
-            } else {
+            } else if (!editing && !existing.priceLocked) {
                 cart[line.key].price = ctx.promoPrice;
                 if (ctx.promo?.id) cart[line.key].promoId = ctx.promo.id;
             }

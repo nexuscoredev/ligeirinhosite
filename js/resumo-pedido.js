@@ -370,7 +370,7 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         return map;
     };
 
-    const applyOrderPriceTable = async (tabelaPrecoId) => {
+    const applyOrderPriceTable = async (tabelaPrecoId, { unlockPrices = false } = {}) => {
         if (!tabelaPrecoId) return;
         const headers = await auth?.buildAccountHeaders?.();
         const url = `/api/catalog/by-table?tabelaPrecoId=${encodeURIComponent(tabelaPrecoId)}&sync=${Date.now()}`;
@@ -383,12 +383,17 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         Object.keys(cart).forEach((key) => {
             const item = cart[key];
             if (!item || item.isDeliveryFee) return;
+            if (item.priceLocked && !unlockPrices) return;
             const next =
                 lookup.get(String(item.id)) ??
                 lookup.get(String(item.hubId)) ??
                 lookup.get(String(item.cartKey));
             if (next != null && Number.isFinite(next) && next > 0) {
-                cart[key] = { ...item, price: next };
+                cart[key] = {
+                    ...item,
+                    price: next,
+                    ...(unlockPrices ? { priceLocked: false } : {}),
+                };
                 updated = true;
             }
         });
@@ -1112,7 +1117,7 @@ ${body}
             pickerCondicaoApplying = true;
             renderPicker();
             try {
-                await applyOrderPriceTable(selected.id);
+                await applyOrderPriceTable(selected.id, { unlockPrices: true });
                 cartApi.saveCheckout(patch);
                 step = 'resumo';
                 pickerMode = null;
