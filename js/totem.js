@@ -367,6 +367,21 @@
         return 'UNIDADE';
     };
 
+    const syncMediaPackTag = (card, variant, tier) => {
+        if (!card || !variant) return;
+        const media = card.querySelector('.totem-product__media');
+        if (!media) return;
+        let packTag = card.querySelector('.totem-product__pack-tag');
+        const label = packLabelForTier(tier);
+        if (!packTag) {
+            media.insertAdjacentHTML('beforeend', mediaPackTagHtml(variant, tier));
+            return;
+        }
+        const labelEl = packTag.querySelector('.totem-product__pack-tag-label');
+        if (labelEl) labelEl.textContent = label;
+        packTag.setAttribute('aria-label', `Embalagem ${label}`);
+    };
+
     const mediaPackTagHtml = (variant, tier) => {
         if (!variant) return '';
         const activeTier = tier || variant.tier || 'caixa';
@@ -1032,8 +1047,7 @@ ${unitHtml}
             payTag.remove();
         }
 
-        const packTag = card.querySelector('.totem-product__pack-tag');
-        packTag?.remove();
+        syncMediaPackTag(card, variant, tier);
 
         const expectedTiers = (
             pricing.getTotemAvailableTiers?.(group) ||
@@ -3074,6 +3088,7 @@ ${promoTag}
 ${payTag}
 ${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
+${variant ? mediaPackTagHtml(variant, tier) : ''}
 </div>`;
         const bodyHtml = `<div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
