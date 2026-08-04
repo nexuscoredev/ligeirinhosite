@@ -367,11 +367,27 @@
         return 'UNIDADE';
     };
 
-    const syncMediaPackTag = (card, variant, tier) => {
+    const tierCountForGroup = (group) => {
+        if (!group) return 0;
+        return (
+            pricing.getTotemAvailableTiers?.(group) ||
+            pricing.getAvailableTiers(group) ||
+            []
+        ).filter((entry) => !window.LigeirinhoTotemStoreAdmin?.isTierHidden?.(group, entry)).length;
+    };
+
+    /** Tag na foto só quando não há seletor UN/CX/PL (padrão Totem). */
+    const shouldShowMediaPackTag = (group) => tierCountForGroup(group) <= 1;
+
+    const syncMediaPackTag = (card, variant, tier, group) => {
         if (!card || !variant) return;
         const media = card.querySelector('.totem-product__media');
         if (!media) return;
-        let packTag = card.querySelector('.totem-product__pack-tag');
+        const packTag = card.querySelector('.totem-product__pack-tag');
+        if (!shouldShowMediaPackTag(group)) {
+            packTag?.remove();
+            return;
+        }
         const label = packLabelForTier(tier);
         if (!packTag) {
             media.insertAdjacentHTML('beforeend', mediaPackTagHtml(variant, tier));
@@ -1047,7 +1063,7 @@ ${unitHtml}
             payTag.remove();
         }
 
-        syncMediaPackTag(card, variant, tier);
+        syncMediaPackTag(card, variant, tier, group);
 
         const expectedTiers = (
             pricing.getTotemAvailableTiers?.(group) ||
@@ -3088,7 +3104,7 @@ ${promoTag}
 ${payTag}
 ${mediaCartBadgeHtml(qty)}
 ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : '<span class="material-symbols-outlined totem-product__placeholder" aria-hidden="true">liquor</span>'}
-${variant ? mediaPackTagHtml(variant, tier) : ''}
+${variant && shouldShowMediaPackTag(group) ? mediaPackTagHtml(variant, tier) : ''}
 </div>`;
         const bodyHtml = `<div class="totem-product__body">
 <div class="totem-product__name">${esc(name)}</div>
