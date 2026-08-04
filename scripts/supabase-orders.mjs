@@ -264,6 +264,43 @@ export async function listParceiroOrders(
     return merged.slice(0, safeLimit);
 }
 
+/** Mescla listas de pedidos deduplicando por id. */
+export function mergeOrdersById(primary = [], extra = [], { limit = 50 } = {}) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const seen = new Set();
+    const merged = [];
+    for (const row of [...primary, ...extra]) {
+        if (!row?.id || seen.has(row.id)) continue;
+        seen.add(row.id);
+        merged.push(row);
+    }
+    merged.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    return merged.slice(0, safeLimit);
+}
+
+/** Pedidos Totem/Tablet visíveis só para a conta Distribuidora (45028186000125). */
+export async function listTotemOrdersForDistribuidora(
+    supabaseUrl,
+    apiKey,
+    { limit = 50, useRpc = false } = {},
+) {
+    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    if (useRpc) {
+        try {
+            const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_list_distribuidora_totem_orders`, {
+                method: 'POST',
+                headers: headers(apiKey),
+                body: JSON.stringify({ p_limit: safeLimit }),
+            });
+            const data = await parseJson(res);
+            return normalizeRpcOrderRows(data);
+        } catch {
+            return [];
+        }
+    }
+    return fetchOrdersByFilter(supabaseUrl, apiKey, {}, { limit: safeLimit, channel: 'totem' });
+}
+
 export async function patchOrder(supabaseUrl, apiKey, id, patch, { useRpc = false } = {}) {
     if (useRpc) {
         const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_patch_order`, {

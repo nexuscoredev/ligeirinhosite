@@ -1,8 +1,11 @@
 import { requireAccountSession } from '../account/_require-hub-session.mjs';
 import { collectParceiroOrderLookup, formatCnpj, isHubUsuarioUuid } from '../../scripts/hub-parceiro.mjs';
+import { isDistribuidoraAccount } from '../../scripts/lib/distribuidora-account.mjs';
 import { paymentEnv, assertOrderBackend } from '../../scripts/payment-env.mjs';
 import {
     listParceiroOrders,
+    listTotemOrdersForDistribuidora,
+    mergeOrdersById,
     publicOrderView,
     dbFromPaymentConfig,
 } from '../../scripts/supabase-orders.mjs';
@@ -62,7 +65,15 @@ export default async function handler(req, res) {
             channel: 'parceiros',
             useRpc: db.useRpc,
         });
-        const views = rows.map((row) => publicOrderView(row)).filter(Boolean);
+        let mergedRows = rows;
+        if (isDistribuidoraAccount(lookup.cnpjDigits || session.usuario)) {
+            const totemRows = await listTotemOrdersForDistribuidora(db.url, db.key, {
+                limit,
+                useRpc: db.useRpc,
+            });
+            mergedRows = mergeOrdersById(rows, totemRows, { limit });
+        }
+        const views = mergedRows.map((row) => publicOrderView(row)).filter(Boolean);
         let orders = views;
         try {
             orders = await Promise.race([

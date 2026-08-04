@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { ensureHubPedidoForParceiros } from './hub-parceiro-pedido.mjs';
+import { hubConfig } from './hub-auth.mjs';
 import { PARCEIROS_SUPABASE_ANON_KEY, PARCEIROS_SUPABASE_URL } from './parceiros-supabase.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -32,6 +33,9 @@ function loadHubEnv() {
         }
         if (key === 'SUPABASE_SERVICE_ROLE_KEY') {
             process.env.HUB_SUPABASE_SERVICE_ROLE_KEY = val;
+        }
+        if (key === 'NEXT_PUBLIC_SUPABASE_URL') {
+            process.env.HUB_SUPABASE_URL = val;
         }
     }
     if (!process.env.HUB_SUPABASE_SERVICE_ROLE_KEY) {
@@ -58,6 +62,24 @@ async function fetchOrderById(id) {
     const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error(data?.message || `rpc_get_order ${res.status}`);
     return data && typeof data === 'object' ? data : null;
+}
+
+async function fetchHubPedidoByParceirosId(parceirosOrderId) {
+    const hub = hubConfig(process.env);
+    if (!hub.serviceKey) return null;
+    const params = new URLSearchParams({
+        select: 'id,numero,status,parceiros_order_id',
+        parceiros_order_id: `eq.${parceirosOrderId}`,
+        limit: '1',
+    });
+    const res = await fetch(`${hub.url}/rest/v1/pedidos?${params}`, {
+        headers: {
+            apikey: hub.serviceKey,
+            Authorization: `Bearer ${hub.serviceKey}`,
+        },
+    });
+    const rows = await res.json().catch(() => null);
+    return Array.isArray(rows) ? rows[0] ?? null : null;
 }
 
 async function patchHubPedidoId(orderId, hubPedidoId) {
@@ -90,7 +112,7 @@ function parseIds(argv) {
             .map((s) => s.trim())
             .filter(Boolean);
     }
-    const file = argv[2];
+    const file = argv.find((a) => !a.startsWith('--'));
     if (!file) return [];
     const raw = JSON.parse(fs.readFileSync(path.resolve(file), 'utf8'));
     if (Array.isArray(raw)) return raw.map(String);
@@ -122,7 +144,10 @@ async function main() {
                 continue;
             }
             const order = normalizeOrder(row);
-            const hubPedido = await ensureHubPedidoForParceiros(order, process.env);
+            let hubPedido = await fetchHubPedidoByParceirosId(order.id);
+            if (!hubPedido?.id) {
+                hubPedido = await ensureHubPedidoForParceiros(order, process.env);
+            }
             if (!hubPedido?.id) {
                 fail += 1;
                 console.warn(
