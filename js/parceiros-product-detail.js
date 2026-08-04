@@ -374,9 +374,16 @@ ${qty > 1 ? `<span class="totem-detail__price-block__success-qty">${qty} un. no 
         }
 
         const cart = cartApi.loadCart();
+        const editing = cartApi.isEditingOrder?.();
+        const resolvedPrice = window.LigeirinhoCartPrice?.resolveAddToCartPrice?.(line) ?? finalPrice;
         if (!cart[line.key]) {
-            cart[line.key] = { ...line, qty: 0 };
-        } else {
+            cart[line.key] = {
+                ...line,
+                price: resolvedPrice,
+                qty: 0,
+                ...(window.LigeirinhoCartPrice?.shouldLockPriceOnAdd?.() ? { priceLocked: true } : {}),
+            };
+        } else if (!editing && !cart[line.key].priceLocked) {
             cart[line.key].price = finalPrice;
             if (appliedPromo?.promoId && payMode !== 'card') {
                 cart[line.key].promoId = appliedPromo.promoId;

@@ -336,6 +336,7 @@
     const loadOrderForEdit = (order) => {
         if (!loadOrderIntoCart(order, { lockPrices: true })) return false;
         saveCheckout(checkoutFromOrder(order));
+        window.LigeirinhoCartPrice?.snapshotEditOrderPrices?.(loadCart());
         return true;
     };
 
@@ -572,6 +573,8 @@
 
     const repriceFromCatalog = (catalogData) => {
         if (isEditingOrder()) return false;
+        const checkout = loadCheckout();
+        if (String(checkout.orderTabelaPrecoId || '').trim()) return false;
         const pricing = window.LigeirinhoPricing;
         if (!pricing?.buildGroups || !pricing?.getVariant) return false;
         const cart = loadCart();

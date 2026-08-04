@@ -398,6 +398,7 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
             }
         });
         if (updated) cartApi.saveCart(cart);
+        window.LigeirinhoCartPrice?.setOrderTablePriceLookup?.(tabelaPrecoId, catalog);
     };
 
     const condicaoPagamentoLabel = (checkout) => {
@@ -1307,6 +1308,8 @@ ${body}
                 });
             }
             cartApi.saveCart({});
+            window.LigeirinhoCartPrice?.clearEditOrderPriceSnapshot?.();
+            window.LigeirinhoCartPrice?.clearOrderTablePriceLookup?.();
             window.location.href = `pedido-confirmado.html?order=${encodeURIComponent(savedOrderId)}`;
         } catch (err) {
             alert(err.message || 'Erro ao confirmar pedido.');

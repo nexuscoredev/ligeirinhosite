@@ -78,8 +78,14 @@
         const cart = cartApi.loadCart();
         const existing = cart[line.key];
         const editing = cartApi.isEditingOrder?.();
+        const resolvedPrice = window.LigeirinhoCartPrice?.resolveAddToCartPrice?.(line) ?? line.price;
         if (!existing) {
-            cart[line.key] = { ...line, qty: 0 };
+            cart[line.key] = {
+                ...line,
+                price: resolvedPrice,
+                qty: 0,
+                ...(window.LigeirinhoCartPrice?.shouldLockPriceOnAdd?.() ? { priceLocked: true } : {}),
+            };
         } else if (!editing && !existing.priceLocked) {
             cart[line.key].price = ctx.promoPrice;
             if (ctx.promo?.id) cart[line.key].promoId = ctx.promo.id;
@@ -121,8 +127,14 @@
         if (qty <= 0) {
             delete cart[line.key];
         } else {
+            const resolvedPrice = window.LigeirinhoCartPrice?.resolveAddToCartPrice?.(line) ?? line.price;
             if (!existing) {
-                cart[line.key] = { ...line, qty: 0 };
+                cart[line.key] = {
+                    ...line,
+                    price: resolvedPrice,
+                    qty: 0,
+                    ...(window.LigeirinhoCartPrice?.shouldLockPriceOnAdd?.() ? { priceLocked: true } : {}),
+                };
             } else if (!editing && !existing.priceLocked) {
                 cart[line.key].price = ctx.promoPrice;
                 if (ctx.promo?.id) cart[line.key].promoId = ctx.promo.id;
