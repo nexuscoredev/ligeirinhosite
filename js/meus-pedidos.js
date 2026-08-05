@@ -23,7 +23,7 @@
         { value: 'separation', label: 'Em separação', icon: 'package', tone: 'progress' },
         { value: 'separated', label: 'Separado', icon: 'package', tone: 'progress' },
         { value: 'pickup', label: 'Aguardando retirada', icon: 'package', tone: 'progress' },
-        { value: 'route', label: 'A caminho', icon: 'truck', tone: 'progress' },
+        { value: 'route', label: 'Aguardando entrega', icon: 'truck', tone: 'progress' },
         { value: 'done', label: 'Entregue', icon: 'check', tone: 'ok' },
         { value: 'cancelled', label: 'Cancelado', icon: 'cancel', tone: 'danger' },
     ];
@@ -142,7 +142,7 @@
         separation: { tone: 'progress', icon: 'package' },
         separated: { tone: 'progress', icon: 'package', shortLabel: 'Separado' },
         pickup: { tone: 'progress', icon: 'package', shortLabel: 'Retirada' },
-        route: { tone: 'progress', icon: 'truck' },
+        route: { tone: 'progress', icon: 'truck', shortLabel: 'Aguardando entrega' },
         done: { tone: 'ok', icon: 'check' },
         paid: { tone: 'ok', icon: 'check' },
         cancelled: { tone: 'danger', icon: 'cancel' },

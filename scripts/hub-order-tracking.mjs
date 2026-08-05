@@ -318,7 +318,7 @@ export function buildOrderTracking(order, hubPedido = null, options = {}) {
             ({ step, stepLabel, headerTitle, message } = pickupReadyCopy());
         } else {
             step = 3;
-            stepLabel = 'A caminho';
+            stepLabel = 'Aguardando entrega';
             headerTitle = 'Saiu para entrega';
             message =
                 hubStatus === 'proximo_entrega'
@@ -409,7 +409,7 @@ export function buildOrderTracking(order, hubPedido = null, options = {}) {
             {
                 id: 'route',
                 icon: isPickup ? 'storefront' : 'local_shipping',
-                label: isPickup ? 'Aguardando retirada' : 'Rota',
+                label: isPickup ? 'Aguardando retirada' : 'Aguardando entrega',
             },
             {
                 id: 'done',
