@@ -990,12 +990,15 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
     width: min(20rem, calc(100vw - 1.5rem));
     min-width: min(16rem, calc(100vw - 1.5rem));
     max-width: calc(100vw - 1.5rem);
+    max-height: min(calc(100dvh - 5.5rem), 26rem);
     padding: 0.35rem;
     border-radius: 0.875rem;
     border: 1px solid var(--lig-border);
     background: var(--lig-surface);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .ze-location-dropdown__item {
@@ -1061,6 +1064,20 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 .ze-location-dropdown__saved {
     display: grid;
     gap: 0.15rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: min(calc(100dvh - 12rem), 16rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+}
+
+.ze-location-dropdown__item--add,
+.ze-location-dropdown__divider,
+.ze-location-dropdown__item[data-fulfillment] {
+    flex-shrink: 0;
 }
 
 .ze-location-dropdown__saved[hidden] {
@@ -1068,7 +1085,12 @@ html.lig-app-safe-areas .lig-header-stack .ze-app-header {
 }
 
 .ze-location-dropdown__section {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     margin: 0.35rem 0.875rem 0.15rem;
+    padding-bottom: 0.2rem;
+    background: var(--lig-surface);
     font-size: 0.6875rem;
     font-weight: 800;
     letter-spacing: 0.06em;
