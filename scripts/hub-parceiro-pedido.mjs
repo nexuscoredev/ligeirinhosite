@@ -111,24 +111,17 @@ async function resolverProdutosHub(config, items = []) {
     if (unresolved.length) {
         const produtos = await fetchHubProdutosForLookup(config);
         const catalogIndex = buildHubProductLookup(produtos);
-        for (const [key, row] of catalogIndex) {
-            if (!map.has(key)) map.set(key, row);
-        }
-    }
-
-    for (const item of items) {
-        if (resolveProdutoForItem(map, item)) continue;
-        for (const name of productNameCandidates(item.name)) {
-            if (name.length < 4 || map.has(name)) continue;
-            const byName = await hubRest(
-                config,
-                `produtos?select=id,sku,ean,nome,categorias_produto(ordem_separacao)&nome=ilike.${encodeURIComponent(name)}&ativo=eq.true&limit=3`,
-            );
-            const hit = Array.isArray(byName) ? byName[0] : null;
-            if (!hit?.id) continue;
-            map.set(name, hit);
-            for (const key of itemLookupKeys(item)) map.set(key, hit);
-            break;
+        for (const item of unresolved) {
+            if (resolveProdutoForItem(map, item)) continue;
+            for (const key of itemLookupKeys(item)) {
+                if (map.has(key)) continue;
+                const row = catalogIndex.get(key);
+                if (!row?.id) continue;
+                map.set(key, row);
+                if (row.id) map.set(String(row.id), row);
+                if (row.sku) map.set(String(row.sku).trim(), row);
+                if (row.ean) map.set(String(row.ean).trim(), row);
+            }
         }
     }
 
@@ -501,6 +494,43 @@ export async function updateHubPedidoForParceiros(order, env = process.env) {
         `pedidos?select=id,numero,status,origem,parceiros_order_id&id=eq.${encodeURIComponent(hubPedido.id)}&limit=1`,
     );
     return { ok: true, hubPedido: Array.isArray(refreshed) ? refreshed[0] ?? hubPedido : hubPedido };
+}
+
+/**
+ * Regrava pedido_itens no Hub a partir do pedido Parceiros (fonte da verdade).
+ * Usado no aceite para eliminar divergência entre caminhão Parceiros e fila/DAV Hub.
+ */
+export async function resyncHubPedidoItensFromParceiros(order, env = process.env) {
+    const hub = hubConfig(env);
+    if (!hub.serviceKey) return { ok: false, code: 'hub_unavailable', message: 'Hub indisponível.' };
+    if (!order?.id) return { ok: false, code: 'invalid_order', message: 'Pedido inválido.' };
+    if (String(order.channel || 'parceiros').toLowerCase() === 'totem') {
+        return { ok: false, code: 'invalid_channel', message: 'Pedido não sincronizável por aqui.' };
+    }
+
+    const hubPedido = await fetchHubPedidoForParceirosOrder(hub, order);
+    if (!hubPedido?.id) {
+        return { ok: false, code: 'hub_not_found', message: 'Pedido Hub não encontrado.', hubPedido: null };
+    }
+
+    const items = Array.isArray(order.items) ? order.items : [];
+    if (!items.length) {
+        return { ok: false, code: 'no_items', message: 'Pedido sem itens.', hubPedido };
+    }
+
+    await hubRest(hub, `pedido_itens?pedido_id=eq.${encodeURIComponent(hubPedido.id)}`, {
+        method: 'DELETE',
+    });
+    await inserirItensNoPedidoHub(hub, hubPedido.id, order);
+
+    const refreshed = await hubRest(
+        hub,
+        `pedidos?select=id,numero,status,origem,parceiros_order_id&id=eq.${encodeURIComponent(hubPedido.id)}&limit=1`,
+    );
+    return {
+        ok: true,
+        hubPedido: Array.isArray(refreshed) ? refreshed[0] ?? hubPedido : hubPedido,
+    };
 }
 
 /**

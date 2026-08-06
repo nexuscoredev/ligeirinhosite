@@ -9,7 +9,7 @@ import {
     fetchHubPedidoById,
     fetchHubPedidoByParceirosOrderId,
 } from './hub-order-tracking.mjs';
-import { enforceParceirosSeparationPolicy } from './hub-parceiro-pedido.mjs';
+import { enforceParceirosSeparationPolicy, resyncHubPedidoItensFromParceiros } from './hub-parceiro-pedido.mjs';
 import {
     claimOrderTrackNotify,
     deletePushSubscriptionByEndpoint,
@@ -175,6 +175,16 @@ export async function applyHubOrderDecision(
                 status: 'aguardando_separacao',
             };
         if (hubPedido?.id) {
+            try {
+                const resync = await resyncHubPedidoItensFromParceiros(order, env);
+                if (resync.ok && resync.hubPedido) {
+                    hubPedido = resync.hubPedido;
+                } else if (!resync.ok && resync.code !== 'no_items') {
+                    console.warn('hub-order-decision resync itens', resync.code, resync.message);
+                }
+            } catch (resyncErr) {
+                console.warn('hub-order-decision resync itens', resyncErr?.message || resyncErr);
+            }
             hubPedido = (await enforceParceirosSeparationPolicy(order, hubPedido, env)) || hubPedido;
         }
     } else if (acao === 'recusar') {

@@ -810,6 +810,25 @@ ${cardHtml(
         root.querySelector('#resumo-cliente-nome')?.addEventListener('input', (event) => {
             cartApi.saveCheckout({ orderClienteNome: event.target.value });
         });
+        root.querySelector('#resumo-cliente-nome')?.addEventListener('change', (event) => {
+            if (!isDistribuidoraAccount()) return;
+            const next = String(event.target.value || '').trim();
+            const checkout = loadCheckoutState();
+            const prev = String(checkout.cartClienteScope || checkout.orderClienteNome || '').trim();
+            const hasItems = cartApi.cartItemCount(cartApi.loadCart()) > 0;
+            if (prev && next && prev !== next && hasItems) {
+                const keep = window.confirm(
+                    `Trocar o cliente de "${prev}" para "${next}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
+                );
+                if (!keep) {
+                    event.target.value = prev;
+                    cartApi.saveCheckout({ orderClienteNome: prev });
+                    return;
+                }
+                cartApi.saveCart({});
+            }
+            cartApi.saveCheckout({ orderClienteNome: next, cartClienteScope: next });
+        });
         const phoneInput = root.querySelector('#resumo-cliente-telefone');
         phoneInput?.addEventListener('input', (event) => {
             const formatted = maskClientePhoneInput(event.target.value);
@@ -1128,7 +1147,7 @@ ${body}
     };
 
     const confirmOrder = async () => {
-        const cart = cartApi.loadCart();
+        let cart = cartApi.loadCart();
         let checkout = loadCheckoutState();
         const errors = validateCheckout(checkout, orderTotals(cart, checkout).total);
         if (Object.keys(errors).length) {
@@ -1163,6 +1182,8 @@ ${body}
 
         await auth?.ensureAccountSession?.();
         const s = session();
+        await cartApi.enrichCartFromCatalogAsync?.().catch(() => null);
+        cart = cartApi.loadCart();
         const hubUserId = resolveOrderHubUserId(s);
         const items = cartApi.cartEntries(cart).map((item) => ({
             id: item.id,
@@ -1221,6 +1242,10 @@ ${body}
                 if (checkout.orderTabelaPrecoId) {
                     payload.orderTabelaPrecoId = checkout.orderTabelaPrecoId;
                     payload.orderTabelaPrecoCodigo = checkout.orderTabelaPrecoCodigo || '';
+                }
+                const clienteNome = String(checkout.orderClienteNome || '').trim();
+                if (clienteNome) {
+                    cartApi.saveCheckout({ cartClienteScope: clienteNome });
                 }
                 if (
                     checkout.orderTaxaEntrega !== undefined &&
@@ -1320,6 +1345,7 @@ ${body}
                 orderClienteNome: '',
                 orderClienteDoc: '',
                 orderClienteTelefone: '',
+                cartClienteScope: '',
             });
             if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {
                 cartApi.saveAddressToHistory?.({

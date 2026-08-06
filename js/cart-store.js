@@ -104,6 +104,7 @@
         orderClienteNome: '',
         orderClienteDoc: '',
         orderClienteTelefone: '',
+        cartClienteScope: '',
     });
 
     const loadCheckout = () => {
@@ -319,6 +320,9 @@
             orderClienteNome: String(order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || ''),
             orderClienteDoc,
             orderClienteTelefone: String(order?.customerPhone || order?.customer_phone || '').trim(),
+            cartClienteScope: String(
+                order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || '',
+            ),
             orderTabelaPrecoCodigo: tabelaMatch?.[1]?.trim() || '',
             orderTabelaPrecoId: String(
                 order?.orderTabelaPrecoId || order?.order_tabela_preco_id || '',

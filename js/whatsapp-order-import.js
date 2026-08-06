@@ -441,6 +441,13 @@ ${note ? `<p class="lig-wa-import-row__note">${esc(note)}</p>` : ''}
             return false;
         }
 
+        if (mode === 'merge' && cartHasItems()) {
+            const ok = window.confirm(
+                'Somar estes itens ao caminhão atual?\n\nProdutos que já estão no caminhão permanecerão — confira se não há itens de outro cliente antes de confirmar o pedido.',
+            );
+            if (!ok) return false;
+        }
+
         const next = mode === 'merge' ? { ...cartApi.loadCart() } : {};
         lines.forEach((line) => {
             const key = line.cartKey || line.key;
