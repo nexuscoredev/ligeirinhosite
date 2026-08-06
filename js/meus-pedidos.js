@@ -6,6 +6,10 @@
     const auth = window.LigeirinhoAuth;
     const LOGIN = (next) => `/?next=${encodeURIComponent(next || 'meus-pedidos.html')}`;
 
+    const ORDERS_INITIAL_LIMIT = 50;
+    const ORDERS_PAGE_STEP = 25;
+    const ORDERS_MAX_LIMIT = 200;
+
     const STATE = {
         orders: [],
         reorderId: '',
@@ -13,6 +17,9 @@
         status: 'all',
         date: '',
         expandedId: '',
+        fetchLimit: ORDERS_INITIAL_LIMIT,
+        hasMore: false,
+        loadingMore: false,
     };
 
     const STATUS_OPTIONS = [
@@ -657,9 +664,22 @@ ${orderActionsHtml(order, { showReorder })}
                     expanded: order.id === STATE.expandedId,
                 }),
             )
-            .join('')}</div>`;
+            .join('')}</div>${
+            STATE.hasMore && STATE.fetchLimit < ORDERS_MAX_LIMIT
+                ? `<div class="meus-pedidos-load-more">
+<button type="button" class="conta-btn conta-btn--outline meus-pedidos-load-more__btn" id="meus-pedidos-load-more"${STATE.loadingMore ? ' disabled' : ''}>
+${STATE.loadingMore ? 'Carregando…' : `Mostrar mais ${ORDERS_PAGE_STEP}`}
+</button>
+</div>`
+                : ''
+        }`;
 
         bindListActions();
+        root.querySelector('#meus-pedidos-load-more')?.addEventListener('click', () => {
+            if (STATE.loadingMore || !STATE.hasMore) return;
+            STATE.fetchLimit = Math.min(ORDERS_MAX_LIMIT, STATE.fetchLimit + ORDERS_PAGE_STEP);
+            void loadOrders({ keepFilters: true, loadingMore: true });
+        });
     };
 
     const syncClearButton = () => {
@@ -758,7 +778,7 @@ ${withFilters ? filtersHtml() : ''}
         }, 30000);
     };
 
-    const loadOrders = async ({ keepFilters = false, silent = false } = {}) => {
+    const loadOrders = async ({ keepFilters = false, silent = false, loadingMore = false } = {}) => {
         const s = session();
         if (!auth?.isLoggedIn?.() && !auth?.getAccountSessionToken?.()) {
             renderShell(`<div class="conta-empty meus-pedidos-empty">
@@ -770,14 +790,18 @@ ${withFilters ? filtersHtml() : ''}
             return;
         }
 
-        if (!keepFilters) {
+        if (!keepFilters && !loadingMore) {
             STATE.q = '';
             STATE.status = 'all';
             STATE.date = '';
+            STATE.fetchLimit = ORDERS_INITIAL_LIMIT;
         }
 
-        if (!silent) {
+        if (!silent && !loadingMore) {
             renderShell('<p class="conta-hint">Carregando pedidos…</p>', { withFilters: false });
+        } else if (loadingMore) {
+            STATE.loadingMore = true;
+            renderOrdersList();
         }
 
         const lastLocal = cart?.loadLastOrder?.();
@@ -792,7 +816,7 @@ ${withFilters ? filtersHtml() : ''}
             const timeoutId = controller
                 ? window.setTimeout(() => controller.abort(), 25000)
                 : null;
-            const res = await fetch('/api/orders/mine?limit=50', {
+            const res = await fetch(`/api/orders/mine?limit=${STATE.fetchLimit}`, {
                 headers,
                 signal: controller?.signal,
             });
@@ -800,6 +824,9 @@ ${withFilters ? filtersHtml() : ''}
             const data = await res.json().catch(() => ({}));
             if (res.ok && Array.isArray(data.orders)) {
                 orders = data.orders;
+                STATE.hasMore = Boolean(
+                    data.hasMore ?? orders.length >= STATE.fetchLimit,
+                );
             } else if (!res.ok) {
                 loadError = data.error || `Erro ${res.status} ao carregar pedidos.`;
                 console.warn('[meus-pedidos]', loadError);
@@ -813,6 +840,7 @@ ${withFilters ? filtersHtml() : ''}
         }
 
         if (loadError) {
+            STATE.loadingMore = false;
             stopPolling();
             renderShell(`<div class="conta-empty meus-pedidos-empty" role="alert">
 <span class="material-symbols-outlined conta-empty__icon">error</span>
@@ -825,6 +853,7 @@ ${withFilters ? filtersHtml() : ''}
         }
 
         STATE.orders = orders;
+        STATE.loadingMore = false;
         STATE.reorderId = lastLocal?.orderId || orders[0]?.id || '';
         if (!STATE.expandedId && orders[0]?.id) STATE.expandedId = orders[0].id;
 

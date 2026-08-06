@@ -6799,6 +6799,16 @@ html.lig-story-open {
     gap: 0.65rem;
 }
 
+.meus-pedidos-load-more {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.85rem;
+}
+
+.meus-pedidos-load-more__btn {
+    min-width: 11rem;
+}
+
 .conta-order-detail__summary {
     display: block;
     width: 100%;

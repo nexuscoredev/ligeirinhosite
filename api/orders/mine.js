@@ -8,6 +8,7 @@ import {
     mergeOrdersById,
     publicOrderView,
     dbFromPaymentConfig,
+    ORDERS_LIST_MAX_LIMIT,
 } from '../../scripts/supabase-orders.mjs';
 import { enrichOrdersWithTracking } from '../../scripts/hub-order-tracking.mjs';
 
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 50));
+        const limit = Math.min(ORDERS_LIST_MAX_LIMIT, Math.max(1, Number(req.query.limit) || 50));
         const db = dbFromPaymentConfig(payConfig);
         const authEmail = String(
             session.authUser?.email || session.usuario?.email || req.headers['x-account-email'] || '',
@@ -85,7 +86,11 @@ export default async function handler(req, res) {
         } catch (trackErr) {
             console.warn('orders/mine tracking', trackErr?.message || trackErr);
         }
-        return res.status(200).json({ orders });
+        return res.status(200).json({
+            orders,
+            limit,
+            hasMore: orders.length >= limit,
+        });
     } catch (err) {
         console.error('orders/mine', err);
         return res.status(500).json({ error: err.message || 'Erro ao listar pedidos.' });

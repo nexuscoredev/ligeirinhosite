@@ -41,7 +41,7 @@ as $$
         )
       )
     order by o.created_at desc
-    limit least(greatest(coalesce(p_limit, 50), 1), 50)
+    limit least(greatest(coalesce(p_limit, 50), 1), 200)
   ) sub;
 $$;
 

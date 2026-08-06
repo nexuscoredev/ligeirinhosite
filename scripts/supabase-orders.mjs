@@ -89,6 +89,13 @@ export async function listTotemPendingOrders(
     return Array.isArray(data) ? data : [];
 }
 
+export const ORDERS_LIST_MAX_LIMIT = 200;
+export const ORDERS_LIST_DEFAULT_LIMIT = 50;
+
+function clampOrdersListLimit(limit, fallback = ORDERS_LIST_DEFAULT_LIMIT) {
+    return Math.min(ORDERS_LIST_MAX_LIMIT, Math.max(1, Number(limit) || fallback));
+}
+
 export async function listOrdersByHubUserId(
     supabaseUrl,
     apiKey,
@@ -108,7 +115,7 @@ export async function listOrdersByHubUserIds(
     const uniqueIds = [...new Set((hubUserIds || []).map((id) => String(id || '').trim()).filter(Boolean))];
     if (!uniqueIds.length) return [];
 
-    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 10));
+    const safeLimit = clampOrdersListLimit(limit, 10);
     const hubFilter =
         uniqueIds.length === 1
             ? { hub_user_id: `eq.${uniqueIds[0]}` }
@@ -128,7 +135,7 @@ export async function listOrdersByHubUserIds(
 }
 
 async function fetchOrdersByFilter(supabaseUrl, apiKey, filterParams, { limit = 50, channel } = {}) {
-    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const safeLimit = clampOrdersListLimit(limit);
     const params = new URLSearchParams({
         ...filterParams,
         select: '*',
@@ -162,7 +169,7 @@ export async function listParceiroOrders(
     { hubUserIds = [], emails = [], legacyHubUserIds = [], cnpjDigits = '' } = {},
     { limit = 50, channel = 'parceiros', useRpc = false } = {},
 ) {
-    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const safeLimit = clampOrdersListLimit(limit);
 
     const allHubIds = [
         ...new Set(
@@ -266,7 +273,7 @@ export async function listParceiroOrders(
 
 /** Mescla listas de pedidos deduplicando por id. */
 export function mergeOrdersById(primary = [], extra = [], { limit = 50 } = {}) {
-    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const safeLimit = clampOrdersListLimit(limit);
     const seen = new Set();
     const merged = [];
     for (const row of [...primary, ...extra]) {
@@ -284,7 +291,7 @@ export async function listTotemOrdersForDistribuidora(
     apiKey,
     { limit = 50, useRpc = false } = {},
 ) {
-    const safeLimit = Math.min(50, Math.max(1, Number(limit) || 50));
+    const safeLimit = clampOrdersListLimit(limit);
     if (useRpc) {
         try {
             const res = await fetch(`${supabaseUrl}/rest/v1/rpc/rpc_list_distribuidora_totem_orders`, {
