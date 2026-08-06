@@ -213,6 +213,67 @@
         return paymentConfigCache;
     };
 
+    const CREDIT_PAYMENT_IDS = new Set(['fiado', 'credito', 'boleto', 'prazo']);
+
+    const checkoutUsesCreditPayment = (checkout) => {
+        const splits = checkout?.paymentSplits || [];
+        if (splits.length) {
+            return splits.some((entry) =>
+                CREDIT_PAYMENT_IDS.has(String(resolvePaymentMethodForOrder(entry.method) || '').toLowerCase()),
+            );
+        }
+        return CREDIT_PAYMENT_IDS.has(String(resolvePaymentMethodForOrder(checkout?.paymentMethod) || '').toLowerCase());
+    };
+
+    const clearCreditPaymentIfNeeded = (checkout) => {
+        if (!checkoutUsesCreditPayment(checkout)) return checkout;
+        return {
+            ...checkout,
+            paymentMethod: '',
+            payment: '',
+            paymentSplits: [],
+        };
+    };
+
+    let clienteLookupTimer = null;
+    let clienteLookupSeq = 0;
+
+    const lookupClienteAPrazoFromHub = async (docRaw) => {
+        const digits = onlyDocDigits(docRaw);
+        if (digits.length !== 11 && digits.length !== 14) return;
+        const seq = ++clienteLookupSeq;
+        try {
+            const headers = await buildAccountHeaders();
+            const res = await fetch('/api/cliente/lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify({ doc: digits }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (seq !== clienteLookupSeq || !res.ok) return;
+            const patch = { orderClienteAPrazo: Boolean(data.clienteAPrazo) };
+            if (data.nome && !String(loadCheckoutState().orderClienteNome || '').trim()) {
+                patch.orderClienteNome = data.nome;
+            }
+            if (data.telefone && !String(loadCheckoutState().orderClienteTelefone || '').trim()) {
+                patch.orderClienteTelefone = formatClientePhoneDisplay(data.telefone);
+            }
+            let nextCheckout = { ...loadCheckoutState(), ...patch };
+            if (!patch.orderClienteAPrazo) {
+                nextCheckout = clearCreditPaymentIfNeeded(nextCheckout);
+            }
+            cartApi.saveCheckout(nextCheckout);
+            render();
+        } catch {
+            /* lookup opcional */
+        }
+    };
+
+    const scheduleClienteLookup = (docRaw) => {
+        window.clearTimeout(clienteLookupTimer);
+        clienteLookupTimer = window.setTimeout(() => lookupClienteAPrazoFromHub(docRaw), 350);
+    };
+
     const paymentMethods = () => {
         const caps = paymentConfigCache?.capabilities;
         const base = [];
@@ -242,11 +303,33 @@
             })
         );
         const s = session();
-        if (!s?.paymentMethods?.length) return base;
-        const extra = s.paymentMethods
-            .filter((m) => !['pix', 'cartao', 'mercado_pago', 'dinheiro'].includes(m.id))
-            .map((m) => enrichPaymentMethod(m));
-        return extra.length ? [...base, ...extra] : base;
+        let methods;
+        if (!s?.paymentMethods?.length) {
+            methods = base;
+        } else {
+            const extra = s.paymentMethods
+                .filter((m) => !['pix', 'cartao', 'mercado_pago', 'dinheiro'].includes(m.id))
+                .map((m) => enrichPaymentMethod(m));
+            methods = extra.length ? [...base, ...extra] : base;
+        }
+
+        if (isDistribuidoraAccount()) {
+            const checkout = loadCheckoutState();
+            const aPrazo = Boolean(checkout.orderClienteAPrazo);
+            if (!aPrazo) {
+                methods = methods.filter((m) => m.id !== 'prazo');
+            } else if (!methods.some((m) => m.id === 'prazo')) {
+                methods.push(
+                    enrichPaymentMethod({
+                        id: 'prazo',
+                        label: 'Prazo / Crediário',
+                        hint: 'Conforme condição comercial',
+                        icon: 'calendar_month',
+                    }),
+                );
+            }
+        }
+        return methods;
     };
 
     const paymentMethodIconHtml = (opt, opts = {}) => {
@@ -519,6 +602,11 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         } else if (resolvePaymentMethodForOrder(checkout.paymentMethod) === 'cartao') {
             errors.paymentMethod = 'Cartão não está disponível. Escolha PIX ou dinheiro.';
         }
+        if (isDistribuidoraAccount()) {
+            if (checkoutUsesCreditPayment(checkout) && !checkout.orderClienteAPrazo) {
+                errors.paymentMethod = 'Marque "Cliente a prazo" para usar pagamento a prazo.';
+            }
+        }
         return errors;
     };
 
@@ -752,6 +840,11 @@ ${body}
 <span class="resumo-cliente-field__label">CPF/CNPJ</span>
 <input type="text" class="resumo-cliente-field__input resumo-cliente-field__input--doc" id="resumo-cliente-doc" value="${esc(checkout.orderClienteDoc || '')}" placeholder="000.000.000-00 ou 00.000.000/0000-00" inputmode="numeric" autocomplete="off" maxlength="18">
 </label>
+<label class="resumo-cliente-check">
+<input type="checkbox" class="resumo-cliente-check__input" id="resumo-cliente-a-prazo"${checkout.orderClienteAPrazo ? ' checked' : ''}>
+<span class="resumo-cliente-check__label">Cliente a prazo</span>
+</label>
+<p class="resumo-field-hint resumo-cliente-doc-hint">Libera pagamento a prazo/crediário conforme regras do Hub. Desmarcado por padrão.</p>
 <p class="resumo-field-hint resumo-cliente-doc-hint">Nome, telefone e documento entram na identificação do destinatário na DAV.</p>
 </div>`,
               )
@@ -854,6 +947,18 @@ ${cardHtml(
                 event.target.value = check.formatted;
                 cartApi.saveCheckout({ orderClienteDoc: check.formatted });
             }
+            if (isDistribuidoraAccount()) {
+                scheduleClienteLookup(event.target.value);
+            }
+        });
+        root.querySelector('#resumo-cliente-a-prazo')?.addEventListener('change', (event) => {
+            const checked = Boolean(event.target.checked);
+            let next = { ...loadCheckoutState(), orderClienteAPrazo: checked };
+            if (!checked) {
+                next = clearCreditPaymentIfNeeded(next);
+            }
+            cartApi.saveCheckout(next);
+            render();
         });
         root.querySelector('#resumo-confirm')?.addEventListener('click', () => confirmOrder());
     };
@@ -1304,6 +1409,7 @@ ${body}
                         payload.customer.cpf = docCheck.digits;
                     }
                 }
+                payload.orderClienteAPrazo = Boolean(checkout.orderClienteAPrazo);
             }
 
             const editOrderId = String(checkout.editOrderId || '').trim();
@@ -1345,6 +1451,7 @@ ${body}
                 orderClienteNome: '',
                 orderClienteDoc: '',
                 orderClienteTelefone: '',
+                orderClienteAPrazo: false,
                 cartClienteScope: '',
             });
             if (checkout.deliveryType === 'entrega' && checkout.address?.trim()) {

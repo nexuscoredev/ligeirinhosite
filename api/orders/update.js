@@ -21,6 +21,10 @@ import { formatCpf, formatClienteDocDigits, isValidCpf, normalizeCpfDigits } fro
 import { formatCnpj, isValidCnpj, normalizeDocDigits } from '../../scripts/hub-parceiro.mjs';
 import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import {
+    syncDistribuidoraClienteFinal,
+    orderUsesCreditPayment,
+} from '../../scripts/lib/distribuidora-cliente-final.mjs';
+import {
     fetchHubPedidoById,
     fetchHubPedidoByParceirosOrderId,
     buildOrderTracking,
@@ -123,7 +127,15 @@ async function cancelPendingCharges(supabaseUrl, serviceKey, orderId) {
     }).catch(() => null);
 }
 
-function buildOrderNotes(body, customer, paymentSplits, orderClienteNome, orderTabelaPrecoCodigo, orderClienteDocFormatted) {
+function buildOrderNotes(
+    body,
+    customer,
+    paymentSplits,
+    orderClienteNome,
+    orderTabelaPrecoCodigo,
+    orderClienteDocFormatted,
+    orderClienteAPrazo,
+) {
     const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
     const customerCpf = normalizeCpfDigits(customer.cpf || customer.customerCpf || body.customerCpf || '');
     const notesBase = String(body.notes || '').trim();
@@ -135,6 +147,9 @@ function buildOrderNotes(body, customer, paymentSplits, orderClienteNome, orderT
     if (orderTabelaPrecoCodigo) notesParts.push(`Tabela: ${orderTabelaPrecoCodigo}`);
     if (orderClienteNome) notesParts.push(`Cliente: ${orderClienteNome}`);
     if (orderClienteDocFormatted) notesParts.push(`Doc cliente: ${orderClienteDocFormatted}`);
+    if (isDistribuidoraAccount(customerCnpj)) {
+        notesParts.push(orderClienteAPrazo ? 'Cliente a prazo: sim' : 'Cliente a prazo: não');
+    }
     let notes = notesParts.join(' · ').slice(0, 2000) || null;
     if (paymentSplits?.length) {
         const human = paymentSplits
@@ -297,6 +312,8 @@ export default async function handler(req, res) {
             String(body.hubUserId || customer.hubUserId || existing.hub_user_id || '').trim() || null;
 
         const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
+        const orderClienteAPrazo =
+            body.orderClienteAPrazo === true || String(body.orderClienteAPrazo || '').toLowerCase() === 'true';
         const orderTaxaRaw = body.orderTaxaEntrega;
         const hasOrderTaxa =
             orderTaxaRaw !== undefined && orderTaxaRaw !== null && orderTaxaRaw !== '';
@@ -334,6 +351,16 @@ export default async function handler(req, res) {
         }
         if (!paymentMethod) paymentMethod = 'pix';
 
+        if (
+            isDistribuidoraAccount(customerCnpj) &&
+            orderUsesCreditPayment(paymentMethod, paymentSplits) &&
+            !orderClienteAPrazo
+        ) {
+            return res.status(400).json({
+                error: 'Marque "Cliente a prazo" para usar pagamento a prazo/crediário.',
+            });
+        }
+
         const isCreditOrder = paymentSplits?.length
             ? paymentSplits.some((item) => CREDIT_METHODS.has(item.method))
             : CREDIT_METHODS.has(paymentMethod);
@@ -353,6 +380,7 @@ export default async function handler(req, res) {
             orderClienteNome,
             orderTabelaPrecoCodigo,
             orderClienteDocFormatted,
+            orderClienteAPrazo,
         );
         notes = preserveEditPolicyTags(existing.notes, notes);
 
@@ -406,6 +434,19 @@ export default async function handler(req, res) {
         let order = await patchOrder(db.url, db.key, orderId, patch, { useRpc: db.useRpc });
         if (orderTabelaPrecoId && isDistribuidoraAccount(customerCnpj)) {
             order = { ...order, order_tabela_preco_id: orderTabelaPrecoId };
+        }
+
+        if (isDistribuidoraAccount(customerCnpj) && orderClienteDocDigits) {
+            try {
+                await syncDistribuidoraClienteFinal(process.env, {
+                    nome: orderClienteNome,
+                    telefone: customerPhone,
+                    docDigits: orderClienteDocDigits,
+                    clienteAPrazo: orderClienteAPrazo,
+                });
+            } catch (syncErr) {
+                console.warn('orders/update sync cliente final', syncErr?.message || syncErr);
+            }
         }
 
         const hubResult = await updateHubPedidoForParceiros(order, process.env);

@@ -10,7 +10,7 @@ import {
 import { fetchClienteTaxaEntrega } from './lib/delivery-fee.mjs';
 
 const CLIENTE_PARCEIROS_SELECT =
-    'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids,tabela_preco_id,tabela_preco,taxa_entrega';
+    'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids,tabela_preco_id,tabela_preco,taxa_entrega,cliente_a_prazo';
 
 const PESSOA_CLIENTE_LOOKUP_SELECT =
     `id,nome,nome_fantasia,cpf_cnpj_digits,email,telefone,clientes(${CLIENTE_PARCEIROS_SELECT})`;
@@ -501,7 +501,9 @@ export async function buildParceiroExtrasFromPessoa(config, pessoa) {
         taxaEntrega,
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
-        paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
+        paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento, {
+            clienteAPrazo: clienteFields.clienteAPrazo,
+        }),
         deliveryDateOptions: deliveryDateOptions(datasEntrega, {
             allowSameDay: isDistribuidoraCnpj(cnpjDigits),
         }),
@@ -650,30 +652,36 @@ export const DEFAULT_PAYMENT_METHODS = [
     { id: 'prazo', label: 'Prazo / Crediário', hint: 'Conforme condição comercial', icon: 'calendar_month' },
 ];
 
-export function paymentMethodsForParceiro(formas = [], condicaoPagamento = '') {
+export function paymentMethodsForParceiro(formas = [], condicaoPagamento = '', { clienteAPrazo = false } = {}) {
+    let methods;
     if (!formas.length) {
-        const methods = DEFAULT_PAYMENT_METHODS.filter((m) => m.id !== 'boleto');
+        methods = DEFAULT_PAYMENT_METHODS.filter((m) => m.id !== 'boleto');
         if (!condicaoPagamento || /vista/i.test(condicaoPagamento)) {
-            return methods.filter((m) => m.id !== 'prazo');
+            methods = methods.filter((m) => m.id !== 'prazo');
         }
-        return methods;
+    } else {
+        const tipoToMethod = {
+            pix: 'pix',
+            cartao_debito: 'cartao',
+            cartao_credito: 'cartao',
+            dinheiro: 'dinheiro',
+            crediario: 'prazo',
+        };
+
+        const ids = new Set();
+        formas.forEach((f) => {
+            const mapped = tipoToMethod[f.tipo];
+            if (mapped) ids.add(mapped);
+        });
+        methods = !ids.size
+            ? DEFAULT_PAYMENT_METHODS.filter((m) => m.id !== 'boleto')
+            : DEFAULT_PAYMENT_METHODS.filter((m) => ids.has(m.id));
     }
 
-    const tipoToMethod = {
-        pix: 'pix',
-        cartao_debito: 'cartao',
-        cartao_credito: 'cartao',
-        dinheiro: 'dinheiro',
-        crediario: 'prazo',
-    };
-
-    const ids = new Set();
-    formas.forEach((f) => {
-        const mapped = tipoToMethod[f.tipo];
-        if (mapped) ids.add(mapped);
-    });
-    if (!ids.size) return DEFAULT_PAYMENT_METHODS.filter((m) => m.id !== 'boleto');
-    return DEFAULT_PAYMENT_METHODS.filter((m) => ids.has(m.id));
+    if (!clienteAPrazo) {
+        methods = methods.filter((m) => m.id !== 'prazo');
+    }
+    return methods;
 }
 
 export { deliveryDateOptions } from './parceiro-delivery.mjs';
@@ -725,7 +733,9 @@ export async function buildParceiroExtras(config, usuario) {
         taxaEntrega,
         bloqueadoPedido: Boolean(pessoa.bloqueado_pedido),
         inadimplente: Boolean(pessoa.inadimplente),
-        paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento),
+        paymentMethods: paymentMethodsForParceiro(formas, clienteFields.condicaoPagamento, {
+            clienteAPrazo: clienteFields.clienteAPrazo,
+        }),
         deliveryDateOptions: deliveryDateOptions(datasEntrega, {
             allowSameDay: isDistribuidoraCnpj(cnpjDigits),
         }),

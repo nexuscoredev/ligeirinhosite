@@ -19,6 +19,10 @@ import { formatCpf, formatClienteDocDigits, isValidCpf, normalizeCpfDigits } fro
 import { formatCnpj, isValidCnpj, normalizeDocDigits } from '../../scripts/hub-parceiro.mjs';
 import { sanitizeCustomerPhone } from '../../scripts/lib/customer-phone.mjs';
 import { registerTotemCustomer } from '../../scripts/lib/totem-customer-register.mjs';
+import {
+    syncDistribuidoraClienteFinal,
+    orderUsesCreditPayment,
+} from '../../scripts/lib/distribuidora-cliente-final.mjs';
 
 export const config = { maxDuration: 15 };
 
@@ -148,9 +152,11 @@ export default async function handler(req, res) {
         const channel = String(body.channel || 'parceiros').trim().slice(0, 32) || 'parceiros';
         const isTotem = channel === 'totem';
         const isParceiros = !isTotem;
+        const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
+        const orderClienteAPrazo =
+            body.orderClienteAPrazo === true || String(body.orderClienteAPrazo || '').toLowerCase() === 'true';
 
         const deliveryFee = (() => {
-            const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
             const orderTaxaRaw = body.orderTaxaEntrega;
             const hasOrderTaxa =
                 orderTaxaRaw !== undefined && orderTaxaRaw !== null && orderTaxaRaw !== '';
@@ -182,6 +188,15 @@ export default async function handler(req, res) {
             paymentMethod = paymentSplits.map((item) => item.method).join('+');
         }
         if (!paymentMethod && !isTotem) paymentMethod = 'pix';
+        if (
+            isDistribuidoraAccount(customerCnpj) &&
+            orderUsesCreditPayment(paymentMethod, paymentSplits) &&
+            !orderClienteAPrazo
+        ) {
+            return res.status(400).json({
+                error: 'Marque "Cliente a prazo" para usar pagamento a prazo/crediário.',
+            });
+        }
         const isCreditOrder = paymentSplits?.length
             ? paymentSplits.some((item) => CREDIT_METHODS.has(item.method))
             : paymentMethod && CREDIT_METHODS.has(paymentMethod);
@@ -253,7 +268,6 @@ export default async function handler(req, res) {
 
         const dueDays = Number(settings?.default_due_days) || 30;
 
-        const customerCnpj = String(customer.cnpj || '').trim();
         const customerPhone = sanitizeCustomerPhone(customer.phone, {
             cpf: customerCpf,
             cnpj: customerCnpj,
@@ -275,6 +289,9 @@ export default async function handler(req, res) {
         }
         if (orderClienteDocFormatted) {
             notesParts.push(`Doc cliente: ${orderClienteDocFormatted}`);
+        }
+        if (isDistribuidoraAccount(customerCnpj)) {
+            notesParts.push(orderClienteAPrazo ? 'Cliente a prazo: sim' : 'Cliente a prazo: não');
         }
         let notes = notesParts.join(' · ').slice(0, 2000) || null;
         if (paymentSplits?.length) {
@@ -373,6 +390,19 @@ export default async function handler(req, res) {
 
         if (order && orderTabelaPrecoId && isDistribuidoraAccount(customerCnpj)) {
             order.order_tabela_preco_id = orderTabelaPrecoId;
+        }
+
+        if (isDistribuidoraAccount(customerCnpj) && orderClienteDocDigits) {
+            try {
+                await syncDistribuidoraClienteFinal(process.env, {
+                    nome: orderClienteNome,
+                    telefone: customerPhone,
+                    docDigits: orderClienteDocDigits,
+                    clienteAPrazo: orderClienteAPrazo,
+                });
+            } catch (syncErr) {
+                console.warn('orders/create sync cliente final', syncErr?.message || syncErr);
+            }
         }
 
         let hubPedido = null;

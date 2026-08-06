@@ -93,12 +93,18 @@ export function resolveParceiroClienteFields(pessoa) {
         return null;
     };
 
+    const clienteAPrazo =
+        cliente?.cliente_a_prazo != null
+            ? Boolean(cliente.cliente_a_prazo)
+            : Boolean(pessoa?.cliente_a_prazo);
+
     return {
         condicaoPagamento: pickText(cliente?.condicao_pagamento, pessoa?.condicao_pagamento),
         parcelasVencimento: pickText(cliente?.parcelas_vencimento, pessoa?.parcelas_vencimento),
         formasPagamentoIds: pickArray(cliente?.formas_pagamento_ids, pessoa?.formas_pagamento_ids),
         datasEntrega: resolveDatasEntregaParceiro(pessoa),
         taxaEntrega: pickTaxaEntrega(cliente?.taxa_entrega, pessoa?.taxa_entrega),
+        clienteAPrazo,
     };
 }
 

@@ -104,6 +104,7 @@
         orderClienteNome: '',
         orderClienteDoc: '',
         orderClienteTelefone: '',
+        orderClienteAPrazo: false,
         cartClienteScope: '',
     });
 
@@ -288,6 +289,7 @@
         const notes = String(order?.notes || '');
         const clienteMatch = notes.match(/Cliente:\s*([^·]+)/);
         const docMatch = notes.match(/Doc cliente:\s*([^·]+)/i);
+        const aPrazoMatch = notes.match(/Cliente a prazo:\s*(sim|não|nao)/i);
         const tabelaMatch = notes.match(/Tabela:\s*([^·]+)/);
         const paymentMethod =
             splits.length === 1
@@ -320,6 +322,7 @@
             orderClienteNome: String(order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || ''),
             orderClienteDoc,
             orderClienteTelefone: String(order?.customerPhone || order?.customer_phone || '').trim(),
+            orderClienteAPrazo: aPrazoMatch ? /^sim$/i.test(String(aPrazoMatch[1] || '')) : false,
             cartClienteScope: String(
                 order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || '',
             ),
