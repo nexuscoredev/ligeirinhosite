@@ -29,8 +29,11 @@
         combos: ['combo', 'kit'],
         vinho: ['vinhos', 'wine'],
         vinhos: ['vinho', 'wine'],
-        agua: ['água', 'mineral'],
+        agua: ['água', 'mineral', 'agua mineral'],
         água: ['agua', 'mineral'],
+        h2o: ['h20', 'h2oh', 'agua'],
+        h20: ['h2o', 'h2oh'],
+        h2oh: ['h2o', 'h20'],
         salgadinho: ['snack', 'petisco', 'batata'],
         cigarro: ['cigarros', 'tabaco'],
         tabaco: ['cigarro', 'cigarros'],
@@ -87,7 +90,34 @@
     const expandWordVariants = (word) => {
         const variants = new Set([word]);
         (SYNONYMS[word] || []).forEach((syn) => variants.add(normalizeText(syn)));
+        generateConfusableVariants(word).forEach((variant) => variants.add(variant));
         return [...variants].filter(Boolean);
+    };
+
+    /** Troca confusões comuns em digitação rápida (WhatsApp): 0/o, 1/l/i. */
+    const generateConfusableVariants = (word) => {
+        const variants = new Set();
+        const base = String(word || '');
+        if (!base || base.length > 10) return [];
+
+        const pairs = [
+            ['0', 'o'],
+            ['1', 'l'],
+            ['1', 'i'],
+        ];
+
+        for (let i = 0; i < base.length; i += 1) {
+            pairs.forEach(([from, to]) => {
+                if (base[i] === from) {
+                    variants.add(base.slice(0, i) + to + base.slice(i + 1));
+                }
+                if (base[i] === to) {
+                    variants.add(base.slice(0, i) + from + base.slice(i + 1));
+                }
+            });
+        }
+
+        return [...variants];
     };
 
     const tokenize = (text) =>
@@ -250,6 +280,7 @@
 
     window.LigeirinhoSearch = {
         expandSearchQuery,
+        expandWordVariants,
         matchesSearch,
         scoreSearch,
         matchesHaystack,

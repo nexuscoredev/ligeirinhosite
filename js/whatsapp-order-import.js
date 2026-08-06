@@ -8,6 +8,11 @@
         beefeter: 'beefeater',
         heineken: 'heineken',
         absolut: 'absolut',
+        h20: 'h2o',
+        h2oh: 'h2o',
+        agua: 'agua',
+        's/gas': 'sem gas',
+        'c/gas': 'com gas',
     };
 
     let deps = {};
@@ -81,6 +86,22 @@
             .map((word) => TYPO_FIX[word] || word)
             .join(' ');
         return text.trim();
+    };
+
+    const queryVariants = (query) => {
+        const variants = new Set();
+        const cleaned = cleanProductQuery(query);
+        if (cleaned) variants.add(cleaned);
+        if (query) variants.add(normalizeText(query));
+
+        cleaned.split(/\s+/).forEach((word) => {
+            const search = window.LigeirinhoSearch;
+            (search?.expandWordVariants?.(word) || [word]).forEach((variant) => {
+                variants.add(cleaned.replace(word, variant));
+            });
+        });
+
+        return [...variants].filter(Boolean);
     };
 
     const parseLine = (raw) => {
@@ -167,22 +188,30 @@
 
     const findMatches = (query) => {
         const search = window.LigeirinhoSearch;
-        const queryInfo = search?.expandSearchQuery
-            ? search.expandSearchQuery(query)
-            : { raw: query, words: query.split(/\s+/), volumes: [] };
+        const variants = queryVariants(query);
+        const bestByItem = new Map();
 
-        const scored = displayItems
-            .map((item) => {
+        variants.forEach((variant) => {
+            const queryInfo = search?.expandSearchQuery
+                ? search.expandSearchQuery(variant)
+                : { raw: variant, words: variant.split(/\s+/), volumes: [] };
+
+            displayItems.forEach((item) => {
                 const haystack = item._searchHaystack || search?.buildHaystack?.(itemHaystack(item));
                 const score = haystack && search?.scoreHaystack
                     ? search.scoreHaystack(haystack, queryInfo)
                     : search?.scoreSearch?.(itemHaystack(item), queryInfo) || 0;
-                return { item, score };
-            })
-            .filter((entry) => entry.score >= MIN_MATCH_SCORE)
-            .sort((a, b) => b.score - a.score);
+                if (score < MIN_MATCH_SCORE) return;
 
-        return scored.slice(0, 6);
+                const key = item.product.id;
+                const prev = bestByItem.get(key);
+                if (!prev || score > prev.score) {
+                    bestByItem.set(key, { item, score });
+                }
+            });
+        });
+
+        return [...bestByItem.values()].sort((a, b) => b.score - a.score).slice(0, 6);
     };
 
     const analyzeRows = (parsedRows) =>
@@ -279,6 +308,19 @@
         return 'CX';
     };
 
+    const rowStatusMeta = (row) => {
+        if (row.status === 'error') {
+            return { label: 'Erro', icon: 'error', className: 'lig-wa-import-row__badge--bad' };
+        }
+        if (row.status === 'unmatched') {
+            return { label: 'Não encontrado', icon: 'search_off', className: 'lig-wa-import-row__badge--bad' };
+        }
+        if (row.status === 'review') {
+            return { label: 'Confira', icon: 'fact_check', className: 'lig-wa-import-row__badge--review' };
+        }
+        return { label: 'Reconhecido', icon: 'check_circle', className: 'lig-wa-import-row__badge--ok' };
+    };
+
     const renderReview = () => {
         const list = reviewList();
         if (!list) return;
@@ -297,10 +339,13 @@
                         : row.status === 'review'
                           ? 'lig-wa-import-row--review'
                           : 'lig-wa-import-row--bad';
+                const status = rowStatusMeta(row);
 
                 const options =
                     row.matches.length > 1
-                        ? `<select class="lig-wa-import-row__select" data-wa-row-select="${esc(row.id)}">
+                        ? `<div class="lig-wa-import-row__match-box">
+<label class="lig-wa-import-row__match-label">Produto sugerido</label>
+<select class="lig-wa-import-row__select" data-wa-row-select="${esc(row.id)}">
 ${row.matches
     .map((entry) => {
         const key = matchKey(entry.item, row.packType);
@@ -309,28 +354,49 @@ ${row.matches
         return `<option value="${esc(key)}"${key === row.selectedKey ? ' selected' : ''}>${esc(label)}</option>`;
     })
     .join('')}
-</select>`
+</select>
+</div>`
                         : previewLine
-                          ? `<p class="lig-wa-import-row__product">${esc(previewLine.name)}</p>`
-                          : `<p class="lig-wa-import-row__product lig-wa-import-row__product--missing">Nenhuma sugestão</p>`;
+                          ? `<div class="lig-wa-import-row__match-box">
+<p class="lig-wa-import-row__match-label">Produto sugerido</p>
+<p class="lig-wa-import-row__product">${esc(previewLine.name)}</p>
+</div>`
+                          : `<div class="lig-wa-import-row__match-box lig-wa-import-row__match-box--empty">
+<p class="lig-wa-import-row__product lig-wa-import-row__product--missing">Nenhuma sugestão</p>
+<p class="lig-wa-import-row__hint">Tente corrigir o nome (ex.: h2o em vez de h20).</p>
+</div>`;
 
                 const note =
                     row.error ||
                     (row.status === 'unmatched' ? 'Produto não encontrado no catálogo.' : '') ||
                     (row.status === 'review' ? 'Confira a sugestão antes de importar.' : '');
 
+                const priceHtml = previewLine
+                    ? row.qty > 1
+                        ? `<p class="lig-wa-import-row__price">${esc(formatPrice(previewLine.price))}/un · Total ${esc(formatPrice(previewLine.price * row.qty))}</p>`
+                        : `<p class="lig-wa-import-row__price">${esc(formatPrice(previewLine.price))}</p>`
+                    : '';
+
                 return `<article class="lig-wa-import-row ${statusClass}" data-wa-row="${esc(row.id)}">
+<div class="lig-wa-import-row__top">
 <label class="lig-wa-import-row__check">
 <input type="checkbox" data-wa-row-include="${esc(row.id)}"${row.included ? ' checked' : ''}${row.status === 'error' || row.status === 'unmatched' ? ' disabled' : ''}>
 <span class="lig-wa-import-row__raw">${esc(row.raw)}</span>
 </label>
-<div class="lig-wa-import-row__fields">
+<span class="lig-wa-import-row__badge ${status.className}">
+<span class="material-symbols-outlined" aria-hidden="true">${status.icon}</span>
+${esc(status.label)}
+</span>
+</div>
+<div class="lig-wa-import-row__body">
+<div class="lig-wa-import-row__meta">
 <label class="lig-wa-import-row__qty-wrap">Qtd
 <input type="number" min="1" max="99" class="lig-wa-import-row__qty" data-wa-row-qty="${esc(row.id)}" value="${esc(row.qty)}">
 <span class="lig-wa-import-row__pack">${esc(packLabel(row.packType))}</span>
 </label>
-<div class="lig-wa-import-row__match">${options}</div>
-${previewLine ? `<p class="lig-wa-import-row__price">${esc(formatPrice(previewLine.price))} · ${esc(formatPrice(previewLine.price * row.qty))}</p>` : ''}
+${priceHtml}
+</div>
+${options}
 ${note ? `<p class="lig-wa-import-row__note">${esc(note)}</p>` : ''}
 </div>
 </article>`;
