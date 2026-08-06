@@ -237,6 +237,55 @@
 
     let clienteLookupTimer = null;
     let clienteLookupSeq = 0;
+    let clienteSearchQuery = '';
+    let clienteSearchResults = [];
+    let clienteSearchStatus = '';
+    let clienteSearchMessage = '';
+
+    const applyClienteFromHub = (hit, { replace = true } = {}) => {
+        if (!hit) return false;
+
+        const checkout = loadCheckoutState();
+        const nextNome = String(hit.nome || '').trim();
+        const nextDoc = hit.doc ? formatClienteDocInput(hit.doc) : '';
+        const nextPhone = hit.telefone ? formatClientePhoneDisplay(hit.telefone) : '';
+        const nextAPrazo = Boolean(hit.clienteAPrazo);
+        const prevScope = String(checkout.cartClienteScope || checkout.orderClienteNome || '').trim();
+        const hasItems = cartApi.cartItemCount(cartApi.loadCart()) > 0;
+
+        if (replace && prevScope && nextNome && prevScope !== nextNome && hasItems) {
+            const keep = window.confirm(
+                `Trocar o cliente de "${prevScope}" para "${nextNome}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
+            );
+            if (!keep) return false;
+            cartApi.saveCart({});
+        }
+
+        const patch = { orderClienteAPrazo: nextAPrazo };
+        if (replace || !String(checkout.orderClienteNome || '').trim()) {
+            patch.orderClienteNome = nextNome;
+            patch.cartClienteScope = nextNome;
+        }
+        if (replace || !String(checkout.orderClienteDoc || '').trim()) {
+            patch.orderClienteDoc = nextDoc;
+        }
+        if (replace || !String(checkout.orderClienteTelefone || '').trim()) {
+            patch.orderClienteTelefone = nextPhone;
+        }
+
+        let nextCheckout = { ...checkout, ...patch };
+        if (!nextAPrazo) {
+            nextCheckout = clearCreditPaymentIfNeeded(nextCheckout);
+        }
+        cartApi.saveCheckout(nextCheckout);
+        clienteSearchResults = [];
+        clienteSearchStatus = '';
+        if (nextNome) {
+            clienteSearchMessage = `Cliente "${nextNome}" selecionado.`;
+        }
+        render();
+        return true;
+    };
 
     const lookupClienteAPrazoFromHub = async (docRaw) => {
         const digits = onlyDocDigits(docRaw);
@@ -251,22 +300,101 @@
             });
             const data = await res.json().catch(() => ({}));
             if (seq !== clienteLookupSeq || !res.ok) return;
-            const patch = { orderClienteAPrazo: Boolean(data.clienteAPrazo) };
-            if (data.nome && !String(loadCheckoutState().orderClienteNome || '').trim()) {
-                patch.orderClienteNome = data.nome;
+            if (data.found) {
+                applyClienteFromHub(data, { replace: false });
             }
-            if (data.telefone && !String(loadCheckoutState().orderClienteTelefone || '').trim()) {
-                patch.orderClienteTelefone = formatClientePhoneDisplay(data.telefone);
-            }
-            let nextCheckout = { ...loadCheckoutState(), ...patch };
-            if (!patch.orderClienteAPrazo) {
-                nextCheckout = clearCreditPaymentIfNeeded(nextCheckout);
-            }
-            cartApi.saveCheckout(nextCheckout);
-            render();
         } catch {
             /* lookup opcional */
         }
+    };
+
+    const runClienteSearch = async (rawQuery) => {
+        const query = String(rawQuery ?? clienteSearchQuery ?? '').trim();
+        if (query.length < 2) {
+            clienteSearchStatus = 'error';
+            clienteSearchMessage = 'Digite pelo menos 2 caracteres para buscar.';
+            clienteSearchResults = [];
+            render();
+            return;
+        }
+
+        clienteSearchQuery = query;
+        clienteSearchStatus = 'loading';
+        clienteSearchMessage = 'Buscando no Hub…';
+        clienteSearchResults = [];
+        render();
+
+        try {
+            const headers = await buildAccountHeaders();
+            const res = await fetch('/api/cliente/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...headers },
+                body: JSON.stringify({ query }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Erro na busca de clientes.');
+            }
+
+            clienteSearchResults = Array.isArray(data.results) ? data.results : [];
+            if (!clienteSearchResults.length) {
+                clienteSearchStatus = 'empty';
+                clienteSearchMessage =
+                    'Nenhum cliente encontrado. Preencha manualmente ou finalize o pedido para cadastrar.';
+            } else if (clienteSearchResults.length === 1) {
+                applyClienteFromHub(clienteSearchResults[0], { replace: true });
+                return;
+            } else {
+                clienteSearchStatus = 'results';
+                clienteSearchMessage = `${clienteSearchResults.length} clientes encontrados. Selecione um:`;
+            }
+            render();
+        } catch (err) {
+            clienteSearchStatus = 'error';
+            clienteSearchMessage = err?.message || 'Não foi possível buscar clientes.';
+            clienteSearchResults = [];
+            render();
+        }
+    };
+
+    const clienteSearchSectionHtml = () => {
+        const hintClass =
+            clienteSearchStatus === 'error'
+                ? ' resumo-cliente-search-hint--error'
+                : clienteSearchStatus === 'empty'
+                  ? ' resumo-cliente-search-hint--muted'
+                  : '';
+        const resultsHtml =
+            clienteSearchStatus === 'results' && clienteSearchResults.length
+                ? `<div class="resumo-cliente-search-results" role="listbox" aria-label="Resultados da busca">${clienteSearchResults
+                      .map((hit, idx) => {
+                          const metaParts = [
+                              hit.doc ? hit.doc : '',
+                              hit.telefone ? formatClientePhoneDisplay(hit.telefone) : '',
+                              hit.clienteAPrazo ? 'A prazo' : '',
+                          ].filter(Boolean);
+                          return `<button type="button" class="resumo-cliente-search-hit" data-cliente-search-idx="${idx}" role="option">
+<strong class="resumo-cliente-search-hit__name">${esc(hit.nome)}</strong>
+${metaParts.length ? `<span class="resumo-cliente-search-hit__meta">${esc(metaParts.join(' · '))}</span>` : ''}
+</button>`;
+                      })
+                      .join('')}</div>`
+                : '';
+
+        return `<div class="resumo-cliente-search">
+<label class="resumo-cliente-field resumo-cliente-field--search">
+<span class="resumo-cliente-field__label">Buscar cliente</span>
+<div class="resumo-cliente-search__row">
+<input type="search" class="resumo-cliente-field__input resumo-cliente-search__input" id="resumo-cliente-search" value="${esc(clienteSearchQuery)}" placeholder="Nome, CPF/CNPJ ou telefone" autocomplete="off" maxlength="120"${clienteSearchStatus === 'loading' ? ' disabled' : ''}>
+<button type="button" class="resumo-cliente-search__btn" id="resumo-cliente-search-btn"${clienteSearchStatus === 'loading' ? ' disabled' : ''}>
+<span class="material-symbols-outlined" aria-hidden="true">search</span>
+<span>${clienteSearchStatus === 'loading' ? 'Buscando…' : 'Buscar'}</span>
+</button>
+</div>
+</label>
+<p class="resumo-field-hint resumo-cliente-search-hint${hintClass}" id="resumo-cliente-search-hint">${esc(clienteSearchMessage || 'Consulta cadastros do Hub e preenche os campos abaixo.')}</p>
+${resultsHtml}
+</div>`;
     };
 
     const scheduleClienteLookup = (docRaw) => {
@@ -826,7 +954,8 @@ ${body}
         const clienteNomeCard = isDistribuidoraAccount()
             ? cardHtml(
                   'Dados do cliente',
-                  `<p class="resumo-field-hint">Cliente final deste pedido (aparece no Hub e no DAV)</p>
+                  `${clienteSearchSectionHtml()}
+<p class="resumo-field-hint">Cliente final deste pedido (aparece no Hub e no DAV)</p>
 <div class="resumo-cliente-fields">
 <label class="resumo-cliente-field">
 <span class="resumo-cliente-field__label">Nome</span>
@@ -898,6 +1027,26 @@ ${cardHtml(
                 if (pickerMode === 'condicao') pickerCondicaoInitialized = false;
                 step = 'picker';
                 render();
+            });
+        });
+        root.querySelector('#resumo-cliente-search')?.addEventListener('input', (event) => {
+            clienteSearchQuery = event.target.value;
+        });
+        root.querySelector('#resumo-cliente-search')?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                void runClienteSearch(event.target.value);
+            }
+        });
+        root.querySelector('#resumo-cliente-search-btn')?.addEventListener('click', () => {
+            const input = root.querySelector('#resumo-cliente-search');
+            void runClienteSearch(input?.value || clienteSearchQuery);
+        });
+        root.querySelectorAll('[data-cliente-search-idx]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const idx = Number(btn.getAttribute('data-cliente-search-idx'));
+                const hit = clienteSearchResults[idx];
+                if (hit) applyClienteFromHub(hit, { replace: true });
             });
         });
         root.querySelector('#resumo-cliente-nome')?.addEventListener('input', (event) => {

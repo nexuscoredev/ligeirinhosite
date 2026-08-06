@@ -14168,6 +14168,103 @@ body.lig-push-prompt-open {
     line-height: 1.35;
 }
 
+.resumo-cliente-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.resumo-cliente-field--search {
+    margin: 0;
+}
+
+.resumo-cliente-search__row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.resumo-cliente-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.resumo-cliente-search__btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 2.75rem;
+    padding: 0 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--lig-yellow) 45%, var(--lig-border));
+    border-radius: 0.625rem;
+    background: color-mix(in srgb, var(--lig-yellow) 18%, var(--lig-surface-alt));
+    color: var(--lig-text);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.resumo-cliente-search__btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.resumo-cliente-search__btn .material-symbols-outlined {
+    font-size: 1.125rem;
+}
+
+.resumo-cliente-search-hint--error {
+    color: #b42318;
+}
+
+.resumo-cliente-search-hint--muted {
+    color: var(--lig-text-muted);
+}
+
+.resumo-cliente-search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.resumo-cliente-search-hit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--lig-border);
+    border-radius: 0.625rem;
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.resumo-cliente-search-hit:hover,
+.resumo-cliente-search-hit:focus-visible {
+    border-color: color-mix(in srgb, var(--lig-yellow) 55%, var(--lig-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--lig-yellow) 18%, transparent);
+    outline: none;
+}
+
+.resumo-cliente-search-hit__name {
+    font-size: 0.9375rem;
+    font-weight: 700;
+}
+
+.resumo-cliente-search-hit__meta {
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+}
+
 .resumo-payment-amounts__sum {
     margin: 0;
     font-size: 0.8125rem;

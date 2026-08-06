@@ -1,7 +1,7 @@
 import { hubConfig } from '../hub-auth.mjs';
 import { normalizeDocDigits, formatCnpj, isValidCnpj, fetchFormasPagamento } from '../hub-parceiro.mjs';
 import { formatCpf, isValidCpf } from './cpf.mjs';
-import { phoneLocalDigits } from './phone-match.mjs';
+import { phoneLocalDigits, phonesMatch, phoneLookupSuffixes } from './phone-match.mjs';
 
 /** Regra padrão Hub — canal Ligeirinho Parceiros. */
 export const CONDICAO_PAGAMENTO_PADRAO_PARCEIROS = 'Toda terça subsequente ao pedido';
@@ -131,6 +131,108 @@ async function syncClienteParceirosRow(config, pessoa, patch = {}) {
     });
 }
 
+export function pessoaToClienteSearchHit(pessoa) {
+    if (!pessoa?.id) return null;
+    const docDigits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj).slice(0, 14);
+    return {
+        pessoaId: pessoa.id,
+        nome: String(pessoa.nome_fantasia || pessoa.nome || '').trim(),
+        telefone: String(pessoa.telefone || '').trim(),
+        doc: docDigits ? formatDocDigits(docDigits) : '',
+        docDigits,
+        clienteAPrazo: clienteAPrazoFromPessoa(pessoa),
+        condicaoPagamento: String(pessoa.condicao_pagamento || '').trim(),
+    };
+}
+
+function ilikePattern(raw) {
+    const cleaned = String(raw || '')
+        .trim()
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .replace(/[%_,]/g, ' ')
+        .replace(/\s+/g, '%');
+    if (!cleaned || cleaned.length < 2) return '';
+    return `*${cleaned}*`;
+}
+
+function dedupeSearchHits(list = []) {
+    const seen = new Set();
+    const out = [];
+    for (const hit of list) {
+        if (!hit?.pessoaId || seen.has(hit.pessoaId)) continue;
+        seen.add(hit.pessoaId);
+        out.push(hit);
+    }
+    return out;
+}
+
+async function searchPessoasByPhone(config, phoneLocal, limit = 8) {
+    const hits = [];
+    const seen = new Set();
+
+    for (const suffix of phoneLookupSuffixes(phoneLocal)) {
+        const rows = await hubRest(
+            config,
+            `pessoas?select=${PESSOA_LOOKUP_SELECT}&telefone=ilike.*${encodeURIComponent(suffix)}*&tipos=cs.{cliente}&ativo=eq.true&limit=${Math.max(limit, 12)}`,
+        );
+        const list = Array.isArray(rows) ? rows : [];
+        for (const pessoa of list) {
+            if (!pessoa?.id || seen.has(pessoa.id)) continue;
+            if (!phonesMatch(pessoa.telefone, phoneLocal)) continue;
+            seen.add(pessoa.id);
+            const hit = pessoaToClienteSearchHit(pessoa);
+            if (hit?.nome) hits.push(hit);
+            if (hits.length >= limit) return hits;
+        }
+    }
+
+    return hits;
+}
+
+async function searchPessoasByName(config, query, limit = 8) {
+    const pattern = ilikePattern(query);
+    if (!pattern) return [];
+
+    const encoded = encodeURIComponent(pattern);
+    const rows = await hubRest(
+        config,
+        `pessoas?select=${PESSOA_LOOKUP_SELECT}&or=(nome.ilike.${encoded},nome_fantasia.ilike.${encoded})&tipos=cs.{cliente}&ativo=eq.true&order=nome.asc&limit=${limit}`,
+    );
+    const list = Array.isArray(rows) ? rows : [];
+    return dedupeSearchHits(list.map((pessoa) => pessoaToClienteSearchHit(pessoa)).filter(Boolean));
+}
+
+/**
+ * Busca clientes finais no Hub por nome, CPF/CNPJ ou telefone (conta distribuidora).
+ */
+export async function searchDistribuidoraClientes(env, queryInput, { limit = 8 } = {}) {
+    const config = hubConfig(env);
+    if (!config.serviceKey) return [];
+
+    const query = String(queryInput || '').trim();
+    if (query.length < 2) return [];
+
+    const digits = normalizeDocDigits(query);
+    const hasLetters = /[A-Za-zÀ-ÿ]/.test(query);
+
+    if (!hasLetters && (digits.length === 11 || digits.length === 14)) {
+        const pessoa = await fetchPessoaByDoc(config, digits);
+        const hit = pessoaToClienteSearchHit(pessoa);
+        return hit ? [hit] : [];
+    }
+
+    if (!hasLetters && digits.length >= 10) {
+        return searchPessoasByPhone(config, phoneLocalDigits(query), limit);
+    }
+
+    if (hasLetters || query.length >= 3) {
+        return searchPessoasByName(config, query, limit);
+    }
+
+    return [];
+}
+
 /**
  * Busca cliente final no Hub pelo CPF/CNPJ (conta distribuidora).
  */
@@ -144,13 +246,10 @@ export async function lookupDistribuidoraClienteFinal(env, docDigitsInput) {
     const pessoa = await fetchPessoaByDoc(config, docDigits);
     if (!pessoa?.id) return { found: false, clienteAPrazo: false };
 
+    const hit = pessoaToClienteSearchHit(pessoa);
     return {
         found: true,
-        pessoaId: pessoa.id,
-        nome: String(pessoa.nome_fantasia || pessoa.nome || '').trim(),
-        telefone: String(pessoa.telefone || '').trim(),
-        clienteAPrazo: clienteAPrazoFromPessoa(pessoa),
-        condicaoPagamento: String(pessoa.condicao_pagamento || '').trim(),
+        ...hit,
     };
 }
 
