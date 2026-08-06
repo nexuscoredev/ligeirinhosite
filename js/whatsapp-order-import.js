@@ -25,14 +25,18 @@
     const formatPrice = (value) =>
         Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+    const DISTRIBUIDORA_CNPJ = '45028186000125';
+
+    const accountDigits = (session) =>
+        String(session?.cnpj || session?.login || '').replace(/\D/g, '');
+
     const isEnabled = () => {
-        const check = window.LigeirinhoParceiroDelivery?.isDistribuidoraCnpj;
-        if (check) {
-            const s = window.LigeirinhoAuth?.loadSession?.();
-            return check(s?.cnpj || s?.login || '');
-        }
-        return String(window.LigeirinhoAuth?.loadSession?.()?.cnpj || '')
-            .replace(/\D/g, '') === '45028186000125';
+        const s = window.LigeirinhoAuth?.loadSession?.();
+        if (!s) return false;
+        if (window.LigeirinhoOrderDavPrint?.isDistribuidoraAccount?.(s)) return true;
+        const digits = accountDigits(s);
+        if (window.LigeirinhoParceiroDelivery?.isDistribuidoraCnpj?.(digits)) return true;
+        return digits === DISTRIBUIDORA_CNPJ;
     };
 
     const modal = () => document.getElementById('lig-wa-import-modal');

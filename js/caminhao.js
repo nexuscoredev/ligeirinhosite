@@ -416,6 +416,7 @@ ${items.length ? stickyFooterHtml(cart) : ''}
     window.addEventListener('ligeirinho-checkout-changed', () => {
         render();
     });
+    window.addEventListener('ligeirinho-auth-changed', render);
 
     const boot = async () => {
         window.LigeirinhoWhatsappOrderImport?.init?.({
@@ -423,6 +424,7 @@ ${items.length ? stickyFooterHtml(cart) : ''}
             openCart: () => cartUi?.open?.(),
             onApplied: () => render(),
         });
+        await window.LigeirinhoAuth?.ensureAccountSession?.().catch(() => null);
         if (cartApi.isEditingOrder?.()) {
             await cartApi.enrichCartFromCatalogAsync?.();
         }

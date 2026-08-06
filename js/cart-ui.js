@@ -879,6 +879,7 @@ ${waImportBtn}
             renderCheckoutFields();
             refreshTotalsUi(cartApi.loadCart());
         });
+        window.addEventListener('ligeirinho-auth-changed', () => render());
         window.addEventListener('pageshow', () => {
             if (document.body.style.position === 'fixed' && !isCartOpen()) {
                 clearBodyScrollStyles();
