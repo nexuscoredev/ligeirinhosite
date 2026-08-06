@@ -595,12 +595,28 @@ ${feeRow}
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
         const count = cartApi.cartItemCount(cart);
+        const waImportEnabled = window.LigeirinhoWhatsappOrderImport?.isEnabled?.();
+        const waImportBtn = waImportEnabled
+            ? `<button type="button" class="lig-cart-wa-import-btn" data-wa-import-open>
+<span class="material-symbols-outlined" aria-hidden="true">content_paste</span>
+<span>Importar pedido do WhatsApp</span>
+</button>`
+            : '';
         const emptyHtml = cartApi.lastOrderSummary()
             ? `<div class="lig-cart-empty"><p class="lig-cart-empty__text">Seu caminhão está vazio.</p>
+${waImportBtn}
 <button type="button" id="cart-reorder-btn" class="lig-cart-empty__btn">Repetir último pedido</button>
 <p class="lig-cart-empty__link"><a href="pedidos.html">Adicionar produtos</a></p></div>`
-            : `<div class="lig-cart-empty"><p class="lig-cart-empty__text">Seu caminhão está vazio. <a href="pedidos.html">Adicionar produtos</a></p></div>`;
-        const listHtml = items.length ? items.map(cartLineHtml).join('') : emptyHtml;
+            : `<div class="lig-cart-empty"><p class="lig-cart-empty__text">Seu caminhão está vazio. <a href="pedidos.html">Adicionar produtos</a></p>${waImportBtn}</div>`;
+        const waCompactBtn = waImportEnabled
+            ? `<button type="button" class="lig-cart-wa-import-btn lig-cart-wa-import-btn--compact" data-wa-import-open>
+<span class="material-symbols-outlined" aria-hidden="true">content_paste</span>
+<span>Importar do WhatsApp</span>
+</button>`
+            : '';
+        const listHtml = items.length
+            ? `${waCompactBtn}${items.map(cartLineHtml).join('')}`
+            : emptyHtml;
 
         const cartItemsEl = document.getElementById('cart-items');
         const cartItemsMobileEl = document.getElementById('cart-items-mobile');
@@ -612,6 +628,11 @@ ${feeRow}
 
         if (cartItemsEl) cartItemsEl.innerHTML = listHtml;
         if (cartItemsMobileEl) cartItemsMobileEl.innerHTML = listHtml;
+        document.querySelectorAll('[data-wa-import-open]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                window.LigeirinhoWhatsappOrderImport?.open?.();
+            });
+        });
         if (continueLink) continueLink.classList.toggle('hidden', !items.length);
         if (continueLinkMobile) continueLinkMobile.classList.toggle('hidden', !items.length);
         clearBtns.forEach((btn) => {
@@ -896,6 +917,12 @@ ${feeRow}
         cartApi = window.LigeirinhoCart;
         if (!cartApi) return;
 
+        window.LigeirinhoWhatsappOrderImport?.init?.({
+            cartApi,
+            openCart: () => open(),
+            onApplied: () => render(),
+        });
+
         if (!document.getElementById('cart-panel')) {
             const root = document.createElement('div');
             root.id = 'site-cart-root';
@@ -919,6 +946,7 @@ ${feeRow}
         bindNavToggle,
         isOpen: isCartOpen,
         showAddedFeedback,
+        openWhatsappImport: () => window.LigeirinhoWhatsappOrderImport?.open?.(),
         burstConfetti,
         startPayment: startAppPayment,
         payButtonHtml: payBtnInnerHtml,

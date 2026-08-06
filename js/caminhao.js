@@ -70,11 +70,18 @@
 
     const emptyStateHtml = () => {
         const hasLast = Boolean(cartApi.lastOrderSummary());
+        const waImportBtn = window.LigeirinhoWhatsappOrderImport?.isEnabled?.()
+            ? `<button type="button" class="caminhao-wa-import-btn" id="caminhao-wa-import-btn">
+<span class="material-symbols-outlined" aria-hidden="true">content_paste</span>
+<span>Importar pedido do WhatsApp</span>
+</button>`
+            : '';
         return `<div class="caminhao-empty">
 ${truckIllustration()}
 <h2 class="caminhao-empty__title">Caminhão vazio</h2>
 <p class="caminhao-empty__text">Adicione produtos pelo catálogo — eles aparecem aqui, como na sacola do delivery.</p>
 <a href="pedidos.html" class="caminhao-empty__cta">Adicionar produtos</a>
+${waImportBtn}
 ${emptySuggestionsHtml()}
 ${hasLast ? `<button type="button" class="caminhao-empty__reorder" id="caminhao-reorder-btn">Repetir último pedido</button>` : ''}
 </div>`;
@@ -120,10 +127,19 @@ ${hasDiscount ? `<span class="caminhao-product__was">${formatPrice(listPrice)}</
     const productsSectionHtml = (cart) => {
         const items = cartApi.cartEntries(cart);
         const { units } = cartApi.cartSummary(cart);
+        const waImportBtn = window.LigeirinhoWhatsappOrderImport?.isEnabled?.()
+            ? `<button type="button" class="caminhao-wa-import-btn caminhao-wa-import-btn--compact" id="caminhao-wa-import-btn">
+<span class="material-symbols-outlined" aria-hidden="true">content_paste</span>
+<span>WhatsApp</span>
+</button>`
+            : '';
         return `<section class="caminhao-products" aria-label="Produtos no caminhão">
 <div class="caminhao-products__head">
+<div class="caminhao-products__head-actions">
 <h2 class="caminhao-products__title">Produtos</h2>
 <span class="caminhao-products__badge">${units}</span>
+</div>
+${waImportBtn}
 </div>
 <div class="caminhao-products__list">${items.map(productCardHtml).join('')}</div>
 <button type="button" class="caminhao-clear-all" id="caminhao-clear-btn">
@@ -370,6 +386,10 @@ ${items.length ? stickyFooterHtml(cart) : ''}
             if (cartApi.restoreLastOrder()) render();
         });
 
+        root.querySelector('#caminhao-wa-import-btn')?.addEventListener('click', () => {
+            window.LigeirinhoWhatsappOrderImport?.open?.();
+        });
+
         root.querySelector('#caminhao-pay-btn')?.addEventListener('click', () => {
             const cart = cartApi.loadCart();
             const { canCheckout } = cartUi?.updateCheckoutErrors?.(cart) || { canCheckout: false };
@@ -398,6 +418,11 @@ ${items.length ? stickyFooterHtml(cart) : ''}
     });
 
     const boot = async () => {
+        window.LigeirinhoWhatsappOrderImport?.init?.({
+            cartApi,
+            openCart: () => cartUi?.open?.(),
+            onApplied: () => render(),
+        });
         if (cartApi.isEditingOrder?.()) {
             await cartApi.enrichCartFromCatalogAsync?.();
         }

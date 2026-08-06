@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ligeirinho-app-v538';
+const CACHE_NAME = 'ligeirinho-app-v539';
 const MKT_IMAGE_HOST = 'liszpwocwvkytzyaxvit.supabase.co';
 const MKT_IMAGE_CACHE = 'ligeirinho-mkt-images-v1';
 
@@ -93,6 +93,7 @@ const APP_SHELL = [
     '/js/totem-barcode.js',
     '/js/promo-catalog-match.js',
     '/js/caminhao.js',
+    '/js/whatsapp-order-import.js',
     '/js/parceiro-delivery.js',
     '/js/resumo-pedido.js',
     '/js/delivery-schedule.js',

@@ -8417,6 +8417,304 @@ body[data-page='ofertas'] #lig-page-main {
     text-decoration: none;
 }
 
+.caminhao-wa-import-btn,
+.lig-cart-wa-import-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    margin-top: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.625rem;
+    border: 1px dashed var(--lig-border);
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.caminhao-wa-import-btn:hover,
+.lig-cart-wa-import-btn:hover {
+    background: var(--lig-yellow-light);
+    border-color: var(--lig-yellow-text);
+}
+
+.caminhao-products__head-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.caminhao-wa-import-btn--compact {
+    margin-top: 0;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+}
+
+.lig-cart-wa-import-btn--compact {
+    margin: 0 0 0.75rem;
+    width: 100%;
+}
+
+.lig-wa-import {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.lig-wa-import--open {
+    display: flex;
+}
+
+.lig-wa-import__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.lig-wa-import__sheet {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 32rem);
+    max-height: min(92dvh, 40rem);
+    display: flex;
+    flex-direction: column;
+    border-radius: 1rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+    overflow: hidden;
+}
+
+.lig-wa-import__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--lig-border);
+}
+
+.lig-wa-import__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.lig-wa-import__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--lig-text-subtle);
+    cursor: pointer;
+}
+
+.lig-wa-import__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.lig-wa-import__body[hidden] {
+    display: none !important;
+}
+
+.lig-wa-import__lead,
+.lig-wa-import__hint,
+.lig-wa-import__summary,
+.lig-wa-import__merge {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--lig-text-muted);
+    line-height: 1.45;
+}
+
+.lig-wa-import__summary {
+    font-weight: 700;
+    color: var(--lig-text);
+}
+
+.lig-wa-import__textarea {
+    width: 100%;
+    min-height: 10rem;
+    resize: vertical;
+    padding: 0.75rem 0.875rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface-alt);
+    color: var(--lig-text);
+    font-family: inherit;
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.lig-wa-import__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    overflow-y: auto;
+    max-height: min(48dvh, 22rem);
+    padding-right: 0.15rem;
+}
+
+.lig-wa-import-row {
+    border: 1px solid var(--lig-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: var(--lig-surface-alt);
+}
+
+.lig-wa-import-row--ok {
+    border-color: rgba(34, 197, 94, 0.35);
+}
+
+.lig-wa-import-row--review {
+    border-color: rgba(247, 213, 60, 0.55);
+}
+
+.lig-wa-import-row--bad {
+    border-color: rgba(239, 68, 68, 0.35);
+    opacity: 0.85;
+}
+
+.lig-wa-import-row__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
+
+.lig-wa-import-row__raw {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--lig-text);
+}
+
+.lig-wa-import-row__fields {
+    display: grid;
+    gap: 0.375rem;
+}
+
+.lig-wa-import-row__qty-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--lig-text-subtle);
+}
+
+.lig-wa-import-row__qty {
+    width: 3.25rem;
+    padding: 0.25rem 0.375rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    font: inherit;
+}
+
+.lig-wa-import-row__pack {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: var(--lig-yellow-text);
+}
+
+.lig-wa-import-row__product,
+.lig-wa-import-row__price,
+.lig-wa-import-row__note {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+}
+
+.lig-wa-import-row__product {
+    font-weight: 700;
+    color: var(--lig-text);
+}
+
+.lig-wa-import-row__product--missing {
+    color: var(--lig-danger, #dc2626);
+}
+
+.lig-wa-import-row__price {
+    color: var(--lig-text-muted);
+}
+
+.lig-wa-import-row__note {
+    color: var(--lig-text-subtle);
+}
+
+.lig-wa-import-row__select {
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    font: inherit;
+    font-size: 0.8125rem;
+}
+
+.lig-wa-import__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--lig-danger, #dc2626);
+}
+
+.lig-wa-import__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.lig-wa-import__actions--review {
+    padding-top: 0.25rem;
+}
+
+.lig-wa-import__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--lig-border);
+    background: var(--lig-surface);
+    color: var(--lig-text);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lig-wa-import__btn--primary {
+    background: var(--lig-yellow);
+    border-color: var(--lig-yellow);
+    color: var(--lig-deep-black, #111);
+}
+
+@media (min-width: 768px) {
+    .lig-wa-import {
+        align-items: center;
+    }
+}
+
 .caminhao-items {
     flex: 1;
     overflow-y: auto;
