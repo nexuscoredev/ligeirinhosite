@@ -425,6 +425,11 @@
             window.__ligProductGroups = groups;
             displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
 
+            if (cartApi.isEditingOrder?.()) {
+                await cartApi.enrichCartFromCatalogAsync?.();
+                window.LigeirinhoCartUI?.render?.();
+            }
+
             const params = new URLSearchParams(window.location.search);
             const catParam = params.get('categoria');
             const searchParam = params.get('q');
@@ -483,6 +488,10 @@
         displayItems = attachSearchIndex(pricing.getDisplayProducts(data, groups));
         renderFilters();
         renderProducts();
+        if (cartApi.isEditingOrder?.()) {
+            await cartApi.enrichCartFromCatalogAsync?.();
+            window.LigeirinhoCartUI?.render?.();
+        }
         try {
             await reloadPromoOffers(true);
             refreshCards();

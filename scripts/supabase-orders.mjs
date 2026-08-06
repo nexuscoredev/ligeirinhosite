@@ -423,6 +423,7 @@ export function publicOrderView(order) {
         wantsInvoice: Boolean(order.wants_invoice),
         nfQueueStatus: order.nf_queue_status || null,
         hubPedidoId: order.hub_pedido_id || null,
+        orderTabelaPrecoId: order.order_tabela_preco_id || null,
     };
 }
 
