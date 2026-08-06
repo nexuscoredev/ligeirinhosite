@@ -11,6 +11,8 @@
         h20: 'h2o',
         h2oh: 'h2o',
         agua: 'agua',
+        buchannans: 'buchanans',
+        buchannan: 'buchanans',
         's/gas': 'sem gas',
         'c/gas': 'com gas',
     };

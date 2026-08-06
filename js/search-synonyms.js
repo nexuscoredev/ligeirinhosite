@@ -38,6 +38,10 @@
         cigarro: ['cigarros', 'tabaco'],
         tabaco: ['cigarro', 'cigarros'],
         baly: ['energetico'],
+        buchanans: ['buchanan', 'buchannan'],
+        buchannans: ['buchanans'],
+        buchannan: ['buchanans'],
+        buchanan: ['buchanans'],
         // Marcas: não expandir para a categoria (senão "skol" lista todas as cervejas).
         jack: ['whisky', 'jack daniels', 'jack daniel'],
         absolut: ['vodka'],
@@ -87,10 +91,67 @@
         return Number.isFinite(n) && n >= 50 && n <= 5000;
     };
 
+    const collapseRepeatedChars = (value) =>
+        String(value || '').replace(/(.)\1+/g, '$1');
+
+    const levenshteinDistance = (a, b) => {
+        const left = String(a || '');
+        const right = String(b || '');
+        if (left === right) return 0;
+        if (!left.length) return right.length;
+        if (!right.length) return left.length;
+        if (Math.abs(left.length - right.length) > 2) return 99;
+
+        const rows = left.length + 1;
+        const cols = right.length + 1;
+        const matrix = Array.from({ length: rows }, () => Array(cols).fill(0));
+
+        for (let i = 0; i < rows; i += 1) matrix[i][0] = i;
+        for (let j = 0; j < cols; j += 1) matrix[0][j] = j;
+
+        for (let i = 1; i < rows; i += 1) {
+            for (let j = 1; j < cols; j += 1) {
+                const cost = left[i - 1] === right[j - 1] ? 0 : 1;
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j - 1] + cost,
+                );
+            }
+        }
+
+        return matrix[rows - 1][cols - 1];
+    };
+
+    const fuzzyTokenMatch = (token, variant) => {
+        if (!token || !variant) return false;
+        if (token === variant || token.startsWith(variant) || variant.startsWith(token)) return true;
+
+        const collapsedToken = collapseRepeatedChars(token);
+        const collapsedVariant = collapseRepeatedChars(variant);
+        if (
+            collapsedToken === collapsedVariant ||
+            collapsedToken.startsWith(collapsedVariant) ||
+            collapsedVariant.startsWith(collapsedToken)
+        ) {
+            return true;
+        }
+
+        const minLen = Math.min(collapsedToken.length, collapsedVariant.length);
+        if (minLen < 6) return false;
+
+        const maxDist = minLen >= 9 ? 2 : 1;
+        return levenshteinDistance(collapsedToken, collapsedVariant) <= maxDist;
+    };
+
     const expandWordVariants = (word) => {
         const variants = new Set([word]);
         (SYNONYMS[word] || []).forEach((syn) => variants.add(normalizeText(syn)));
         generateConfusableVariants(word).forEach((variant) => variants.add(variant));
+
+        const collapsed = collapseRepeatedChars(word);
+        if (collapsed && collapsed !== word) variants.add(collapsed);
+
         return [...variants].filter(Boolean);
     };
 
@@ -133,20 +194,36 @@
         const compactVariant = String(variant || '').replace(/\s+/g, '');
         if (!compactVariant) return false;
 
+        const collapsedVariant = collapseRepeatedChars(compactVariant);
+
         if (String(variant).includes(' ')) {
-            return haystack.base.includes(variant) || haystack.compact.includes(compactVariant);
+            return (
+                haystack.base.includes(variant) ||
+                haystack.compact.includes(compactVariant) ||
+                haystack.compact.includes(collapsedVariant)
+            );
         }
 
         if (compactVariant.length >= 5) {
-            return haystack.base.includes(variant) || haystack.compact.includes(compactVariant);
+            if (haystack.base.includes(variant) || haystack.compact.includes(compactVariant)) return true;
+            if (collapsedVariant !== compactVariant && haystack.compact.includes(collapsedVariant)) return true;
         }
 
         const tokens = tokenize(haystack.base);
-        if (tokens.some((token) => token === compactVariant || token.startsWith(compactVariant))) {
+        if (
+            tokens.some(
+                (token) =>
+                    token === compactVariant ||
+                    token.startsWith(compactVariant) ||
+                    fuzzyTokenMatch(token, compactVariant),
+            )
+        ) {
             return true;
         }
         // Marca colada sem espaços (ex.: haystack compact "cocacola")
-        return haystack.compact === compactVariant || haystack.compact.startsWith(compactVariant);
+        if (haystack.compact === compactVariant || haystack.compact.startsWith(compactVariant)) return true;
+        if (collapsedVariant !== compactVariant && haystack.compact.includes(collapsedVariant)) return true;
+        return false;
     };
 
     /** Unifica volumes no texto: "2 L" / "2l" → "2l" (mesmo padrão do Hub). */
@@ -259,7 +336,10 @@
             if (!wordMatchesHaystack(haystack, word)) return;
             score += 18 - Math.min(index, 6);
             const tokens = tokenize(haystack.base);
-            if (tokens.some((token) => token === word || token.startsWith(word))) score += 8;
+            const exact = tokens.some((token) => token === word || token.startsWith(word));
+            const fuzzy = !exact && tokens.some((token) => fuzzyTokenMatch(token, word));
+            if (exact) score += 8;
+            else if (fuzzy) score += 5;
         });
 
         queryInfo.volumes.forEach((ml) => {
