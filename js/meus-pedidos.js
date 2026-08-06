@@ -62,6 +62,7 @@
 
     const session = () => auth?.loadSession?.() || null;
     const canPrintDav = () => window.LigeirinhoOrderDavPrint?.isDistribuidoraAccount?.(session());
+    const isDistribuidoraAccount = () => canPrintDav();
 
     const openCaminhao = () => {
         if (window.matchMedia('(min-width: 1024px)').matches) {
@@ -314,7 +315,16 @@ ${statusGlyphHtml(status.icon)}
         const grid = [];
         const footer = [];
 
-        if (showReorder) {
+        if (isDistribuidoraAccount() && order.id) {
+            primary.push(
+                orderActionHtml({
+                    icon: 'shopping_cart',
+                    label: 'Adicionar ao caminhão',
+                    variant: 'primary',
+                    attrs: `data-meus-pedidos-reorder="${esc(order.id)}"`,
+                }),
+            );
+        } else if (showReorder) {
             primary.push(
                 orderActionHtml({
                     icon: 'replay',
@@ -588,6 +598,46 @@ ${orderActionsHtml(order, { showReorder })}
         }
     };
 
+    const repeatOrder = async (order, button) => {
+        if (!order?.id) return;
+
+        const cartCount = cart?.cartItemCount?.(cart.loadCart()) || 0;
+        const checkout = cart?.loadCheckout?.() || {};
+        const nextCheckout = cart?.checkoutForReorder?.(cart.checkoutFromOrder(order)) || {};
+        const prevScope = String(checkout.cartClienteScope || checkout.orderClienteNome || '').trim();
+        const nextScope = String(nextCheckout.orderClienteNome || order.customerName || '').trim();
+
+        if (cartCount > 0) {
+            let message = 'Substituir o caminhão atual por este pedido?';
+            if (prevScope && nextScope && prevScope !== nextScope) {
+                message = `Trocar o cliente de "${prevScope}" para "${nextScope}"?\n\nO caminhão será esvaziado e repovoado com este pedido.`;
+            }
+            if (!window.confirm(message)) return;
+        }
+
+        const prevLabel = getActionButtonLabel(button);
+        if (button) {
+            button.disabled = true;
+            setActionButtonLabel(button, 'Carregando…');
+        }
+
+        try {
+            if (!cart?.loadOrderForReorder?.(order)) {
+                throw new Error('Não foi possível carregar os itens deste pedido.');
+            }
+            await cart?.enrichCartFromCatalogAsync?.();
+            window.LigeirinhoCartUI?.render?.();
+            openCaminhao();
+        } catch (err) {
+            window.alert(err?.message || 'Não foi possível repetir o pedido.');
+        } finally {
+            if (button) {
+                button.disabled = false;
+                setActionButtonLabel(button, prevLabel || 'Adicionar ao caminhão');
+            }
+        }
+    };
+
     const bindListActions = () => {
         root.querySelectorAll('[data-meus-pedidos-toggle]').forEach((btn) => {
             btn.addEventListener('click', () => {
@@ -598,6 +648,12 @@ ${orderActionsHtml(order, { showReorder })}
         });
         root.querySelectorAll('[data-meus-pedidos-reorder]').forEach((btn) => {
             btn.addEventListener('click', () => {
+                const orderId = btn.getAttribute('data-meus-pedidos-reorder');
+                if (orderId) {
+                    const order = STATE.orders.find((entry) => entry.id === orderId);
+                    if (order) void repeatOrder(order, btn);
+                    return;
+                }
                 if (cart?.restoreLastOrder?.()) {
                     window.LigeirinhoCartUI?.render?.();
                     openCaminhao();

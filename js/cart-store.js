@@ -392,6 +392,20 @@
         return true;
     };
 
+    /** Repete pedido no caminhão (novo pedido — sem modo edição, preços do catálogo). */
+    const loadOrderForReorder = (order) => {
+        if (!loadOrderIntoCart(order)) return false;
+        exitOrderEditMode();
+        const checkout = checkoutForReorder(checkoutFromOrder(order));
+        if (checkout.orderClienteNome) {
+            checkout.cartClienteScope = checkout.orderClienteNome;
+        }
+        saveCheckout(checkout);
+        window.LigeirinhoCartPrice?.clearEditOrderPriceSnapshot?.();
+        window.LigeirinhoCartPrice?.clearOrderTablePriceLookup?.();
+        return true;
+    };
+
     const normalizeLookupName = (name) =>
         String(name || '')
             .normalize('NFD')
@@ -836,6 +850,7 @@
         checkoutForReorder,
         loadOrderIntoCart,
         loadOrderForEdit,
+        loadOrderForReorder,
         enrichCartFromCatalog,
         enrichCartFromCatalogAsync,
         isEditingOrder,
