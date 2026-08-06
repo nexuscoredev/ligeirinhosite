@@ -142,6 +142,12 @@
 
     const orderShortId = (order) => String(order?.id || '').replace(/-/g, '').slice(0, 8).toUpperCase();
 
+    const orderDavNumero = (order) => {
+        const raw = order?.tracking?.hubNumero ?? order?.hubPedidoNumero ?? null;
+        if (raw == null || raw === '') return '';
+        return String(raw).trim();
+    };
+
     const STATUS_META_BY_KEY = {
         pending: { tone: 'wait', icon: 'wait' },
         pending_payment: { tone: 'info', icon: 'pay', shortLabel: 'Pagamento' },
@@ -418,7 +424,11 @@ ${action}
                     .toLowerCase()
                     .replace(/-/g, '');
                 const short = orderShortId(order).toLowerCase();
-                if (!id.includes(q) && !short.includes(q)) return false;
+                const qDigits = q.replace(/\D/g, '');
+                const davNo = orderDavNumero(order);
+                const idHit = id.includes(q) || short.includes(q);
+                const davHit = Boolean(davNo && qDigits && davNo.includes(qDigits));
+                if (!idHit && !davHit) return false;
             }
             return true;
         });
@@ -434,7 +444,7 @@ ${action}
         return `<div class="meus-pedidos-filters" role="search">
 <label class="meus-pedidos-filters__field meus-pedidos-filters__field--search">
 <span class="material-symbols-outlined" aria-hidden="true">search</span>
-<input type="search" id="meus-pedidos-q" value="${esc(STATE.q)}" placeholder="Nº do pedido" autocomplete="off" inputmode="search" aria-label="Buscar por número do pedido">
+<input type="search" id="meus-pedidos-q" value="${esc(STATE.q)}" placeholder="Nº pedido ou DAV" autocomplete="off" inputmode="search" aria-label="Buscar por número do pedido ou DAV">
 </label>
 <label class="meus-pedidos-filters__field meus-pedidos-filters__field--status meus-pedidos-filters__field--tone-${esc(selectedStatus.tone)}">
 <span class="meus-pedidos-filters__status-glyph" aria-hidden="true">${STATUS_GLYPHS[selectedStatus.icon] || STATUS_GLYPHS.list}</span>
@@ -456,6 +466,10 @@ ${
     const orderCardHtml = (order, { showReorder = false, expanded = false } = {}) => {
         const status = orderStatusMeta(order);
         const shortId = orderShortId(order);
+        const davNo = orderDavNumero(order);
+        const codeLabel = davNo
+            ? `Pedido <code>${esc(shortId)}</code> · DAV <code>${esc(davNo)}</code>`
+            : `Pedido <code>${esc(shortId)}</code>`;
         const deliveryLabel =
             order.deliveryType === 'retirada'
                 ? 'Retirada na loja'
@@ -468,7 +482,7 @@ ${
         return `<article class="conta-order-detail${expanded ? ' conta-order-detail--open' : ''}" data-order-id="${esc(order.id || '')}">
 <button type="button" class="conta-order-detail__summary" data-meus-pedidos-toggle="${esc(order.id || '')}" aria-expanded="${expanded ? 'true' : 'false'}">
 <div class="conta-order-detail__topline">
-<p class="conta-order-detail__code">Pedido <code>${esc(shortId)}</code></p>
+<p class="conta-order-detail__code">${codeLabel}</p>
 ${statusBadgeHtml(status)}
 </div>
 <p class="conta-order-detail__date">${esc(formatDateTime(createdAt))}</p>
