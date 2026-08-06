@@ -165,24 +165,32 @@
         return id ? String(id).trim() : '';
     };
 
-    const resolvePaymentDisplay = (order) => {
+    const paymentDisplayLine = (method, amount) =>
+        `${esc(paymentMethodLabelSingle(method))} ${esc(formatMoney(amount))}`;
+
+    /** HTML do pagamento no DAV — uma forma por linha para não estourar a tabela. */
+    const resolvePaymentDisplayHtml = (order) => {
         const splitsApi = window.LigeirinhoPaymentSplits;
         const splits = splitsApi?.resolveOrderSplits?.(order) || [];
         if (splits.length >= 2) {
-            return splitsApi.formatSplitSummary(splits, paymentMethodLabelSingle, formatMoney);
+            return splits
+                .map((item) =>
+                    paymentDisplayLine(item.method, Number(item.amount) || Number(order?.total) || 0),
+                )
+                .join('<br>');
         }
         if (splits.length === 1) {
             const amount = Number(splits[0].amount) || Number(order?.total) || 0;
-            return `${paymentMethodLabelSingle(splits[0].method)} ${formatMoney(amount)}`;
+            return paymentDisplayLine(splits[0].method, amount);
         }
         const method = order?.paymentMethod || order?.payment_method;
         if (method) {
-            return `${paymentMethodLabelSingle(method)} ${formatMoney(order?.total)}`;
+            return paymentDisplayLine(method, Number(order?.total) || 0);
         }
         const notes = String(order?.notes || '');
         const match = notes.match(/Pagamento:\s*([^·\n]+)/i);
-        if (match?.[1]?.trim()) return match[1].trim();
-        return '';
+        if (match?.[1]?.trim()) return esc(match[1].trim());
+        return '—';
     };
 
     const resolveDestinatario = (order, session) => {
@@ -266,7 +274,7 @@
         const dest = resolveDestinatario(order, session);
         const issuedAt = formatDateTime(order?.createdAt || Date.now());
         const operator = resolveOperator(session);
-        const paymentDisplay = resolvePaymentDisplay(order);
+        const paymentDisplayHtml = resolvePaymentDisplayHtml(order);
         const deliveryFee = resolveDeliveryFee(order);
 
         const itemRows = lines
@@ -378,7 +386,7 @@ ${itemRows || '<tr><td colspan="9" style="text-align:center">Sem itens</td></tr>
 <td>
 <table class="dav-doc__totals-wrap">
 <tr><td class="label">Quant. Total Itens</td><td class="value">${formatQty(qtyTotal)}</td></tr>
-<tr><td class="label">Forma(s) de pagamento</td><td class="value">${esc(paymentDisplay || '—')}</td></tr>
+<tr class="dav-doc__payment-row"><td class="label">Forma(s) de pagamento</td><td class="value">${paymentDisplayHtml}</td></tr>
 <tr><td class="label">Taxa de entrega</td><td class="value">${deliveryFee > 0 ? formatMoney(deliveryFee) : 'Grátis'}</td></tr>
 <tr><td class="label">SubTotal</td><td class="value">${formatMoney(subtotal)}</td></tr>
 <tr><td class="label">Desconto</td><td class="value">${formatMoney(discountTotal)}</td></tr>

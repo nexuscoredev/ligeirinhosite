@@ -240,7 +240,8 @@
 .dav-doc__totals-wrap {
     margin-left: auto;
     margin-top: 6px;
-    width: 46%;
+    table-layout: fixed;
+    width: 52%;
 }
 
 .dav-doc__totals-wrap td {
@@ -252,12 +253,23 @@
 .dav-doc__totals-wrap .label {
     font-weight: 700;
     text-align: right;
-    width: 62%;
+    vertical-align: top;
+    width: 44%;
 }
 
 .dav-doc__totals-wrap .value {
+    max-width: 0;
+    overflow-wrap: anywhere;
     text-align: right;
-    width: 38%;
+    vertical-align: top;
+    white-space: normal;
+    width: 56%;
+    word-break: break-word;
+}
+
+.dav-doc__totals-wrap tr.dav-doc__payment-row .value {
+    font-size: 7.5pt;
+    line-height: 1.35;
 }
 
 .dav-doc__totals-wrap tr:last-child .label,
