@@ -2,8 +2,26 @@
  * Ressincroniza pedido_itens no Hub a partir do pedido Parceiros.
  * Uso (com env de produção): node scripts/resync-parceiros-hub-order.mjs <parceiros-order-uuid>
  */
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { resyncHubPedidoItensFromParceiros } from './hub-parceiro-pedido.mjs';
 import { parceirosSupabaseConfig } from './parceiros-supabase.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function loadEnvFile(file) {
+    if (!fs.existsSync(file)) return;
+    for (const line of fs.readFileSync(file, 'utf8').split(/\r?\n/)) {
+        const m = line.match(/^([^#=]+)=(.*)$/);
+        if (m && !process.env[m[1].trim()]) {
+            process.env[m[1].trim()] = m[2].trim().replace(/^['"]|['"]$/g, '');
+        }
+    }
+}
+
+loadEnvFile(path.resolve(__dirname, '../.env.vercel.runtime'));
+loadEnvFile(path.resolve(__dirname, '../.env.local'));
 
 const orderId = String(process.argv[2] || '').trim();
 if (!orderId) {
