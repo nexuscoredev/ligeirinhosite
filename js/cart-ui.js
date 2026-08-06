@@ -590,8 +590,41 @@ ${feeRow}
         });
     };
 
-    const render = () => {
+    const captureCartScroll = () => {
+        const saved = new Map();
+        document.querySelectorAll('.lig-cart-scroll').forEach((el, index) => {
+            const key = el.id || el.closest('#cart-panel, #cart-mobile-sheet')?.id || `__${index}`;
+            saved.set(key, el.scrollTop);
+        });
+        return saved;
+    };
+
+    const restoreCartScroll = (saved) => {
+        if (!saved?.size) return;
+        document.querySelectorAll('.lig-cart-scroll').forEach((el, index) => {
+            const key = el.id || el.closest('#cart-panel, #cart-mobile-sheet')?.id || `__${index}`;
+            if (saved.has(key)) el.scrollTop = saved.get(key);
+        });
+    };
+
+    const activeQtyControlKey = () =>
+        document.activeElement?.closest('.cart-qty-minus, .cart-qty-plus, .cart-remove')?.dataset?.id || '';
+
+    const refocusQtyControl = (lineKey) => {
+        if (!lineKey) return;
+        const safeKey = CSS.escape(lineKey);
+        requestAnimationFrame(() => {
+            const btn = document.querySelector(
+                `.cart-qty-minus[data-id="${safeKey}"], .cart-qty-plus[data-id="${safeKey}"]`,
+            );
+            btn?.focus({ preventScroll: true });
+        });
+    };
+
+    const render = ({ resetScroll = false } = {}) => {
         if (!cartApi) return;
+        const savedScroll = resetScroll ? null : captureCartScroll();
+        const focusLineKey = resetScroll ? '' : activeQtyControlKey();
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
         const count = cartApi.cartItemCount(cart);
@@ -648,7 +681,9 @@ ${waImportBtn}
         renderCheckoutFields();
         refreshTotalsUi(cart);
         updateFloatCart(cart);
-        resetCartScroll();
+        if (resetScroll) resetCartScroll();
+        else restoreCartScroll(savedScroll);
+        refocusQtyControl(focusLineKey);
     };
 
     const changeQty = (id, delta) => {
@@ -785,13 +820,12 @@ ${waImportBtn}
                 cartApi.saveCheckout({ deliveryType: 'entrega' });
             }
         }
-        render();
+        render({ resetScroll: true });
         if (window.matchMedia(LG_QUERY).matches) {
             sheet.classList.add('hidden');
             sheet.setAttribute('aria-hidden', 'true');
             panel.classList.remove('hidden');
             panel.classList.add('flex');
-            resetCartScroll();
             if (options.focusAddress) {
                 window.requestAnimationFrame(() => {
                     const addressBtn = panel.querySelector('[data-address-open]');

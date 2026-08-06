@@ -338,7 +338,21 @@ ${
         window.requestAnimationFrame(() => openAddressPicker());
     };
 
-    const render = () => {
+    const activeQtyControlKey = () =>
+        document.activeElement?.closest('.cart-qty-minus, .cart-qty-plus, .cart-remove')?.dataset?.id || '';
+
+    const refocusQtyControl = (lineKey) => {
+        if (!lineKey) return;
+        const safeKey = CSS.escape(lineKey);
+        const btn = root.querySelector(
+            `.cart-qty-minus[data-id="${safeKey}"], .cart-qty-plus[data-id="${safeKey}"]`,
+        );
+        btn?.focus({ preventScroll: true });
+    };
+
+    const render = ({ preserveScroll = true } = {}) => {
+        const scrollY = preserveScroll ? window.LigeirinhoMobileScroll?.getY?.() ?? window.scrollY : 0;
+        const focusLineKey = preserveScroll ? activeQtyControlKey() : '';
         const cart = cartApi.loadCart();
         const items = cartApi.cartEntries(cart);
 
@@ -368,6 +382,14 @@ ${items.length ? stickyFooterHtml(cart) : ''}
         bindActions();
         cartApi.updateNavCartBadge();
         focusAddressIfNeeded();
+
+        if (!preserveScroll) return;
+
+        requestAnimationFrame(() => {
+            if (window.LigeirinhoMobileScroll?.setY) window.LigeirinhoMobileScroll.setY(scrollY);
+            else window.scrollTo(0, scrollY);
+            refocusQtyControl(focusLineKey);
+        });
     };
 
     const bindActions = () => {
