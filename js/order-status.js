@@ -330,11 +330,10 @@ ${
 
         root.querySelector('#order-track-edit')?.addEventListener('click', async () => {
             const cartApi = window.LigeirinhoCart;
-            if (!cartApi?.loadOrderForEdit?.(order)) {
+            if (!(await cartApi?.loadOrderForEdit?.(order))) {
                 window.alert('Não foi possível carregar o pedido para edição.');
                 return;
             }
-            await cartApi.enrichCartFromCatalogAsync?.();
             window.LigeirinhoCartUI?.render?.();
             window.location.href = 'caminhao.html';
         });

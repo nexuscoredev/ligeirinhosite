@@ -450,7 +450,7 @@ ${items.length ? stickyFooterHtml(cart) : ''}
         if (cartApi.isEditingOrder?.()) {
             await cartApi.enrichCartFromCatalogAsync?.();
         }
-        render();
+        render({ preserveScroll: false });
     };
 
     boot();

@@ -529,6 +529,7 @@
         applyPlVariantFields,
         resolvePalletPackagePrice,
         cartItemName,
+        stripPackSuffix,
         parsePack,
         loadPackConfig: () => {
             if (window.__ligPackConfig) return Promise.resolve(window.__ligPackConfig);

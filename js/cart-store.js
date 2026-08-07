@@ -227,6 +227,8 @@
                     items: items.map((item) => ({
                         id: item.id,
                         cartKey: item.cartKey || item.id,
+                        hubId: item.hubId || '',
+                        sku: item.sku || '',
                         name: item.name,
                         price: item.price,
                         qty: item.qty,
@@ -392,10 +394,11 @@
         return true;
     };
 
-    const loadOrderForEdit = (order) => {
+    const loadOrderForEdit = async (order) => {
         if (!loadOrderIntoCart(order, { lockPrices: true })) return false;
         saveCheckout(checkoutFromOrder(order));
         window.LigeirinhoCartPrice?.snapshotEditOrderPrices?.(loadCart());
+        await enrichCartFromCatalogAsync();
         return true;
     };
 
@@ -421,6 +424,15 @@
             .replace(/\s+/g, ' ')
             .trim()
             .toUpperCase();
+
+    const catalogLookupNameKeys = (item) => {
+        const raw = String(item?.name || '').trim();
+        if (!raw) return [];
+        const keys = new Set([normalizeLookupName(raw)]);
+        const stripped = window.LigeirinhoPricing?.stripPackSuffix?.(raw) || raw.replace(/\s*\([^)]*\)\s*$/g, '').trim();
+        if (stripped) keys.add(normalizeLookupName(stripped));
+        return [...keys];
+    };
 
     const resolveCartLineImage = (group, tier, variant) => {
         const pricing = window.LigeirinhoPricing;
@@ -485,7 +497,23 @@
             const variant = hit.group.variants?.[tier] || hit.variant;
             return { group: hit.group, tier, variant };
         }
+
+        for (const key of catalogLookupNameKeys(item)) {
+            if (!key || !nameIndex?.has(key)) continue;
+            const hit = nameIndex.get(key);
+            const tier = String(item.packType || hit.tier || 'caixa').toLowerCase();
+            const variant = hit.group.variants?.[tier] || hit.variant;
+            return { group: hit.group, tier, variant };
+        }
         return null;
+    };
+
+    const loadCatalogDependenciesForEnrich = async () => {
+        const pricing = window.LigeirinhoPricing;
+        await Promise.all([
+            pricing?.loadPackConfig?.() || Promise.resolve(null),
+            pricing?.loadTierImages?.() || Promise.resolve(null),
+        ]);
     };
 
     const loadCatalogForEnrich = async () => {
@@ -518,6 +546,11 @@
     };
 
     const enrichCartFromCatalog = (catalogData) => {
+        const pricing = window.LigeirinhoPricing;
+        if (pricing?.applyTierImages && catalogData?.categories?.length) {
+            const groups = pricing.buildGroups(catalogData);
+            pricing.applyTierImages(groups, window.__ligTierImages || {});
+        }
         const lookup = buildCatalogLookupIndex(catalogData);
         if (!lookup?.index) return false;
         const cart = loadCart();
@@ -530,7 +563,7 @@
             const { group, tier, variant } = match;
             const patch = {};
             const image = resolveCartLineImage(group, tier, variant);
-            if (image && !String(item.image || '').trim()) patch.image = image;
+            if (image) patch.image = image;
             if (variant.id && !item.id) patch.id = variant.id;
             if (variant.hubId && !item.hubId) patch.hubId = variant.hubId;
             if (variant.sku && !item.sku) patch.sku = variant.sku;
@@ -552,6 +585,7 @@
 
     const enrichCartFromCatalogAsync = async () => {
         try {
+            await loadCatalogDependenciesForEnrich();
             const catalog = await loadCatalogForEnrich();
             return enrichCartFromCatalog(catalog);
         } catch {
