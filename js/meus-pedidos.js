@@ -604,8 +604,15 @@ ${orderActionsHtml(order, { showReorder })}
         const cartCount = cart?.cartItemCount?.(cart.loadCart()) || 0;
         const checkout = cart?.loadCheckout?.() || {};
         const nextCheckout = cart?.checkoutForReorder?.(cart.checkoutFromOrder(order)) || {};
-        const prevScope = String(checkout.cartClienteScope || checkout.orderClienteNome || '').trim();
-        const nextScope = String(nextCheckout.orderClienteNome || order.customerName || '').trim();
+        const prevScope = String(
+            checkout.cartClienteScope || checkout.orderClienteNomeFantasia || checkout.orderClienteNome || '',
+        ).trim();
+        const nextScope = String(
+            nextCheckout.orderClienteNomeFantasia ||
+                nextCheckout.orderClienteNome ||
+                order.customerName ||
+                '',
+        ).trim();
 
         if (cartCount > 0) {
             let message = 'Substituir o caminhão atual por este pedido?';

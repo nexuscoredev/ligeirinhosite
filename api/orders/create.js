@@ -281,11 +281,15 @@ export default async function handler(req, res) {
         const orderTabelaPrecoId = String(body.orderTabelaPrecoId || '').trim();
         const orderTabelaPrecoCodigo = String(body.orderTabelaPrecoCodigo || '').trim();
         const orderClienteNome = String(body.orderClienteNome || '').trim().slice(0, 120);
+        const orderClienteNomeFantasia = String(body.orderClienteNomeFantasia || '').trim().slice(0, 120);
         if (orderTabelaPrecoCodigo) {
             notesParts.push(`Tabela: ${orderTabelaPrecoCodigo}`);
         }
         if (orderClienteNome) {
             notesParts.push(`Cliente: ${orderClienteNome}`);
+        }
+        if (orderClienteNomeFantasia) {
+            notesParts.push(`Fantasia: ${orderClienteNomeFantasia}`);
         }
         if (orderClienteDocFormatted) {
             notesParts.push(`Doc cliente: ${orderClienteDocFormatted}`);
@@ -396,6 +400,7 @@ export default async function handler(req, res) {
             try {
                 await syncDistribuidoraClienteFinal(process.env, {
                     nome: orderClienteNome,
+                    nomeFantasia: orderClienteNomeFantasia,
                     telefone: customerPhone,
                     docDigits: orderClienteDocDigits,
                     clienteAPrazo: orderClienteAPrazo,

@@ -102,6 +102,7 @@
         orderTabelaPrecoLabel: '',
         orderTaxaEntrega: null,
         orderClienteNome: '',
+        orderClienteNomeFantasia: '',
         orderClienteDoc: '',
         orderClienteTelefone: '',
         orderClienteAPrazo: false,
@@ -288,6 +289,7 @@
         const splits = splitsApi?.resolveOrderSplits?.(order) || [];
         const notes = String(order?.notes || '');
         const clienteMatch = notes.match(/Cliente:\s*([^·]+)/);
+        const fantasiaMatch = notes.match(/Fantasia:\s*([^·]+)/i);
         const docMatch = notes.match(/Doc cliente:\s*([^·]+)/i);
         const aPrazoMatch = notes.match(/Cliente a prazo:\s*(sim|não|nao)/i);
         const tabelaMatch = notes.match(/Tabela:\s*([^·]+)/);
@@ -320,11 +322,16 @@
             paymentMethod: paymentMethod || '',
             paymentSplits: splits.length >= 2 ? splits : [],
             orderClienteNome: String(order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || ''),
+            orderClienteNomeFantasia: String(fantasiaMatch?.[1]?.trim() || ''),
             orderClienteDoc,
             orderClienteTelefone: String(order?.customerPhone || order?.customer_phone || '').trim(),
             orderClienteAPrazo: aPrazoMatch ? /^sim$/i.test(String(aPrazoMatch[1] || '')) : false,
             cartClienteScope: String(
-                order?.customerName || order?.customer_name || clienteMatch?.[1]?.trim() || '',
+                fantasiaMatch?.[1]?.trim() ||
+                    order?.customerName ||
+                    order?.customer_name ||
+                    clienteMatch?.[1]?.trim() ||
+                    '',
             ),
             orderTabelaPrecoCodigo: tabelaMatch?.[1]?.trim() || '',
             orderTabelaPrecoId: String(
@@ -397,8 +404,9 @@
         if (!loadOrderIntoCart(order)) return false;
         exitOrderEditMode();
         const checkout = checkoutForReorder(checkoutFromOrder(order));
-        if (checkout.orderClienteNome) {
-            checkout.cartClienteScope = checkout.orderClienteNome;
+        if (checkout.orderClienteNome || checkout.orderClienteNomeFantasia) {
+            checkout.cartClienteScope =
+                checkout.orderClienteNomeFantasia || checkout.orderClienteNome;
         }
         saveCheckout(checkout);
         window.LigeirinhoCartPrice?.clearEditOrderPriceSnapshot?.();

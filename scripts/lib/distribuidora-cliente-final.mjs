@@ -134,9 +134,14 @@ async function syncClienteParceirosRow(config, pessoa, patch = {}) {
 export function pessoaToClienteSearchHit(pessoa) {
     if (!pessoa?.id) return null;
     const docDigits = normalizeDocDigits(pessoa.cpf_cnpj_digits || pessoa.cpf_cnpj).slice(0, 14);
+    const razao = String(pessoa.nome || '').trim();
+    const fantasia = String(pessoa.nome_fantasia || '').trim();
+    const label = fantasia || razao;
     return {
         pessoaId: pessoa.id,
-        nome: String(pessoa.nome_fantasia || pessoa.nome || '').trim(),
+        nome: razao || fantasia,
+        nomeFantasia: fantasia && fantasia !== razao ? fantasia : '',
+        label,
         telefone: String(pessoa.telefone || '').trim(),
         doc: docDigits ? formatDocDigits(docDigits) : '',
         docDigits,
@@ -258,7 +263,13 @@ export async function lookupDistribuidoraClienteFinal(env, docDigitsInput) {
  */
 export async function syncDistribuidoraClienteFinal(
     env,
-    { nome = '', telefone = '', docDigits: docDigitsInput = '', clienteAPrazo = false } = {},
+    {
+        nome = '',
+        nomeFantasia = '',
+        telefone = '',
+        docDigits: docDigitsInput = '',
+        clienteAPrazo = false,
+    } = {},
 ) {
     const config = hubConfig(env);
     if (!config.serviceKey) return null;
@@ -267,6 +278,7 @@ export async function syncDistribuidoraClienteFinal(
     if (docDigits.length !== 11 && docDigits.length !== 14) return null;
 
     const nomeTrim = String(nome || '').trim().slice(0, 120);
+    const fantasiaTrim = String(nomeFantasia || '').trim().slice(0, 120);
     const phoneLocal = phoneLocalDigits(telefone);
     let pessoa = await fetchPessoaByDoc(config, docDigits);
 
@@ -286,9 +298,11 @@ export async function syncDistribuidoraClienteFinal(
 
     if (nomeTrim) {
         pessoaPatch.nome = nomeTrim;
-        if (!String(pessoa?.nome_fantasia || '').trim()) {
-            pessoaPatch.nome_fantasia = nomeTrim;
-        }
+    }
+    if (fantasiaTrim) {
+        pessoaPatch.nome_fantasia = fantasiaTrim;
+    } else if (nomeTrim && !String(pessoa?.nome_fantasia || '').trim()) {
+        pessoaPatch.nome_fantasia = nomeTrim;
     }
     if (phoneLocal && phoneLocal.length >= 10) {
         pessoaPatch.telefone = phoneLocal.slice(-11);
@@ -316,7 +330,7 @@ export async function syncDistribuidoraClienteFinal(
             body: {
                 ...pessoaPatch,
                 nome: nomeTrim,
-                nome_fantasia: nomeTrim,
+                nome_fantasia: fantasiaTrim || nomeTrim,
             },
         });
         pessoa = Array.isArray(rows) ? rows[0] : rows;

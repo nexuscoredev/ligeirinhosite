@@ -222,16 +222,18 @@
         if (!hit) return false;
 
         const checkout = loadCheckoutState();
-        const nextNome = String(hit.nome || '').trim();
+        const nextNome = String(hit.nome || hit.label || '').trim();
+        const nextFantasia = String(hit.nomeFantasia || '').trim();
         const nextDoc = hit.doc ? formatClienteDocInput(hit.doc) : '';
         const nextPhone = hit.telefone ? formatClientePhoneDisplay(hit.telefone) : '';
         const nextAPrazo = Boolean(hit.clienteAPrazo);
-        const prevScope = String(checkout.cartClienteScope || checkout.orderClienteNome || '').trim();
+        const displayScope = nextFantasia || nextNome;
+        const prevScope = String(checkout.cartClienteScope || checkout.orderClienteNomeFantasia || checkout.orderClienteNome || '').trim();
         const hasItems = cartApi.cartItemCount(cartApi.loadCart()) > 0;
 
-        if (replace && prevScope && nextNome && prevScope !== nextNome && hasItems) {
+        if (replace && prevScope && displayScope && prevScope !== displayScope && hasItems) {
             const keep = window.confirm(
-                `Trocar o cliente de "${prevScope}" para "${nextNome}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
+                `Trocar o cliente de "${prevScope}" para "${displayScope}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
             );
             if (!keep) return false;
             cartApi.saveCart({});
@@ -240,7 +242,12 @@
         const patch = { orderClienteAPrazo: nextAPrazo };
         if (replace || !String(checkout.orderClienteNome || '').trim()) {
             patch.orderClienteNome = nextNome;
-            patch.cartClienteScope = nextNome;
+        }
+        if (replace || !String(checkout.orderClienteNomeFantasia || '').trim()) {
+            patch.orderClienteNomeFantasia = nextFantasia;
+        }
+        if (displayScope) {
+            patch.cartClienteScope = displayScope;
         }
         if (replace || !String(checkout.orderClienteDoc || '').trim()) {
             patch.orderClienteDoc = nextDoc;
@@ -256,8 +263,8 @@
         cartApi.saveCheckout(nextCheckout);
         clienteSearchResults = [];
         clienteSearchStatus = '';
-        if (nextNome) {
-            clienteSearchMessage = `Cliente "${nextNome}" selecionado.`;
+        if (displayScope) {
+            clienteSearchMessage = `Cliente "${displayScope}" selecionado.`;
         }
         render();
         return true;
@@ -345,12 +352,13 @@
                 ? `<div class="resumo-cliente-search-results" role="listbox" aria-label="Resultados da busca">${clienteSearchResults
                       .map((hit, idx) => {
                           const metaParts = [
+                              hit.nome && hit.label && hit.nome !== hit.label ? hit.nome : '',
                               hit.doc ? hit.doc : '',
                               hit.telefone ? formatClientePhoneDisplay(hit.telefone) : '',
                               hit.clienteAPrazo ? 'A prazo' : '',
                           ].filter(Boolean);
                           return `<button type="button" class="resumo-cliente-search-hit" data-cliente-search-idx="${idx}" role="option">
-<strong class="resumo-cliente-search-hit__name">${esc(hit.nome)}</strong>
+<strong class="resumo-cliente-search-hit__name">${esc(hit.label || hit.nome)}</strong>
 ${metaParts.length ? `<span class="resumo-cliente-search-hit__meta">${esc(metaParts.join(' · '))}</span>` : ''}
 </button>`;
                       })
@@ -935,7 +943,11 @@ ${body}
 <div class="resumo-cliente-fields">
 <label class="resumo-cliente-field">
 <span class="resumo-cliente-field__label">Nome</span>
-<input type="text" class="resumo-cliente-field__input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="off" maxlength="120">
+<input type="text" class="resumo-cliente-field__input" id="resumo-cliente-nome" value="${esc(checkout.orderClienteNome || '')}" placeholder="Ex.: DISTRIBUIDORA XYZ LTDA" autocomplete="off" maxlength="120">
+</label>
+<label class="resumo-cliente-field">
+<span class="resumo-cliente-field__label">Nome fantasia <span class="resumo-cliente-field__optional">(opcional)</span></span>
+<input type="text" class="resumo-cliente-field__input" id="resumo-cliente-fantasia" value="${esc(checkout.orderClienteNomeFantasia || '')}" placeholder="Ex.: ADEGA DO JOÃO" autocomplete="off" maxlength="120">
 </label>
 <label class="resumo-cliente-field">
 <span class="resumo-cliente-field__label">Telefone</span>
@@ -950,7 +962,7 @@ ${body}
 <span class="resumo-cliente-check__label">Cliente a prazo</span>
 </label>
 <p class="resumo-field-hint resumo-cliente-doc-hint">Libera pagamento a prazo/crediário conforme regras do Hub. Desmarcado por padrão.</p>
-<p class="resumo-field-hint resumo-cliente-doc-hint">Nome, telefone e documento entram na identificação do destinatário na DAV.</p>
+<p class="resumo-field-hint resumo-cliente-doc-hint">Nome, fantasia, telefone e documento entram na identificação do destinatário na DAV.</p>
 </div>`,
               )
             : '';
@@ -1028,24 +1040,56 @@ ${cardHtml(
         root.querySelector('#resumo-cliente-nome')?.addEventListener('input', (event) => {
             cartApi.saveCheckout({ orderClienteNome: event.target.value });
         });
+        root.querySelector('#resumo-cliente-fantasia')?.addEventListener('input', (event) => {
+            cartApi.saveCheckout({ orderClienteNomeFantasia: event.target.value });
+        });
         root.querySelector('#resumo-cliente-nome')?.addEventListener('change', (event) => {
             if (!isDistribuidoraAccount()) return;
-            const next = String(event.target.value || '').trim();
             const checkout = loadCheckoutState();
-            const prev = String(checkout.cartClienteScope || checkout.orderClienteNome || '').trim();
+            const nextNome = String(event.target.value || '').trim();
+            const nextFantasia = String(checkout.orderClienteNomeFantasia || '').trim();
+            const nextScope = nextFantasia || nextNome;
+            const prev = String(checkout.cartClienteScope || checkout.orderClienteNomeFantasia || checkout.orderClienteNome || '').trim();
             const hasItems = cartApi.cartItemCount(cartApi.loadCart()) > 0;
-            if (prev && next && prev !== next && hasItems) {
+            if (prev && nextScope && prev !== nextScope && hasItems) {
                 const keep = window.confirm(
-                    `Trocar o cliente de "${prev}" para "${next}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
+                    `Trocar o cliente de "${prev}" para "${nextScope}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
                 );
                 if (!keep) {
-                    event.target.value = prev;
-                    cartApi.saveCheckout({ orderClienteNome: prev });
+                    event.target.value = checkout.orderClienteNome || prev;
+                    cartApi.saveCheckout({ orderClienteNome: checkout.orderClienteNome || prev });
                     return;
                 }
                 cartApi.saveCart({});
             }
-            cartApi.saveCheckout({ orderClienteNome: next, cartClienteScope: next });
+            cartApi.saveCheckout({
+                orderClienteNome: nextNome,
+                cartClienteScope: nextScope || nextNome,
+            });
+        });
+        root.querySelector('#resumo-cliente-fantasia')?.addEventListener('change', (event) => {
+            if (!isDistribuidoraAccount()) return;
+            const checkout = loadCheckoutState();
+            const nextFantasia = String(event.target.value || '').trim();
+            const nextNome = String(checkout.orderClienteNome || '').trim();
+            const nextScope = nextFantasia || nextNome;
+            const prev = String(checkout.cartClienteScope || checkout.orderClienteNomeFantasia || checkout.orderClienteNome || '').trim();
+            const hasItems = cartApi.cartItemCount(cartApi.loadCart()) > 0;
+            if (prev && nextScope && prev !== nextScope && hasItems) {
+                const keep = window.confirm(
+                    `Trocar o cliente de "${prev}" para "${nextScope}"?\n\nO caminhão será esvaziado para não misturar produtos de pedidos diferentes.`,
+                );
+                if (!keep) {
+                    event.target.value = checkout.orderClienteNomeFantasia || '';
+                    cartApi.saveCheckout({ orderClienteNomeFantasia: checkout.orderClienteNomeFantasia || '' });
+                    return;
+                }
+                cartApi.saveCart({});
+            }
+            cartApi.saveCheckout({
+                orderClienteNomeFantasia: nextFantasia,
+                cartClienteScope: nextScope,
+            });
         });
         const phoneInput = root.querySelector('#resumo-cliente-telefone');
         phoneInput?.addEventListener('input', (event) => {
@@ -1474,8 +1518,10 @@ ${body}
                     payload.orderTabelaPrecoCodigo = checkout.orderTabelaPrecoCodigo || '';
                 }
                 const clienteNome = String(checkout.orderClienteNome || '').trim();
-                if (clienteNome) {
-                    cartApi.saveCheckout({ cartClienteScope: clienteNome });
+                const clienteFantasia = String(checkout.orderClienteNomeFantasia || '').trim();
+                const scopeName = clienteFantasia || clienteNome;
+                if (scopeName) {
+                    cartApi.saveCheckout({ cartClienteScope: scopeName });
                 }
                 if (
                     checkout.orderTaxaEntrega !== undefined &&
@@ -1484,9 +1530,12 @@ ${body}
                 ) {
                     payload.orderTaxaEntrega = checkout.orderTaxaEntrega;
                 }
-                const orderClienteNome = String(checkout.orderClienteNome || '').trim();
+                const orderClienteNome = clienteNome;
                 if (orderClienteNome) {
                     payload.orderClienteNome = orderClienteNome;
+                }
+                if (clienteFantasia) {
+                    payload.orderClienteNomeFantasia = clienteFantasia;
                 }
                 const phoneCheck = validateClientePhoneInput(checkout.orderClienteTelefone || '');
                 if (!phoneCheck.ok) {
@@ -1574,6 +1623,7 @@ ${body}
                 paymentMethod: '',
                 paymentSplits: [],
                 orderClienteNome: '',
+                orderClienteNomeFantasia: '',
                 orderClienteDoc: '',
                 orderClienteTelefone: '',
                 orderClienteAPrazo: false,

@@ -135,6 +135,7 @@ function buildOrderNotes(
     orderTabelaPrecoCodigo,
     orderClienteDocFormatted,
     orderClienteAPrazo,
+    orderClienteNomeFantasia = '',
 ) {
     const customerCnpj = String(customer.cnpj || body.customerCnpj || '').trim();
     const customerCpf = normalizeCpfDigits(customer.cpf || customer.customerCpf || body.customerCpf || '');
@@ -146,6 +147,7 @@ function buildOrderNotes(
     ].filter(Boolean);
     if (orderTabelaPrecoCodigo) notesParts.push(`Tabela: ${orderTabelaPrecoCodigo}`);
     if (orderClienteNome) notesParts.push(`Cliente: ${orderClienteNome}`);
+    if (orderClienteNomeFantasia) notesParts.push(`Fantasia: ${orderClienteNomeFantasia}`);
     if (orderClienteDocFormatted) notesParts.push(`Doc cliente: ${orderClienteDocFormatted}`);
     if (isDistribuidoraAccount(customerCnpj)) {
         notesParts.push(orderClienteAPrazo ? 'Cliente a prazo: sim' : 'Cliente a prazo: não');
@@ -368,6 +370,7 @@ export default async function handler(req, res) {
         const orderTabelaPrecoId = String(body.orderTabelaPrecoId || '').trim();
         const orderTabelaPrecoCodigo = String(body.orderTabelaPrecoCodigo || '').trim();
         const orderClienteNome = String(body.orderClienteNome || '').trim().slice(0, 120);
+        const orderClienteNomeFantasia = String(body.orderClienteNomeFantasia || '').trim().slice(0, 120);
         const customerPhone = sanitizeCustomerPhone(customer.phone || existing.customer_phone, {
             cpf: customerCpf,
             cnpj: customerCnpj,
@@ -381,6 +384,7 @@ export default async function handler(req, res) {
             orderTabelaPrecoCodigo,
             orderClienteDocFormatted,
             orderClienteAPrazo,
+            orderClienteNomeFantasia,
         );
         notes = preserveEditPolicyTags(existing.notes, notes);
 
@@ -440,6 +444,7 @@ export default async function handler(req, res) {
             try {
                 await syncDistribuidoraClienteFinal(process.env, {
                     nome: orderClienteNome,
+                    nomeFantasia: orderClienteNomeFantasia,
                     telefone: customerPhone,
                     docDigits: orderClienteDocDigits,
                     clienteAPrazo: orderClienteAPrazo,

@@ -14250,6 +14250,12 @@ body.lig-push-prompt-open {
     color: var(--lig-text-muted);
 }
 
+.resumo-cliente-field__optional {
+    font-weight: 500;
+    color: var(--lig-text-muted);
+    opacity: 0.85;
+}
+
 .resumo-cliente-field__input {
     width: 100%;
     min-height: 2.75rem;
