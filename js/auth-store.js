@@ -229,7 +229,9 @@
         if (existing) return existing;
 
         const session = loadSession();
-        if (!session?.email || session.provider !== 'google') return null;
+        if (!session?.hubUserId) return null;
+        const provider = String(session.provider || 'google').toLowerCase();
+        if (provider !== 'google' && provider !== 'hub') return null;
         if (accountSessionInflight) return accountSessionInflight;
 
         accountSessionInflight = (async () => {
@@ -238,9 +240,9 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        email: session.email,
+                        email: session.email || '',
                         hubUserId: session.hubUserId || '',
-                        provider: session.provider || 'google',
+                        provider,
                         name: session.name || '',
                     }),
                 });
@@ -433,8 +435,14 @@
             if (s.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
             return headers;
         }
+        if (s?.provider === 'hub' && s?.hubUserId) {
+            headers['X-Auth-Provider'] = 'hub';
+            headers['X-Hub-User-Id'] = s.hubUserId;
+            if (s.email) headers['X-Account-Email'] = s.email;
+            return headers;
+        }
 
-        return null;
+        return headers;
     };
 
     window.LigeirinhoAuth = {

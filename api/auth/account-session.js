@@ -51,7 +51,7 @@ export default async function handler(req, res) {
         const hubUserId = String(body.hubUserId || '').trim();
         const provider = String(body.provider || 'google').toLowerCase();
 
-        if (!email) {
+        if (!email && !(provider === 'hub' && hubUserId)) {
             return res.status(400).json({ error: 'E-mail da sessão ausente.' });
         }
 
@@ -69,13 +69,17 @@ export default async function handler(req, res) {
             });
         }
 
-        if (!googleUsuarioMatchesEmail(usuario, email)) {
+        if (provider === 'hub') {
+            if (!hubUserId || !usuario?.id || usuario.id !== hubUserId) {
+                return res.status(403).json({ error: 'Sessão inválida para esta conta.' });
+            }
+        } else if (!googleUsuarioMatchesEmail(usuario, email)) {
             return res.status(403).json({ error: 'Sessão inválida para esta conta.' });
         }
 
         const accountSession = issueAccountSession({
             userId: usuario.id,
-            email,
+            email: email || String(usuario.email || usuario.login || '').trim().toLowerCase(),
             provider,
         });
 

@@ -134,32 +134,8 @@
 
     const buildAccountHeaders = async () => {
         const headers = { 'Content-Type': 'application/json' };
-        const hubToken = await auth?.getHubAccessToken?.();
-        if (hubToken) {
-            headers.Authorization = `Bearer ${hubToken}`;
-            return headers;
-        }
-        let accountToken = auth?.getAccountSessionToken?.();
-        if (!accountToken) accountToken = await auth?.ensureAccountSession?.();
-        if (accountToken) {
-            headers['X-Account-Session'] = accountToken;
-            return headers;
-        }
-        const googleCred = auth?.getGoogleCredential?.();
-        if (googleCred) {
-            headers['X-Google-Credential'] = googleCred;
-            const s = session();
-            if (s?.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
-            return headers;
-        }
-        const s = session();
-        if (s?.provider === 'google' && s?.email) {
-            headers['X-Auth-Provider'] = 'google';
-            headers['X-Account-Email'] = s.email;
-            if (s.sub) headers['X-Auth-Sub'] = s.sub;
-            if (s.hubUserId) headers['X-Hub-User-Id'] = s.hubUserId;
-        }
-        return headers;
+        const authHeaders = (await auth?.buildAccountHeaders?.()) || {};
+        return { ...headers, ...authHeaders };
     };
 
     const assetUrl = (path) => {

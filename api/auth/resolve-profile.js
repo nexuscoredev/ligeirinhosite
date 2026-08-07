@@ -73,13 +73,24 @@ export default async function handler(req, res) {
             const result = await resolveHubLogin(hub, login, password);
             if (result.error) return res.status(401).json({ error: result.error });
 
+            const profile = publicProfile(result.profile);
+            const accountSession =
+                profile.hubUserId && profile.email
+                    ? issueAccountSession({
+                          userId: profile.hubUserId,
+                          email: profile.email,
+                          provider: 'hub',
+                      })
+                    : null;
+
             return res.status(200).json({
-                profile: publicProfile(result.profile),
+                profile,
                 hubSession: {
                     accessToken: result.accessToken,
                     refreshToken: result.refreshToken || '',
                     expiresAt: Date.now() + 3600 * 1000,
                 },
+                accountSession,
             });
         }
 

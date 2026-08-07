@@ -77,11 +77,11 @@ function googleUsuarioMatchesEmail(usuario, email) {
     return false;
 }
 
-async function sessionFromGoogleUsuario(config, usuario, email, provider = 'google') {
+async function sessionFromAccountUsuario(config, usuario, email, provider = 'google') {
     if (!usuario?.id || !usuario.ativo) {
         return { error: 'Usuário inativo.', status: 403 };
     }
-    if (!googleUsuarioMatchesEmail(usuario, email)) {
+    if (provider !== 'hub' && !googleUsuarioMatchesEmail(usuario, email)) {
         return { error: 'Este e-mail Google não corresponde à conta no Hub.', status: 403 };
     }
     return {
@@ -89,7 +89,7 @@ async function sessionFromGoogleUsuario(config, usuario, email, provider = 'goog
         token: config.serviceKey,
         userId: usuario.id,
         usuario,
-        authUser: { id: usuario.id, email },
+        authUser: { id: usuario.id, email: email || usuario.email || '' },
         provider,
     };
 }
@@ -110,7 +110,7 @@ export async function requireAccountSession(req) {
             const payload = verifyAccountSession(accountToken);
             if (payload?.userId) {
                 const usuario = await safeFetchUsuarioById(config, payload.userId, config.serviceKey);
-                const session = await sessionFromGoogleUsuario(
+                const session = await sessionFromAccountUsuario(
                     config,
                     usuario,
                     payload.email,
@@ -160,7 +160,7 @@ export async function requireAccountSession(req) {
                 }
             }
 
-            const session = await sessionFromGoogleUsuario(config, usuario, email, 'google');
+            const session = await sessionFromAccountUsuario(config, usuario, email, 'google');
             if (session.error) return session;
             return session;
         }
@@ -188,7 +188,19 @@ export async function requireAccountSession(req) {
                 }
             }
 
-            const session = await sessionFromGoogleUsuario(config, usuario, email, 'google');
+            const session = await sessionFromAccountUsuario(config, usuario, email, 'google');
+            if (!session.error) return session;
+            return session;
+        }
+
+        if (provider === 'hub' && hubUserId) {
+            const usuario = await safeFetchUsuarioById(config, hubUserId, config.serviceKey);
+            const session = await sessionFromAccountUsuario(
+                config,
+                usuario,
+                email || usuario?.email || '',
+                'hub',
+            );
             if (!session.error) return session;
             return session;
         }
