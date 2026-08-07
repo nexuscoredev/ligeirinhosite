@@ -1,4 +1,5 @@
 import { hubConfig } from '../hub-auth.mjs';
+import { DISTRIBUIDORA_LEGADA_ID, resolveCatalogDistribuidoraId } from './distribuidora-scope.mjs';
 import {
     catalogPriceFromUnitPrice,
     fatorEmbalagemValido,
@@ -597,14 +598,25 @@ export async function fetchHubCatalogData(config, options = {}) {
 
 /** Lista tabelas de preço ativas (Distribuidora / pedido avulso). */
 export async function listActivePriceTables(hub, distribuidoraId = null) {
-    const distFilter = distribuidoraFilter(distribuidoraId);
-    return fetchAll(
+    const distId = resolveCatalogDistribuidoraId(distribuidoraId);
+    const distFilter = distribuidoraFilter(distId);
+    let rows = await fetchAll(
         hub,
         'tabelas_preco',
         'id,codigo,nome,padrao,ativo',
         `&ativo=eq.true${distFilter}`,
         'codigo.asc',
     );
+    if (!rows.length && distId !== DISTRIBUIDORA_LEGADA_ID) {
+        rows = await fetchAll(
+            hub,
+            'tabelas_preco',
+            'id,codigo,nome,padrao,ativo',
+            `&ativo=eq.true${distribuidoraFilter(DISTRIBUIDORA_LEGADA_ID)}`,
+            'codigo.asc',
+        );
+    }
+    return rows;
 }
 
 export async function fetchCatalogFromHub(env = process.env, options = {}) {
