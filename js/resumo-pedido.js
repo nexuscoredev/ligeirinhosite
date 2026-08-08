@@ -76,6 +76,23 @@
 
     const loadCheckoutState = () => cartApi.loadCheckout();
 
+    const isEditingCheckout = (checkout = loadCheckoutState()) =>
+        Boolean(String(checkout?.editOrderId || '').trim());
+
+    const isIsoDeliveryDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
+
+    const formatLockedDeliveryDateLabel = (isoDate) => {
+        const value = String(isoDate || '').trim();
+        if (!isIsoDeliveryDate(value)) return value;
+        const [y, m, d] = value.split('-').map(Number);
+        const date = new Date(y, m - 1, d, 12);
+        if (Number.isNaN(date.getTime())) return value;
+        const weekday = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+        const month = date.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+        const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+        return `${cap(weekday)}, ${d} ${cap(month)} (pedido)`;
+    };
+
     const orderShortId = (id) =>
         String(id || '')
             .replace(/-/g, '')
@@ -643,11 +660,25 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         const base =
             deliveryApi?.deliveryDateOptions?.(dias, deliveryDateOpts()) ||
             [];
-        return base.map((opt) => ({ ...opt, priceLabel }));
+        const options = base.map((opt) => ({ ...opt, priceLabel }));
+        const lockedDate = String(checkout.deliveryDate || '').trim();
+        if (isEditingCheckout(checkout) && isIsoDeliveryDate(lockedDate)) {
+            if (!options.some((opt) => opt.value === lockedDate)) {
+                options.unshift({
+                    value: lockedDate,
+                    label: formatLockedDeliveryDateLabel(lockedDate),
+                    weekday: '',
+                    type: 'Pedido',
+                    priceLabel,
+                });
+            }
+        }
+        return options;
     };
 
     const syncDeliveryDateWithHub = () => {
         const checkout = cartApi.loadCheckout();
+        if (isEditingCheckout(checkout)) return;
         if (!checkout.deliveryDate) return;
         const dias = session()?.datasEntrega || [];
         const opts = deliveryDateOpts();
@@ -703,8 +734,13 @@ ${opt.hint ? `<span class="resumo-date-row__weekday">${esc(opt.hint)}</span>` : 
         const opts = deliveryOptions();
         if (!checkout.deliveryDate) {
             errors.deliveryDate = 'Selecione a data de entrega.';
-        } else if (!opts.some((d) => d.value === checkout.deliveryDate)) {
+        } else if (
+            !isEditingCheckout(checkout) &&
+            !opts.some((d) => d.value === checkout.deliveryDate)
+        ) {
             errors.deliveryDate = 'Selecione uma data de entrega válida.';
+        } else if (isEditingCheckout(checkout) && !isIsoDeliveryDate(checkout.deliveryDate)) {
+            errors.deliveryDate = 'Data de entrega inválida. Selecione outra data.';
         }
         if (!checkout.paymentMethod && !(checkout.paymentSplits || []).length) {
             errors.paymentMethod = 'Selecione o método de pagamento.';
