@@ -19,6 +19,8 @@ export default async function handler(req, res) {
             cpf: body.cpf,
             cnpj: body.cnpj,
             pessoaId: body.pessoaId,
+            password: body.password,
+            requireLogin: true,
         });
 
         return res.status(200).json({ customer, saved: true });

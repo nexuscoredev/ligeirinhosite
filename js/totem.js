@@ -71,6 +71,13 @@
     const customerConfirmName = document.getElementById('totem-customer-confirm-name');
     const customerConfirmHint = document.getElementById('totem-customer-confirm-hint');
     const customerConfirmCardName = document.getElementById('totem-customer-confirm-card-name');
+    const customerLoginForm = document.getElementById('totem-customer-login-form');
+    const customerLoginPasswordInput = document.getElementById('totem-customer-login-password');
+    const customerLoginError = document.getElementById('totem-customer-login-error');
+    const customerLoginNoPassword = document.getElementById('totem-customer-login-no-password');
+    const customerLoginSubmit = document.getElementById('totem-customer-login-submit');
+    const customerPasswordInput = document.getElementById('totem-customer-password');
+    const customerPasswordConfirmInput = document.getElementById('totem-customer-password-confirm');
     const customerManualEyebrow = document.getElementById('totem-customer-manual-eyebrow');
     const customerManualTitle = document.getElementById('totem-customer-manual-title');
     const customerManualLead = document.getElementById('totem-customer-manual-lead');
@@ -276,6 +283,8 @@
     let customerLookupMode = 'doc';
     let customerManualContactMode = 'phone';
     let customerLookupHit = null;
+    let customerLookupLogin = '';
+    const MIN_CUSTOMER_PASSWORD_LENGTH = 6;
     const CATALOG_VIEW_KEY = 'lig_totem_catalog_view';
     const CATALOG_VIEWS = new Set(['list', 'grid-s', 'grid-m', 'grid-l']);
     const GRID_DENSITY_CLASSES = ['totem-grid--grid-s', 'totem-grid--grid-m', 'totem-grid--grid-l'];
@@ -1791,6 +1800,7 @@ ${unitHtml}
     const resetCustomerForm = () => {
         totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
         customerLookupHit = null;
+        customerLookupLogin = '';
         resetTotemPriceContext();
         customerStep = 'register';
         customerSkippedIdentification = false;
@@ -1802,16 +1812,29 @@ ${unitHtml}
         if (customerManualDocInput) customerManualDocInput.value = '';
         if (customerLookupInput) customerLookupInput.value = '';
         if (customerCpfInput) customerCpfInput.value = '';
+        if (customerLoginPasswordInput) customerLoginPasswordInput.value = '';
+        if (customerPasswordInput) customerPasswordInput.value = '';
+        if (customerPasswordConfirmInput) customerPasswordConfirmInput.value = '';
         setManualContactMode('phone');
         showCustomerError('');
         showLookupError('');
         showCpfError('');
+        showLoginError('');
         customerNameInput?.classList.remove('totem-customer__input--error');
         customerPhoneInput?.classList.remove('totem-customer__input--error');
         customerManualEmailInput?.classList.remove('totem-customer__input--error');
         customerManualDocInput?.classList.remove('totem-customer__input--error');
         customerCpfInput?.classList.remove('totem-customer__input--error');
+        customerLoginPasswordInput?.classList.remove('totem-customer__input--error');
+        customerPasswordInput?.classList.remove('totem-customer__input--error');
+        customerPasswordConfirmInput?.classList.remove('totem-customer__input--error');
         updateCatalogGreeting();
+    };
+
+    const showLoginError = (message) => {
+        if (!customerLoginError) return;
+        customerLoginError.textContent = message;
+        customerLoginError.hidden = !message;
     };
 
     const showLookupError = (message) => {
@@ -1844,6 +1867,20 @@ ${unitHtml}
             window.setTimeout(() => {
                 customerNameInput?.focus();
                 bindCustomerKeyboard(customerNameInput);
+            }, 120);
+        } else if (step === 'confirm') {
+            window.setTimeout(() => {
+                if (customerLookupHit?.hasLogin === false) {
+                    customerLoginNoPassword.hidden = false;
+                    if (customerLoginPasswordInput) customerLoginPasswordInput.disabled = true;
+                    if (customerLoginSubmit) customerLoginSubmit.disabled = true;
+                    return;
+                }
+                if (customerLoginNoPassword) customerLoginNoPassword.hidden = true;
+                if (customerLoginPasswordInput) customerLoginPasswordInput.disabled = false;
+                if (customerLoginSubmit) customerLoginSubmit.disabled = false;
+                customerLoginPasswordInput?.focus();
+                bindCustomerKeyboard(customerLoginPasswordInput, 'password');
             }, 120);
         } else if (step === 'cpf') {
             window.setTimeout(() => {
@@ -2047,13 +2084,25 @@ ${unitHtml}
     };
 
     const showCustomerConfirm = (customer) => {
+        customerLookupLogin = String(customer?.suggestedLogin || '').trim();
         if (customerConfirmName) customerConfirmName.textContent = customer.name;
         if (customerConfirmCardName) customerConfirmCardName.textContent = customer.name;
         if (customerConfirmHint) {
-            customerConfirmHint.textContent = customer.hint
-                ? `${customer.hint} — confirme se é você.`
-                : 'Confirme se este cadastro é seu.';
+            customerConfirmHint.textContent = customer.hasLogin
+                ? 'Digite a senha do seu cadastro Ligeirinho.'
+                : 'Este cadastro ainda não tem senha. Use Novo cliente para criar uma.';
         }
+        if (customerLoginNoPassword) {
+            customerLoginNoPassword.hidden = customer.hasLogin !== false;
+        }
+        if (customerLoginPasswordInput) {
+            customerLoginPasswordInput.value = '';
+            customerLoginPasswordInput.disabled = customer.hasLogin === false;
+        }
+        if (customerLoginSubmit) {
+            customerLoginSubmit.disabled = customer.hasLogin === false;
+        }
+        showLoginError('');
     };
 
     const lookupPhoneFallback = () => {
@@ -2068,18 +2117,20 @@ ${unitHtml}
             if (customerManualTitle) customerManualTitle.textContent = 'Vamos identificar você';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e, se quiser, um contato para reconhecermos você depois.';
+                    'Informe seu nome, um contato e crie uma senha para entrar nas próximas visitas.';
             }
         } else {
             if (customerManualEyebrow) customerManualEyebrow.textContent = 'Novo cliente';
             if (customerManualTitle) customerManualTitle.textContent = 'Seja bem-vindo!';
             if (customerManualLead) {
                 customerManualLead.textContent =
-                    'Informe seu nome e, se quiser, um contato para reconhecermos você depois.';
+                    'Informe seu nome, um contato e crie uma senha para entrar nas próximas visitas.';
             }
         }
         if (customerNameInput) customerNameInput.value = '';
         if (customerManualDocInput) customerManualDocInput.value = '';
+        if (customerPasswordInput) customerPasswordInput.value = '';
+        if (customerPasswordConfirmInput) customerPasswordConfirmInput.value = '';
         if (fromReject && customerLookupHit?.email) {
             if (customerManualEmailInput) customerManualEmailInput.value = customerLookupHit.email;
             if (customerPhoneInput) customerPhoneInput.value = customerLookupHit.phone || lookupPhoneFallback();
@@ -2143,29 +2194,88 @@ ${unitHtml}
         }
     };
 
-    const confirmCustomerIdentity = () => {
-        if (!customerLookupHit?.name) return;
+    const applyCustomerFromLookupHit = (hit) => {
+        if (!hit?.name) return;
         totemCustomer = {
-            name: customerLookupHit.name,
-            phone: sanitizeCustomerPhone(
-                customerLookupHit.phone,
-                customerLookupHit.cpf,
-                customerLookupHit.cnpj,
-            ),
-            email: String(customerLookupHit.email || '').trim(),
-            cpf: String(customerLookupHit.cpf || '').trim(),
-            cnpj: String(customerLookupHit.cnpj || '').trim(),
-            pessoaId: customerLookupHit.pessoaId || '',
-            usesPersonalPriceTable: Boolean(customerLookupHit.usesPersonalPriceTable),
-            tabelaPrecoId: String(customerLookupHit.tabelaPrecoId || '').trim(),
-            tabelaPrecoCodigo: String(customerLookupHit.tabelaPrecoCodigo || '').trim(),
+            name: hit.name,
+            phone: sanitizeCustomerPhone(hit.phone, hit.cpf, hit.cnpj),
+            email: String(hit.email || '').trim(),
+            cpf: String(hit.cpf || '').trim(),
+            cnpj: String(hit.cnpj || '').trim(),
+            pessoaId: hit.pessoaId || '',
+            usesPersonalPriceTable: Boolean(hit.usesPersonalPriceTable),
+            tabelaPrecoId: String(hit.tabelaPrecoId || '').trim(),
+            tabelaPrecoCodigo: String(hit.tabelaPrecoCodigo || '').trim(),
         };
         applyTotemPriceContextFromCustomer(totemCustomer);
-        totemKeyboard?.hide?.();
-        proceedAfterCustomerRegister();
     };
 
-    const saveCustomerDocToHub = async () => {
+    const submitCustomerLogin = async () => {
+        if (!customerLookupHit?.name) return;
+        if (customerLookupHit.hasLogin === false) {
+            showLoginError('Cadastro sem senha. Use Novo cliente para criar uma.');
+            return;
+        }
+        const password = String(customerLoginPasswordInput?.value || '');
+        const login = customerLookupLogin || customerLookupHit.suggestedLogin || '';
+        if (!login) {
+            showLoginError('Não foi possível identificar o login. Tente outro contato.');
+            return;
+        }
+        if (password.length < MIN_CUSTOMER_PASSWORD_LENGTH) {
+            customerLoginPasswordInput?.classList.add('totem-customer__input--error');
+            showLoginError(`Informe sua senha (${MIN_CUSTOMER_PASSWORD_LENGTH} caracteres ou mais).`);
+            customerLoginPasswordInput?.focus();
+            bindCustomerKeyboard(customerLoginPasswordInput, 'password');
+            return;
+        }
+        if (customerLoginSubmit) customerLoginSubmit.disabled = true;
+        showLoginError('');
+        totemKeyboard?.hide?.();
+        try {
+            const res = await fetch('/api/totem/customer/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login, password }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Contato ou senha incorretos.');
+            }
+            customerLookupHit = data.customer || customerLookupHit;
+            applyCustomerFromLookupHit(customerLookupHit);
+            proceedAfterCustomerRegister();
+        } catch (err) {
+            customerLoginPasswordInput?.classList.add('totem-customer__input--error');
+            showLoginError(err.message || 'Contato ou senha incorretos.');
+            customerLoginPasswordInput?.focus();
+            bindCustomerKeyboard(customerLoginPasswordInput, 'password');
+        } finally {
+            if (customerLoginSubmit) customerLoginSubmit.disabled = false;
+        }
+    };
+
+    const validateManualPassword = () => {
+        const pwd = String(customerPasswordInput?.value || '');
+        const confirm = String(customerPasswordConfirmInput?.value || '');
+        customerPasswordInput?.classList.remove('totem-customer__input--error');
+        customerPasswordConfirmInput?.classList.remove('totem-customer__input--error');
+        if (pwd.length < MIN_CUSTOMER_PASSWORD_LENGTH) {
+            showCustomerError(`A senha deve ter pelo menos ${MIN_CUSTOMER_PASSWORD_LENGTH} caracteres.`);
+            customerPasswordInput?.focus();
+            bindCustomerKeyboard(customerPasswordInput, 'password');
+            return null;
+        }
+        if (pwd !== confirm) {
+            showCustomerError('As senhas não coincidem.');
+            customerPasswordConfirmInput?.focus();
+            bindCustomerKeyboard(customerPasswordConfirmInput, 'password');
+            return null;
+        }
+        return pwd;
+    };
+
+    const saveCustomerDocToHub = async ({ password } = {}) => {
         const name = String(totemCustomer.name || '').trim();
         const phone = sanitizeCustomerPhone(
             totemCustomer.phone,
@@ -2189,6 +2299,7 @@ ${unitHtml}
                     cpf,
                     cnpj,
                     pessoaId: totemCustomer.pessoaId || customerLookupHit?.pessoaId || '',
+                    password: password || undefined,
                 }),
             });
             const data = await res.json().catch(() => ({}));
@@ -2212,9 +2323,9 @@ ${unitHtml}
         }
     };
 
-    const persistTotemCustomer = async () => {
+    const persistTotemCustomer = async ({ password } = {}) => {
         if (totemCustomer.pessoaId || customerLookupHit?.pessoaId) {
-            return saveCustomerDocToHub();
+            return saveCustomerDocToHub({ password });
         }
         const name = String(totemCustomer.name || '').trim();
         const phone = sanitizeCustomerPhone(
@@ -2229,7 +2340,7 @@ ${unitHtml}
         if (!phone.replace(/\D/g, '') && !email && !cpf.replace(/\D/g, '') && !cnpj.replace(/\D/g, '')) {
             return { ok: false, error: 'Informe telefone, e-mail, CPF ou CNPJ para salvar o cadastro.' };
         }
-        return saveCustomerDocToHub();
+        return saveCustomerDocToHub({ password });
     };
 
     const showCustomerError = (message) => {
@@ -2368,7 +2479,11 @@ ${unitHtml}
                   ? field === customerLookupInput
                       ? lookupKeyboardMode()
                       : 'email'
-                  : 'full');
+                  : field === customerLoginPasswordInput ||
+                      field === customerPasswordInput ||
+                      field === customerPasswordConfirmInput
+                    ? 'password'
+                    : 'full');
         totemKeyboard = window.LigeirinhoTotemKeyboard?.init?.({
             input: field,
             mode: keyboardMode,
@@ -2403,7 +2518,21 @@ ${unitHtml}
                     field === customerManualEmailInput ||
                     field === customerManualDocInput
                 ) {
+                    customerPasswordInput?.focus();
+                    bindCustomerKeyboard(customerPasswordInput, 'password');
+                    return;
+                }
+                if (field === customerPasswordInput) {
+                    customerPasswordConfirmInput?.focus();
+                    bindCustomerKeyboard(customerPasswordConfirmInput, 'password');
+                    return;
+                }
+                if (field === customerPasswordConfirmInput) {
                     void submitCustomerAndStart();
+                    return;
+                }
+                if (field === customerLoginPasswordInput) {
+                    void submitCustomerLogin();
                     return;
                 }
                 if (field === customerCpfInput) {
@@ -2528,12 +2657,15 @@ ${unitHtml}
             return;
         }
 
+        const password = validateManualPassword();
+        if (!password) return;
+
         if (customerContinueBtn) {
             customerContinueBtn.disabled = true;
             const label = customerContinueBtn.querySelector('span');
             if (label) label.textContent = 'Salvando cadastro…';
         }
-        const saved = await persistTotemCustomer();
+        const saved = await persistTotemCustomer({ password });
         if (customerContinueBtn) {
             customerContinueBtn.disabled = false;
             const label = customerContinueBtn.querySelector('span');
@@ -4143,17 +4275,22 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             bindCustomerKeyboard(customerLookupInput, lookupKeyboardMode()),
         );
 
-        document.getElementById('totem-customer-confirm-yes')?.addEventListener('click', () => {
-            confirmCustomerIdentity();
-            bumpIdle();
-        });
-
         document.getElementById('totem-customer-confirm-no')?.addEventListener('click', () => {
             totemKeyboard?.hide?.();
             customerLookupHit = null;
+            customerLookupLogin = '';
             goManualCustomer({ fromReject: true });
             bumpIdle();
         });
+
+        customerLoginForm?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            void submitCustomerLogin();
+        });
+
+        customerLoginPasswordInput?.addEventListener('focus', () =>
+            bindCustomerKeyboard(customerLoginPasswordInput, 'password'),
+        );
 
         customerForm?.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -4208,6 +4345,12 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         });
         customerManualDocInput?.addEventListener('focus', () =>
             bindCustomerKeyboard(customerManualDocInput, 'numeric'),
+        );
+        customerPasswordInput?.addEventListener('focus', () =>
+            bindCustomerKeyboard(customerPasswordInput, 'password'),
+        );
+        customerPasswordConfirmInput?.addEventListener('focus', () =>
+            bindCustomerKeyboard(customerPasswordConfirmInput, 'password'),
         );
         customerContactTabs?.addEventListener('click', (e) => {
             const tab = e.target.closest('[data-manual-contact]');

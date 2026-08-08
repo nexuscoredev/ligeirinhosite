@@ -6,6 +6,7 @@ import {
     attachPriceMetaToCustomer,
     resolveTotemCustomerPriceMeta,
 } from './totem-customer-price.mjs';
+import { deriveTotemLogin, deriveTotemLoginFromQuery, pessoaHasTotemLogin } from './totem-customer-auth.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -282,8 +283,41 @@ async function lookupByDoc(config, digits, env) {
     return resolvePessoaHit(config, pessoa, digits.length === 14 ? 'cnpj' : 'cpf', env);
 }
 
+export async function fetchTotemCustomerByPessoaId(env, pessoaId, matchedBy = 'login') {
+    const config = hubConfig(env);
+    if (!config.serviceKey || !pessoaId) return null;
+    const rows = await hubRest(
+        config,
+        `pessoas?select=${PESSOA_SELECT}&id=eq.${encodeURIComponent(pessoaId)}&limit=1`,
+    );
+    const pessoa = Array.isArray(rows) ? rows[0] : null;
+    if (!pessoa) return null;
+    return resolvePessoaHit(config, pessoa, matchedBy, env);
+}
+
+export async function enrichTotemCustomerLoginMeta(env, customer, { query, type } = {}) {
+    if (!customer?.pessoaId) return customer;
+    const config = hubConfig(env);
+    const hasLogin = await pessoaHasTotemLogin(config, customer.pessoaId);
+    const suggestedLogin =
+        deriveTotemLoginFromQuery(query, { type }) ||
+        deriveTotemLogin({
+            phone: customer.phone,
+            email: customer.email,
+            cpf: customer.cpf,
+            cnpj: customer.cnpj,
+        }) ||
+        '';
+    return { ...customer, hasLogin, suggestedLogin };
+}
+
 function looksLikeMobilePhone(digits) {
     return digits.length === 11 && digits[2] === '9';
+}
+
+async function finalizeLookupHit(env, customer, { query, type } = {}) {
+    if (!customer) return null;
+    return enrichTotemCustomerLoginMeta(env, customer, { query, type });
 }
 
 export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
@@ -303,7 +337,10 @@ export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
             err.status = 400;
             throw err;
         }
-        return lookupByEmail(config, query, env);
+        return finalizeLookupHit(env, await lookupByEmail(config, query, env), {
+            query,
+            type: 'email',
+        });
     }
 
     const digits = normalizeDocDigits(query);
@@ -315,17 +352,25 @@ export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
 
     if (digits.length === 11 && looksLikeMobilePhone(digits)) {
         const byPhone = await lookupByPhone(config, digits, env);
-        if (byPhone) return byPhone;
+        if (byPhone) {
+            return finalizeLookupHit(env, byPhone, { query, type: 'contact' });
+        }
         const byDoc = await lookupByDoc(config, digits, env);
-        if (byDoc) return byDoc;
+        if (byDoc) {
+            return finalizeLookupHit(env, byDoc, { query, type: 'contact' });
+        }
     } else if (digits.length === 11 || digits.length === 14) {
         const byDoc = await lookupByDoc(config, digits, env);
-        if (byDoc) return byDoc;
+        if (byDoc) {
+            return finalizeLookupHit(env, byDoc, { query, type: 'contact' });
+        }
     }
 
     if (digits.length >= 10) {
         const byPhone = await lookupByPhone(config, digits, env);
-        if (byPhone) return byPhone;
+        if (byPhone) {
+            return finalizeLookupHit(env, byPhone, { query, type: 'contact' });
+        }
     }
 
     return null;

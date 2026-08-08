@@ -160,30 +160,36 @@
 
 <div class="totem-customer__step" id="totem-customer-step-confirm" data-customer-step="confirm" hidden>
 <div class="totem-customer__hero totem-customer__hero--confirm">
-<p class="totem-customer__eyebrow">Cadastro encontrado</p>
-<h2 class="totem-customer__title totem-customer__title--confirm">Você é <span id="totem-customer-confirm-name">…</span>?</h2>
-<p class="totem-customer__lead" id="totem-customer-confirm-hint"></p>
+<p class="totem-customer__eyebrow">Entrar na conta</p>
+<h2 class="totem-customer__title totem-customer__title--confirm">Olá, <span id="totem-customer-confirm-name">…</span></h2>
+<p class="totem-customer__lead" id="totem-customer-confirm-hint">Digite a senha do seu cadastro Ligeirinho.</p>
 </div>
 <div class="totem-customer__confirm-card" aria-hidden="true">
 <span class="material-symbols-outlined">badge</span>
 <p id="totem-customer-confirm-card-name"></p>
 </div>
-<div class="totem-customer__choices totem-customer__choices--confirm" role="group" aria-label="Confirmar identidade">
-<button type="button" class="totem-btn totem-btn--primary totem-btn--xl" id="totem-customer-confirm-yes">
-<span>Sim, sou eu</span>
-<span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+<form class="totem-customer__form" id="totem-customer-login-form" novalidate>
+<label class="totem-customer__field" for="totem-customer-login-password">
+<span class="totem-customer__label">Senha <span class="totem-customer__required">*</span></span>
+<input type="password" id="totem-customer-login-password" class="totem-customer__input" placeholder="Sua senha" autocomplete="current-password" maxlength="64" readonly inputmode="none">
+</label>
+<p class="totem-customer__error" id="totem-customer-login-error" role="alert" hidden></p>
+<p class="totem-customer__lead totem-customer__lead--compact" id="totem-customer-login-no-password" hidden>Este cadastro ainda não tem senha. Toque em Novo cliente para criar uma.</p>
+<button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-login-submit">
+<span>Entrar</span>
+<span class="material-symbols-outlined" aria-hidden="true">login</span>
 </button>
 <button type="button" class="totem-btn totem-btn--ghost totem-customer__confirm-no" id="totem-customer-confirm-no">
 <span>Não sou essa pessoa</span>
 </button>
-</div>
+</form>
 </div>
 
 <div class="totem-customer__step" id="totem-customer-step-manual" data-customer-step="manual" hidden>
 <div class="totem-customer__hero">
 <p class="totem-customer__eyebrow" id="totem-customer-manual-eyebrow">Novo cliente</p>
 <h2 class="totem-customer__title" id="totem-customer-manual-title">Seja bem-vindo!</h2>
-<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome e, se quiser, um contato para reconhecermos você depois.</p>
+<p class="totem-customer__lead" id="totem-customer-manual-lead">Informe seu nome, um contato e crie uma senha para entrar nas próximas visitas.</p>
 </div>
 <form class="totem-customer__form" id="totem-customer-form" novalidate>
 <label class="totem-customer__field" for="totem-customer-name">
@@ -206,6 +212,14 @@
 <label class="totem-customer__field totem-customer__contact-panel" id="totem-customer-panel-doc" data-manual-contact-panel="doc" for="totem-customer-manual-doc" hidden>
 <span class="totem-customer__label" id="totem-customer-doc-label">CPF ou CNPJ <span class="totem-customer__optional">(opcional)</span></span>
 <input type="text" id="totem-customer-manual-doc" class="totem-customer__input totem-customer__input--lookup" placeholder="Digite seu CPF ou CNPJ" autocomplete="off" inputmode="none" maxlength="18" readonly>
+</label>
+<label class="totem-customer__field" for="totem-customer-password">
+<span class="totem-customer__label">Senha <span class="totem-customer__required">*</span></span>
+<input type="password" id="totem-customer-password" class="totem-customer__input" placeholder="Mínimo 6 caracteres" autocomplete="new-password" maxlength="64" readonly inputmode="none">
+</label>
+<label class="totem-customer__field" for="totem-customer-password-confirm">
+<span class="totem-customer__label">Confirmar senha <span class="totem-customer__required">*</span></span>
+<input type="password" id="totem-customer-password-confirm" class="totem-customer__input" placeholder="Repita a senha" autocomplete="new-password" maxlength="64" readonly inputmode="none">
 </label>
 <p class="totem-customer__error" id="totem-customer-error" role="alert" hidden></p>
 <button type="submit" class="totem-btn totem-btn--primary totem-btn--xl totem-customer__submit" id="totem-customer-continue">

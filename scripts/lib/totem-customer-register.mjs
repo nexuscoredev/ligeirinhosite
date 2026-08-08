@@ -6,6 +6,12 @@ import {
     attachPriceMetaToCustomer,
     resolveTotemCustomerPriceMeta,
 } from './totem-customer-price.mjs';
+import {
+    deriveTotemLogin,
+    pessoaHasTotemLogin,
+    provisionTotemCustomerUsuario,
+    validateTotemPassword,
+} from './totem-customer-auth.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -205,7 +211,10 @@ function buildPatch(existing, { nome, phoneLocal, emailNorm, cpfDigits, cpfValid
 /**
  * Cria ou atualiza cadastro de cliente varejo (totem) no Hub para reconhecimento no próximo pedido.
  */
-export async function registerTotemCustomer(env, { name, phone, email, cpf, cnpj, pessoaId } = {}) {
+export async function registerTotemCustomer(
+    env,
+    { name, phone, email, cpf, cnpj, pessoaId, password, requireLogin = false } = {},
+) {
     const config = hubConfig(env);
     if (!config.serviceKey) {
         const err = new Error('Cadastro indisponível no momento.');
@@ -335,6 +344,31 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, cnpj
     }
 
     await syncClienteTotem(config, pessoa);
+
+    const login = deriveTotemLogin({ phone: phoneLocal, email: emailNorm, cpf: cpfDigits, cnpj: cnpjDigits });
+    const senha = String(password || '').trim();
+    const hadLogin = await pessoaHasTotemLogin(config, pessoa.id);
+
+    if (senha) {
+        validateTotemPassword(senha);
+        if (!login) {
+            const err = new Error('Informe telefone, e-mail, CPF ou CNPJ para criar login.');
+            err.status = 400;
+            throw err;
+        }
+        await provisionTotemCustomerUsuario(config, {
+            pessoaId: pessoa.id,
+            nome,
+            login,
+            password: senha,
+            phone: phoneLocal,
+            email: emailNorm,
+        });
+    } else if (requireLogin && !hadLogin) {
+        const err = new Error('Defina uma senha com pelo menos 6 caracteres.');
+        err.status = 400;
+        throw err;
+    }
 
     const refreshed = await fetchPessoaById(config, pessoa.id);
     const customer = toPublicCustomer(refreshed || pessoa);
