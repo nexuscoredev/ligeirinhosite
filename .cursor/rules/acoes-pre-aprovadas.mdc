@@ -9,10 +9,10 @@ Executar **sem pedir confirmação extra**, salvo conflito de git ou working tre
 
 ## Git & deploy
 
+- Ao concluir implementação com arquivos alterados: commit + push automático (ver `ligeirinho-master.mdc`)
 - `git push origin main`
 - `git pull --rebase origin main` (stash/pop quando necessário)
-- `npx vercel --prod --yes` e deploy via MCP Vercel
-- Fluxo completo de `fluxo-git-equipe.mdc` quando pedir commit/deploy
+- `npx vercel --prod --yes` e deploy via MCP Vercel se push não disparar deploy
 
 ## Assets
 

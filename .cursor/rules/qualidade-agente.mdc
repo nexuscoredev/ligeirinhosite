@@ -14,14 +14,15 @@ alwaysApply: true
 - CSS/JS estático visível ao usuário → bump `CACHE_NAME` em `js/sw.js`.
 - Nunca commitar `_tmp-*.json`, `.env`, `data/auth-config.local.json`.
 
-## Só quando pedirem commit/deploy
+## Ao concluir implementação com arquivos alterados
 
 1. `git status` + `git diff` (paralelo).
-2. `git pull --rebase origin main` → commit → push.
-3. Incluir na mesma entrega arquivos relacionados (ex.: CSS + SW juntos).
-4. Se commit falhar por author: usar identidade do último commit ou env vars — não configurar git global.
+2. Checks de `ligeirinho-master.mdc` e `prevencao-regressoes.mdc`.
+3. `git pull --rebase origin main` → commit → push (automático, sem pedir confirmação).
+4. Incluir na mesma entrega arquivos relacionados (ex.: CSS + SW juntos).
+5. Se commit falhar por author: usar identidade do último commit ou env vars — não configurar git global.
 
-**Opcional pós-push:** fetch rápido de `sw.js` ou asset alterado na produção. Só se pediram deploy ou a mudança é crítica.
+**Opcional pós-push:** fetch rápido de `sw.js` ou asset alterado na produção, se mudança crítica.
 
 ## Só se reclamarem de lentidão / Cursor / git estranho
 

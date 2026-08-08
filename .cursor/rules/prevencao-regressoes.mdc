@@ -1,0 +1,46 @@
+---
+description: Regras para reduzir regressões no deploy (Parceiros + Hub)
+alwaysApply: true
+---
+
+# Prevenção de regressões — Ligeirinho
+
+**Meta:** mudanças não quebrarem fluxos críticos. Zero bug é impossível; reincidência evitável.
+
+## Antes do push (ao concluir implementação)
+
+**Parceiros** (`ligeirinhosite`):
+- `git pull --rebase origin main`
+- `npm run migrate:check` — se falhar credencial, avisar; se migration pendente, aplicar antes do código novo
+- Se mexeu em pedido/checkout/auth/API: `npm run verify:prod`
+- JS/CSS visível → bump `CACHE_NAME` em `js/sw.js`
+
+**Hub** (`ligeirinhohub`):
+- `npm run test` e `npm run lint` antes do push
+- Se mexeu em schema/RPC/edge function compartilhada → migration/deploy Supabase alinhado
+
+## Fluxos críticos (testar 1 após deploy)
+
+Pedido criar/editar, sync Hub, auth (Hub token + account session), busca cliente/CNPJ, catálogo/preço.
+
+## Integração Parceiros ↔ Hub
+
+Mudou campo de pedido, cliente, item ou status → validar **os dois lados**. Status editáveis no Parceiros: `pendente`, `aguardando_aceite`.
+
+## Ao desenvolver
+
+- Diff mínimo; não refatorar fora do pedido
+- Regra de negócio duplicada (front vs API) → preferir teste unitário na função pura
+- Feature nova → conta piloto (`45028186000125`) antes de liberar geral
+- API externa (CNPJ, etc.) → rate limit e retry; backfill nunca automático no deploy
+
+## Depois do push
+
+- Confirmar deploy Vercel
+- Lembrar cache PWA (Ctrl+F5) se front mudou
+
+## Não fazer
+
+- Push com RPC/coluna desalinhada do código
+- Deploy grande sem testar o fluxo que motivou a mudança
+- Assumir que Hub e Parceiros compartilham deploy — são repos separados
