@@ -132,6 +132,7 @@ ${rows.join('')}
     let totemLabel = 'Ligeirinho Totem';
     let autoPrintEnabled = false;
     let autoPrintTriggered = false;
+    let autoPrintRetried = false;
     let printMode = 'kiosk';
     let IDLE_BEFORE_MS = 35000;
     let COUNTDOWN_MS = 10000;
@@ -152,8 +153,10 @@ ${rows.join('')}
                 force: true,
                 totemLabel,
                 printMode,
+            }).then((printed) => {
+                if (printed) showPrintNote();
+                else showPrintError('Não foi possível imprimir. Confira se a ponte está rodando no PC do depósito.');
             });
-            showPrintNote();
             bumpScreenIdle();
         });
 
@@ -165,6 +168,20 @@ ${rows.join('')}
     const showPrintNote = () => {
         const note = document.getElementById('totem-caixa-print-note');
         if (note) note.hidden = false;
+        hidePrintError();
+    };
+
+    const showPrintError = (msg) => {
+        const el = document.getElementById('totem-caixa-print-error');
+        if (!el) return;
+        el.hidden = false;
+        const text = el.querySelector('.totem-caixa-card__print-error-text');
+        if (text && msg) text.textContent = msg;
+    };
+
+    const hidePrintError = () => {
+        const el = document.getElementById('totem-caixa-print-error');
+        if (el) el.hidden = true;
     };
 
     const fetchFreshOrder = async (id) => {
@@ -174,9 +191,10 @@ ${rows.join('')}
         return data.order;
     };
 
-    const triggerAutoPrint = async (order) => {
-        if (!receipt?.printOrderReceipt || autoPrintTriggered || !autoPrintEnabled) return;
-        autoPrintTriggered = true;
+    const triggerAutoPrint = async (order, { isRetry = false } = {}) => {
+        if (!receipt?.printOrderReceipt || !autoPrintEnabled) return;
+        if (!isRetry && autoPrintTriggered) return;
+        if (!isRetry) autoPrintTriggered = true;
         let orderToPrint = order;
         try {
             orderToPrint = await fetchFreshOrder(order.id);
@@ -189,7 +207,19 @@ ${rows.join('')}
             totemLabel,
             printMode,
         });
-        if (printed) showPrintNote();
+        if (printed) {
+            showPrintNote();
+            return;
+        }
+        showPrintError(
+            'Comprovante não saiu na impressora. Toque em Imprimir comprovante ou confira a ponte no PC do depósito.',
+        );
+        if (!isRetry && !autoPrintRetried) {
+            autoPrintRetried = true;
+            window.setTimeout(() => {
+                void triggerAutoPrint(order, { isRetry: true });
+            }, 2800);
+        }
     };
 
     const clearTimers = () => {
@@ -255,7 +285,11 @@ ${rows.join('')}
         const printNoteHtml = autoPrintEnabled
             ? `<p class="totem-caixa-card__print-note" id="totem-caixa-print-note" hidden>
 <span class="material-symbols-outlined" aria-hidden="true">print</span>
-Comprovante enviado para a impressora padrão
+Comprovante enviado para a impressora
+</p>
+<p class="totem-caixa-card__print-error" id="totem-caixa-print-error" hidden role="alert">
+<span class="material-symbols-outlined" aria-hidden="true">print_error</span>
+<span class="totem-caixa-card__print-error-text">Comprovante não saiu na impressora. Toque em Imprimir comprovante.</span>
 </p>`
             : '';
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-caixa-card">

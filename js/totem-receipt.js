@@ -69,20 +69,54 @@
         return fallback;
     };
 
+    const fetchAbortSignal = (timeoutMs) => {
+        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+            return AbortSignal.timeout(timeoutMs);
+        }
+        const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        if (ctrl) window.setTimeout(() => ctrl.abort(), timeoutMs);
+        return ctrl?.signal;
+    };
+
+    const clearStoredBridgeUrl = () => {
+        try {
+            localStorage.removeItem(BRIDGE_STORAGE_KEY);
+        } catch {
+            /* ignore */
+        }
+        if (cachedConfig) cachedConfig.printBridgeUrl = '';
+    };
+
+    const fetchServerBridgeUrl = async () => {
+        try {
+            const res = await fetch('/api/totem/print-bridge', { signal: fetchAbortSignal(4000) });
+            if (!res.ok) return '';
+            const data = await res.json().catch(() => ({}));
+            return String(data?.bridgeUrl || '').trim();
+        } catch {
+            return '';
+        }
+    };
+
     const loadReceiptConfig = async () => {
         if (cachedConfig) return cachedConfig;
         try {
-            const cfg = await fetch('data/totem-units.json').then((r) => r.json());
+            const [cfg, serverBridgeUrl] = await Promise.all([
+                fetch('data/totem-units.json').then((r) => r.json()),
+                fetchServerBridgeUrl(),
+            ]);
             const defaults = cfg?.defaults || {};
             const unitId = resolveSessionUnitId(cfg);
             const unit = { ...defaults, ...(cfg?.units?.[unitId] || {}) };
+            let printBridgeUrl = resolvePrintBridgeUrl(defaults, unit);
+            if (!printBridgeUrl && serverBridgeUrl) printBridgeUrl = serverBridgeUrl;
             cachedConfig = {
                 unitId,
                 autoPrint: pickBool(unit.autoPrintReceipt, defaults.autoPrintReceipt, false),
                 autoPrintDelayMs: Number(unit.autoPrintDelayMs ?? defaults.autoPrintDelayMs) || AUTO_PRINT_DELAY_MS,
                 totemLabel: unit.label || 'Ligeirinho Totem',
                 printMode: String(unit.printMode || defaults.printMode || 'auto').toLowerCase(),
-                printBridgeUrl: resolvePrintBridgeUrl(defaults, unit),
+                printBridgeUrl,
                 printerHost: String(unit.printerHost || defaults.printerHost || '').trim(),
                 printerPort: Number(unit.printerPort || defaults.printerPort) || 9100,
                 escposBaudRate: Number(unit.escposBaudRate || defaults.escposBaudRate) || 9600,
@@ -568,6 +602,12 @@ body{display:flex;justify-content:center;align-items:flex-start}
     const prewarmPrint = async () => {
         if (!document.body) return;
         const config = await loadReceiptConfig();
+        const needsBridge =
+            config.printMode === 'bridge' ||
+            (config.printMode === 'auto' && isMobileTotem() && config.printerHost);
+        if (needsBridge && !config.printBridgeUrl) {
+            void resolveBridgeUrlForPrint(config);
+        }
         ensureWarmPrintFrame({
             printMarginLeftMm: config.printMarginLeftMm,
             printMarginRightMm: config.printMarginRightMm,
@@ -659,7 +699,7 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
-                signal: AbortSignal.timeout(15000),
+                signal: fetchAbortSignal(15000),
             });
             if (!res.ok) {
                 const errText = await res.text().catch(() => '');
@@ -692,34 +732,51 @@ body{display:flex;justify-content:center;align-items:flex-start}
         }
     };
 
-    /** Descobre a ponte na mesma rede da impressora (só Tablets com printerHost). */
+    const storeBridgeUrl = (url) => {
+        const value = String(url || '').trim();
+        if (!value) return;
+        try {
+            localStorage.setItem(BRIDGE_STORAGE_KEY, value);
+        } catch {
+            /* ignore */
+        }
+        if (cachedConfig) cachedConfig.printBridgeUrl = value;
+    };
+
+    /** Descobre a ponte na mesma rede da impressora (Tablets com printerHost). */
     const discoverPrintBridgeUrl = async (printerHost, bridgePort = 8787) => {
         const host = String(printerHost || '').trim();
         const parts = host.split('.');
         if (parts.length !== 4) return '';
         const base = parts.slice(0, 3).join('.');
-        const octets = [];
-        for (let n = 1; n <= 254; n += 1) {
-            if (n <= 30 || n % 10 === 0 || n >= 100) octets.push(n);
-        }
-        const candidates = octets.map((n) => `http://${base}.${n}:${bridgePort}/print`);
-        const checks = await Promise.all(
-            candidates.map(async (url) => ((await bridgeReachable(url, 450)) ? url : ''))
-        );
-        const found = checks.find(Boolean) || '';
-        if (found) {
-            try {
-                localStorage.setItem(BRIDGE_STORAGE_KEY, found);
-            } catch {
-                /* ignore */
+        const batchSize = 24;
+        for (let start = 1; start <= 254; start += batchSize) {
+            const end = Math.min(254, start + batchSize - 1);
+            const candidates = [];
+            for (let n = start; n <= end; n += 1) candidates.push(n);
+            const checks = await Promise.all(
+                candidates.map(async (n) => {
+                    const url = `http://${base}.${n}:${bridgePort}/print`;
+                    return (await bridgeReachable(url, 650)) ? url : '';
+                }),
+            );
+            const found = checks.find(Boolean) || '';
+            if (found) {
+                storeBridgeUrl(found);
+                return found;
             }
         }
-        return found;
+        return '';
     };
 
     const resolveBridgeUrlForPrint = async (printOpts = {}) => {
         let url = String(printOpts.printBridgeUrl || '').trim();
-        if (url) return url;
+        if (url) {
+            const ok = await bridgeReachable(url, 1400);
+            if (ok) return url;
+            clearStoredBridgeUrl();
+            url = '';
+        }
         const printerHost = String(printOpts.printerHost || '').trim();
         if (!printerHost) return '';
         return discoverPrintBridgeUrl(printerHost);
@@ -1048,15 +1105,19 @@ body{display:flex;justify-content:center;align-items:flex-start}
                 return printViaKiosk(order, printOpts);
             };
 
-            const tryBridge = async (attempts = 3) => {
-                const bridgeUrl = await resolveBridgeUrlForPrint(printOpts);
-                if (!bridgeUrl) return false;
-                printOpts.printBridgeUrl = bridgeUrl;
+            const tryBridge = async (attempts = 4) => {
                 for (let i = 0; i < attempts; i += 1) {
-                    // Tenta imprimir direto — o /health e so diagnostico; nao bloquear o POST.
+                    const bridgeUrl = await resolveBridgeUrlForPrint(printOpts);
+                    if (!bridgeUrl) {
+                        if (i < attempts - 1) await sleep(700);
+                        continue;
+                    }
+                    printOpts.printBridgeUrl = bridgeUrl;
+                    storeBridgeUrl(bridgeUrl);
                     const ok = await printViaBridge(order, printOpts);
                     if (ok) return true;
-                    if (i < attempts - 1) await sleep(500);
+                    if (i === 0) clearStoredBridgeUrl();
+                    if (i < attempts - 1) await sleep(700);
                 }
                 return false;
             };

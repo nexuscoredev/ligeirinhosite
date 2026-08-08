@@ -286,6 +286,27 @@ body.totem-is-printing .totem-receipt-print {
     color: var(--lig-yellow-text);
 }
 
+.totem-caixa-card__print-error {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.4rem;
+    margin: 0 0 0.85rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.75rem;
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.35);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #b42318;
+    text-align: left;
+}
+
+.totem-caixa-card__print-error .material-symbols-outlined {
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
 .totem-caixa-card__reprint {
     display: inline-flex;
     align-items: center;
