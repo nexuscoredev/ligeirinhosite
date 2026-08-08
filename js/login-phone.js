@@ -46,7 +46,7 @@
             return;
         }
         if (!phone) {
-            setStatus('Informe um WhatsApp válido com DDD, ex.: (11) 97092-4909.', true);
+            setStatus('Informe um telefone válido com DDD, ex.: (11) 97092-4909.', true);
             phoneInput?.focus();
             return;
         }

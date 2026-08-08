@@ -148,7 +148,7 @@ export default async function handler(req, res) {
             const name = String(body.name || '').trim();
             const cnpj = String(body.cnpj || '').replace(/\D/g, '').slice(0, 14);
             if (!phone || name.length < 2) {
-                return res.status(400).json({ error: 'WhatsApp e nome da empresa são obrigatórios.' });
+                return res.status(400).json({ error: 'Telefone e nome da empresa são obrigatórios.' });
             }
             if (cnpj.length !== 14) {
                 return res.status(400).json({ error: 'Informe um CNPJ válido.' });
