@@ -837,6 +837,19 @@ export async function resolveClientePriceTable(config, usuario) {
     });
 }
 
+/** Tabela de preço do cliente Hub a partir da pessoa (Totem / lookup por CNPJ). */
+export async function resolveClientePriceTableFromPessoaId(config, pessoaId) {
+    if (!config?.serviceKey || !pessoaId) return null;
+    const pessoa = await fetchPessoaParceiroById(config, pessoaId);
+    if (!pessoa) return null;
+    const cliente = clienteAtivoFromPessoa(pessoa);
+    if (!cliente?.id) return null;
+    return resolveClientePriceTableMeta(config, cliente.id, {
+        tabelaPrecoId: cliente.tabela_preco_id || null,
+        tabelaPrecoCodigo: cliente.tabela_preco || null,
+    });
+}
+
 export function clienteUsesPersonalPriceTable(meta) {
     if (!meta) return false;
     if (meta.usesPersonalPriceTable != null) return Boolean(meta.usesPersonalPriceTable);

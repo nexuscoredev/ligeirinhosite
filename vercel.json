@@ -25,6 +25,10 @@
       "memory": 512,
       "maxDuration": 30
     },
+    "api/totem/catalog/me.js": {
+      "memory": 512,
+      "maxDuration": 30
+    },
     "api/cron/order-status-push.js": {
       "memory": 256,
       "maxDuration": 60

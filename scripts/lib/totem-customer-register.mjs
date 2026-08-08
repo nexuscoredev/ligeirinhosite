@@ -2,6 +2,10 @@ import { hubConfig } from '../hub-auth.mjs';
 import { normalizeDocDigits, formatCnpj, isValidCnpj } from '../hub-parceiro.mjs';
 import { formatCpf, isValidCpf } from './cpf.mjs';
 import { phoneLocalDigits, phonesMatch, phoneLookupSuffixes } from './phone-match.mjs';
+import {
+    attachPriceMetaToCustomer,
+    resolveTotemCustomerPriceMeta,
+} from './totem-customer-price.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -144,6 +148,11 @@ async function syncClienteTotem(config, pessoa) {
         `clientes?select=id,canal_cliente&pessoa_id=eq.${encodeURIComponent(pessoa.id)}&limit=5`,
     );
     const list = Array.isArray(existing) ? existing : [];
+    const parceirosCliente = list.find((c) => c?.canal_cliente === 'parceiros');
+    if (parceirosCliente?.id) {
+        // Cliente B2B Parceiros: não alterar canal/tabela comercial.
+        return;
+    }
     const totemCliente = list.find((c) => c?.canal_cliente === CANAL_TOTEM);
     const row = {
         pessoa_id: pessoa.id,
@@ -165,6 +174,7 @@ async function syncClienteTotem(config, pessoa) {
     }
 
     if (list[0]?.id) {
+        if (list[0].canal_cliente === 'parceiros') return;
         await hubRest(config, `clientes?id=eq.${encodeURIComponent(list[0].id)}`, {
             method: 'PATCH',
             body: row,
@@ -334,5 +344,6 @@ export async function registerTotemCustomer(env, { name, phone, email, cpf, cnpj
         throw err;
     }
 
-    return customer;
+    const priceMeta = await resolveTotemCustomerPriceMeta(env, customer.pessoaId);
+    return attachPriceMetaToCustomer(customer, priceMeta);
 }

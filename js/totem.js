@@ -133,7 +133,14 @@
     let catalogData = null;
     let rawCatalogData = null;
     let displayItems = [];
-    const CATALOG_API_URL = '/api/totem/catalog';
+    const TOTEM_CATALOG_API_URL = '/api/totem/catalog';
+    const TOTEM_CATALOG_ME_API_URL = '/api/totem/catalog/me';
+    let totemPriceContext = {
+        pessoaId: '',
+        usesPersonalPriceTable: false,
+        tabelaPrecoId: '',
+        tabelaPrecoCodigo: '',
+    };
     let promoCatalogItems = [];
     let promoDisplayItems = [];
     let promoCatalogCartKeys = new Set();
@@ -143,8 +150,58 @@
     let promoOffersByCartKey = new Map();
     let promoOffersByItemKey = new Map();
 
+    const resetTotemPriceContext = () => {
+        totemPriceContext = {
+            pessoaId: '',
+            usesPersonalPriceTable: false,
+            tabelaPrecoId: '',
+            tabelaPrecoCodigo: '',
+        };
+    };
+
+    const applyTotemPriceContextFromCustomer = (customer) => {
+        const pessoaId = String(customer?.pessoaId || '').trim();
+        if (!pessoaId) {
+            resetTotemPriceContext();
+            return totemPriceContext;
+        }
+        totemPriceContext = {
+            pessoaId,
+            usesPersonalPriceTable: Boolean(customer?.usesPersonalPriceTable),
+            tabelaPrecoId: String(customer?.tabelaPrecoId || '').trim(),
+            tabelaPrecoCodigo: String(customer?.tabelaPrecoCodigo || '').trim(),
+        };
+        return totemPriceContext;
+    };
+
+    const resolveTotemCatalogApiUrl = () => {
+        if (totemPriceContext.usesPersonalPriceTable && totemPriceContext.pessoaId) {
+            const params = new URLSearchParams({ pessoaId: totemPriceContext.pessoaId });
+            return `${TOTEM_CATALOG_ME_API_URL}?${params.toString()}`;
+        }
+        return TOTEM_CATALOG_API_URL;
+    };
+
     const loadTotemCatalog = (options = {}) =>
-        window.LigeirinhoCatalogLoader.load({ ...options, apiUrl: CATALOG_API_URL });
+        window.LigeirinhoCatalogLoader.load({
+            ...options,
+            apiUrl: options.apiUrl || resolveTotemCatalogApiUrl(),
+        });
+
+    const reloadTotemCustomerCatalog = async () => {
+        window.LigeirinhoCatalogLoader?.clear?.();
+        if (window.__ligPackConfig) window.__ligPackConfig = null;
+        if (window.__ligTierImages) window.__ligTierImages = null;
+        const rawCatalog = await loadTotemCatalog({ force: true });
+        await Promise.all([
+            pricing.loadPackConfig?.() ?? Promise.resolve(),
+            pricing.loadTierImages?.() ?? Promise.resolve(),
+        ]);
+        applyCatalogFromRaw(rawCatalog);
+        renderCategories();
+        renderProducts();
+        return rawCatalog;
+    };
 
     let totemCategories = [];
     let activeCategory = '';
@@ -1734,6 +1791,7 @@ ${unitHtml}
     const resetCustomerForm = () => {
         totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
         customerLookupHit = null;
+        resetTotemPriceContext();
         customerStep = 'register';
         customerSkippedIdentification = false;
         customerLookupMode = 'doc';
@@ -1934,9 +1992,10 @@ ${unitHtml}
         totemKeyboard?.hide?.();
         customerLookupHit = null;
         totemCustomer = { name: '', phone: '', email: '', cpf: '', cnpj: '', pessoaId: '' };
+        resetTotemPriceContext();
         customerSkippedIdentification = true;
         if (skipInvoice) {
-            enterCatalog({ guest: true });
+            void enterCatalog({ guest: true });
             return;
         }
         goInvoiceStep();
@@ -2097,7 +2156,11 @@ ${unitHtml}
             cpf: String(customerLookupHit.cpf || '').trim(),
             cnpj: String(customerLookupHit.cnpj || '').trim(),
             pessoaId: customerLookupHit.pessoaId || '',
+            usesPersonalPriceTable: Boolean(customerLookupHit.usesPersonalPriceTable),
+            tabelaPrecoId: String(customerLookupHit.tabelaPrecoId || '').trim(),
+            tabelaPrecoCodigo: String(customerLookupHit.tabelaPrecoCodigo || '').trim(),
         };
+        applyTotemPriceContextFromCustomer(totemCustomer);
         totemKeyboard?.hide?.();
         proceedAfterCustomerRegister();
     };
@@ -2142,6 +2205,7 @@ ${unitHtml}
             if (data.customer?.name) {
                 totemCustomer.name = data.customer.name;
             }
+            applyTotemPriceContextFromCustomer(data.customer);
             return { ok: true };
         } catch {
             return { ok: false, error: 'Falha de conexão ao salvar cadastro. Tente novamente.' };
@@ -2381,16 +2445,28 @@ ${unitHtml}
         }
     };
 
-    const enterCatalog = ({ guest = false } = {}) => {
+    const enterCatalog = async ({ guest = false } = {}) => {
         customerIdentified = true;
         if (!guest && customerHasPersistData()) {
             void persistTotemCustomer();
         }
+        if (guest) {
+            resetTotemPriceContext();
+        } else {
+            applyTotemPriceContextFromCustomer(
+                totemCustomer.pessoaId ? totemCustomer : customerLookupHit,
+            );
+        }
         resetCart();
         clearSearch();
         activeCategory = '';
-        renderCategories();
-        renderProducts();
+        try {
+            await reloadTotemCustomerCatalog();
+        } catch (err) {
+            console.warn('totem customer catalog', err);
+            renderCategories();
+            renderProducts();
+        }
         updateCatalogGreeting();
         updateUnitFeatureUi();
         if (pendingDoseWizard && isDoseWizardEnabled()) {
@@ -2490,7 +2566,7 @@ ${unitHtml}
                 return;
             }
         }
-        enterCatalog({ guest: customerSkippedIdentification });
+        await enterCatalog({ guest: customerSkippedIdentification });
     };
 
     const getCategoriesRenderKey = () =>
@@ -2603,7 +2679,7 @@ ${unitHtml}
 
             if (window.LigeirinhoCatalogSync?.sync) {
                 const result = await window.LigeirinhoCatalogSync.sync({
-                    apiUrl: CATALOG_API_URL,
+                    apiUrl: resolveTotemCatalogApiUrl(),
                     promoApiUrl: '/api/totem/promocoes',
                 });
                 if (!result?.ok) {
@@ -2845,6 +2921,7 @@ ${unitHtml}
 
     const resetSession = () => {
         customerIdentified = false;
+        resetTotemPriceContext();
         pendingDoseWizard = false;
         window.LigeirinhoTotemDoseWizard?.close?.();
         closeProductDetail();
@@ -3871,7 +3948,18 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
                         email: s?.email || '',
                         cpf: totemCustomer.cpf || '',
                         cnpj: totemCustomer.cnpj || '',
+                        pessoaId: totemCustomer.pessoaId || '',
                     },
+                    ...(totemPriceContext.tabelaPrecoId || rawCatalogData?.priceTableId
+                        ? {
+                              orderTabelaPrecoId:
+                                  totemPriceContext.tabelaPrecoId || rawCatalogData?.priceTableId || '',
+                              orderTabelaPrecoCodigo:
+                                  totemPriceContext.tabelaPrecoCodigo ||
+                                  rawCatalogData?.priceTableCodigo ||
+                                  '',
+                          }
+                        : {}),
                 }),
             });
             const data = await res.json();
@@ -4086,7 +4174,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         document.getElementById('totem-customer-invoice-no')?.addEventListener('click', () => {
             totemCustomer = { ...totemCustomer, cpf: '' };
             totemKeyboard?.hide?.();
-            enterCatalog({ guest: customerSkippedIdentification });
+            void enterCatalog({ guest: customerSkippedIdentification });
             bumpIdle();
         });
 

@@ -1,6 +1,8 @@
 (function () {
     const API_URL = '/api/catalog';
     const API_ME_URL = '/api/catalog/me';
+    const TOTEM_CATALOG_URL = '/api/totem/catalog';
+    const TOTEM_CATALOG_ME_URL = '/api/totem/catalog/me';
     const FALLBACK_URL = '/data/catalogo.json';
     const CLIENT_TTL_MS = 5 * 60 * 1000;
     const STORAGE_KEY = 'ligeirinho-catalog-cache-v3';
@@ -15,6 +17,14 @@
             .replace(/\?.*$/, '')
             .replace(/\/+$/, '') || 'default';
 
+    const isTotemCatalogMe = (apiUrl = '') => String(apiUrl || '').includes('/api/totem/catalog/me');
+    const isTotemCatalog = (apiUrl = '') => /\/api\/totem\/catalog/.test(String(apiUrl || ''));
+
+    const publicFallbackFor = (apiUrl = '') => {
+        if (isTotemCatalogMe(apiUrl) || isTotemCatalog(apiUrl)) return TOTEM_CATALOG_URL;
+        return API_URL;
+    };
+
     const buildScope = (personalized, data, apiUrl = '') => {
         const apiPart = apiScopePart(apiUrl);
         const auth = window.LigeirinhoAuth;
@@ -23,7 +33,16 @@
         if (!personalized) return `public:${apiPart}${distPart}`;
         const tableKey = data?.priceTableId || data?.priceTableCodigo || 'custom';
         const userKey = session?.hubUserId || session?.sub || 'user';
-        return `me:${userKey}:${tableKey}:${apiPart}${distPart}`;
+        let pessoaPart = '';
+        if (isTotemCatalogMe(apiUrl)) {
+            try {
+                const q = new URL(apiUrl, window.location.origin).searchParams.get('pessoaId');
+                if (q) pessoaPart = `:pessoa:${q}`;
+            } catch {
+                /* ignore */
+            }
+        }
+        return `me:${userKey}${pessoaPart}:${tableKey}:${apiPart}${distPart}`;
     };
 
     const resolveEndpoint = (options = {}) => {
@@ -143,15 +162,19 @@
             try {
                 const res = await fetch(fetchUrl, fetchOpts);
                 if (endpoint.personalized && res.status === 204) {
+                    const fallbackUrl = publicFallbackFor(apiUrl);
+                    if (isTotemCatalogMe(apiUrl)) {
+                        return load({ ...options, force, apiUrl: fallbackUrl });
+                    }
                     window.LigeirinhoAuth?.patchSession?.({
                         usesPersonalPriceTable: false,
                         tabelaPrecoId: '',
                         tabelaPreco: 'padrao',
                     });
-                    return load({ ...options, force, apiUrl: API_URL });
+                    return load({ ...options, force, apiUrl: fallbackUrl });
                 }
                 if (endpoint.personalized && res.status === 401) {
-                    return load({ ...options, force, apiUrl: API_URL });
+                    return load({ ...options, force, apiUrl: publicFallbackFor(apiUrl) });
                 }
                 if (res.ok) {
                     const data = await res.json();
@@ -190,8 +213,8 @@
                 /* offline ou servidor estático local */
             }
 
-            if (endpoint.personalized && apiUrl !== API_URL) {
-                return load({ ...options, force, apiUrl: API_URL });
+            if (endpoint.personalized && apiUrl !== publicFallbackFor(apiUrl)) {
+                return load({ ...options, force, apiUrl: publicFallbackFor(apiUrl) });
             }
 
             // Totem autenticado por filial: nunca misturar com data/catalogo.json legado.

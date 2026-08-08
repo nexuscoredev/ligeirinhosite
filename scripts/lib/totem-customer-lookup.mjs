@@ -2,6 +2,10 @@ import { hubConfig } from '../hub-auth.mjs';
 import { normalizeDocDigits, fetchPessoaParceiroByCnpj } from '../hub-parceiro.mjs';
 import { phoneLocalDigits, phonesMatch, phoneLookupSuffixes } from './phone-match.mjs';
 import { sanitizeCustomerPhone } from './customer-phone.mjs';
+import {
+    attachPriceMetaToCustomer,
+    resolveTotemCustomerPriceMeta,
+} from './totem-customer-price.mjs';
 
 const PESSOA_SELECT =
     'id,nome,nome_fantasia,cpf_cnpj,cpf_cnpj_digits,email,telefone,clientes(id,nome,canal_cliente,ativo)';
@@ -176,10 +180,13 @@ async function fetchRelatedPessoas(config, pessoa) {
     });
 }
 
-async function resolvePessoaHit(config, pessoa, matchedBy) {
+async function resolvePessoaHit(config, pessoa, matchedBy, env) {
     const related = await fetchRelatedPessoas(config, pessoa);
     const merged = mergePessoas(related.length ? related : [pessoa]);
-    return toPublicHit(merged || pessoa, matchedBy);
+    const hit = toPublicHit(merged || pessoa, matchedBy);
+    if (!hit?.pessoaId) return hit;
+    const priceMeta = await resolveTotemCustomerPriceMeta(env, hit.pessoaId);
+    return attachPriceMetaToCustomer(hit, priceMeta);
 }
 
 function toPublicHit(pessoa, matchedBy) {
@@ -206,7 +213,7 @@ function toPublicHit(pessoa, matchedBy) {
     };
 }
 
-async function lookupByPhone(config, digits) {
+async function lookupByPhone(config, digits, env) {
     const local = phoneLocalDigits(digits);
     if (!local) return null;
 
@@ -225,7 +232,7 @@ async function lookupByPhone(config, digits) {
         const exactList = Array.isArray(rows) ? rows : [];
         for (const pessoa of exactList) {
             if (!phonesMatch(pessoa.telefone, local)) continue;
-            const hit = await resolvePessoaHit(config, pessoa, 'phone');
+            const hit = await resolvePessoaHit(config, pessoa, 'phone', env);
             if (hit) return hit;
         }
     }
@@ -240,14 +247,14 @@ async function lookupByPhone(config, digits) {
             if (seen.has(pessoa.id)) continue;
             if (!phonesMatch(pessoa.telefone, local)) continue;
             seen.add(pessoa.id);
-            const hit = await resolvePessoaHit(config, pessoa, 'phone');
+            const hit = await resolvePessoaHit(config, pessoa, 'phone', env);
             if (hit) return hit;
         }
     }
     return null;
 }
 
-async function lookupByEmail(config, rawEmail) {
+async function lookupByEmail(config, rawEmail, env) {
     const email = normalizeEmail(rawEmail);
     const rows = await hubRest(
         config,
@@ -258,10 +265,10 @@ async function lookupByEmail(config, rawEmail) {
     );
     if (!list.length) return null;
     const merged = mergePessoas(list);
-    return toPublicHit(merged, 'email');
+    return resolvePessoaHit(config, merged, 'email', env);
 }
 
-async function lookupByDoc(config, digits) {
+async function lookupByDoc(config, digits, env) {
     const pessoa = await fetchPessoaParceiroByCnpj(config, digits);
     if (!pessoa) {
         const rows = await hubRest(
@@ -270,9 +277,9 @@ async function lookupByDoc(config, digits) {
         );
         const fallback = Array.isArray(rows) ? rows[0] : null;
         if (!fallback) return null;
-        return resolvePessoaHit(config, fallback, digits.length === 14 ? 'cnpj' : 'cpf');
+        return resolvePessoaHit(config, fallback, digits.length === 14 ? 'cnpj' : 'cpf', env);
     }
-    return resolvePessoaHit(config, pessoa, digits.length === 14 ? 'cnpj' : 'cpf');
+    return resolvePessoaHit(config, pessoa, digits.length === 14 ? 'cnpj' : 'cpf', env);
 }
 
 function looksLikeMobilePhone(digits) {
@@ -296,7 +303,7 @@ export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
             err.status = 400;
             throw err;
         }
-        return lookupByEmail(config, query);
+        return lookupByEmail(config, query, env);
     }
 
     const digits = normalizeDocDigits(query);
@@ -307,17 +314,17 @@ export async function lookupTotemCustomer(env, rawQuery, { type } = {}) {
     }
 
     if (digits.length === 11 && looksLikeMobilePhone(digits)) {
-        const byPhone = await lookupByPhone(config, digits);
+        const byPhone = await lookupByPhone(config, digits, env);
         if (byPhone) return byPhone;
-        const byDoc = await lookupByDoc(config, digits);
+        const byDoc = await lookupByDoc(config, digits, env);
         if (byDoc) return byDoc;
     } else if (digits.length === 11 || digits.length === 14) {
-        const byDoc = await lookupByDoc(config, digits);
+        const byDoc = await lookupByDoc(config, digits, env);
         if (byDoc) return byDoc;
     }
 
     if (digits.length >= 10) {
-        const byPhone = await lookupByPhone(config, digits);
+        const byPhone = await lookupByPhone(config, digits, env);
         if (byPhone) return byPhone;
     }
 
