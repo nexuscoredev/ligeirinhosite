@@ -17,7 +17,7 @@ alwaysApply: true
 ## Ao concluir implementação com arquivos alterados
 
 1. `git status` + `git diff` (paralelo).
-2. Checks de `ligeirinho-master.mdc` e `prevencao-regressoes.mdc`.
+2. Checks de `regra-definitiva.mdc` (git, Supabase UX, migrate:check).
 3. `git pull --rebase origin main` → commit → push (automático, sem pedir confirmação).
 4. Incluir na mesma entrega arquivos relacionados (ex.: CSS + SW juntos).
 5. Se commit falhar por author: usar identidade do último commit ou env vars — não configurar git global.

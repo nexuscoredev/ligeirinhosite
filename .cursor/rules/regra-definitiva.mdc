@@ -1,0 +1,57 @@
+---
+description: Regra definitiva Parceiros — complemento às User Rules globais
+alwaysApply: true
+---
+
+# Regra definitiva — Ligeirinho Parceiros
+
+Complementa as **User Rules globais** (`regra-definitiva` no Cursor Settings).
+
+## Projeto
+
+- Repo: `C:\dev\Ligeirinho\ligeirinhosite` · GitHub: https://github.com/nexuscoredev/ligeirinhosite
+- Deploy: https://ligeirinhoparceiros.vercel.app (Vercel `prj_ujXd63XhpVhq62hZ0L9mrkL9lzgB`)
+- Supabase: `ligeirinhoparceiros` (`tugbsnjyvfhyvtivfhea`)
+- Site estático — `npm run build` é no-op
+- Hub relacionado (repo/deploy separado): `C:\dev\Ligeirinho\ligeirinhohub`
+
+## Git deste repo
+
+- Sempre **main** — sem PR, branch ou merge
+- Antes de codar: `git pull origin main` · se `package-lock.json` mudou → `npm install`
+- Ao concluir implementação: `git status` + `git diff` → pull --rebase → commit → push
+- Push dispara deploy Vercel; confirmar via MCP ou `npx vercel --prod --yes`
+- Nunca commitar `.env`, `data/auth-config.local.json`, segredos, `_tmp-*`
+- Conflito: parar e avisar · PowerShell: `;` em vez de `&&`
+
+Commit + push **automáticos** ao concluir tarefa — não esperar pedido explícito (ver `acoes-pre-aprovadas.mdc`).
+
+## Checks antes do push
+
+- `npm run migrate:check` (sem credencial DB → avisar; migration pendente → aplicar **antes** do código)
+- Pedido/checkout/auth/API → `npm run verify:prod`
+- JS/CSS visível → bump `CACHE_NAME` em `js/sw.js`
+- Testar 1 fluxo do que mudou; front PWA → Ctrl+F5
+
+## Supabase — nunca expor erro técnico ao usuário
+
+Mensagens Supabase/PostgREST/Postgres **nunca** na UI (toast, alert, `setErro`, HTML).
+
+**Proibido na UI:** `error.message` cru; trechos `PGRST`, `column`, `relation`, `row-level security`, `duplicate key`, SQL, stack.
+
+**Obrigatório:** normalizar na camada API (`*Api.js`, handlers Vercel); fallback PT-BR acionável; log técnico só em dev/backend.
+
+**Antes de commitar** (se mexeu em query, RPC, RLS ou schema):
+1. Coluna/RPC existe no banco (migration aplicada na mesma entrega)
+2. Fluxo que falhava testado — UI sem texto técnico
+3. Revisar arquivos alterados: `error.message`, `setErro(`, `alert(`, `showError(` expõem erro cru → corrigir
+
+**Schema desalinhado → não commitar** até migration + código alinhados.
+
+## Regressão / piloto
+
+- Diff mínimo; não refatorar fora do pedido
+- Feature nova: piloto `45028186000125` antes de geral
+- Mudou sync Hub (pedido, cliente, `_shared/`) → validar `ligeirinhohub`
+- Fluxos críticos: criar/editar pedido, auth, busca cliente/CNPJ, catálogo/preço
+- Backfill/scripts pesados → manual, nunca no deploy
