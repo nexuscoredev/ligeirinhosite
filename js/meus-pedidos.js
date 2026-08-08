@@ -141,6 +141,130 @@
         return `${y}-${m}-${day}`;
     };
 
+    const orderDeliveryDateKey = (order) => {
+        const raw = order?.deliveryDate;
+        if (!raw) return '';
+        const d = new Date(String(raw).includes('T') ? raw : `${raw}T12:00:00`);
+        if (Number.isNaN(d.getTime())) return '';
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    const orderDateMatches = (order, dateStr) => {
+        if (!dateStr) return true;
+        return orderDateKey(order) === dateStr || orderDeliveryDateKey(order) === dateStr;
+    };
+
+    const normalizeSearchText = (value) =>
+        String(value || '')
+            .normalize('NFD')
+            .replace(/\p{M}/gu, '')
+            .toLowerCase()
+            .replace(/[^a-z0-9\s]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+    const searchDigitsOnly = (value) => String(value || '').replace(/\D/g, '');
+
+    const orderSearchHaystack = (order) => {
+        const items = Array.isArray(order?.items) ? order.items : [];
+        const itemParts = items.flatMap((item) => [
+            item?.name,
+            item?.sku,
+            item?.hubId,
+            item?.id,
+            item?.cartKey,
+            item?.categoryName,
+        ]);
+        const parts = [
+            order?.id,
+            orderShortId(order),
+            orderDavNumero(order),
+            order?.hubPedidoId,
+            order?.hubPedidoNumero,
+            order?.customerName,
+            order?.customerPhone,
+            order?.customerCpf,
+            order?.customerCnpj,
+            order?.customerDoc,
+            order?.notes,
+            order?.address,
+            order?.totemLabel,
+            order?.paymentMethod,
+            order?.deliveryDate,
+            orderCreatedAt(order),
+            order?.total,
+            formatPrice(order?.total),
+            paymentMethodLabel(order),
+            ...itemParts,
+        ];
+        return normalizeSearchText(parts.filter(Boolean).join(' '));
+    };
+
+    const orderSearchDigitHaystack = (order) => {
+        const items = Array.isArray(order?.items) ? order.items : [];
+        const parts = [
+            order?.id,
+            orderShortId(order),
+            orderDavNumero(order),
+            order?.hubPedidoNumero,
+            order?.customerPhone,
+            order?.customerCpf,
+            order?.customerCnpj,
+            order?.customerDoc,
+            order?.notes,
+            ...items.map((item) => item?.sku),
+        ];
+        return searchDigitsOnly(parts.filter(Boolean).join(' '));
+    };
+
+    const orderMatchesSearch = (order, rawQuery) => {
+        const query = String(rawQuery || '').trim();
+        if (!query) return true;
+
+        const qNorm = normalizeSearchText(query);
+        const qDigits = searchDigitsOnly(query);
+        const hay = orderSearchHaystack(order);
+        const hayDigits = orderSearchDigitHaystack(order);
+
+        if (qNorm) {
+            const words = qNorm.split(' ').filter((w) => w.length >= 2);
+            if (words.length && words.every((word) => hay.includes(word))) return true;
+            if (qNorm.length >= 3 && hay.includes(qNorm)) return true;
+        }
+
+        if (qDigits.length >= 2) {
+            const id = String(order?.id || '').toLowerCase().replace(/-/g, '');
+            const short = orderShortId(order).toLowerCase();
+            if (id.includes(qDigits) || short.includes(qDigits)) return true;
+            const davNo = searchDigitsOnly(orderDavNumero(order));
+            if (davNo && davNo.includes(qDigits)) return true;
+            if (hayDigits.includes(qDigits)) return true;
+        }
+
+        return false;
+    };
+
+    let searchExpandDepth = 0;
+    const SEARCH_EXPAND_MAX = 4;
+    const SEARCH_EXPAND_STEP = 50;
+
+    const tryExpandSearchResults = async () => {
+        if (!STATE.q.trim() || STATE.loadingMore) return;
+        if (filterOrders(STATE.orders).length > 0) return;
+        if (!STATE.hasMore || STATE.fetchLimit >= ORDERS_MAX_LIMIT) return;
+        if (searchExpandDepth >= SEARCH_EXPAND_MAX) return;
+
+        searchExpandDepth += 1;
+        STATE.fetchLimit = Math.min(ORDERS_MAX_LIMIT, STATE.fetchLimit + SEARCH_EXPAND_STEP);
+        await loadOrders({ keepFilters: true, loadingMore: true, silentExpand: true });
+        if (filterOrders(STATE.orders).length === 0) {
+            await tryExpandSearchResults();
+        }
+    };
+
     const orderShortId = (order) => String(order?.id || '').replace(/-/g, '').slice(0, 8).toUpperCase();
 
     const orderDavNumero = (order) => {
@@ -410,7 +534,9 @@ ${footer.length ? `<div class="conta-order-detail__actions-footer">${footer.join
     const emptyOrdersHtml = ({ filtered = false } = {}) => {
         const title = filtered ? 'Nenhum pedido encontrado' : 'Você ainda não fez pedidos';
         const sub = filtered
-            ? 'Ajuste a busca, o status ou a data e tente de novo.'
+            ? STATE.q.trim() && STATE.hasMore && STATE.fetchLimit < ORDERS_MAX_LIMIT
+                ? 'Nada nos pedidos carregados. Buscando pedidos mais antigos…'
+                : 'Ajuste a busca, o status ou a data e tente de novo.'
             : 'Faça seu primeiro pedido pelo catálogo.';
         const action = filtered
             ? `<button type="button" class="conta-btn conta-btn--outline meus-pedidos-empty__btn" id="meus-pedidos-clear-empty">Limpar filtros</button>`
@@ -423,26 +549,14 @@ ${action}
 </div>`;
     };
 
-    const filterOrders = (orders) => {
-        const q = STATE.q.trim().toLowerCase().replace(/[^a-z0-9]/gi, '');
-        return orders.filter((order) => {
+    const filterOrders = (orders) =>
+        orders.filter((order) => {
             const status = orderStatusMeta(order);
             if (STATE.status !== 'all' && status.key !== STATE.status) return false;
-            if (STATE.date && orderDateKey(order) !== STATE.date) return false;
-            if (q) {
-                const id = String(order.id || '')
-                    .toLowerCase()
-                    .replace(/-/g, '');
-                const short = orderShortId(order).toLowerCase();
-                const qDigits = q.replace(/\D/g, '');
-                const davNo = orderDavNumero(order);
-                const idHit = id.includes(q) || short.includes(q);
-                const davHit = Boolean(davNo && qDigits && davNo.includes(qDigits));
-                if (!idHit && !davHit) return false;
-            }
+            if (!orderDateMatches(order, STATE.date)) return false;
+            if (!orderMatchesSearch(order, STATE.q)) return false;
             return true;
         });
-    };
 
     const filtersHtml = () => {
         const selectedStatus =
@@ -454,7 +568,7 @@ ${action}
         return `<div class="meus-pedidos-filters" role="search">
 <label class="meus-pedidos-filters__field meus-pedidos-filters__field--search">
 <span class="material-symbols-outlined" aria-hidden="true">search</span>
-<input type="search" id="meus-pedidos-q" value="${esc(STATE.q)}" placeholder="Nº pedido ou DAV" autocomplete="off" inputmode="search" aria-label="Buscar por número do pedido ou DAV">
+<input type="search" id="meus-pedidos-q" value="${esc(STATE.q)}" placeholder="Pedido, DAV, cliente, produto…" autocomplete="off" inputmode="search" aria-label="Buscar pedidos por número, cliente, produto ou telefone">
 </label>
 <label class="meus-pedidos-filters__field meus-pedidos-filters__field--status meus-pedidos-filters__field--tone-${esc(selectedStatus.tone)}">
 <span class="meus-pedidos-filters__status-glyph" aria-hidden="true">${STATUS_GLYPHS[selectedStatus.icon] || STATUS_GLYPHS.list}</span>
@@ -463,7 +577,7 @@ ${action}
 </label>
 <label class="meus-pedidos-filters__field meus-pedidos-filters__field--date">
 <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
-<input type="date" id="meus-pedidos-date" value="${esc(STATE.date)}" aria-label="Filtrar por data do pedido">
+<input type="date" id="meus-pedidos-date" value="${esc(STATE.date)}" aria-label="Filtrar por data do pedido ou entrega">
 </label>
 ${
     filtersActive()
@@ -720,6 +834,9 @@ ${orderActionsHtml(order, { showReorder })}
             root.querySelector('#meus-pedidos-clear-empty')?.addEventListener('click', () => {
                 clearFilters();
             });
+            if (STATE.q.trim() && STATE.hasMore && STATE.fetchLimit < ORDERS_MAX_LIMIT && !STATE.loadingMore) {
+                void tryExpandSearchResults();
+            }
             return;
         }
 
@@ -781,6 +898,7 @@ ${STATE.loadingMore ? 'Carregando…' : `Mostrar mais ${ORDERS_PAGE_STEP}`}
         STATE.q = '';
         STATE.status = 'all';
         STATE.date = '';
+        searchExpandDepth = 0;
         const qInput = root.querySelector('#meus-pedidos-q');
         const statusSelect = root.querySelector('#meus-pedidos-status');
         const dateInput = root.querySelector('#meus-pedidos-date');
@@ -800,8 +918,10 @@ ${STATE.loadingMore ? 'Carregando…' : `Mostrar mais ${ORDERS_PAGE_STEP}`}
             if (searchTimer) clearTimeout(searchTimer);
             searchTimer = window.setTimeout(() => {
                 STATE.q = qInput.value || '';
+                searchExpandDepth = 0;
                 renderOrdersList();
-            }, 140);
+                void tryExpandSearchResults();
+            }, 220);
         });
         statusSelect?.addEventListener('change', () => {
             STATE.status = statusSelect.value || 'all';
@@ -824,7 +944,7 @@ ${STATE.loadingMore ? 'Carregando…' : `Mostrar mais ${ORDERS_PAGE_STEP}`}
         root.innerHTML = `<div class="meus-pedidos-shell${empty ? ' meus-pedidos-shell--empty' : ''}">
 <header class="meus-pedidos-header">
 <h1 class="meus-pedidos-header__title">Pedidos</h1>
-<p class="meus-pedidos-header__lead">${empty ? 'Seus pedidos aparecerão aqui.' : 'Busque por número, status ou data do pedido.'}</p>
+<p class="meus-pedidos-header__lead">${empty ? 'Seus pedidos aparecerão aqui.' : 'Busque por número, DAV, cliente, produto, telefone, status ou data.'}</p>
 </header>
 ${withFilters ? filtersHtml() : ''}
 <div class="meus-pedidos-body" id="meus-pedidos-root">${bodyHtml}</div>
@@ -854,7 +974,7 @@ ${withFilters ? filtersHtml() : ''}
         }, 30000);
     };
 
-    const loadOrders = async ({ keepFilters = false, silent = false, loadingMore = false } = {}) => {
+    const loadOrders = async ({ keepFilters = false, silent = false, loadingMore = false, silentExpand = false } = {}) => {
         const s = session();
         if (!auth?.isLoggedIn?.() && !auth?.getAccountSessionToken?.()) {
             renderShell(`<div class="conta-empty meus-pedidos-empty">
@@ -875,9 +995,11 @@ ${withFilters ? filtersHtml() : ''}
 
         if (!silent && !loadingMore) {
             renderShell('<p class="conta-hint">Carregando pedidos…</p>', { withFilters: false });
-        } else if (loadingMore) {
+        } else if (loadingMore && !silentExpand) {
             STATE.loadingMore = true;
             renderOrdersList();
+        } else if (loadingMore) {
+            STATE.loadingMore = true;
         }
 
         const lastLocal = cart?.loadLastOrder?.();
@@ -939,9 +1061,9 @@ ${withFilters ? filtersHtml() : ''}
             return;
         }
 
-        if (silent) {
+        if (silent || silentExpand) {
             renderOrdersList();
-            startPolling();
+            if (!silentExpand) startPolling();
             return;
         }
 
@@ -953,5 +1075,10 @@ ${withFilters ? filtersHtml() : ''}
     window.addEventListener('ligeirinho-auth-changed', () => loadOrders());
     window.addEventListener('ligeirinho-cart-changed', () => loadOrders({ keepFilters: true }));
     window.addEventListener('pagehide', stopPolling);
-    loadOrders();
+
+    const params = new URLSearchParams(window.location.search);
+    const initialQ = String(params.get('q') || '').trim();
+    if (initialQ) STATE.q = initialQ;
+
+    loadOrders({ keepFilters: Boolean(initialQ) });
 })();
