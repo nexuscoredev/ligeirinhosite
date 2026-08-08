@@ -8,6 +8,7 @@ import {
     rotuloDiasEntrega,
 } from './parceiro-delivery.mjs';
 import { fetchClienteTaxaEntrega } from './lib/delivery-fee.mjs';
+import { phoneLookupSuffixes, phonesMatch } from './lib/phone-match.mjs';
 
 const CLIENTE_PARCEIROS_SELECT =
     'id,canal_cliente,ativo,datas_entrega,condicao_pagamento,parcelas_vencimento,formas_pagamento_ids,tabela_preco_id,tabela_preco,taxa_entrega,cliente_a_prazo';
@@ -165,6 +166,14 @@ async function hubRest(config, path, options = {}) {
     return data;
 }
 
+/** Dígitos informados parecem telefone (celular ou fixo), não CPF/CNPJ. */
+export function loginDigitsLookLikePhone(digits) {
+    const d = normalizeDocDigits(digits);
+    if (d.length === 10) return true;
+    if (d.length === 11 && d[2] === '9') return true;
+    return false;
+}
+
 export async function resolveLoginEmailExtended(config, login) {
     const trimmed = String(login || '').trim();
     if (!trimmed) return null;
@@ -189,6 +198,12 @@ export async function resolveLoginEmailExtended(config, login) {
     if (email) return email;
 
     const digits = normalizeDocDigits(trimmed);
+
+    if (config.serviceKey && loginDigitsLookLikePhone(digits)) {
+        const contact = await resolveParceiroHubContact(config, { phone: digits });
+        if (contact?.usuario?.email) return contact.usuario.email;
+    }
+
     if (digits.length >= 11) {
         email = await tryRpc(digits);
         if (email) return email;
@@ -198,9 +213,13 @@ export async function resolveLoginEmailExtended(config, login) {
             if (usuario?.email) return usuario.email;
 
             const pessoa = await fetchPessoaParceiroByCnpj(config, digits);
-            if (pessoa?.email) {
-                const byEmail = await fetchUsuarioByEmail(config, pessoa.email);
-                if (byEmail?.email) return byEmail.email;
+            if (pessoa) {
+                const byPessoa = await findUsuarioForPessoa(config, pessoa);
+                if (byPessoa?.email) return byPessoa.email;
+                if (pessoa.email) {
+                    const byEmail = await fetchUsuarioByEmail(config, pessoa.email);
+                    if (byEmail?.email) return byEmail.email;
+                }
             }
         }
     }
@@ -270,24 +289,25 @@ function clienteFromPessoa(pessoa) {
 
 async function fetchUsuarioByPhoneDigits(config, digits) {
     if (!digits || digits.length < 10 || !config.serviceKey) return null;
-    const suffixes = [
-        ...new Set(
-            [digits.slice(-11), digits.slice(-10), digits.slice(-9), digits.slice(-8)].filter(
-                (s) => s.length >= 8,
-            ),
-        ),
-    ];
-    for (const local of suffixes) {
+    const seen = new Set();
+    for (const suffix of phoneLookupSuffixes(digits)) {
         const rows = await hubRest(
             config,
-            `usuarios?select=id,email,login,nome,telefone,cargo,ativo,must_change_password&telefone=ilike.*${encodeURIComponent(local)}*&ativo=eq.true&limit=5`,
+            `usuarios?select=id,email,login,nome,telefone,cargo,ativo,must_change_password&telefone=ilike.*${encodeURIComponent(suffix)}*&ativo=eq.true&limit=10`,
         );
         const list = Array.isArray(rows) ? rows : [];
         for (const row of list) {
+            if (!row?.id || seen.has(row.id)) continue;
+            if (!phonesMatch(row.telefone, digits)) continue;
+            seen.add(row.id);
             const pessoa = await findPessoaForUsuario(config, row);
             if (pessoa && clienteFromPessoa(pessoa)) return row;
         }
-        if (list[0]) return list[0];
+        for (const row of list) {
+            if (!row?.id || seen.has(row.id)) continue;
+            if (!phonesMatch(row.telefone, digits)) continue;
+            return row;
+        }
     }
     return null;
 }
@@ -524,15 +544,20 @@ async function findPessoaParceiroByContact(config, { email, phoneDigits }) {
         }
     }
     if (phoneDigits && phoneDigits.length >= 10) {
-        const local = phoneDigits.slice(-11);
-        const rows = await hubRest(
-            config,
-            `pessoas?select=${PESSOA_CLIENTE_LOOKUP_SELECT}&telefone=ilike.*${encodeURIComponent(local)}*&limit=5`,
-        );
-        const list = Array.isArray(rows) ? rows : [];
-        for (const pessoa of list) {
-            const hit = clienteFromPessoa(pessoa);
-            if (hit) return hit;
+        const seen = new Set();
+        for (const suffix of phoneLookupSuffixes(phoneDigits)) {
+            const rows = await hubRest(
+                config,
+                `pessoas?select=${PESSOA_CLIENTE_LOOKUP_SELECT}&telefone=ilike.*${encodeURIComponent(suffix)}*&limit=10`,
+            );
+            const list = Array.isArray(rows) ? rows : [];
+            for (const pessoa of list) {
+                if (!pessoa?.id || seen.has(pessoa.id)) continue;
+                if (!phonesMatch(pessoa.telefone, phoneDigits)) continue;
+                seen.add(pessoa.id);
+                const hit = clienteFromPessoa(pessoa);
+                if (hit) return hit;
+            }
         }
     }
     return null;

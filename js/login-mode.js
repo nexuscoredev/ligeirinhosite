@@ -14,7 +14,7 @@
         },
         signin: {
             title: 'Fazer login',
-            sub: 'Entre com Google ou usuário e senha',
+            sub: 'Entre com Google, CNPJ, celular ou usuário e senha',
         },
         signup: {
             title: 'Cadastro',

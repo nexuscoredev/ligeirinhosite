@@ -73,7 +73,7 @@ async function hubRpc(config, name, body, token) {
 async function hubSignIn(config, login, password) {
     const email = await resolveLoginEmailExtended(config, login);
     if (!email || typeof email !== 'string') {
-        return { error: 'Usuário, CNPJ ou senha incorretos.' };
+        return { error: 'Usuário, CNPJ, celular ou senha incorretos.' };
     }
 
     const res = await fetch(`${config.url}/auth/v1/token?grant_type=password`, {
