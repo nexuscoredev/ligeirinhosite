@@ -36,6 +36,14 @@
     const isMobileTotem = () =>
         typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 
+    /** iPad/iPhone — inclui iPadOS com UA de Mac (Safari desktop). */
+    const isIosTotem = () => {
+        if (typeof navigator === 'undefined') return false;
+        const ua = navigator.userAgent || '';
+        if (/iphone|ipad|ipod/i.test(ua)) return true;
+        return navigator.platform === 'MacIntel' && Number(navigator.maxTouchPoints) > 1;
+    };
+
     const resolveSessionUnitId = (cfg = {}) => {
         const session = window.LigeirinhoAuth?.loadSession?.() || {};
         const login = String(session.login || '').trim();
@@ -749,17 +757,28 @@ body{display:flex;justify-content:center;align-items:flex-start}
         const parts = host.split('.');
         if (parts.length !== 4) return '';
         const base = parts.slice(0, 3).join('.');
-        const batchSize = 24;
+        const batchSize = isIosTotem() ? 8 : 24;
+        const healthTimeout = isIosTotem() ? 1200 : 650;
         for (let start = 1; start <= 254; start += batchSize) {
             const end = Math.min(254, start + batchSize - 1);
             const candidates = [];
             for (let n = start; n <= end; n += 1) candidates.push(n);
-            const checks = await Promise.all(
-                candidates.map(async (n) => {
-                    const url = `http://${base}.${n}:${bridgePort}/print`;
-                    return (await bridgeReachable(url, 650)) ? url : '';
-                }),
-            );
+            const checks = isIosTotem()
+                ? await (async () => {
+                      const found = [];
+                      for (const n of candidates) {
+                          const url = `http://${base}.${n}:${bridgePort}/print`;
+                          // eslint-disable-next-line no-await-in-loop
+                          found.push((await bridgeReachable(url, healthTimeout)) ? url : '');
+                      }
+                      return found;
+                  })()
+                : await Promise.all(
+                      candidates.map(async (n) => {
+                          const url = `http://${base}.${n}:${bridgePort}/print`;
+                          return (await bridgeReachable(url, healthTimeout)) ? url : '';
+                      }),
+                  );
             const found = checks.find(Boolean) || '';
             if (found) {
                 storeBridgeUrl(found);
@@ -1131,12 +1150,17 @@ body{display:flex;justify-content:center;align-items:flex-start}
             if (mode === 'bridge') {
                 const bridgeOk = await tryBridge();
                 if (bridgeOk) return true;
+                if (isIosTotem()) {
+                    const airPrintOk = await printBrowser();
+                    if (airPrintOk) return true;
+                }
                 return allowBrowserFallback ? printBrowser() : false;
             }
 
             if (mode === 'auto' && isMobileTotem()) {
                 const bridgeOk = await tryBridge();
                 if (bridgeOk) return true;
+                if (isIosTotem()) return printBrowser();
                 return false;
             }
 
@@ -1205,6 +1229,8 @@ body{display:flex;justify-content:center;align-items:flex-start}
         formatCode,
         compactCode,
         copyToClipboard,
+        isIosTotem,
+        isMobileTotem,
         loadReceiptConfig,
         printOrderReceipt,
         printViaBridge,

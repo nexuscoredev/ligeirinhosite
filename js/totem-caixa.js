@@ -133,6 +133,7 @@ ${rows.join('')}
     let autoPrintEnabled = false;
     let autoPrintTriggered = false;
     let autoPrintRetried = false;
+    let iosPrintNeedsTap = false;
     let printMode = 'kiosk';
     let IDLE_BEFORE_MS = 35000;
     let COUNTDOWN_MS = 10000;
@@ -149,14 +150,18 @@ ${rows.join('')}
             } catch {
                 /* usa pedido em cache */
             }
-            await receipt?.printOrderReceipt?.(orderToPrint, {
+            autoPrintTriggered = false;
+            const printed = await receipt?.printOrderReceipt?.(orderToPrint, {
                 force: true,
                 totemLabel,
                 printMode,
-            }).then((printed) => {
-                if (printed) showPrintNote();
-                else showPrintError('Não foi possível imprimir. Confira se a ponte está rodando no PC do depósito.');
             });
+            if (printed) {
+                showPrintNote();
+                iosPrintNeedsTap = false;
+            } else {
+                showPrintError(isIosDevice() ? iosPrintError() : 'Não foi possível imprimir. Confira se a ponte está rodando no PC do depósito.');
+            }
             bumpScreenIdle();
         });
 
@@ -191,8 +196,21 @@ ${rows.join('')}
         return data.order;
     };
 
-    const triggerAutoPrint = async (order, { isRetry = false } = {}) => {
+    const isIosDevice = () => receipt?.isIosTotem?.() === true;
+
+    const iosPrintHint = () =>
+        'No iPad, toque em Imprimir comprovante. O Safari só libera a impressora após um toque seu (Ajustes > Privacidade > Rede local > Safari, se pedir).';
+
+    const iosPrintError = () =>
+        'Não foi possível imprimir. No iPad: confira Rede local do Safari e toque em Imprimir comprovante.';
+
+    const triggerAutoPrint = async (order, { isRetry = false, fromUserGesture = false } = {}) => {
         if (!receipt?.printOrderReceipt || !autoPrintEnabled) return;
+        if (isIosDevice() && !fromUserGesture && !isRetry) {
+            iosPrintNeedsTap = true;
+            showPrintError(iosPrintHint());
+            return;
+        }
         if (!isRetry && autoPrintTriggered) return;
         if (!isRetry) autoPrintTriggered = true;
         let orderToPrint = order;
@@ -209,12 +227,11 @@ ${rows.join('')}
         });
         if (printed) {
             showPrintNote();
+            iosPrintNeedsTap = false;
             return;
         }
-        showPrintError(
-            'Comprovante não saiu na impressora. Toque em Imprimir comprovante ou confira a ponte no PC do depósito.',
-        );
-        if (!isRetry && !autoPrintRetried) {
+        showPrintError(isIosDevice() ? iosPrintError() : 'Comprovante não saiu na impressora. Toque em Imprimir comprovante ou confira a ponte no PC do depósito.');
+        if (!isRetry && !autoPrintRetried && !isIosDevice()) {
             autoPrintRetried = true;
             window.setTimeout(() => {
                 void triggerAutoPrint(order, { isRetry: true });
@@ -292,6 +309,9 @@ Comprovante enviado para a impressora
 <span class="totem-caixa-card__print-error-text">Comprovante não saiu na impressora. Toque em Imprimir comprovante.</span>
 </p>`
             : '';
+        const reprintClass = isIosDevice() && autoPrintEnabled
+            ? 'totem-caixa-card__reprint totem-caixa-card__reprint--ios-prompt'
+            : 'totem-caixa-card__reprint';
         root.innerHTML = `<div class="lig-payment-card totem-pay-card totem-caixa-card">
 <span class="material-symbols-outlined totem-pay-icon totem-caixa-card__icon" aria-hidden="true">storefront</span>
 <h1 class="lig-payment-title">Dirija-se ao caixa</h1>
@@ -306,9 +326,9 @@ ${renderPaymentBlock(order)}
 <span class="totem-caixa-pulse" aria-hidden="true"></span>
 Aguardando confirmação no PDV…
 </p>
-<button type="button" class="totem-btn totem-btn--ghost totem-caixa-card__reprint" id="totem-caixa-reprint">
+<button type="button" class="totem-btn totem-btn--ghost ${reprintClass}" id="totem-caixa-reprint">
 <span class="material-symbols-outlined" aria-hidden="true">print</span>
-Imprimir comprovante
+${isIosDevice() && autoPrintEnabled ? 'Toque para imprimir comprovante' : 'Imprimir comprovante'}
 </button>
 <p class="totem-caixa-card__timeout" id="totem-caixa-timeout-wrap" hidden aria-live="polite">
 Nova tela em <strong id="totem-caixa-countdown">${Math.round(COUNTDOWN_MS / 1000)}</strong>s para o próximo cliente.

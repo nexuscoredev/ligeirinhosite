@@ -307,6 +307,23 @@ body.totem-is-printing .totem-receipt-print {
     flex-shrink: 0;
 }
 
+.totem-caixa-card__reprint--ios-prompt {
+    border-color: rgba(240, 201, 41, 0.65);
+    background: rgba(240, 201, 41, 0.12);
+    font-weight: 700;
+    animation: totem-caixa-reprint-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes totem-caixa-reprint-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(240, 201, 41, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(240, 201, 41, 0);
+    }
+}
+
 .totem-caixa-card__reprint {
     display: inline-flex;
     align-items: center;
