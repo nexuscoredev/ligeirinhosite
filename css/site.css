@@ -8800,6 +8800,13 @@ body[data-page='ofertas'] #lig-page-main {
     color: var(--lig-text-subtle);
 }
 
+.lig-wa-import-row__price-was {
+    text-decoration: line-through;
+    opacity: 0.65;
+    font-weight: 500;
+    margin-right: 0.25rem;
+}
+
 .lig-wa-import-row__price-detail {
     display: block;
     margin-top: 0.2rem;

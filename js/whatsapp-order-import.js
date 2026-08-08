@@ -49,6 +49,7 @@
     let rows = [];
     let displayItems = [];
     let catalogReady = null;
+    let promoOffers = { byCartKey: {}, byItemKey: {} };
 
     const esc = (value) =>
         String(value ?? '')
@@ -228,6 +229,32 @@
         return items;
     };
 
+    const reloadPromoOffers = async (items, force = false) => {
+        const promoCatalog = window.LigeirinhoPromoCatalog;
+        const promoCards = window.LigeirinhoParceirosPromoCards;
+        const catalog = window.LigeirinhoCatalog;
+        const pricing = window.LigeirinhoPricing;
+
+        if (window.LigeirinhoAuth?.usesPersonalPriceTable?.()) {
+            promoOffers = { byCartKey: {}, byItemKey: {} };
+            return;
+        }
+        if (!promoCatalog?.createHubPromoLoader || !promoCards?.preparePromoGroups || !items?.length) {
+            promoOffers = { byCartKey: {}, byItemKey: {} };
+            return;
+        }
+
+        const promoLoader = promoCatalog.createHubPromoLoader('/api/promocoes');
+        const promos = await promoLoader.load(force);
+        const prepared = promoCards.preparePromoGroups(promos, items, promoCatalog);
+        promoOffers = promoCatalog.buildPromoOfferIndex(prepared.groups, {
+            buildCartCtx: (entry) => promoCards.buildCartCtx(entry, { promoCatalog, catalog, pricing }),
+        });
+    };
+
+    const resolvePromoOffer = (cartKey, itemKey, tier) =>
+        window.LigeirinhoPromoCatalog?.resolvePromoOffer?.(promoOffers, cartKey, itemKey, tier) || null;
+
     const loadCatalogItems = async () => {
         if (catalogReady) return catalogReady;
         catalogReady = (async () => {
@@ -238,7 +265,9 @@
             }
             const catalog = await loader.load();
             const groups = pricing.buildGroups(catalog);
-            return attachSearchIndex(pricing.getDisplayProducts(catalog, groups));
+            const items = attachSearchIndex(pricing.getDisplayProducts(catalog, groups));
+            await reloadPromoOffers(items, false);
+            return items;
         })();
         return catalogReady;
     };
@@ -260,6 +289,13 @@
             pricing,
         );
         if (!fields) return null;
+
+        const itemKey = displayItem.group?.key || variant.id;
+        const offer = resolvePromoOffer(cartKey, itemKey, tier);
+        if (offer?.promoPrice != null && Number.isFinite(Number(offer.promoPrice))) {
+            fields.price = Number(offer.promoPrice);
+            if (offer.promoId) fields.promoId = offer.promoId;
+        }
 
         const price =
             window.LigeirinhoCartPrice?.resolveAddToCartPrice?.(fields) ?? Number(fields.price);
@@ -362,8 +398,11 @@
         const cartName = pricing.cartItemName?.(variant, displayItem.group) || line.name;
         const packPriceLabel =
             tier === 'pallet' ? 'por pallet' : tier === 'caixa' ? 'por caixa' : 'por unidade';
+        const catalog = window.LigeirinhoCatalog;
+        const cartKey = catalog?.cartKeyFor?.(variant) || '';
+        const offer = resolvePromoOffer(cartKey, displayItem.group?.key || variant.id, tier);
 
-        return { line, variant, meta, cartName, tier, packPriceLabel };
+        return { line, variant, meta, cartName, tier, packPriceLabel, offer };
     };
 
     const matchContextNote = (row, matchEntry) => {
@@ -524,8 +563,16 @@
 
     const formatPriceBlock = (metaBundle, qty) => {
         if (!metaBundle?.line) return '';
-        const { line, meta, packPriceLabel, cartName, tier } = metaBundle;
+        const { line, meta, packPriceLabel, cartName, tier, offer } = metaBundle;
         const total = line.price * qty;
+        const originalPrice =
+            offer?.originalPrice != null && Number.isFinite(Number(offer.originalPrice))
+                ? Number(offer.originalPrice)
+                : null;
+        const promoWas =
+            originalPrice != null && originalPrice > line.price
+                ? `<span class="lig-wa-import-row__price-was">${esc(formatPrice(originalPrice))}</span> `
+                : '';
         const unitInside =
             tier === 'caixa' && meta.unitPrice
                 ? `<span class="lig-wa-import-row__price-detail">${esc(formatPrice(meta.unitPrice))}/un dentro da caixa</span>`
@@ -535,7 +582,7 @@
 
         return `<div class="lig-wa-import-row__price-box">
 <p class="lig-wa-import-row__cart-preview"><span class="material-symbols-outlined" aria-hidden="true">shopping_cart</span> ${esc(qty)}× ${esc(cartName)}</p>
-<p class="lig-wa-import-row__price">${esc(formatPrice(line.price))} <span class="lig-wa-import-row__price-tier">${esc(packPriceLabel)}</span>${qty > 1 ? ` · Total ${esc(formatPrice(total))}` : ''}</p>
+<p class="lig-wa-import-row__price">${promoWas}${esc(formatPrice(line.price))} <span class="lig-wa-import-row__price-tier">${esc(packPriceLabel)}</span>${qty > 1 ? ` · Total ${esc(formatPrice(total))}` : ''}</p>
 ${unitInside}
 </div>`;
     };
