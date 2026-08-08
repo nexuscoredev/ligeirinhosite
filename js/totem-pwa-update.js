@@ -1,6 +1,6 @@
 /**
  * Atualização sistêmica do totem (service worker).
- * Aplica sozinho com barra de progresso — sem botão "Atualizar".
+ * Botão "Atualizar" no header quando há versão pendente; barra ao aplicar.
  */
 (function () {
     'use strict';

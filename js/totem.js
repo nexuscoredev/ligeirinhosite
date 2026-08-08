@@ -83,6 +83,7 @@
     const customerManualLead = document.getElementById('totem-customer-manual-lead');
     const logoBtn = document.getElementById('totem-logo-btn');
     const promosBtn = document.getElementById('totem-promos-btn');
+    const refreshBtn = document.getElementById('totem-refresh-btn');
     const syncBtn = document.getElementById('totem-sync-btn');
     const adminEditBtn = document.getElementById('totem-admin-edit-btn');
     const adminOrdersBtn = document.getElementById('totem-admin-orders-btn');
@@ -2747,12 +2748,15 @@ ${unitHtml}
         const showShoppingActions = Boolean(customerIdentified && inShopping);
         const pendingSystemUpdate = Boolean(window.LigeirinhoTotemPwaUpdate?.isPending?.());
         const showAdminOrders = Boolean(window.LigeirinhoTotemOrdersAdmin?.isTotemAdmin?.());
-        const showHeaderActions = showShoppingActions || showAdminOrders;
+        const showHeaderActions = showShoppingActions || showAdminOrders || pendingSystemUpdate;
 
         if (headerActions) {
             headerActions.hidden = !showHeaderActions;
             headerActions.classList.toggle('totem-header__actions--visible', showHeaderActions);
-            headerActions.classList.remove('totem-header__actions--update-only');
+            headerActions.classList.toggle(
+                'totem-header__actions--update-only',
+                pendingSystemUpdate && !showShoppingActions && !showAdminOrders,
+            );
         }
 
         if (promosBtn) {
@@ -2784,6 +2788,19 @@ ${unitHtml}
 
         if (adminOrdersBtn) {
             window.LigeirinhoTotemOrdersAdmin?.updateAdminChrome?.();
+        }
+
+        if (refreshBtn) {
+            refreshBtn.hidden = !pendingSystemUpdate;
+            refreshBtn.disabled =
+                refreshBusy || window.LigeirinhoTotemPwaUpdate?.status?.() === 'checking';
+            refreshBtn.classList.toggle('totem-btn--update-pending', pendingSystemUpdate);
+            refreshBtn.classList.toggle('totem-btn--refreshing', refreshBusy);
+            refreshBtn.setAttribute('aria-busy', refreshBusy ? 'true' : 'false');
+            refreshBtn.setAttribute(
+                'aria-label',
+                pendingSystemUpdate ? 'Aplicar atualização do sistema' : 'Atualizar',
+            );
         }
 
         document.documentElement.classList.toggle('totem--shopping-chrome', showShoppingActions);
@@ -2883,6 +2900,8 @@ ${unitHtml}
         if (!canAutoApplySystemUpdate()) return false;
         if (!window.LigeirinhoTotemPwaUpdate?.isPending?.()) return false;
         refreshBusy = true;
+        refreshBtn?.classList.add('totem-btn--refreshing');
+        refreshBtn?.setAttribute('aria-busy', 'true');
         void window.LigeirinhoTotemPwaUpdate.aplicar();
         return true;
     };
@@ -4386,6 +4405,15 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
             bumpIdle();
         });
 
+        refreshBtn?.addEventListener('click', () => {
+            if (refreshBusy || !window.LigeirinhoTotemPwaUpdate?.isPending?.()) return;
+            refreshBusy = true;
+            refreshBtn.classList.add('totem-btn--refreshing');
+            refreshBtn.setAttribute('aria-busy', 'true');
+            void window.LigeirinhoTotemPwaUpdate.aplicar();
+            bumpIdle();
+        });
+
         promosBackBtn?.addEventListener('click', () => {
             leavePromosView();
             bumpIdle();
@@ -4806,6 +4834,7 @@ ${item.promoId ? '<span class="totem-cart-line__promo">PROMO</span><span class="
         updateUnitFeatureUi();
         suppressGhostClicks(280);
         window.LigeirinhoTotemPwaUpdate?.onStatusChange?.((detail) => {
+            if (detail?.status !== 'applying') refreshBusy = false;
             updateShoppingChrome();
             if (
                 detail?.pendente &&
