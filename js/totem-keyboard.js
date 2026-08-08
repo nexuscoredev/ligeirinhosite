@@ -18,6 +18,9 @@
         ['1', '2', '3'],
     ];
 
+    const PASSWORD_SYMBOLS_PRIMARY = ['!', '@', '#', '$', '%', '&', '*', '-', '_'];
+    const PASSWORD_SYMBOLS_EXTRA = ['(', ')', '+', '=', '.', ',', '?', '/', ':', ';'];
+
     let root = null;
     let input = null;
     let onInput = null;
@@ -26,6 +29,10 @@
     let open = false;
     let currentMode = null;
     let lowercaseInput = false;
+    let passwordSymbolsExtraOpen = false;
+    let passwordLettersPanel = null;
+    let passwordSymbolsExtraPanel = null;
+    let passwordSymbolsToggleBtn = null;
     let lastInsertAt = 0;
     const INSERT_MIN_MS = 90;
 
@@ -118,8 +125,25 @@
         onClose?.();
     };
 
+    const setPasswordSymbolsExtraOpen = (next) => {
+        passwordSymbolsExtraOpen = Boolean(next);
+        if (passwordLettersPanel) passwordLettersPanel.hidden = passwordSymbolsExtraOpen;
+        if (passwordSymbolsExtraPanel) passwordSymbolsExtraPanel.hidden = !passwordSymbolsExtraOpen;
+        if (passwordSymbolsToggleBtn) {
+            passwordSymbolsToggleBtn.textContent = passwordSymbolsExtraOpen ? 'ABC' : '#+=';
+            passwordSymbolsToggleBtn.setAttribute(
+                'aria-label',
+                passwordSymbolsExtraOpen ? 'Voltar para letras' : 'Caracteres especiais',
+            );
+        }
+    };
+
     const handleKey = (action, value) => {
         if (!input) return;
+        if (action === 'toggle-symbols') {
+            setPasswordSymbolsExtraOpen(!passwordSymbolsExtraOpen);
+            return;
+        }
         if (action === 'char') insertChar(value);
         else if (action === 'space') insertChar(' ');
         else if (action === 'backspace') backspace();
@@ -152,23 +176,35 @@
         });
     };
 
-    const buildFullKeyboard = (submitLabel = 'Buscar', { email = false } = {}) => {
+    const buildFullKeyboard = (submitLabel = 'Buscar', { email = false, password = false } = {}) => {
+        passwordSymbolsExtraOpen = false;
+        passwordLettersPanel = null;
+        passwordSymbolsExtraPanel = null;
+        passwordSymbolsToggleBtn = null;
+
         root = document.createElement('div');
         root.id = 'totem-vk';
-        root.className = 'totem-vk';
+        root.className = `totem-vk${password ? ' totem-vk--password' : ''}`;
         root.hidden = true;
         root.setAttribute('aria-hidden', 'true');
 
         const inner = document.createElement('div');
         inner.className = 'totem-vk__inner';
         inner.setAttribute('role', 'group');
-        inner.setAttribute('aria-label', 'Teclado virtual ABNT');
+        inner.setAttribute(
+            'aria-label',
+            password ? 'Teclado virtual — senha' : 'Teclado virtual ABNT',
+        );
 
         const layout = document.createElement('div');
         layout.className = 'totem-vk__layout';
 
         const letters = document.createElement('div');
         letters.className = 'totem-vk__letters';
+
+        const lettersPanel = document.createElement('div');
+        lettersPanel.className = 'totem-vk__panel totem-vk__panel--letters';
+        passwordLettersPanel = lettersPanel;
 
         LETTER_ROWS.forEach((row, index) => {
             const rowEl = document.createElement('div');
@@ -190,24 +226,67 @@
                 rowEl.appendChild(backspaceBtn);
             }
 
-            letters.appendChild(rowEl);
+            lettersPanel.appendChild(rowEl);
         });
 
         if (email) {
             const symRow = document.createElement('div');
             symRow.className = 'totem-vk__row totem-vk__row--symbols';
             ['@', '.', '-', '_'].forEach((key) => symRow.appendChild(createCharKey(key)));
-            letters.appendChild(symRow);
+            lettersPanel.appendChild(symRow);
+        }
+
+        if (password) {
+            const symRow = document.createElement('div');
+            symRow.className = 'totem-vk__row totem-vk__row--symbols totem-vk__row--symbols-password';
+            PASSWORD_SYMBOLS_PRIMARY.forEach((key) => symRow.appendChild(createCharKey(key)));
+            lettersPanel.appendChild(symRow);
+
+            const symbolsExtraPanel = document.createElement('div');
+            symbolsExtraPanel.className = 'totem-vk__panel totem-vk__panel--symbols-extra';
+            symbolsExtraPanel.hidden = true;
+            passwordSymbolsExtraPanel = symbolsExtraPanel;
+
+            const extraRowA = document.createElement('div');
+            extraRowA.className = 'totem-vk__row totem-vk__row--symbols-extra';
+            PASSWORD_SYMBOLS_EXTRA.slice(0, 5).forEach((key) =>
+                extraRowA.appendChild(createCharKey(key)),
+            );
+            symbolsExtraPanel.appendChild(extraRowA);
+
+            const extraRowB = document.createElement('div');
+            extraRowB.className = 'totem-vk__row totem-vk__row--symbols-extra';
+            PASSWORD_SYMBOLS_EXTRA.slice(5).forEach((key) =>
+                extraRowB.appendChild(createCharKey(key)),
+            );
+            symbolsExtraPanel.appendChild(extraRowB);
+
+            letters.appendChild(lettersPanel);
+            letters.appendChild(symbolsExtraPanel);
+        } else {
+            letters.appendChild(lettersPanel);
         }
 
         const actions = document.createElement('div');
         actions.className = 'totem-vk__row totem-vk__row--actions';
-        actions.innerHTML = `<button type="button" class="totem-vk__key totem-vk__key--wide" data-action="space" aria-label="Espaço">Espaço</button>
+        if (password) {
+            actions.classList.add('totem-vk__row--actions-password');
+            actions.innerHTML = `<button type="button" class="totem-vk__key totem-vk__key--ghost totem-vk__key--symbols-toggle" data-action="toggle-symbols" aria-label="Caracteres especiais">#+=</button>
+<button type="button" class="totem-vk__key totem-vk__key--wide" data-action="space" aria-label="Espaço">Espaço</button>
 <button type="button" class="totem-vk__key totem-vk__key--ghost" data-action="clear">Limpar</button>
 <button type="button" class="totem-vk__key totem-vk__key--primary totem-vk__key--submit" data-action="submit">${submitLabel}</button>
 <button type="button" class="totem-vk__key totem-vk__key--icon totem-vk__key--ghost" data-action="close" aria-label="Fechar teclado">
 <span class="material-symbols-outlined" aria-hidden="true">keyboard_hide</span>
 </button>`;
+            passwordSymbolsToggleBtn = actions.querySelector('[data-action="toggle-symbols"]');
+        } else {
+            actions.innerHTML = `<button type="button" class="totem-vk__key totem-vk__key--wide" data-action="space" aria-label="Espaço">Espaço</button>
+<button type="button" class="totem-vk__key totem-vk__key--ghost" data-action="clear">Limpar</button>
+<button type="button" class="totem-vk__key totem-vk__key--primary totem-vk__key--submit" data-action="submit">${submitLabel}</button>
+<button type="button" class="totem-vk__key totem-vk__key--icon totem-vk__key--ghost" data-action="close" aria-label="Fechar teclado">
+<span class="material-symbols-outlined" aria-hidden="true">keyboard_hide</span>
+</button>`;
+        }
         letters.appendChild(actions);
 
         const numpad = document.createElement('div');
@@ -297,6 +376,7 @@
         currentMode = mode;
         if (mode === 'numeric') buildNumericKeyboard(submitLabel);
         else if (mode === 'email') buildFullKeyboard(submitLabel, { email: true });
+        else if (mode === 'password') buildFullKeyboard(submitLabel, { password: true });
         else buildFullKeyboard(submitLabel);
     };
 
@@ -307,7 +387,14 @@
         onClose = typeof opts.onClose === 'function' ? opts.onClose : null;
         if (!input) return;
 
-        const mode = opts.mode === 'numeric' ? 'numeric' : opts.mode === 'email' ? 'email' : 'full';
+        const mode =
+            opts.mode === 'numeric'
+                ? 'numeric'
+                : opts.mode === 'email'
+                  ? 'email'
+                  : opts.mode === 'password'
+                    ? 'password'
+                    : 'full';
         const submitLabel = String(opts.submitLabel || (mode === 'numeric' ? 'OK' : 'Buscar'));
         lowercaseInput = mode === 'email';
         ensureKeyboard(mode, submitLabel);

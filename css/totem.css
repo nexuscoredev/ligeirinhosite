@@ -7542,6 +7542,38 @@ button.totem-detail__qty-value.totem-qty-edit:active {
     margin-inline: auto;
 }
 
+.totem-vk__row--symbols-password {
+    grid-template-columns: repeat(9, minmax(1.35rem, 1fr));
+    width: 100%;
+    margin-inline: 0;
+}
+
+.totem-vk__row--symbols-extra {
+    grid-template-columns: repeat(5, minmax(1.35rem, 1fr));
+    width: min(100%, 88%);
+    margin-inline: auto;
+}
+
+.totem-vk__row--actions-password {
+    grid-template-columns:
+        minmax(2.25rem, 0.75fr) minmax(2.75rem, 1.6fr) minmax(2.25rem, 0.85fr) minmax(2.75rem, 1fr)
+        minmax(2.25rem, 0.75fr);
+}
+
+.totem-vk__key--symbols-toggle {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.totem-vk--password .totem-vk__panel--symbols-extra {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1 1 auto;
+    justify-content: center;
+}
+
 .totem-vk__row--actions {
     grid-template-columns: minmax(3.5rem, 2.4fr) minmax(2.5rem, 0.95fr) minmax(2.75rem, 1.1fr) minmax(2.25rem, 0.85fr);
     margin-top: 0.1rem;
