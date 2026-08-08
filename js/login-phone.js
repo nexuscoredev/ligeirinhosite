@@ -13,6 +13,10 @@
     const params = new URLSearchParams(window.location.search);
     const nextUrl = params.get('next') || '';
 
+    let cnpjLookupTimer = null;
+    let cnpjLookupInflight = '';
+    let lastAutofillCnpj = '';
+
     const setStatus = (msg, isError = false) => {
         if (!statusEl) return;
         statusEl.textContent = msg;
@@ -23,9 +27,68 @@
 
     const resetSignup = () => {
         signupForm?.reset();
+        cnpjLookupInflight = '';
+        lastAutofillCnpj = '';
         setStatus('');
         if (submitBtn) submitBtn.disabled = false;
-        window.setTimeout(() => companyInput?.focus(), 60);
+        window.setTimeout(() => cnpjInput?.focus(), 60);
+    };
+
+    const applySignupAutofill = (data) => {
+        if (data.company && companyInput) companyInput.value = data.company;
+        if (data.phone && phoneInput) {
+            phoneInput.value = phoneAuth.maskPhoneInput(data.phone);
+        }
+        lastAutofillCnpj = phoneAuth.normalizeCnpj(cnpjInput?.value || '');
+        setStatus('Dados preenchidos automaticamente.', false);
+    };
+
+    const lookupSignupCnpj = async (digits) => {
+        if (!digits || digits === cnpjLookupInflight) return;
+        cnpjLookupInflight = digits;
+        setStatus('Consultando CNPJ…', false);
+        try {
+            const res = await fetch('/api/auth/signup-cnpj-lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cnpj: digits }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (phoneAuth.normalizeCnpj(cnpjInput?.value || '') !== digits) return;
+            if (!res.ok) {
+                setStatus(data.error || 'CNPJ não encontrado. Preencha manualmente.', true);
+                companyInput?.focus();
+                return;
+            }
+            applySignupAutofill(data);
+            if (!phoneAuth.normalizeCompanyName(companyInput?.value || '')) {
+                companyInput?.focus();
+            } else if (!phoneAuth.normalizePhoneBR(phoneInput?.value || '')) {
+                phoneInput?.focus();
+            }
+        } catch {
+            if (phoneAuth.normalizeCnpj(cnpjInput?.value || '') === digits) {
+                setStatus('Falha ao consultar CNPJ. Preencha manualmente.', true);
+            }
+        } finally {
+            if (cnpjLookupInflight === digits) cnpjLookupInflight = '';
+        }
+    };
+
+    const scheduleCnpjLookup = () => {
+        window.clearTimeout(cnpjLookupTimer);
+        const digits = phoneAuth.normalizeCnpj(cnpjInput?.value || '');
+        if (digits.length < 14) {
+            if (lastAutofillCnpj && digits !== lastAutofillCnpj) {
+                lastAutofillCnpj = '';
+            }
+            return;
+        }
+        if (!phoneAuth.isValidCnpj(digits)) return;
+        if (digits === lastAutofillCnpj) return;
+        cnpjLookupTimer = window.setTimeout(() => {
+            void lookupSignupCnpj(digits);
+        }, 450);
     };
 
     const submit = async (event) => {
@@ -35,14 +98,14 @@
         const cnpj = phoneAuth.normalizeCnpj(cnpjInput?.value || '');
         const phone = phoneAuth.normalizePhoneBR(phoneInput?.value || '');
 
-        if (!phoneAuth.isValidCompanyName(company)) {
-            setStatus('Informe o nome da empresa.', true);
-            companyInput?.focus();
-            return;
-        }
         if (!phoneAuth.isValidCnpj(cnpj)) {
             setStatus('Informe um CNPJ válido com 14 dígitos.', true);
             cnpjInput?.focus();
+            return;
+        }
+        if (!phoneAuth.isValidCompanyName(company)) {
+            setStatus('Informe o nome da empresa.', true);
+            companyInput?.focus();
             return;
         }
         if (!phone) {
@@ -87,12 +150,18 @@
     cnpjInput?.addEventListener('input', () => {
         if (!cnpjInput) return;
         cnpjInput.value = phoneAuth.maskCnpjInput(cnpjInput.value);
+        if (statusEl?.classList.contains('lig-login-status--ok')) setStatus('');
+        scheduleCnpjLookup();
     });
 
     phoneInput?.addEventListener('input', () => {
         if (!phoneInput) return;
         phoneInput.value = phoneAuth.maskPhoneInput(phoneInput.value);
         phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length);
+    });
+
+    companyInput?.addEventListener('input', () => {
+        companyInput?.classList.remove('lig-login-setup__input--error');
     });
 
     signupForm?.addEventListener('submit', submit);
