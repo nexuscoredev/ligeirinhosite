@@ -511,7 +511,12 @@ export async function ensureHubPedidoForTotem(order, env = process.env) {
         return syncHubPedidoPagamento(hub, existing, order);
     }
 
-    if (order.financial_status !== 'aguardando_caixa' || !order.payment_method) {
+    // Após pay no caixa, financial_status já é "pago" — ainda assim precisamos criar o Hub.
+    const fin = String(order.financial_status || '').toLowerCase();
+    const podeCriar =
+        Boolean(order.payment_method) &&
+        (fin === 'aguardando_caixa' || fin === 'pago' || fin.includes('aguardando'));
+    if (!podeCriar) {
         return null;
     }
 

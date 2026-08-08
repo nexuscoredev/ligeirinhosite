@@ -241,11 +241,21 @@ export async function confirmCaixaPayment(
         let hubPedido = null;
         if (hub.serviceKey) {
             hubPedido = await buscarHubPedidoPorParceirosId(hub, order.id);
+            // Já pago no Parceiros, mas Hub pode ter ficado sem pagamento_recebido_em.
+            if (!hubPedido || !hubPedido.pagamento_recebido_em || hubPedidoTotemCancelado(hubPedido)) {
+                try {
+                    hubPedido = await confirmHubPedidoForTotem(order, env, operator);
+                } catch (hubErr) {
+                    console.error('confirmHubPedidoForTotem(heal)', hubErr.message || hubErr);
+                }
+            }
         }
-        if (!hubPedidoTotemCancelado(hubPedido)) {
+        if (hubPedidoTotemCancelado(hubPedido)) {
+            order = await reopenTotemParceirosOrderForCaixa({ url, key, useRpc }, order);
+        } else {
+            if (hubPedido) order._hubPedido = hubPedido;
             return order;
         }
-        order = await reopenTotemParceirosOrderForCaixa({ url, key, useRpc }, order);
     }
     if (String(order.channel || '').toLowerCase() !== 'totem') {
         const err = new Error('Pedido não é do totem');
